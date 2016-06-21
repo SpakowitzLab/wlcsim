@@ -1,0 +1,116 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{latexsym}
+%\usepackage{cite}
+\usepackage{color}
+
+% this handles hanging indents for publications
+\def\rrr#1\\{\par
+\medskip\hbox{\vbox{\parindent=2em\hsize=6.12in
+\hangindent=4em\hangafter=1#1}}}
+
+\def\baselinestretch{1.5}
+
+\begin{document}
+
+\title{Brownian Dynamics Simulation Package \\ AJS-wlcsim}
+\author{Andrew Spakowitz}
+\date{2/3/15}
+\maketitle
+
+\begin{abstract}
+This Brownian dynamics simulation package is a basic beaded-chain
+polymer simulation to model a discrete wormlike chain polymer (stretchable).
+The elastic energy includes a stretching and bending energy.
+There is an option to enforce a fixed chain length through a Lagrange constraint.
+\end{abstract}
+
+\section*{Polymer model}
+
+The total energy of the polymer is given by
+\begin{equation}
+E_{tot} = E_{stretch} + E_{bend}
+\end{equation}
+\noindent
+The stretching energy $E_{stretch}$ is given by
+\begin{equation}
+E_{stretch} = \frac{A}{2} \sum_{n=1}^{N-1}
+\left( 
+b_{n} - l_{0}
+\right)^{2}
+\end{equation}
+\noindent
+where $A$ is the stretching modulus, $b_{n} = \left| \vec{r}_{n+1} - \vec{r}_{n} \right|$,
+and $l_{0}$ is the equilibrium length between beads.
+The bending energy $E_{bend}$ is given by
+\begin{equation}
+E_{bend} = 
+\frac{B}{2} \sum_{n=1}^{N-2} \left(
+\vec{u}_{n+1} - \vec{u}_{n}
+\right)^{2}=
+B \sum_{n=1}^{N-2} \left( 1 - \vec{u}_{n+1} \cdot \vec{u}_{n} \right)
+\end{equation}
+\noindent
+where $B$ is the bending modulus, and
+$\vec{u}_{n} = \left( \vec{r}_{n+1} - \vec{r}_{n} \right)/b_{n}$ is
+the unit tangent vector.
+
+\section*{Input file}
+
+The following input file can be copied directly from the latex source file.
+\begin{verbatim}
+ ! ----------------------------------------------------
+ !Input file for polymer simulation package
+
+ !-Record 1
+ !  KAP             Compression modulus
+  500.
+
+ !-Record 2
+ !  EPS             Bending modulus
+  21.2
+
+ !-Record 3
+ !  L0              Equilibrium segment length
+  1.
+
+ !-Record 4
+ !  XI              Drag coefficient
+  1.
+
+ !-Record 5
+ !  N               Number of beads
+  50
+
+ !-Record 6
+ !  TF              Total simulation time
+  1.
+
+ !-Record 7
+ !  INDMAX          Total number of save points
+  100
+
+ !-Record 8
+ !  DT              Timestep for integration
+  0.0002
+
+ !-Record 9
+ !  FRMFILE         Load in the inital conf?
+  0
+
+ !-Record 10
+ !  BROWN           Include Brownian forces?
+  1
+
+ !-Record 11
+ !  CON             Include length constraint?
+  1
+
+ ! ----------------------------------------------------
+\end{verbatim}
+
+
+\end{document}

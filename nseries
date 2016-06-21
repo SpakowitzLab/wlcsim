@@ -1,0 +1,54 @@
+cp input/input1 input/input
+./runpara.pl
+mkdir savedata/n1
+mv savedata/data* savedata/n1/.
+
+cp input/input2 input/input
+./runpara.pl
+mkdir savedata/n2
+mv savedata/data* savedata/n2/.
+
+cp input/input3 input/input
+./runpara.pl
+mkdir savedata/n3
+mv savedata/data* savedata/n3/.
+
+cp input/input4 input/input
+./runpara.pl
+mkdir savedata/n4
+mv savedata/data* savedata/n4/.
+
+cp input/input5 input/input
+./runpara.pl
+mkdir savedata/n5
+mv savedata/data* savedata/n5/.
+
+cp input/input6 input/input
+./runpara.pl
+mkdir savedata/n6
+mv savedata/data* savedata/n6/.
+
+cp input/input7 input/input
+./runpara.pl
+mkdir savedata/n7
+mv savedata/data* savedata/n7/.
+
+cp input/input8 input/input
+./runpara.pl
+mkdir savedata/n8
+mv savedata/data* savedata/n8/.
+
+cp input/input9 input/input
+./runpara.pl
+mkdir savedata/n9
+mv savedata/data* savedata/n9/.
+
+cp input/input10 input/input
+./runpara.pl
+mkdir savedata/n10
+mv savedata/data* savedata/n10/.
+
+cp input/input11 input/input
+./runpara.pl
+mkdir savedata/n11
+mv savedata/data* savedata/n11/.

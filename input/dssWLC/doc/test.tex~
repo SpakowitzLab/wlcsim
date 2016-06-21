@@ -1,0 +1,281 @@
+\documentclass[12pt]{article}
+\usepackage{url,setspace,amsmath}
+\usepackage[dvips]{color}
+\setlength{\oddsidemargin}{-8mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\textwidth}{175mm}
+\setlength{\topmargin}{-5mm}
+\setlength{\textheight}{240mm}
+\setlength{\headheight}{0cm}
+\setstretch{1}
+
+\begin{document}
+\title{\vspace{-2cm}Documentation for shearableWLC code. Simulations using the dssWLC model.}
+\author{E.~F.~Koslover, A.~J.~Spakowitz}
+\date{Last updated \today}
+\maketitle
+
+This code can be used to run Brownian Dynamics or Monte Carlo simulations of the dssWLC model.
+
+\tableofcontents
+\newpage
+
+\section{Compilation Instructions}
+To compile and run the program, you will need the following:
+\begin{itemize}
+\item a compiler capable of handling Fortran90.
+The code has been tested with the gfortran compiler. 
+\item BLAS and LAPACK libraries installed in a place where the compiler knows to look for them
+\item Python (version 2.5 or higher) to run various auxiliary scripts
+  (e.g., for visualization). The scripts have been tested with Python
+  2.6.4 only. You will also need the NumPy extension package.
+\item Recommended: PyMOL to visualize pdb files.
+\end{itemize}
+
+The code has been tested on Ubuntu Linux only.
+
+To compile with gfortran, go into the \path=source= directory. Type \verb=make=.
+To compile with any other compiler that can handle Fortran90, type
+\begin{verbatim}
+make FC=compiler
+\end{verbatim}
+substituting in the command you usually use to call the compiler. 
+
+If the compilation works properly, the executable \path=shearableWLC.exe= will appear in the main directory.
+
+%% To test that the code is running properly, go into the \path=testing= directory and type 
+%% \begin{verbatim}
+%% ./runalltests.py
+%% \end{verbatim}
+%% This will run a number of test calculations to make sure everything works properly. The tests will take a few minutes to complete.
+
+\section{Usage Instructions}
+To run the program in the main directory, type:
+\begin{verbatim}
+./shearableWLC.exe suffix
+\end{verbatim}
+
+Here, \verb=suffix= can be any string up to 100 characters in length. 
+The program reads in all input information from a file named
+\path=param.suffix= where, again, \verb=suffix= is the command-line
+argument. If no argument is supplied, it will look for a file named
+\path=param=. If the desired parameter file does not exist, the
+program will exit with an error.
+
+The parameters in the input file are given in the format "{\em KEYWORD} value" where the possible keywords and values are described
+in Section \ref{sec:keywords}. Each keyword goes on a separate
+line. Any line that starts with "\#" is treated as a comment and
+ignored. Any blank line is also ignored. The keywords in the parameter
+file are not case sensitive. For the most part, the order in which the
+keywords are given does not matter. All parameters have default
+values, so you need only specify keywords and values when you want to
+change something from the default.
+
+%Instructions for running specific calculations are given in more
+detail in Section \ref{sec:tasks}. 
+Example parameter files for the
+different calculations are provided in the \path=examples= directory.
+
+\section{Examples for a Quick Start}
+%% \subsection{Example 1}
+%% Suppose you want to find several locally minimized structures for a
+%% fiber with 45 bp linkers, where the height per nucleosome is fixed to
+%% 1.5 nm. 
+
+%% Work in the \path=examples= directory.
+%% \begin{enumerate}
+%% \item Set up the parameter file.
+
+%% The parameter file \path=param.ex.basinhop= is
+%% designed to run such a calculation. You do not have to alter it for
+%% this example. The line
+%% ``\verb=LINKLEN 15.3D0='' sets the linker length to the desired value
+%% in nm. The line ``\verb=STARTHELH 1.50='' indicates that we want to
+%% start with a structure that has a height of 1.5 nm per nucleosome and
+%% the line ``\verb=FIXHELIXPARAM 1='' indicates that we want the height
+%% per nucleosome fixed throughout the calculation. Note that the definition of the helical
+%% coordinates, in order, is given in Section \ref{sec:helrep}.
+%% The number of basin hops to run is set with the
+%% ``\verb=NBASINHOP 50='' line.
+
+%% \item Run the code.
+
+%% On the command line, in the \path=examples= directory, type
+%% \begin{verbatim}
+%% ../fiberModel.exe ex.basinhop
+%% \end{verbatim}
+%% A calculation with 50 basin hops will be run. The final output will
+%% give the energy, helix coordinates, and individual energy parts for
+%% each of the ten best structures found.
+%% The top 5 structures will be output (with 30 nucleosomes) into the files 
+%% \path=ex.basinhop.1.replic.out=, \path=ex.basinhop.2.replic.out=, etc.
+
+
+%% \item Convert output files to pdb.
+
+%% On the command line, still in the \path=examples= directory, type
+%% \begin{verbatim}
+%% ../scripts/beadbranch2pdb.py ex.basinhop.*.replic.out -nbp 5
+%% \end{verbatim}
+%% This will convert the output structures to pdb, with 5 basepairs per
+%% linker segment.
+
+%% \item Visualize pdb structure files.
+
+%% Open up PyMOL and make sure its current directory is set to the main
+%% fiberModel directory. Load in all the \path=examples/ex.basinhop.*.replic.pdb= files. 
+%% A script file for doing so for this particular example is provided in 
+%% \path=examples/loadmovie-example1.py=
+%% Documentation on how to use PyMOL can be found at
+%% \path=http://www.pymol.org/=.
+
+%% You can load in the structures by typing within PyMOL:
+%% \begin{verbatim}
+%% run examples/loadmovie-example1.py
+%% \end{verbatim}
+
+%% To better visualize the structures, type within PyMOL:
+%% \begin{verbatim}
+%% @scripts/twistedchain.pml
+%% \end{verbatim}
+
+%% Click on the \verb=cylinders= object to hide the cylinders. Note that the
+%% nucleosome cylinders are not currently set up to work with multiple
+%% frames in PyMOL.
+%% You can now see the five best local minimum structures found with this
+%% short basinhop run.
+
+%% \end{enumerate}
+
+\subsection{Other}
+%% Several more example parameter files are provided in the \path=examples= directory.
+%% \begin{itemize}
+%% \item \path=param.ex.getstruct= will output a structure with a given set of helix parameters
+%% \item \path=param.ex.optimize= will find a local minimum structure for 45 bp linkers
+%% \item \path=param.ex.gayberne= will find a local minimum structure for 50 bp linkers, using the modified Gay-Berne potential
+%% \item \path=param.ex.disco= will find a local minimum structure for 50 bp linkers, using the DiSCO potential for nucleosomes, DNA segments, and flexible tails
+%% \item \path=param.ex.database= will parse through a previously generated database of structures
+%% \item \path=param.ex.singlenuc= will find a minimum energy structure for a DNA loop off a single nucleosome (with position and orientation fixed at each end)
+%% \end{itemize}
+
+\section{Auxiliary Scripts}
+Several python scripts have been provided in the \path=scripts=
+directory for help in visualizing resulting structures.
+
+\subsection{Setting up parameter files}
+
+
+\subsection{Visualizing structures}
+
+\section{Description of Specific Calculations}
+\label{sec:tasks}
+
+The {\em ACTION} keyword specifies what type of calculation will be
+done. The possible actions are EQUILDISTRIB, BROWNDYN, and MONTECARLO, as described below.
+
+\subsection{EQUILDISTRIB action}
+
+% ---------------------------------------------------------
+
+\section{Keyword Index}
+\label{sec:keywords}
+The code will attempt to read parameters out of a file named \path=param.suffix= where ``suffix'' is the command line argument. If no command line arguments are supplied, it will look for a file named \path=param=. If multiple arguments are supplied, it will read multiple parameter files in sequence.
+
+The parameter file should have one keyword per line and must end with a blank line. All blank lines and all lines beginning with \# are ignored. For the most part, the order of the lines and the capitalization of the keywords does not matter. All keywords except {\em ACTION} are optional. The default values for each parameter are listed below. If a keyword is supplied, then values may or may not be needed as well. Again, the required and optional value types are listed below. 
+
+Keywords and multiple values are separated by spaces. 
+
+When reading the parameter file, lines longer than 500 characters will be truncated. To continue onto the next line, add ``+++'' at the end of the line to be continued.
+No individual keyword or  value should be longer than 100 characters.
+
+Floating point numbers can be formated as $1.0$, $1.1D0$, $10e-1$, $-1.0E+01$, etc., where the exponential notation specifier must be D or E (case insensitive). Integer numbers can also be specified in exponential notation without decimal points (eg: 1000 or 1E3). Logical values can be specified as T, F, TRUE, FALSE, 1, or 0 (with 1 corresponding to true and 0 to false).
+
+By default, all energy units are in kT. 
+
+\begin{itemize}
+%
+\item {\it ACTION}
+  \begin{itemize}
+    \item  value: 1 string of at most 20 characters; no default
+    \item This keyword sets the overall calculation performed by the program
+ (see Sec.\ref{sec:tasks})
+    \item Possible values are: MONTECARLO, BROWNDYN, EQUILDISTRIB
+  \end{itemize}
+%
+\item {\it ADJUSTRANGE}
+  \begin{itemize}
+    \item  value: 1 required integer (ADJUSTEVERY), 3 optional floats (FACCTARGET, FACCTOL, ADJUSTSCL)
+    \item When doing a Monte Carlo simulation, how to adjust the step size.
+    \item The accepted fraction is checked every ADJUSTEVERY steps. If it is outside the range of FACCTARGET $\pm$ FACCTOL, then the step sizes are multiplied or divided by ADJUSTSCL
+    \item defaults are ADJUSTEVERY=1000, FACCTARGET=0.5, FACCTOL=0.1, ADJUSTSCL=2
+  \end{itemize}
+%
+\item {\it BDSTEPS}
+  \begin{itemize}
+    \item  value: 1 required integer (BDSTEPS), 1 optional float (BDPRINTEVERY), 1 optional logical (BDPRINTLOG)
+    \item Sets the total number of Brownian Dynamics steps (BDSTEPS) and how often to print output.
+    \item If BDPRINTLOG is true then print at logarithmically spaced step numbers, where BDPRINTEVERY sets the multiplicative factor for the spacing. Otherwise, print every BDPRINTEVERY steps.
+    \item dafaults: BDSTEPS=1000, BDPRINTEVERY=1, BDPRINTLOG=false
+  \end{itemize}
+%
+\item {\it BRCRELAX}
+  \begin{itemize}
+    \item  value: 1 float
+    \item parameter for extra force to keep segment lengths fixed when running Brownian Dynamics with a bead-rod model
+    \item {\color{red} Bead-rod BD are not debugged! do not use.}
+  \end{itemize}
+%
+\item {\it CONNECT}
+  \begin{itemize}
+    \item  value: 4 integers
+    \item Connection point in a mesh of many chains
+    \item {\color{red} Many-chain mesh calculations are not tested! do not use.}
+  \end{itemize}
+%
+\item {\it CONNECTMOD}
+  \begin{itemize}
+    \item  value: 2 floats
+    \item something about connecting chains in a mesh...
+    \item {\color{red} Many-chain mesh calculations are not tested! do not use.}
+  \end{itemize}
+%
+\item {\it CONNECTTYPE}
+  \begin{itemize}
+    \item  value: 2 logicals
+    \item whether to connect together bead positions and/or orientations
+    \item {\color{red} Many-chain mesh calculations are not tested! do not use.}
+  \end{itemize}
+%
+\item {\it CONSTMOD}
+  \begin{itemize}
+    \item  value: 1 float
+    \item not currently used
+  \end{itemize}
+%
+\item {\it COUPLED}
+  \begin{itemize}
+    \item  value: 1 logical
+    \item not currently used
+  \end{itemize}
+%
+\item {\it DELTSCL}
+  \begin{itemize}
+    \item  value: 1 float
+    \item scaling constant used to set the timestep in Brownian Dynamics simulations
+    \item Ultimately, if the chain is designated as {\it SHEARABLE} then the timestep is $\delta t = \text{DELTSCL} * \text{min}(\zeta_{ub},\zeta_{rb})$, where the friction coefficients $\zeta_{ub},\zeta_{rb}$ are set using keyword {\it FRICT}. If the chain is not shearable, then $\delta t = \text{DELTSCL} * \zeta_{rb}$
+  \end{itemize}
+\item {\it DIAMONDLATTICE}
+  \begin{itemize}
+    \item  value: 3 integers; 1 optional float
+    \item connect up a mesh of chains in a diamond lattice
+    \item {\color{red} Many-chain mesh calculations are not tested! do not use.}
+  \end{itemize}
+%
+% --------------------------
+
+\end{itemize}
+
+\bibliographystyle{aip} 
+\bibliography{fiberModel}
+
+\end{document}

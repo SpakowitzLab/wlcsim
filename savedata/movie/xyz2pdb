@@ -1,0 +1,7 @@
+rm xyz/*
+rm pdb/snap*
+
+cp ../../data/* xyz/.
+
+chmod u+x mkpdbpoly.pl
+./mkpdbpoly.pl
