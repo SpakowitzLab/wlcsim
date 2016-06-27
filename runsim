@@ -1,5 +1,6 @@
 cd code
-gfortran -o wlcsim SIMcode/* BDcode/* DATAcode/* MCcode/*
+gfortran -c mt19937.f90
+gfortran  SIMcode/* BDcode/* DATAcode/* MCcode/*  mt19937.o -o wlcsim
 cd ..
 mv code/wlcsim .
 mv data/* trash/.
