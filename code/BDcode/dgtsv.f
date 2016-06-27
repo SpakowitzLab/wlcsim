@@ -83,7 +83,7 @@
       INTRINSIC          ABS, MAX
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+!      EXTERNAL           XERBLA
 *     ..
 *     .. Executable Statements ..
 *
@@ -95,10 +95,10 @@
       ELSE IF( LDB.LT.MAX( 1, N ) ) THEN
          INFO = -7
       END IF
-      IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'DGTSV ', -INFO )
-         RETURN
-      END IF
+!     IF( INFO.NE.0 ) THEN
+!         CALL XERBLA( 'DGTSV ', -INFO )
+!         RETURN
+!     END IF
 *
       IF( N.EQ.0 )
      $   RETURN
