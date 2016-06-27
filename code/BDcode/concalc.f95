@@ -71,7 +71,7 @@
 15       CONTINUE
          ASUB(1)=0.
          ASUPER(N-1)=0.
-
+		
 ! Calculate psuedo-potential (if Brownian forces on)
 
          if (BROWN.EQ.1) then
@@ -86,7 +86,6 @@
                     BPS(N-I+1)*BPS(N-I+1)*DETGT(N-I+2)
  20         CONTINUE
             DETER=APS(N-1)*DETLT(N-1)-BPS(N-2)*BPS(N-2)*DETLT(N-2)
-            
             FPS(1,1)=DETGT(2)*BPS(1)*B(2)*U(2,1)/DETER
             FPS(1,2)=DETGT(2)*BPS(1)*B(2)*U(2,2)/DETER
             FPS(1,3)=DETGT(2)*BPS(1)*B(2)*U(2,3)/DETER
@@ -148,11 +147,10 @@
                  U(I,3)*(DRDT(I+1+IB,3,RK)-DRDT(I+IB,3,RK)))+ &
                  XI*C*(B(I)**.2-L0**2.)
  40      CONTINUE
-     
+		    PRINT*, BLAM
+		
 ! Calculate the new rates of change
-
-         call dgtsv((N-1),ASUB,ADIAG,ASUPER,BLAM,(N-1),INFO)
-         
+         call dgtsv((N-1),1,ASUB,ADIAG,ASUPER,BLAM,(N-1),INFO)
          DRDT(1+IB,1,RK)=DRDT(1+IB,1,RK)+BLAM(1)*B(1)*U(1,1)/XI
          DRDT(1+IB,2,RK)=DRDT(1+IB,2,RK)+BLAM(1)*B(1)*U(1,2)/XI
          DRDT(1+IB,3,RK)=DRDT(1+IB,3,RK)+BLAM(1)*B(1)*U(1,3)/XI

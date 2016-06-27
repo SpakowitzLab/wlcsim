@@ -224,7 +224,6 @@
               SUCCESS,MOVEON,WINDOW,SIMTYPE)
          
 !     Perform a Brownian dynamics simulation over time step
-         
          if (LOGTIME.EQ.0) then
             TSAVE = TF*IND/INDMAX
          else

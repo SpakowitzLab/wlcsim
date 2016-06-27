@@ -227,7 +227,7 @@
             endif
 
 !     If SIMTYPE=1 (WLC), calculate the constraint forces
-
+				
             if (SIMTYPE.EQ.1) then
                call concalc(R,DRDT,NT,N,NP,XIR,GAM,DT,RK,BROWN)
             endif
