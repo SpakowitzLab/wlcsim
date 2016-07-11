@@ -1,17 +1,17 @@
 !---------------------------------------------------------------*
-      
+
       PROGRAM wlcsim
-      
-!     
+
+!
 !     WLC Simulation Package:
-!     Simulation Package for Brownian dynamics and 
+!     Simulation Package for Brownian dynamics and
 !     Monte Carlo Simulation
 !
 !     Andrew Spakowitz
 !     Version 1.0
 !     8/17/2015
 !
-     
+
 !     Variables within the simulation
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
@@ -54,14 +54,14 @@
       INTEGER MOVEON(6)			! Is the move active
       INTEGER WINDOW(6)			! Size of window for bead selection
       INTEGER SUCCESS(6)        ! Number of successes
-      
+
 !     Energy variables
-      
+
       DOUBLE PRECISION EELAS(3) ! Elastic energy
       DOUBLE PRECISION EPONP    ! Poly-poly energy
-      
+
 !     Structure analysis
-      
+
       DOUBLE PRECISION RCOM(3)  ! Center of mass
       DOUBLE PRECISION DELR(3)  ! Mag of gyration tensor
       DOUBLE PRECISION RCOM0(3) ! Init val RCOM
@@ -69,9 +69,9 @@
       DOUBLE PRECISION DRCOM    ! Change in RCOM
       DOUBLE PRECISION SIG(3,3)
       DOUBLE PRECISION COR
-      
+
 !     Variables in the simulation
-      
+
       DOUBLE PRECISION PARA(10)
       INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
 
@@ -109,13 +109,13 @@
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
-	  
+
       NT=N*NP
       ALLOCATE(R(NT,3))
       ALLOCATE(U(NT,3))
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
-      
+
 !     Setup the initial condition
 
       call initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
@@ -168,13 +168,13 @@
       endif
 
 !     Perform an initialization MC simulation
-         
+
       call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA,MCAMP, &
            SUCCESS,MOVEON,WINDOW,SIMTYPE)
-      
-!     Save the conformation and PSI angles 
-      
-      OPEN (UNIT = 1, FILE = 'data/r0', STATUS = 'NEW')      
+
+!     Save the conformation and PSI angles
+
+      OPEN (UNIT = 1, FILE = 'data/r0', STATUS = 'NEW')
       IB=1
       DO 10 I=1,NP
          DO 20 J=1,N
@@ -187,55 +187,55 @@
             WRITE(1,*) R(IB,1),R(IB,2),R(IB,3)
             IB=IB+1
  20      CONTINUE
- 10   CONTINUE 
+ 10   CONTINUE
       CLOSE(1)
-      
-      OPEN (UNIT = 1, FILE = 'data/u0', STATUS = 'NEW')      
+
+      OPEN (UNIT = 1, FILE = 'data/u0', STATUS = 'NEW')
       IB=1
       DO 30 I=1,NP
          DO 40 J=1,N
             WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
             IB=IB+1
  40      CONTINUE
- 30   CONTINUE 
+ 30   CONTINUE
       CLOSE(1)
-      
+
 !     Begin simulation
-      
+
       IND=1
       TIME=0.
-      
+
 !     Open the output files
-      
+
       OPEN (UNIT = 2, FILE = 'data/out1', STATUS = 'NEW')
       OPEN (UNIT = 3, FILE = 'data/out2', STATUS = 'NEW')
       OPEN (UNIT = 4, FILE = 'data/out3', STATUS = 'NEW')
-		
+
       call stress(SIG,R,U,NT,N,NP,PARA,INTON)
-         
+
       WRITE(3,*) real(SIG(1,1)),real(SIG(1,2)),real(SIG(1,3)),real(SIG(2,1)),real(SIG(2,2))
       WRITE(4,*) real(SIG(2,3)),real(SIG(3,1)),real(SIG(3,2)),real(SIG(3,3))
-      
+
       DO WHILE (IND.LE.INDMAX)
 
-!     Perform a MC simulation
+!     Perform a MC simulation, only if NSTEP.NE.0
 
          call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,PARA,MCAMP, &
               SUCCESS,MOVEON,WINDOW,SIMTYPE)
-         
+
 !     Perform a Brownian dynamics simulation over time step
-         
+
          if (LOGTIME.EQ.0) then
             TSAVE = TF*IND/INDMAX
          else
-            TSAVE = DT0*exp((IND-1.)/(INDMAX-1.)*log(TF/DT0))		 
+            TSAVE = DT0*exp((IND-1.)/(INDMAX-1.)*log(TF/DT0))
          endif
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM,PARA,SIMTYPE)
          endif
-         
+
 !     Save the conformation and the metrics
-         
+
          TENS=nint(log10(1.*IND)-0.4999)+1
          write (fileind,'(I4)'), IND
          snapnm= 'data/r'//fileind((4-TENS+1):4)
@@ -248,7 +248,7 @@
  60         CONTINUE
  50      CONTINUE
          CLOSE(1)
-         
+
          snapnm= 'data/u'//fileind((4-TENS+1):4)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
@@ -257,7 +257,7 @@
                WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
                IB=IB+1
  80         CONTINUE
- 70      CONTINUE 
+ 70      CONTINUE
          CLOSE(1)
 
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
@@ -269,11 +269,11 @@
             call energy_ponp(EPONP,R,NT,N,NP,PARA)
          endif
          WRITE(2,*) real(TIME),real(EELAS(1)),real(EELAS(2)),real(EELAS(3)),real(EPONP),real(COR)
-         
-         
+
+
          WRITE(3,*) real(SIG(1,1)),real(SIG(1,2)),real(SIG(1,3)),real(SIG(2,1)),real(SIG(2,2))
-         WRITE(4,*) real(SIG(2,3)),real(SIG(3,1)),real(SIG(3,2)),real(SIG(3,3))         
-         
+         WRITE(4,*) real(SIG(2,3)),real(SIG(3,1)),real(SIG(3,2)),real(SIG(3,3))
+
          PRINT*, '________________________________________'
          PRINT*, 'Time point ',IND, ' out of', INDMAX
          PRINT*, 'Current time ',TIME
@@ -286,12 +286,12 @@
          print*, 'End-to-end distance poly 1 ', &
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
-         
+
          IND=IND+1
-         
+
       ENDDO
-      
+
       END
-      
+
 !---------------------------------------------------------------*
-      
+

@@ -1,1 +1,6 @@
 data/*
+*.o
+trash/*
+.DS_store
+*.out
+tags
