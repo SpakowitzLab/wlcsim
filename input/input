@@ -7,7 +7,7 @@
 
  !-Record 2
  !  L               Chain length
-  1.0
+  100.0
 
  !-Record 3
  !  LBOX            Box edge length - for MC box sizes
@@ -23,7 +23,7 @@
 
  !-Record 6
  !  N               Number of beads
-  201
+  101
 
  !-Record 7         Sarah was running 1000
  !  NP              Number of polymers - won't interact unless interaction code added
@@ -31,7 +31,7 @@
 
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
-  0.001
+  1000
 
  !-Record 9
  !  INDMAX          Total number of save points
@@ -39,7 +39,7 @@
 
  !-Record 10
  !  DT              Timestep for integration - Sarah used 0.2 in above
-  0.00001
+  0.01
 
  !-Record 11
  !  FRMFILE         Load in the inital conf? - otherwise from MC
@@ -59,7 +59,7 @@
 
  !-Record 15       Quinn: 1000s times #polymers, there's a script to check if OK
  !  NINIT          Number initialization MC steps - 40beads@rigid@2000poly==4e6
-  1000
+  1000000
 
  !-Record 16
  !  NSTEP          Number MC steps per save
