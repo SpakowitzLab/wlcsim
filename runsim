@@ -1,6 +1,0 @@
-cd code
-gfortran -o wlcsim SIMcode/* BDcode/* DATAcode/* MCcode/*
-cd ..
-mv code/wlcsim .
-mv data/* trash/.
-./wlcsim
