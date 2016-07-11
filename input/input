@@ -32,10 +32,14 @@
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
 <<<<<<< HEAD
+<<<<<<< HEAD
   1000
 =======
   0.001
 >>>>>>> CLEANUP: get rid of various trash/useless files
+=======
+  1000
+>>>>>>> CLEANUP: some trash deleted, new gitignore, new runsim.sh
 
  !-Record 9
  !  INDMAX          Total number of save points
@@ -44,10 +48,14 @@
  !-Record 10
  !  DT              Timestep for integration - Sarah used 0.2 in above
 <<<<<<< HEAD
+<<<<<<< HEAD
   0.01
 =======
   0.00001
 >>>>>>> CLEANUP: get rid of various trash/useless files
+=======
+  0.01
+>>>>>>> CLEANUP: some trash deleted, new gitignore, new runsim.sh
 
  !-Record 11
  !  FRMFILE         Load in the inital conf? - otherwise from MC

@@ -5,7 +5,7 @@ MODULE GENUTIL
 
   IMPLICIT NONE
 
-CONTAINS
+CONTAINS  
 
   INTEGER FUNCTION STRING2NUM(STRINGIN,APPENDNUM)
     ! convert the string to a unique number based on ascii characters
@@ -68,8 +68,8 @@ CONTAINS
   ! convert that number to a decimal integer
   ! N is the size of the list
   ! if resulting number is too large, wrap around to negative numbers
-  ! starting from the right, only use as many of the digits as
-  ! will fit into the resulting integer between -HUGE and HUGE
+  ! starting from the right, only use as many of the digits as 
+  ! will fit into the resulting integer between -HUGE and HUGE  
   ! if any digit is greater than base-1, print error and stop
 
   IMPLICIT NONE
@@ -87,10 +87,10 @@ CONTAINS
         PRINT*, 'ERROR in BASE2DEC: digit is bigger than base.', I, D, BASE
         STOP 1
      ENDIF
-
+     
      BASE2DEC = BASE2DEC + D*BASE**I
   ENDDO
-
+  
   END FUNCTION BASE2DEC
 
   SUBROUTINE INTERPARRAY(ARRAY,NA,COL,VAL,IND,INTERP)
@@ -113,7 +113,7 @@ CONTAINS
 
     FRAC = (VAL-ARRAY(IND,COL))/(ARRAY(IND+1,COL)-ARRAY(IND,COL))
     INTERP = (1-FRAC)*ARRAY(IND,:)+FRAC*ARRAY(IND+1,:)
-
+       
   END SUBROUTINE INTERPARRAY
 
   SUBROUTINE INTERP1(LIST,NL,VAL,IND)
@@ -131,7 +131,7 @@ CONTAINS
     IF (VAL.LT.MINL) THEN
        IND = 0; RETURN
     ELSEIF (VAL.EQ.MINL) THEN
-       IND = 1; RETURN
+       IND = 1; RETURN       
     ELSEIF (VAL.GT.MAXL) THEN
        IND = NL; RETURN
     ELSEIF (VAL.EQ.MAXL) THEN
@@ -149,7 +149,7 @@ CONTAINS
        ENDIF
        IF (VERBOSE) PRINT*, 'MINI, MAXI, MINL, MAXL', MINI, MAXI, MINL, MAXL,VAL
        if (maxi.eq.mini) then
-          print*, 'something weird in interp1:', list(1), list(nl), val
+          print*, 'something weird in interp1:', list(1), list(nl), val          
           stop 1
        endif
     ENDDO
@@ -177,7 +177,7 @@ CONTAINS
     IND = INDEX(INSTRING,C,.TRUE.)
     IF (IND.GT.0) THEN! if * was found in the string
 
-       INSTRING = INSTRING(1:IND-1) // TRIM(ADJUSTL(REPL)) // INSTRING(IND+LENC:100)
+       INSTRING = INSTRING(1:IND-1) // TRIM(ADJUSTL(REPL)) // INSTRING(IND+LENC:100)   
     END IF
   END SUBROUTINE REPLACESUBSTR
 
@@ -221,15 +221,15 @@ CONTAINS
   END SUBROUTINE CROSS_PRODUCT
 
   SUBROUTINE RANDOMAXIS(REFAX,CTRANGE,RANDAX)
-    ! generate a random axis, within a certain range in cos(theta)
-    ! relative to the reference axis
+    ! generate a random axis, within a certain range in cos(theta) 
+    ! relative to the reference axis    
     DOUBLE PRECISION, INTENT(IN) :: REFAX(3), CTRANGE
     DOUBLE PRECISION, INTENT(OUT) :: RANDAX(3)
     DOUBLE PRECISION :: THETA, pHI, E1(3), E2(3), E3(3), X, Y, Z
 
     THETA = 1.0D0
     DO WHILE (THETA.EQ.1.0D0)
-       ! get random number; MT19937 algorithm uses closed interval [0,1],
+       ! get random number; MT19937 algorithm uses closed interval [0,1], 
        ! so ignore when R is exactly 1
        THETA = GRND() !get a random number
     ENDDO

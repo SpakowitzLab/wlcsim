@@ -1,11 +1,11 @@
-MODULE QUATUTIL
+MODULE QUATUTIL  
   ! utilities for dealing with quaternions
   ! and other representations of rotation
   ! including euler angles, rotation matrices, and alpha+gamma and z-axis-vector representations
 
   IMPLICIT NONE
   LOGICAL :: TESTQUAT = .FALSE.
-  DOUBLE PRECISION, PARAMETER :: PI = 3.141592653589793D0
+  DOUBLE PRECISION, PARAMETER :: PI = 3.141592653589793D0  
   ! when z1^2+z2^2 goes below tiny when working with alpha+gamma & zvec coordinates
   ! use the v->0 approximation
   DOUBLE PRECISION, PARAMETER :: NZTINY=1D-14
@@ -27,7 +27,7 @@ CONTAINS
   SUBROUTINE QUAT2SCREW(QUAT,TRANS,HELCRD)
     ! convert from a rotation+translation to screw coordinates
     ! (equivalently to overall helix coordinates)
-    ! returns height, angle, radius, orientation of
+    ! returns height, angle, radius, orientation of 
     ! canonical system relative to helix system (3 euler angles)
     TYPE(QUATERNION), INTENT(IN) :: QUAT
     DOUBLE PRECISION, INTENT(IN) :: TRANS(3)
@@ -35,7 +35,7 @@ CONTAINS
     DOUBLE PRECISION :: THETA, AX(3), TP(3), ST2, CT2, AXT3, A, B, G, NP, NTP
 
     ! angle-axis representation from quaternion
-    THETA = 2*ACOS(QUAT%W)
+    THETA = 2*ACOS(QUAT%W)    
 
     IF (THETA.EQ.0D0) THEN ! translation only
        HELCRD(1) = SQRT(DOT_PRODUCT(TRANS,TRANS))
@@ -51,10 +51,10 @@ CONTAINS
     AX = (/QUAT%X,QUAT%Y,QUAT%Z/);
     ST2 = SIN(THETA/2)
     AX = AX/ST2; ! normalize the axis
-
+    
     ! shift along screw axis
     HELCRD(1) = DOT_PRODUCT(TRANS,AX)
-
+    
     ! translation in plane perpendicular to axis
     TP = TRANS - HELCRD(1)*AX
     NTP = SQRT(DOT_PRODUCT(TP,TP))
@@ -73,7 +73,7 @@ CONTAINS
     G = ATAN2(-TP(3)-CT2*AXT3,-AXT3+CT2*TP(3))
 
     ! euler angles of canonical system relative to screw axis
-    HELCRD(4:6) = (/PI-G,B,PI-A/)
+    HELCRD(4:6) = (/PI-G,B,PI-A/)   
   END SUBROUTINE QUAT2SCREW
 
   SUBROUTINE COORDS2QUAT(AG,ZVEC,Q)
@@ -104,7 +104,7 @@ CONTAINS
     ! convert from coordinates that include the alpha+gamma euler angle
     ! and a non-normalized vector along the Z axis in canonical reference system
     ! to a rotation matrix
-    ! if DMATAG and DMATZ are provided, also get derivatives of all the matrix
+    ! if DMATAG and DMATZ are provided, also get derivatives of all the matrix 
     ! components wrt the coordinates
 
     IMPLICIT NONE
@@ -124,9 +124,9 @@ CONTAINS
     MAT = 0D0
 
     ! normalize the zaxis
-    NZTOT2 = DOT_PRODUCT(ZVEC,ZVEC); NZTOT = SQRT(NZTOT2)
+    NZTOT2 = DOT_PRODUCT(ZVEC,ZVEC); NZTOT = SQRT(NZTOT2)    
     MAT(:,3) = ZVEC/NZTOT
-    Z1 = MAT(1,3); Z2 = MAT(2,3);
+    Z1 = MAT(1,3); Z2 = MAT(2,3); 
     Z11 = Z1*Z1; Z22 = Z2*Z2;
     NZ = Z11+Z22;
     Z3 = MAT(3,3)
@@ -136,7 +136,7 @@ CONTAINS
     !    PRINT*, 'ERROR IN COORDS2ROTMAT: have hit gimbal lock with Z axis pointing downward. Not set up to deal with this yet.'
     !    STOP 1
     ! ENDIF
-
+    
     CAG = COS(AG); SAG = SIN(AG)
 
     !IF (TESTQUAT) PRINT*, 'TESTX1', NZ, NZTINY
@@ -159,7 +159,7 @@ CONTAINS
        MAT(1,1) = (Z22*CAG-Z12*SAG+Z3*(Z12*SAG+Z11*CAG))/NZ
        MAT(2,1) = (-Z12*CAG + Z11*SAG+Z3*(Z22*SAG+Z12*CAG))/NZ
 
-       MAT(1,2) = -(Z22*SAG+Z12*CAG+Z3*(-Z12*CAG+Z11*SAG))/NZ
+       MAT(1,2) = -(Z22*SAG+Z12*CAG+Z3*(-Z12*CAG+Z11*SAG))/NZ  
        !if (testquat) print*, 'testx2:', mat(1,2)
        MAT(2,2) = (Z12*SAG+Z11*CAG+Z3*(Z22*CAG-Z12*SAG))/NZ
     ENDIF
@@ -183,12 +183,12 @@ CONTAINS
           DXDZ(:,3) = 0D0
 
           DYDZ(1,1) = Z1*SAG - Z2*CAG/2
-          DYDZ(1,2) = -Z1*CAG/2
+          DYDZ(1,2) = -Z1*CAG/2          
           DYDZ(2,1) = Z2*SAG/2
           DYDZ(2,2) = -Z2*CAG+Z1*SAG/2
           DYDZ(:,3) = 0D0
        ELSE
-          ! derivative wrt normalized z axis
+          ! derivative wrt normalized z axis          
           DXDZ(1,1) = (-Z2*SAG+Z23*SAG+2*Z13*CAG-2*Z1*MAT(1,1))/NZ
           DXDZ(1,2) = (2*Z2*CAG-Z1*SAG+Z13*SAG-2*Z2*MAT(1,1))/NZ
           DXDZ(1,3) = (Z12*SAG+Z11*CAG)/NZ
@@ -210,8 +210,8 @@ CONTAINS
 
        ! derivatives of new axes
 
-       CALL DGEMM('N','N',3,3,3,1D0,DXDZ,3,DMATZ(:,3,:),3,0D0,DMATZ(:,1,:),3)
-       CALL DGEMM('N','N',3,3,3,1D0,DYDZ,3,DMATZ(:,3,:),3,0D0,DMATZ(:,2,:),3)
+       CALL DGEMM('N','N',3,3,3,1D0,DXDZ,3,DMATZ(:,3,:),3,0D0,DMATZ(:,1,:),3)       
+       CALL DGEMM('N','N',3,3,3,1D0,DYDZ,3,DMATZ(:,3,:),3,0D0,DMATZ(:,2,:),3)       
 
 
        !CALL DGEMV('N',3,3,1D0,DZ,3,DMATZTMP(2,1,:),1,0D0,DMATZ(2,1,:),1)
@@ -268,7 +268,7 @@ CONTAINS
        DT(1) = -ST/2
        DT(2:4) = CT/2*AX
     ENDIF
-
+    
   END SUBROUTINE ROTQV
 
   SUBROUTINE QVPTMULT(Q,PT,QP,DQ,DPT)
@@ -290,7 +290,7 @@ CONTAINS
     QN = DOT_PRODUCT(Q,Q)
     QUAT%W = Q(1); QUAT%X = Q(2); QUAT%Y = Q(3); QUAT%Z = Q(4)
     IF (PRESENT(DQ)) THEN
-       CALL QUAT2ROTMAT(QUAT,MAT,dMAT)
+       CALL QUAT2ROTMAT(QUAT,MAT,dMAT)      
     ELSE
        CALL QUAT2ROTMAT(QUAT,MAT)
     ENDIF
@@ -303,8 +303,8 @@ CONTAINS
        ENDIF
     ENDDO
 
-    QP = QP/QN
-    IF (PRESENT(DQ)) THEN
+    QP = QP/QN    
+    IF (PRESENT(DQ)) THEN      
        DO I = 1,3
           DO J = 1,4
              DQ(I,J) = (DQ(I,J) - 2*Q(J)*QP(I))/QN
@@ -313,7 +313,7 @@ CONTAINS
     ENDIF
 
     IF (PRESENT(DPT)) THEN
-       DPT =MAT/QN
+       DPT =MAT/QN       
     END IF
   END SUBROUTINE QVPTMULT
 
@@ -433,17 +433,17 @@ CONTAINS
        !PRINT*, 'TESTX2Q'
     ELSEIF (R22.GT.R33.AND.R11.LT.R22.AND.R11.LE.-R33) THEN
        TMP = SQRT(1-R11+R22-R33)
-       ROTMAT2QUAT%W = (R(1,3)-R(3,1))/(TMP*2)
+       ROTMAT2QUAT%W = (R(1,3)-R(3,1))/(TMP*2)      
        ROTMAT2QUAT%X = (R(2,1)+R(1,2))/(TMP*2)
        ROTMAT2QUAT%Y = TMP/2
        ROTMAT2QUAT%Z = (R(3,2)+R(2,3))/(TMP*2)
        !PRINT*, 'TESTX3Q'
     ELSEIF (R22.LT.R33.AND.R11.LE.-R22.AND.R11.LT.R33) THEN
        TMP = SQRT(1D0-R11-R22+R33)
-       ROTMAT2QUAT%W = (R(2,1)-R(1,2))/(TMP*2)
+       ROTMAT2QUAT%W = (R(2,1)-R(1,2))/(TMP*2)      
        ROTMAT2QUAT%X = (R(1,3)+R(3,1))/(TMP*2)
        ROTMAT2QUAT%Y = (R(3,2)+R(2,3))/(TMP*2)
-       ROTMAT2QUAT%Z = TMP/2
+       ROTMAT2QUAT%Z = TMP/2      
        !PRINT*, 'TESTX4Q'
     ELSE
        PRINT*, 'ERROR IN ROTMAT2QUAT: bad rotation matrix'
@@ -457,7 +457,7 @@ CONTAINS
 
   SUBROUTINE EULER2QUAT(EUL,Q,DERV,GETDERV)
     ! convert from Euler angles (z-x-z convention) to a quaternion
-    ! if GETDERV is true, also get the derivatives of the quaternion components
+    ! if GETDERV is true, also get the derivatives of the quaternion components 
     ! with respect to the euler angles (4 rows by 3 columns)
     ! WARNING: since the quaternion representation has more parameters, switching from quaternion
     ! to euler and back again will not always give the exact same quaternion, though it
@@ -473,7 +473,7 @@ CONTAINS
     BETA = ANGLE2PI(EUL(2))
     FLIPBETA = BETA.GT.PI
     ALPHA = EUL(1); GAMMA = EUL(3)
-    IF (BETA.GT.PI) THEN
+    IF (BETA.GT.PI) THEN       
        BETA = 2*PI-BETA
        GAMMA = GAMMA+PI
        ALPHA = ALPHA+PI
@@ -490,7 +490,7 @@ CONTAINS
     CB = COS(BETA/2); SB = SIN(BETA/2)
     CG = COS(GAMMA/2); SG = SIN(GAMMA/2)
 
-    Q%W = CG*CB*CA - SG*CB*SA
+    Q%W = CG*CB*CA - SG*CB*SA    
     Q%X = SG*SB*SA + CG*SB*CA
     Q%Y = CG*SB*SA - SG*SB*CA
     Q%Z = CG*CB*SA + SG*CB*CA
@@ -512,7 +512,7 @@ CONTAINS
   SUBROUTINE QUAT2EULER(Q,EUL)
     ! get the Euler angles (z-x-z convention) corresponding to a unit quaternion
     ! NOTE: the quaternion must already be normalized
-    ! currently can't handle gimbal lock
+    ! currently can't handle gimbal lock 
     TYPE(QUATERNION), INTENT(IN) :: Q
     DOUBLE PRECISION, INTENT(OUT) :: EUL(3)
     DOUBLE PRECISION :: DUMMY
@@ -541,10 +541,10 @@ CONTAINS
 
     DUMMY = Q%W*Q%X-Q%Y*Q%Z
 
-    EUL(1) = ATAN2(Q%W*Q%Y+Q%X*Q%Z, DUMMY)
+    EUL(1) = ATAN2(Q%W*Q%Y+Q%X*Q%Z, DUMMY) 
     IF (EUL(1).LT.0) EUL(1) = 2*PI+EUL(1)
 
-    DUMMY = Q%W*Q%X+Q%Y*Q%Z
+    DUMMY = Q%W*Q%X+Q%Y*Q%Z    
 
     EUL(3) = ATAN2(Q%X*Q%Z-Q%W*Q%Y,DUMMY)
     IF (EUL(3).LT.0) EUL(3) = 2*PI+EUL(3)
@@ -600,7 +600,7 @@ CONTAINS
     TYPE(QUATERNION) :: QINV
     DOUBLE PRECISION :: QN
 
-    ! inverse of the 2nd quaternion
+    ! inverse of the 2nd quaternion    
     QN = Q%W**2+Q%X**2+Q%Y**2+Q%Z**2
     QINV%W = Q%W/QN; QINV%X = -Q%X/QN; QINV%Y=-Q%Y/QN; QINV%Z=-Q%Z/QN
 
@@ -678,7 +678,7 @@ CONTAINS
   END SUBROUTINE EUL2ROTMAT
 
   SUBROUTINE GETANGLE(IJ,KJ,CST,dCTdIJ,dCTdKJ)
-    ! get the angle between three points (I-J-K)
+    ! get the angle between three points (I-J-K) 
     ! and, optionally, the derivative of that angle
     ! actually this returns the COSINE of the angle and its derivative
     ! IJ = I-J; KJ = K-J
@@ -706,7 +706,7 @@ CONTAINS
     DXJR=DXJ*RJR
     DYJR=DYJ*RJR
     DZJR=DZJ*RJR
-    CST=DXIR*DXJR+DYIR*DYJR+DZIR*DZJR
+    CST=DXIR*DXJR+DYIR*DYJR+DZIR*DZJR    
     IF (PRESENT(DCTDIJ)) THEN
        dCTdIJ(1)=-(DXIR*CST-DXJR)*RIR
        dCTdIJ(2)=-(DYIR*CST-DYJR)*RIR
@@ -784,15 +784,15 @@ CONTAINS
     RB2R=1/RB2
     RABR=SQRT(RA2R*RB2R)
 
-    PHI =  ATAN2(-RG*(FX*BX+FY*BY+FZ*BZ),AX*BX+AY*BY+AZ*BZ)
+    PHI =  ATAN2(-RG*(FX*BX+FY*BY+FZ*BZ),AX*BX+AY*BY+AZ*BZ)       
 
 
     IF (PRESENT(DPDIJ).OR.PRESENT(DPDJK).OR.PRESENT(DPDLK)) THEN
        DUMMY=RFR*RFR*RGR*SNTTWO2R
-       dPdI = (/-AX*DUMMY, -AY*DUMMY, -AZ*DUMMY/)
+       dPdI = (/-AX*DUMMY, -AY*DUMMY, -AZ*DUMMY/)       
        DUMMY=RFR*RFR*RGR*RGR*SNTTWO2R*(RG-RF*CSTTWO)
        DUMMY2=RHR*RGR*RGR*SNTTHREE2R*CSTTHREE
-       dPdJ = (/AX*DUMMY-BX*DUMMY2, AY*DUMMY-BY*DUMMY2, AZ*DUMMY-BZ*DUMMY2/)
+       dPdJ = (/AX*DUMMY-BX*DUMMY2, AY*DUMMY-BY*DUMMY2, AZ*DUMMY-BZ*DUMMY2/) 
        DUMMY=RHR*RHR*RGR*SNTTHREE2R
        dPdL = (/BX*DUMMY,BY*DUMMY,BZ*DUMMY/)
     ENDIF
@@ -804,7 +804,7 @@ CONTAINS
   END SUBROUTINE GETDIHEDRAL
 
   DOUBLE PRECISION FUNCTION ANGLE0(ANGLE)
-    ! convert an angle to one between +/- pi
+    ! convert an angle to one between +/- pi 
     ! (so keeping it as close as possible to zero)
     IMPLICIT NONE
     DOUBLE PRECISION :: ANGLE
