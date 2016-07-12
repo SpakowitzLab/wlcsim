@@ -86,18 +86,6 @@
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
 
-!     Globalize has_collided to allow it to be written on SIGINT
-      COMMON /COLLISIONS/ NT, HAS_COLLIDED
-
-!     Some linux-specific signal names
-      INTEGER SIGINT
-      SIGINT = 2
-
-!     Define signal handlers to save the collision times if the
-!     program is terminated unexpectedly
-      call sigclear(SIGINT)
-      call signal(SIGINT, WRITE_COLTIMES)
-
 !     Load in the parameters for the simulation
 
       open (unit=5, file='input/input')
@@ -281,6 +269,13 @@
  70      CONTINUE
          CLOSE(1)
 
+         snapnm='data/coltimes'
+         OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
+         DO, I=1,NT
+             WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
+         ENDDO
+         CLOSE(1)
+
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
          call stressp(COR,R,U,R0,U0,NT,N,NP,PARA,INTON,SIMTYPE)
 
@@ -312,22 +307,6 @@
 
       ENDDO
       END
-
-      SUBROUTINE WRITE_COLTIMES(HAS_COLLIDED, NT)
-          INTEGER NT
-          DOUBLE PRECISION HAS_COLLIDED(NT,NT)
-
-          COMMON /COLLISIONS/ NT, HAS_COLLIDED
-
-          CHARACTER*16 snapnm       ! File for output
-          snapnm='data/coltimes'
-          OPEN (UNIT=1, FILE=snapnm, STATUS='NEW')
-          DO, I=1,NT
-              WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
-          ENDDO
-          CLOSE(1)
-      END
-
 
 
 !---------------------------------------------------------------*
