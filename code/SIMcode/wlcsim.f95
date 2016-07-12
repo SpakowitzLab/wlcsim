@@ -123,7 +123,7 @@
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
       ALLOCATE(HAS_COLLIDED(NT,NT))
-      r = 0.0d+0
+      HAS_COLLIDED = -1.0d+0
 
 !     Setup the initial condition
 

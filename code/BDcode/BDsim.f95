@@ -130,12 +130,11 @@
 !     Check if the particles have collided
           DO 140 K1 = 1, NT
               DO 150 K2 = 1, NT
-                  IF (HAS_COLLIDED(K1,K2).NE.1 .OR. K1.EQ.K2) THEN
-                  CONTINUE
-                  ELSE IF (hypot(R(K1,1), R(K2,1)) < FPT_DIST &
-                      .AND. hypot(R(K1,2), R(K2,2)) < FPT_DIST &
-                      .AND. hypot(R(K1,3), R(K2,3)) < FPT_DIST) THEN
-                  HAS_COLLIDED(K1,K2) = TIME
+                  IF (HAS_COLLIDED(K1,K2).LT.0.0d0 .AND. K1.NE.K2 &
+                        .AND. abs(R(K1,1) - R(K2,1)) < FPT_DIST &
+                        .AND. abs(R(K1,2) - R(K2,2)) < FPT_DIST &
+                        .AND. abs(R(K1,3) - R(K2,3)) < FPT_DIST) THEN
+                     HAS_COLLIDED(K1,K2) = TIME
                   END IF
 150           CONTINUE
 140       CONTINUE
