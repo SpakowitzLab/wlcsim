@@ -3,7 +3,7 @@ SUBROUTINE READKEY
   ! it sets the various global variables defined in KEYS module
   ! name of the parameter file is param.* where * is a keyword argument
   ! if no keyword argument is supplied, the default is just a file called param
-  ! The EXTRAPARAMFILES keyword will allow extra parameter files to be 
+  ! The EXTRAPARAMFILES keyword will allow extra parameter files to be
   ! read in as well
 
   USE KEYS
@@ -19,7 +19,7 @@ SUBROUTINE READKEY
   INTEGER :: PF ! input file unit
   LOGICAL :: FILEEND=.FALSE. ! done reading file?
   CHARACTER*100 :: WORD ! keyword
-  ! -------------- for reading multiple parameter files --------  
+  ! -------------- for reading multiple parameter files --------
   INTEGER, PARAMETER :: MAXNFILES = 10
   CHARACTER*100 :: PARAMFILES(MAXNFILES)
   INTEGER :: NPARAMFILES, NPARAMREAD
@@ -57,11 +57,11 @@ SUBROUTINE READKEY
   EDGELS = 0.1D0
   EDGELP = 1;
   EDGEGAM = 1;
-  EDGEEPAR = 1D3; 
+  EDGEEPAR = 1D3;
   EDGEEPERP = 1D3;
   EDGEEC = 0;
 
-  ! input/output  
+  ! input/output
   OUTFILE = '*.out'
   DUMPSNAPSHOTS = .FALSE.
   SNAPSHOTEVERY = 1
@@ -110,7 +110,7 @@ SUBROUTINE READKEY
   DOBROWN = .TRUE.
   ! coefficient for the relaxation force in the bead-rod brownian dynamics
   ! that keeps the segment length more or less constant
-  BRCRELAX = 0.1; 
+  BRCRELAX = 0.1;
   USEPSEUDOFORCE = .TRUE.
   CONSTMOD = 1D4
   MU = 0D0
@@ -171,7 +171,7 @@ SUBROUTINE READKEY
 
   ! get input parameter files from command line
   NPARAMFILES = 0
-  NUMARG = COMMAND_ARGUMENT_COUNT()  
+  NUMARG = COMMAND_ARGUMENT_COUNT()
   IF (NUMARG==0) THEN
      NPARAMFILES = 1
      PARAMFILES(1) = 'param'
@@ -200,7 +200,7 @@ SUBROUTINE READKEY
      OPEN(UNIT=PF, FILE=PARAMFILES(NPARAMREAD), STATUS='OLD')
 
      ! read in the keywords one line at a time
-     DO 
+     DO
         CALL READLINE(PF,FILEEND,NITEMS)
         IF (FILEEND.and.nitems.eq.0) EXIT
 
@@ -215,7 +215,7 @@ SUBROUTINE READKEY
 
         SELECT CASE(WORD) ! pick which keyword
         CASE('ACTION')
-           CALL READA(ACTION, CASESET=1)           
+           CALL READA(ACTION, CASESET=1)
         CASE('ADJUSTRANGE')
            CALL READI(ADJUSTEVERY)
            IF (NITEMS.GT.2) CALL READF(FACCTARGET)
@@ -245,7 +245,7 @@ SUBROUTINE READKEY
         CASE('CONSTMOD')
            CALL READF(CONSTMOD)
         CASE('COUPLED')
-           CALL READO(COUPLED)    
+           CALL READO(COUPLED)
         CASE('DELTSCL')
            CALL READF(DELTSCL)
         CASE('DIAMONDLATTICE')
@@ -275,20 +275,20 @@ SUBROUTINE READKEY
            IF (NITEMS.GT.1) THEN
               CALL READF(FINITSHEAR)
            ENDIF
-           FINITEXT = .TRUE.  
+           FINITEXT = .TRUE.
         CASE('FIXBEAD')
            NFIXBEAD = NFIXBEAD + 1
            IF (NFIXBEAD.GT.MAXFIXBEAD) THEN
               PRINT*, 'ERROR: too many fixed bead lines'
-              STOP 1 
+              STOP 1
            ENDIF
            CALL READI(FIXBEAD(NFIXBEAD,1))
            IF (NITEMS.GT.2) THEN
               CALL READI(FIXBEAD(NFIXBEAD,2))
               CALL READO(LDUM)
               IF (LDUM) FIXBEAD(NFIXBEAD,3) = 1
-              CALL READO(LDUM)           
-              IF (LDUM) FIXBEAD(NFIXBEAD,4) = 1     
+              CALL READO(LDUM)
+              IF (LDUM) FIXBEAD(NFIXBEAD,4) = 1
            ELSE
               FIXBEAD(NFIXBEAD,2) = 1
            ENDIF
@@ -384,7 +384,7 @@ SUBROUTINE READKEY
            OUTPUTBEADWEIGHT = .TRUE.
            IF (NITEMS.GT.1) THEN
               ! number of integration points in each dim when integrating over u vector
-              CALL READI(INTUWEIGHTNPT) 
+              CALL READI(INTUWEIGHTNPT)
            ENDIF
            IF (NITEMS.GT.2) THEN
               CALL READI(INTRWEIGHTNPT)
@@ -411,13 +411,13 @@ SUBROUTINE READKEY
            SETSHEAR = .TRUE.
            CALL READF(SHEARGAMMA)
         CASE('SHEARABLE')
-           CALL READO(SHEARABLE) 
+           CALL READO(SHEARABLE)
         CASE('SNAPSHOTS')
            DUMPSNAPSHOTS = .TRUE.
            IF (NITEMS.GT.1) CALL READI(SNAPSHOTEVERY)
            IF (NITEMS.GT.2) CALL READA(SNAPSHOTFILE)
            IF (NITEMS.GT.3) CALL READO(APPENDSNAPSHOTS)
-        CASE('STARTEQUIL') 
+        CASE('STARTEQUIL')
            ! start with properly sampled equilibrium conformations
            STARTEQUIL = .TRUE.
            IF (NITEMS.GT.1) CALL READI(EQUILSAMPLETYPE)
@@ -435,7 +435,7 @@ SUBROUTINE READKEY
            IF (NITEMS.GT.2) CALL READI(STERSKIP)
            IF (NITEMS.GT.3) CALL READF(STERMOD)
         CASE('STRESSFILE')
-           CALL READA(STRESSFILE) 
+           CALL READA(STRESSFILE)
         CASE('STRETCHABLE')
            CALL READO(STRETCHABLE)
         CASE('TRACKDIST')
@@ -464,7 +464,7 @@ SUBROUTINE READKEY
 
   ! -----------------
   ! check validity of some values, raise errors or adjust as necessary
-  ! -----------------  
+  ! -----------------
 
   IF (STARTNPT.LE.0.OR.MAXNPT.LT.STARTNPT) THEN
      PRINT*, 'ERROR IN NPT VALUES',STARTNPT,MAXNPT
@@ -521,17 +521,17 @@ SUBROUTINE READKEY
   CALL REPLACESUBSTR(LOOPFILE,'*',TRIM(ADJUSTL(ARG)))
   ! ---------------------------
 
-  ! Initiate random number generator 
+  ! Initiate random number generator
   IF (RNGSEED.EQ.0) THEN
      ! use the current time of day in milliseconds
      CALL DATE_AND_TIME(VALUES=TIMEVAL)
      SEED = TIMEVAL(5)*3600*1000 + TIMEVAL(6)*60*1000 + TIMEVAL(7)*1000 + TIMEVAL(8)
   ELSEIF (RNGSEED.EQ.-1) THEN
      ! use the last 5 characters in the command-line argument
-     SEED = STRING2NUM(TRIM(ADJUSTL(ARG)))    
+     SEED = STRING2NUM(TRIM(ADJUSTL(ARG)))
   ELSEIF (RNGSEED.EQ.-2) THEN
-     ! use the last 4 characters in the command-line argument 
-     ! and additionally the millisecond time 
+     ! use the last 4 characters in the command-line argument
+     ! and additionally the millisecond time
      CALL DATE_AND_TIME(VALUES=TIMEVAL)
      SEED = STRING2NUM(TRIM(ADJUSTL(ARG)),TIMEVAL(8))
   ELSE
@@ -544,7 +544,7 @@ SUBROUTINE READKEY
 
   print*, '------------Parameter values : -------------------'
   print*, 'ACTION: ', TRIM(ADJUSTL(ACTION))
-  print*, 'Output file: ', TRIM(OUTFILE)  
+  print*, 'Output file: ', TRIM(OUTFILE)
   IF (DUMPSNAPSHOTS) THEN
      PRINT*, 'Dumping snapshot every', SNAPSHOTEVERY,'steps. In file:', TRIM(ADJUSTL(SNAPSHOTFILE))
   ENDIF

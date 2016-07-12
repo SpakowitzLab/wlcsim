@@ -13,15 +13,15 @@
       DOUBLE PRECISION DRDT(NT,3,4)  ! Rate of change
       DOUBLE PRECISION R(NT,3)       ! Bead positions
       DOUBLE PRECISION U(N-1,3)      ! Unit tangent vector
-      DOUBLE PRECISION B(N-1)	     ! Bond length
-      INTEGER N,NT,NP			     ! Number of beads      
-      DOUBLE PRECISION DT	     ! Time step size
-      DOUBLE PRECISION XI			! Drag coefficient
-      DOUBLE PRECISION L0			! Bond distances
-      INTEGER I,J,IB						! Index holder
-      INTEGER RK					! RK integer
+      DOUBLE PRECISION B(N-1)         ! Bond length
+      INTEGER N,NT,NP                 ! Number of beads
+      DOUBLE PRECISION DT         ! Time step size
+      DOUBLE PRECISION XI            ! Drag coefficient
+      DOUBLE PRECISION L0            ! Bond distances
+      INTEGER I,J,IB                        ! Index holder
+      INTEGER RK                    ! RK integer
       INTEGER BROWN             ! Logic for BD forces
-      
+
 ! Variables for use in the constraint calculation
 
       DOUBLE PRECISION BLAM(N-1),ADIAG(N-1)
@@ -86,7 +86,7 @@
                     BPS(N-I+1)*BPS(N-I+1)*DETGT(N-I+2)
  20         CONTINUE
             DETER=APS(N-1)*DETLT(N-1)-BPS(N-2)*BPS(N-2)*DETLT(N-2)
-            
+
             FPS(1,1)=DETGT(2)*BPS(1)*B(2)*U(2,1)/DETER
             FPS(1,2)=DETGT(2)*BPS(1)*B(2)*U(2,2)/DETER
             FPS(1,3)=DETGT(2)*BPS(1)*B(2)*U(2,3)/DETER
@@ -131,28 +131,28 @@
             FPS(N,1)=-DETLT(N-2)*BPS(N-2)*B(N-2)*U(N-2,1)/DETER
             FPS(N,2)=-DETLT(N-2)*BPS(N-2)*B(N-2)*U(N-2,2)/DETER
             FPS(N,3)=-DETLT(N-2)*BPS(N-2)*B(N-2)*U(N-2,3)/DETER
-	 
+
             DO 35 I=1,N
                DRDT(I+IB,1,RK)=DRDT(I+IB,1,RK)+FPS(I,1)/XI
                DRDT(I+IB,2,RK)=DRDT(I+IB,2,RK)+FPS(I,2)/XI
                DRDT(I+IB,3,RK)=DRDT(I+IB,3,RK)+FPS(I,3)/XI
  35         CONTINUE
          endif
-	  
+
 
 ! Setup the B component
-     
+
          DO 40 I=1,(N-1)
             BLAM(I)=B(I)*XI*(U(I,1)*(DRDT(I+1+IB,1,RK)-DRDT(I+IB,1,RK))+ &
                  U(I,2)*(DRDT(I+1+IB,2,RK)-DRDT(I+IB,2,RK))+ &
                  U(I,3)*(DRDT(I+1+IB,3,RK)-DRDT(I+IB,3,RK)))+ &
                  XI*C*(B(I)**.2-L0**2.)
  40      CONTINUE
-     
+
 ! Calculate the new rates of change
 
          call DGTSL((N-1),ASUB,ADIAG,ASUPER,BLAM,INFO)
-         
+
          DRDT(1+IB,1,RK)=DRDT(1+IB,1,RK)+BLAM(1)*B(1)*U(1,1)/XI
          DRDT(1+IB,2,RK)=DRDT(1+IB,2,RK)+BLAM(1)*B(1)*U(1,2)/XI
          DRDT(1+IB,3,RK)=DRDT(1+IB,3,RK)+BLAM(1)*B(1)*U(1,3)/XI
@@ -162,7 +162,7 @@
             DRDT(I+IB,2,RK)=DRDT(I+IB,2,RK)+(BLAM(I)*B(I)*U(I,2)- &
                  BLAM(I-1)*B(I-1)*U(I-1,2))/XI
             DRDT(I+IB,3,RK)=DRDT(I+IB,3,RK)+(BLAM(I)*B(I)*U(I,3)- &
-                 BLAM(I-1)*B(I-1)*U(I-1,3))/XI     
+                 BLAM(I-1)*B(I-1)*U(I-1,3))/XI
  50      CONTINUE
          DRDT(N+IB,1,RK)=DRDT(N+IB,1,RK)-BLAM(N-1)*B(N-1)*U(N-1,1)/XI
          DRDT(N+IB,2,RK)=DRDT(N+IB,2,RK)-BLAM(N-1)*B(N-1)*U(N-1,2)/XI
