@@ -18,8 +18,8 @@
 
       PARAMETER (PI=3.141592654) ! Value of pi
 
-      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R	 ! Conformation of polymer chains
-      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U	 ! Conformation of polymer chains
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R     ! Conformation of polymer chains
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U     ! Conformation of polymer chains
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R0 ! Conformation of polymer chains
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U0 ! Conformation of polymer chains
 
@@ -51,8 +51,8 @@
 !     Monte Carlo variables
 
       DOUBLE PRECISION MCAMP(6) ! Amplitude of random change
-      INTEGER MOVEON(6)			! Is the move active
-      INTEGER WINDOW(6)			! Size of window for bead selection
+      INTEGER MOVEON(6)            ! Is the move active
+      INTEGER WINDOW(6)            ! Size of window for bead selection
       INTEGER SUCCESS(6)        ! Number of successes
 
 !     Energy variables
