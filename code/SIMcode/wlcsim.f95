@@ -16,6 +16,8 @@
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
 
+      external WRITE_COLTIMES ! must declare sighandlers as external
+
       PARAMETER (PI=3.141592654) ! Value of pi
 
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R     ! Conformation of polymer chains
@@ -80,6 +82,21 @@
       INTEGER IDUM              ! Seed for the generator
       DOUBLE PRECISION MOM(6)
 
+!     Variable to hold time of first collisions between each bead
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
+      DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+
+!     Globalize has_collided to allow it to be written on SIGINT
+      COMMON /COLLISIONS/ NT, HAS_COLLIDED
+
+!     Some linux-specific signal names
+      INTEGER SIGINT
+      SIGINT = 2
+
+!     Define signal handlers to save the collision times if the
+!     program is terminated unexpectedly
+      call sigclear(SIGINT)
+      call signal(SIGINT, WRITE_COLTIMES)
 
 !     Load in the parameters for the simulation
 
@@ -106,6 +123,8 @@
       read (unit=5, fmt=*) NINIT
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) NSTEP
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) FPT_DIST
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
@@ -115,6 +134,8 @@
       ALLOCATE(U(NT,3))
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
+      ALLOCATE(HAS_COLLIDED(NT,NT))
+      r = 0.0d+0
 
 !     Setup the initial condition
 
@@ -231,7 +252,7 @@
             TSAVE = DT0*exp((IND-1.)/(INDMAX-1.)*log(TF/DT0))
          endif
          if (NSTEP.EQ.0) then
-            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM,PARA,SIMTYPE)
+            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST)
          endif
 
 !     Save the conformation and the metrics
@@ -290,8 +311,24 @@
          IND=IND+1
 
       ENDDO
-
       END
+
+      SUBROUTINE WRITE_COLTIMES(HAS_COLLIDED, NT)
+          INTEGER NT
+          DOUBLE PRECISION HAS_COLLIDED(NT,NT)
+
+          COMMON /COLLISIONS/ NT, HAS_COLLIDED
+
+          CHARACTER*16 snapnm       ! File for output
+          snapnm='data/coltimes'
+          OPEN (UNIT=1, FILE=snapnm, STATUS='NEW')
+          DO, I=1,NT
+              WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
+          ENDDO
+          CLOSE(1)
+      END
+
+
 
 !---------------------------------------------------------------*
 
