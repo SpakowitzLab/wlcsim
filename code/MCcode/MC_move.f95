@@ -226,20 +226,14 @@
          ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
          ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
          ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
-         ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
-         -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
 
          ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
          ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
          ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-         ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
-         -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
 
          ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
          ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
          ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
-         ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
-         -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
          I=IT1
          UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
@@ -265,6 +259,12 @@
          TA(1)=sin(BETA)*cos(ALPHA)
          TA(2)=sin(BETA)*sin(ALPHA)
          TA(3)=cos(BETA)
+
+         ! use ~central bead to put axes through
+         ! you could also use center of mass if you wanted
+         P1(1)=R((IT2+IT1)/2,1)
+         P1(2)=R((IT2+IT1)/2,2)
+         P1(3)=R((IT2+IT1)/2,3)
 
          ALPHA=MCAMP(5)*(grnd()-0.5)
 
@@ -295,7 +295,7 @@
             UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
  40      CONTINUE
 
-!     Perform full chain slide move (MCTYPE 2)
+!     Perform full chain slide move (MCTYPE 6)
 
       elseif (MCTYPE.EQ.6) then
 
