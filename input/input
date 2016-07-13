@@ -69,4 +69,8 @@
  !  FPT_DIST       l1 distance triggering a "collision" between beads
   2
 
+ !-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
+ !  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1, 
+  1
+
  ! ----------------------------------------------------

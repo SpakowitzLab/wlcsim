@@ -16,6 +16,8 @@
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
 
+      implicit none
+
       external WRITE_COLTIMES ! must declare sighandlers as external
 
       PARAMETER (PI=3.141592654) ! Value of pi
@@ -85,6 +87,8 @@
 !     Variable to hold time of first collisions between each bead
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+      INTEGER COL_TYPE ! what kind of collision checking to use
+
 
 !     Load in the parameters for the simulation
 
@@ -113,6 +117,8 @@
       read (unit=5, fmt=*) NSTEP
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) FPT_DIST
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) COL_TYPE
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
@@ -122,8 +128,10 @@
       ALLOCATE(U(NT,3))
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
-      ALLOCATE(HAS_COLLIDED(NT,NT))
-      HAS_COLLIDED = -1.0d+0
+      if COL_TYPE.NE.0 then
+         ALLOCATE(HAS_COLLIDED(NT,NT))
+         HAS_COLLIDED = -1.0d+0
+      endif
 
 !     Setup the initial condition
 
@@ -240,7 +248,8 @@
             TSAVE = DT0*exp((IND-1.)/(INDMAX-1.)*log(TF/DT0))
          endif
          if (NSTEP.EQ.0) then
-            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST)
+            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
+                       PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE)
          endif
 
 !     Save the conformation and the metrics

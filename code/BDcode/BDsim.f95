@@ -1,7 +1,8 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST)
+           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST &
+           COL_TYPE)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -71,6 +72,7 @@
 !     Variable to hold time of first collisions between each bead
       DOUBLE PRECISION HAS_COLLIDED(NT,NT)
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+      INTEGER COL_TYPE ! algorithm to use for collision detection
 
 !     Load the input parameters
 
@@ -127,18 +129,7 @@
 
       DO WHILE (TIME.LT.TTOT)
 
-!     Check if the particles have collided
-          DO 140 K1 = 1, NT
-              DO 150 K2 = 1, NT
-                  IF (HAS_COLLIDED(K1,K2).LT.0.0d0 .AND. K1.NE.K2 &
-                        .AND. abs(R(K1,1) - R(K2,1)) < FPT_DIST &
-                        .AND. abs(R(K1,2) - R(K2,2)) < FPT_DIST &
-                        .AND. abs(R(K1,3) - R(K2,3)) < FPT_DIST) THEN
-                     HAS_COLLIDED(K1,K2) = TIME
-                  END IF
-150           CONTINUE
-140       CONTINUE
-
+         call CHECK_COLLISIONS(R, HAS_COLLIDED, FPT_DIST, COL_TYPE)
 
 
 !     Calculate the random forces and torques for use in this
