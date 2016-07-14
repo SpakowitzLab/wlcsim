@@ -1,6 +1,6 @@
 ! *---------------------------------------------------------------*
 !
-!     subroutine getpara.f95
+!     subroutine getpara.f90
 !     Setup the parameters for the simulation
 !
 !     1. Determine the simulation type
@@ -11,141 +11,127 @@
 !     8/17/15
 !
 
-      SUBROUTINE getpara(PARA,DT,SIMTYPE)
+subroutine getpara(para, dt, simtype)
 
-      PARAMETER (PI=3.141593)
+    use, intrinsic :: iso_fortran_env, dp=>real64
+    use sim_params, only : p_lp=>lp, p_l=>l, lbox, p_rend=>rend, vhc, n
 
-      DOUBLE PRECISION PARA(10)
-      DOUBLE PRECISION DEL
-      DOUBLE PRECISION PVEC(679,8)
-      INTEGER IND,CRS
-      DOUBLE PRECISION EB,EPAR,EPERP
-      DOUBLE PRECISION GAM,ETA
-      DOUBLE PRECISION XIR,XIU
-      DOUBLE PRECISION LBOX     ! Box edge length
-      DOUBLE PRECISION LHC      ! Length of HC int
-      DOUBLE PRECISION REND     ! Fixed end-to-end distance (dimensionless)
-      DOUBLE PRECISION VHC      ! HC strength
-      DOUBLE PRECISION M
-      DOUBLE PRECISION DT
-      INTEGER I,N
-      DOUBLE PRECISION L,LP
-      INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
+    implicit none
 
-!     Load in the parameters for the simulation
-
-      open (unit=5, file='input/input')
-      read (unit=5, fmt='(4(/))')
-      read (unit=5, fmt=*) LP
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) L
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) LBOX
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) REND
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) VHC
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) N
-      close(5)
-      L=L/LP
-      LP=1.0d0
-      DEL=L/(N-1.0d0)
-      REND=REND*L
-
-!     Load the tabulated parameters
-
-      OPEN (UNIT=5,FILE='input/dssWLCparams',STATUS='OLD')
-      DO 10 I=1,679
-         READ(5,*) PVEC(I,1),PVEC(I,2),PVEC(I,3),PVEC(I,4),PVEC(I,5),PVEC(I,6),PVEC(I,7),PVEC(I,8)
- 10   CONTINUE
-      CLOSE(5)
+    real(dp) para(10)
+    real(dp) del
+    real(dp) pvec(679,8)
+    integer ind,crs
+    real(dp) eb,epar,eperp
+    real(dp) gam,eta
+    real(dp) xir,xiu
+    real(dp) m
+    real(dp) dt
+    integer i
+    integer simtype           ! simulation method (wlc=1,sswlc=2,gc=3)
+    real(dp) :: l, lp, rend
 
 
-!     Setup the parameters for WLC simulation
+!     load in the parameters for the simulation
 
-      if (DEL.LT.PVEC(1,1)) then
-         EB=LP/DEL
-         GAM=DEL
-         XIR=L/N
-         SIMTYPE=1
-      endif
+    l=p_l/p_lp
+    lp=1.0d0
+    del=l/(n-1.0d0)
+    rend=p_rend*l
 
-!    Setup the parameters for GC simulation
+!     load the tabulated parameters
 
-      if (DEL.GT.PVEC(679,1)) then
-         EPAR=1.5/(DEL*LP**2.)
-         GAM=0.
-         SIMTYPE=3
-         XIR=L/N
-      endif
+    open (unit=5,file='input/dssWLCparams',status='old')
+    do i=1,679
+        read(5,*) pvec(i,1),pvec(i,2),pvec(i,3),pvec(i,4),pvec(i,5),pvec(i,6),pvec(i,7),pvec(i,8)
+    end do
+    close(5)
 
-!    Setup the parameters for ssWLC simulation
 
-      if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
-         SIMTYPE=2
+!     setup the parameters for wlc simulation
 
-         CRS=0
-         IND=1
-         do while (CRS.EQ.0)
-            if (DEL.LE.PVEC(IND,1)) then
-               CRS=1
-            else
-               IND=IND+1
-            endif
-         enddo
+    if (del.lt.pvec(1,1)) then
+        eb=lp/del
+        gam=del
+        xir=l/n
+        simtype=1
+    endif
 
-         I=2
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EB=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+!    setup the parameters for gc simulation
 
-         I=3
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         GAM=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    if (del.gt.pvec(679,1)) then
+        epar=1.5/(del*lp**2.)
+        gam=0.
+        simtype=3
+        xir=l/n
+    endif
 
-         I=4
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EPAR=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+!    setup the parameters for sswlc simulation
 
-         I=5
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EPERP=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    if (del.ge.pvec(1,1).and.del.le.pvec(679,1)) then
+        simtype=2
 
-         I=6
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         ETA=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        crs=0
+        ind=1
+        do while (crs.eq.0)
+        if (del.le.pvec(ind,1)) then
+            crs=1
+        else
+            ind=ind+1
+        endif
+        enddo
 
-         I=7
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         XIU=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        i=2
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        eb=m*(del-pvec(ind,1))+pvec(ind,i)
 
-!         I=8
-!         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-!         DT=XIU*(M*(DEL-PVEC(IND,1))+PVEC(IND,I))
+        i=3
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        gam=m*(del-pvec(ind,1))+pvec(ind,i)
 
-         EB=EB/DEL
-         EPAR=EPAR/DEL
-         EPERP=EPERP/DEL
-         GAM=DEL*GAM
+        i=4
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        epar=m*(del-pvec(ind,1))+pvec(ind,i)
 
-         XIU=XIU*L/N
-         XIR=L/N
-         DT=0.5*XIU/(EPERP*GAM**2.)
+        i=5
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        eperp=m*(del-pvec(ind,1))+pvec(ind,i)
 
-      endif
+        i=6
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        eta=m*(del-pvec(ind,1))+pvec(ind,i)
 
-      PARA(1)=EB
-      PARA(2)=EPAR
-      PARA(3)=EPERP
-      PARA(4)=GAM
-      PARA(5)=ETA
-      PARA(6)=XIR
-      PARA(7)=XIU
-      PARA(8)=LBOX
-      PARA(9)=REND
-      PARA(10)=DEL
+        i=7
+        m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+        xiu=m*(del-pvec(ind,1))+pvec(ind,i)
 
-      RETURN
-      END
+!         i=8
+!         m=(pvec(ind,i)-pvec(ind-1,i))/(pvec(ind,1)-pvec(ind-1,1))
+!         dt=xiu*(m*(del-pvec(ind,1))+pvec(ind,i))
+
+        eb=eb/del
+        epar=epar/del
+        eperp=eperp/del
+        gam=del*gam
+
+        xiu=xiu*l/n
+        xir=l/n
+        dt=0.5*xiu/(eperp*gam**2.)
+
+    endif
+
+    para(1)=eb
+    para(2)=epar
+    para(3)=eperp
+    para(4)=gam
+    para(5)=eta
+    para(6)=xir
+    para(7)=xiu
+    para(8)=lbox
+    para(9)=rend
+    para(10)=del
+
+    return
+end
 
 !---------------------------------------------------------------*

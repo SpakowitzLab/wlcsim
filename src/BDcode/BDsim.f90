@@ -1,7 +1,7 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST &
+           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
            COL_TYPE)
 
 !
@@ -12,7 +12,7 @@
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
 
-      PARAMETER (PI=3.141592654) ! Value of pi
+      implicit none
 
       DOUBLE PRECISION R(NT,3)  ! Bead positions
       DOUBLE PRECISION U(NT,3)  ! Tangent vectors
@@ -129,7 +129,7 @@
 
       DO WHILE (TIME.LT.TTOT)
 
-         call CHECK_COLLISIONS(R, HAS_COLLIDED, FPT_DIST, COL_TYPE)
+!         call CHECK_COLLISIONS(R, HAS_COLLIDED, FPT_DIST, COL_TYPE)
 
 
 !     Calculate the random forces and torques for use in this
