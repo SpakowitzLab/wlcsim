@@ -54,8 +54,8 @@
 !     Seed the random number generator off the computer clock
 
       call date_and_time(datedum,timedum,zonedum,seedvalues)
-	
-! concatenate filename, time within mins, secs, millisecs to seed random number generator	
+    
+! concatenate filename, time within mins, secs, millisecs to seed random number generator    
 
       IDUM=-seedvalues(5)*1E7-seedvalues(6)*1E5-seedvalues(7)*1E3-seedvalues(8)
       call init_genrand(IDUM)   
@@ -116,14 +116,14 @@
                   R(IB,3)=0
                   U(IB,1)=1.
                   U(IB,2)=0.
-                  U(IB,3)=0.			   
+                  U(IB,3)=0.               
                else
                   R(IB,1)=DEL*(IMID-1.)+DEL*(J-IMID)*cos(ALPHA)
                   R(IB,2)=DEL*(J-IMID)*sin(ALPHA)
                   R(IB,3)=0
                   U(IB,1)=cos(ALPHA)
                   U(IB,2)=sin(ALPHA)
-                  U(IB,3)=0.			   
+                  U(IB,3)=0.               
                endif
                IB=IB+1
  60         CONTINUE
