@@ -77,6 +77,7 @@
          EPAR=1.5/(DEL*LP**2.)
          GAM=0.
          SIMTYPE=3
+         XIR=L/N
       endif
 
 !    Setup the parameters for ssWLC simulation
