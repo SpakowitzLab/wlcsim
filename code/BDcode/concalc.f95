@@ -151,7 +151,7 @@
 
 ! Calculate the new rates of change
 
-         call DGTSL((N-1),ASUB,ADIAG,ASUPER,BLAM,INFO)
+         call DGTSV((N-1),1,ASUB,ADIAG,ASUPER,BLAM,(N-1),INFO)
 
          DRDT(1+IB,1,RK)=DRDT(1+IB,1,RK)+BLAM(1)*B(1)*U(1,1)/XI
          DRDT(1+IB,2,RK)=DRDT(1+IB,2,RK)+BLAM(1)*B(1)*U(1,2)/XI
