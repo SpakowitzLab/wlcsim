@@ -6,7 +6,7 @@ MODULE KEYS
   CHARACTER*100 :: ACTION
   INTEGER :: RNGSEED
   LOGICAL :: VERBOSE
-  
+
   ! ----------------------
   ! chain geometry and energetics
   ! ---------------------
@@ -16,14 +16,14 @@ MODULE KEYS
   DOUBLE PRECISION :: STERMOD
   INTEGER :: NEDGESEG
   DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC
-  
+
 
   ! --------- Output / input-------------
   CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE
   LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL
   INTEGER :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE
   LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT
-  DOUBLE PRECISION :: STARTEQUILLP  
+  DOUBLE PRECISION :: STARTEQUILLP
 
   ! Monte Carlo
   INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ, ADJUSTEVERY
@@ -65,7 +65,7 @@ MODULE KEYS
   DOUBLE PRECISION :: WIDTHDIAMOND ! Width of each diamond initially
   INTEGER :: LENDIAMOND ! number of chain segments along diamond side
 
-  ! for each fixed bead list: bead, chain, fix position, fix orientation 
+  ! for each fixed bead list: bead, chain, fix position, fix orientation
   ! (0 for not, >0 for yes)
   INTEGER, PARAMETER :: MAXFIXBEAD = 100
   INTEGER :: NFIXBEAD
