@@ -5,6 +5,7 @@
 !---------------------------------------------------------------
 ! Sort a string array, with any string length.
 subroutine sortp_string(array_size,index,string)
+  integer, parameter :: QSORT_THRESHOLD = 32
   integer, intent(in) :: array_size
   integer, intent(out) :: index(array_size)
   character(len=*), intent(in) :: string(array_size)
@@ -25,6 +26,7 @@ end subroutine sortp_string
 ! Sort an index-array by its double array target
 subroutine sortp_1r8(array_size,index,value)
   integer, parameter :: dp = selected_real_kind(15, 307)
+  integer, parameter :: QSORT_THRESHOLD = 32
   integer, intent(in) :: array_size
   integer, intent(inout) :: index(array_size)
   real(dp), intent(in) :: value(array_size)
@@ -45,6 +47,7 @@ end subroutine sortp_1r8
 !---------------------------------------------------------------
 ! Sort a single-precision real array by index, with a fuzzy equality test
 subroutine sortp_1r4(array_size,index,value)
+  integer, parameter :: QSORT_THRESHOLD = 32
   integer, intent(in) :: array_size
   integer, intent(inout) :: index(array_size)
   real(4), intent(in) :: value(array_size)
@@ -65,6 +68,7 @@ end subroutine sortp_1r4
 !---------------------------------------------------------------
 ! Sort an array of integers
 subroutine sort_1i(array_size,i1)
+  integer, parameter :: QSORT_THRESHOLD = 32
   integer, intent(in) :: array_size
   integer, intent(inout), dimension(array_size) :: i1
   include "qsort_inline.inc"
