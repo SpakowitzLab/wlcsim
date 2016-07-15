@@ -17,12 +17,10 @@
 10	src/MCcode/MC_move.f90	/^ 10      CONTINUE$/;"	l	subroutine:MC_move	file:
 10	src/MCcode/MCsim.f90	/^ 10      CONTINUE$/;"	l	subroutine:MCsim	file:
 10	src/SIMcode/decim.f90	/^ 10   CONTINUE$/;"	l	subroutine:decim	file:
-10	src/SIMcode/getpara.f90	/^ 10   CONTINUE$/;"	l	subroutine:getpara	file:
 10	src/SIMcode/initcond.f90	/^ 10      CONTINUE $/;"	l	subroutine:initcond	file:
 10	src/SIMcode/r_to_erg.f90	/^ 10   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 10	src/SIMcode/stress.f90	/^ 10   CONTINUE$/;"	l	subroutine:stress	file:
 10	src/SIMcode/stressp.f90	/^ 10   CONTINUE$/;"	l	subroutine:stressp	file:
-10	src/SIMcode/wlcsim.f90	/^ 10   CONTINUE$/;"	l	program:wlcsim	file:
 10	src/dssWLC/source/dgtsl.f	/^   10          continue$/;"	l	subroutine:dgtsl	file:
 10	src/dssWLC/source/quartic.f	/^ 10     soli(i) = 0.d+0$/;"	l	subroutine:quartic	file:
 100	src/BDcode/BDsim.f90	/^ 100               CONTINUE$/;"	l	subroutine:BDsim	file:
@@ -54,7 +52,6 @@
 20	src/SIMcode/initcond.f90	/^ 20         CONTINUE$/;"	l	subroutine:initcond	file:
 20	src/SIMcode/stress.f90	/^ 20      CONTINUE$/;"	l	subroutine:stress	file:
 20	src/SIMcode/stressp.f90	/^ 20      CONTINUE$/;"	l	subroutine:stressp	file:
-20	src/SIMcode/wlcsim.f90	/^ 20      CONTINUE$/;"	l	program:wlcsim	file:
 20	src/dssWLC/source/dgtsl.f	/^   20          continue$/;"	l	subroutine:dgtsl	file:
 20	src/dssWLC/source/quartic.f	/^ 20     sol(i) = sol(i) - b\/(4.d+0*a)$/;"	l	subroutine:quartic	file:
 30	src/BDcode/BDsim.f90	/^ 30            CONTINUE$/;"	l	subroutine:BDsim	file:
@@ -73,7 +70,6 @@
 30	src/SIMcode/r_to_erg.f90	/^ 30   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 30	src/SIMcode/stress.f90	/^ 30      CONTINUE$/;"	l	subroutine:stress	file:
 30	src/SIMcode/stressp.f90	/^ 30      CONTINUE$/;"	l	subroutine:stressp	file:
-30	src/SIMcode/wlcsim.f90	/^ 30   CONTINUE$/;"	l	program:wlcsim	file:
 30	src/dssWLC/source/dgtsl.f	/^   30       continue$/;"	l	subroutine:dgtsl	file:
 35	src/BDcode/concalc.f90	/^ 35         CONTINUE$/;"	l	subroutine:concalc	file:
 40	src/BDcode/BDsim.f90	/^ 40               CONTINUE$/;"	l	subroutine:BDsim	file:
@@ -91,7 +87,6 @@
 40	src/SIMcode/initcond.f90	/^ 40         CONTINUE$/;"	l	subroutine:initcond	file:
 40	src/SIMcode/r_to_erg.f90	/^ 40   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 40	src/SIMcode/stressp.f90	/^ 40      CONTINUE$/;"	l	subroutine:stressp	file:
-40	src/SIMcode/wlcsim.f90	/^ 40      CONTINUE$/;"	l	program:wlcsim	file:
 40	src/dssWLC/source/dgtsl.f	/^   40    continue$/;"	l	subroutine:dgtsl	file:
 5	src/BDcode/concalc.f90	/^ 5    CONTINUE$/;"	l	subroutine:concalc	file:
 5	src/dssWLC/source/quartic.f	/^ 5      zsol = max(zsol,z(i))$/;"	l	subroutine:quartic	file:
@@ -105,7 +100,6 @@
 50	src/SIMcode/energy_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:energy_ponp	file:
 50	src/SIMcode/initcond.f90	/^ 50      CONTINUE$/;"	l	subroutine:initcond	file:
 50	src/SIMcode/stressp.f90	/^ 50      CONTINUE$/;"	l	subroutine:stressp	file:
-50	src/SIMcode/wlcsim.f90	/^ 50      CONTINUE$/;"	l	program:wlcsim	file:
 50	src/dssWLC/source/dgtsl.f	/^   50    continue$/;"	l	subroutine:dgtsl	file:
 60	src/BDcode/BDsim.f90	/^ 60               CONTINUE$/;"	l	subroutine:BDsim	file:
 60	src/BDcode/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
@@ -114,7 +108,6 @@
 60	src/MCcode/MCsim.f90	/^ 60         CONTINUE$/;"	l	subroutine:MCsim	file:
 60	src/SIMcode/energy_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:energy_ponp	file:
 60	src/SIMcode/initcond.f90	/^ 60         CONTINUE$/;"	l	subroutine:initcond	file:
-60	src/SIMcode/wlcsim.f90	/^ 60         CONTINUE$/;"	l	program:wlcsim	file:
 60	src/dssWLC/source/dgtsl.f	/^   60          continue$/;"	l	subroutine:dgtsl	file:
 65	src/BDcode/BDsim.f90	/^ 65                  CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/BDcode/BDsim.f90	/^ 70         CONTINUE$/;"	l	subroutine:BDsim	file:
@@ -123,13 +116,11 @@
 70	src/BDcode/force_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:force_ponp	file:
 70	src/MCcode/MC_self.f90	/^ 70            CONTINUE$/;"	l	subroutine:MC_self	file:
 70	src/SIMcode/energy_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:energy_ponp	file:
-70	src/SIMcode/wlcsim.f90	/^ 70      CONTINUE$/;"	l	program:wlcsim	file:
 70	src/dssWLC/source/dgtsl.f	/^   70          continue$/;"	l	subroutine:dgtsl	file:
 80	src/BDcode/BDsim.f90	/^ 80            CONTINUE$/;"	l	subroutine:BDsim	file:
 80	src/BDcode/DGTSL.f	/^   80       CONTINUE$/;"	l	subroutine:DGTSL	file:
 80	src/BDcode/dgtsv.f	/^   80    CONTINUE$/;"	l	subroutine:DGTSV	file:
 80	src/MCcode/MC_self.f90	/^ 80         CONTINUE$/;"	l	subroutine:MC_self	file:
-80	src/SIMcode/wlcsim.f90	/^ 80         CONTINUE$/;"	l	program:wlcsim	file:
 80	src/dssWLC/source/dgtsl.f	/^   80       continue$/;"	l	subroutine:dgtsl	file:
 90	src/BDcode/BDsim.f90	/^ 90            CONTINUE$/;"	l	subroutine:BDsim	file:
 90	src/BDcode/DGTSL.f	/^   90    CONTINUE$/;"	l	subroutine:DGTSL	file:
@@ -172,7 +163,6 @@ BEADENERGY	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: B
 BEADMOVE3	src/dssWLC/source/redisc.f90	/^  SUBROUTINE BEADMOVE3(/;"	s	module:REDISC
 BRCRELAX	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: BRCRELAX$/;"	v	module:KEYS
 BRCRELAX	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: BRCRELAX$/;"	v	module:KEYS
-BROWN	src/SIMcode/wlcsim.f90	/^      INTEGER BROWN /;"	v	program:wlcsim
 BROWNDYN	src/dssWLC/source/browndyn.f90	/^MODULE BROWNDYN$/;"	m
 BasePair	src/dssWLC/scripts/pdbutils.py	/^class BasePair:$/;"	c
 Bess_In	src/dssWLC/source/bessfin.f90	/^	REAL (KIND = i15)  :: x, Bess_In$/;"	v	program:example_Inx
@@ -205,7 +195,6 @@ CLEANUPCHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE CLEANUPCHAIN(/;"	s	m
 CLEANUPCHAINGROUP	src/dssWLC/source/manychains.f90	/^  SUBROUTINE CLEANUPCHAINGROUP(/;"	s	module:MANYCHAINS
 CLEANUPDATA	src/dssWLC/source/redisc.f90	/^  SUBROUTINE CLEANUPDATA$/;"	s	module:REDISC
 CLFUNC	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE CLFUNC(/;"	s	module:CYLINDERUTIL
-COL_TYPE	src/SIMcode/wlcsim.f90	/^      INTEGER COL_TYPE /;"	v	program:wlcsim
 COMMENT	src/MISCcode/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
 COMMENT	src/dssWLC/source/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
 CONBEAD	src/dssWLC/source/manychains.f90	/^     INTEGER, POINTER :: CONBEAD(/;"	k	type:CHAINGROUP
@@ -235,7 +224,6 @@ COORDS2ROTMAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE COORDS2ROTMAT(/;"	s	modul
 COORDS2ROTMAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE COORDS2ROTMAT(/;"	s	module:QUATUTIL
 COPYCHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE COPYCHAIN(/;"	s	module:CHAINUTIL
 COPYCHAINGROUP	src/dssWLC/source/manychains.f90	/^  SUBROUTINE COPYCHAINGROUP(/;"	s	module:MANYCHAINS
-COR	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION COR$/;"	v	program:wlcsim
 COUPLED	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	v	module:KEYS
 COUPLED	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	k	type:CHAIN
 COUPLED	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	v	module:KEYS
@@ -254,8 +242,6 @@ CYLINDERUTIL	src/dssWLC/source/cylinder.f90	/^MODULE CYLINDERUTIL$/;"	m
 Chain	src/dssWLC/scripts/pdbutils.py	/^class Chain:$/;"	c
 Compilation Instructions	src/dssWLC/doc/README.tex	/^\\newpage$/;"	s
 DEBUGFLAGS	src/dssWLC/source/Makefile	/^DEBUGFLAGS =$/;"	m
-DELR	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR(/;"	v	program:wlcsim
-DELR0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR0(/;"	v	program:wlcsim
 DELS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: DELS(/;"	k	type:CHAIN
 DELTSCL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
 DELTSCL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
@@ -272,9 +258,6 @@ DOREDISC	src/MISCcode/keys.f90	/^  LOGICAL :: DOREDISC,/;"	v	module:KEYS
 DOREDISC	src/dssWLC/source/keys.f90	/^  LOGICAL :: DOREDISC,/;"	v	module:KEYS
 DP	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: DP /;"	v	module:nrtype
 DPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: DPC /;"	v	module:nrtype
-DRCOM	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DRCOM /;"	v	program:wlcsim
-DT	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DT /;"	v	program:wlcsim
-DT0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DT0 /;"	v	program:wlcsim
 DUMPSNAPSHOTS	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS,/;"	v	module:KEYS
 DUMPSNAPSHOTS	src/dssWLC/source/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS,/;"	v	module:KEYS
 EC	src/MISCcode/keys.f90	/^  DOUBLE PRECI/;"	v	module:KEYS
@@ -292,8 +275,6 @@ EDGELP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP,/;"	v	module
 EDGELP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP,/;"	v	module:KEYS
 EDGELS	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS,/;"	v	module:KEYS
 EDGELS	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS,/;"	v	module:KEYS
-EELAS	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION EELAS(/;"	v	program:wlcsim
-ENERGY	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION ENERGY /;"	v	program:wlcsim
 ENVELOPECYLINDER	src/dssWLC/source/redisc.f90	/^  SUBROUTINE ENVELOPECYLINDER(/;"	s	module:REDISC
 EPAR	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR,/;"	v	module:KEYS
 EPAR	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(:),EPERP(:),EPAR(/;"	k	type:CHAIN
@@ -301,7 +282,6 @@ EPAR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR,
 EPERP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP,/;"	v	module:KEYS
 EPERP	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(:),EPERP(/;"	k	type:CHAIN
 EPERP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP,/;"	v	module:KEYS
-EPONP	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION EPONP /;"	v	program:wlcsim
 EQUILBEADROD	src/MISCcode/keys.f90	/^  LOGICAL :: EQUILBEADROD,/;"	v	module:KEYS
 EQUILBEADROD	src/dssWLC/source/keys.f90	/^  LOGICAL :: EQUILBEADROD,/;"	v	module:KEYS
 EQUILDISTDRIVER	src/dssWLC/source/main.f90	/^  SUBROUTINE EQUILDISTDRIVER$/;"	s	program:MAIN
@@ -352,7 +332,6 @@ FORCEBEAD	src/MISCcode/keys.f90	/^  INTEGER :: FORCEBEAD(/;"	v	module:KEYS
 FORCEBEAD	src/dssWLC/source/keys.f90	/^  INTEGER :: FORCEBEAD(/;"	v	module:KEYS
 FORCEBEAD	src/dssWLC/source/manychains.f90	/^     INTEGER, POINTER :: FORCEBEAD(/;"	k	type:CHAINGROUP
 FORCEENERGY	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FORCEENERGY$/;"	k	type:CHAIN
-FPT_DIST	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION FPT_DIST /;"	v	program:wlcsim
 FRICT	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FRICT$/;"	k	type:OBSTACLE
 FRICTOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB$/;"	v	module:KEYS
 FRICTOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB$/;"	v	module:KEYS
@@ -364,7 +343,6 @@ FRICTR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR,/;"	v	module:KE
 FRICTU	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU,/;"	v	module:KEYS
 FRICTU	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: FRICTR(:), FRICTU(/;"	k	type:CHAIN
 FRICTU	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU,/;"	v	module:KEYS
-FRMFILE	src/SIMcode/wlcsim.f90	/^      INTEGER FRMFILE /;"	v	program:wlcsim
 GAM	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM,/;"	v	module:KEYS
 GAM	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(/;"	k	type:CHAIN
 GAM	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM,/;"	v	module:KEYS
@@ -395,15 +373,9 @@ GETSTERMV1	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE GETSTERMV1(/;"	s	modu
 GROUPENERGY	src/dssWLC/source/manychains.f90	/^  SUBROUTINE GROUPENERGY(/;"	s	module:MANYCHAINS
 GROUPSNAPSHOT	src/dssWLC/source/manychains.f90	/^  SUBROUTINE GROUPSNAPSHOT(/;"	s	module:MANYCHAINS
 HASFORCE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: HASFORCE$/;"	k	type:CHAIN
-HAS_COLLIDED	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED$/;"	v	program:wlcsim
-I	src/SIMcode/wlcsim.f90	/^      IN/;"	v	program:wlcsim
 I1B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I1B /;"	v	module:nrtype
 I2B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I2B /;"	v	module:nrtype
 I4B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I4B /;"	v	module:nrtype
-IB	src/SIMcode/wlcsim.f90	/^      INTEGER I,J,IB /;"	v	program:wlcsim
-IDUM	src/SIMcode/wlcsim.f90	/^      INTEGER IDUM /;"	v	program:wlcsim
-IND	src/SIMcode/wlcsim.f90	/^      INTEGER IND /;"	v	program:wlcsim
-INDMAX	src/SIMcode/wlcsim.f90	/^      INTEGER INDMAX /;"	v	program:wlcsim
 INITIALIZECHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE INITIALIZECHAIN(/;"	s	module:CHAINUTIL
 INITIALIZEDIAMONDLATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE INITIALIZEDIAMONDLATTICE(/;"	s	module:MANYCHAINS
 INITIALIZESQUARELATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE INITIALIZESQUARELATTICE(/;"	s	module:MANYCHAINS
@@ -419,7 +391,6 @@ INTERP1	src/dssWLC/source/genutil.f90	/^  SUBROUTINE INTERP1(/;"	s	module:GENUTI
 INTERPARRAY	src/MISCcode/genutil.f90	/^  SUBROUTINE INTERPARRAY(/;"	s	module:GENUTIL
 INTERPARRAY	src/dssWLC/source/genutil.f90	/^  SUBROUTINE INTERPARRAY(/;"	s	module:GENUTIL
 INTERSECT3SPHERE	src/dssWLC/source/redisc.f90	/^  SUBROUTINE INTERSECT3SPHERE(/;"	s	module:REDISC
-INTON	src/SIMcode/wlcsim.f90	/^      INTEGER INTON /;"	v	program:wlcsim
 INTRWEIGHTNPT	src/MISCcode/keys.f90	/^  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT$/;"	v	module:KEYS
 INTRWEIGHTNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT$/;"	v	module:KEYS
 INTUWEIGHTNPT	src/MISCcode/keys.f90	/^  INTEGER :: INTUWEIGHTNPT,/;"	v	module:KEYS
@@ -427,10 +398,8 @@ INTUWEIGHTNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: INTUWEIGHTNPT,/;"	v	modu
 INVQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
 INVQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
 ISFIXED	src/dssWLC/source/chainutil.f90	/^     LOGICAL, POINTER :: ISFIXED(/;"	k	type:CHAIN
-J	src/SIMcode/wlcsim.f90	/^      INTEGER I,J,/;"	v	program:wlcsim
 KEYS	src/MISCcode/keys.f90	/^MODULE KEYS$/;"	m
 KEYS	src/dssWLC/source/keys.f90	/^MODULE KEYS$/;"	m
-L0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION L0 /;"	v	program:wlcsim
 LANGEVINSTEP	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE LANGEVINSTEP(/;"	s	module:BROWNDYN
 LANGEVINSTEPRK4	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE LANGEVINSTEPRK4(/;"	s	module:BROWNDYN
 LENDIAMOND	src/MISCcode/keys.f90	/^  INTEGER :: LENDIAMOND /;"	v	module:KEYS
@@ -443,7 +412,6 @@ LOCALMOVE	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE LOCALMOVE(/;"	s	module
 LOCALMOVE2bead	src/dssWLC/source/montecarlo.f90	/^   SUBROUTINE LOCALMOVE2bead(/;"	s	module:MONTECARLO
 LOGRTERM	src/MISCcode/keys.f90	/^  LOGICAL :: LOGRTERM,/;"	v	module:KEYS
 LOGRTERM	src/dssWLC/source/keys.f90	/^  LOGICAL :: LOGRTERM,/;"	v	module:KEYS
-LOGTIME	src/SIMcode/wlcsim.f90	/^      INTEGER LOGTIME /;"	v	program:wlcsim
 LOOPFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: LOOPFILE$/;"	v	module:KEYS
 LOOPFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: LOOPFILE$/;"	v	module:KEYS
 LOOPRAD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LOOPRAD$/;"	v	module:KEYS
@@ -476,7 +444,6 @@ MAXNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,/;"	v	module:K
 MAXSEGLEN	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	v	module:KEYS
 MAXSEGLEN	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	k	type:CHAIN
 MAXSEGLEN	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	v	module:KEYS
-MCAMP	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION MCAMP(/;"	v	program:wlcsim
 MCDRIVER	src/dssWLC/source/main.f90	/^  SUBROUTINE MCDRIVER$/;"	s	program:MAIN
 MCINITSTEPS	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS,/;"	v	module:KEYS
 MCINITSTEPS	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS,/;"	v	module:KEYS
@@ -502,12 +469,9 @@ MINV	src/DATAcode/MINV.f90	/^      SUBROUTINE MINV(/;"	s
 MOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD, MOD$/;"	k	type:OBSTACLE
 MODOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
 MODOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
-MOM	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION MOM(/;"	v	program:wlcsim
 MONTECARLO	src/dssWLC/source/montecarlo.f90	/^MODULE MONTECARLO$/;"	m
-MOVEON	src/SIMcode/wlcsim.f90	/^      INTEGER MOVEON(/;"	v	program:wlcsim
 MU	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: MU$/;"	k	type:CHAIN
 MVNORM	src/dssWLC/source/mt19937.f90	/^FUNCTION MVNORM(/;"	f	module:mt19937
-N	src/SIMcode/wlcsim.f90	/^      INT/;"	v	program:wlcsim
 NCHAIN	src/MISCcode/keys.f90	/^  INTEGER :: NFORCE, NCONNECT, NCHAIN$/;"	v	module:KEYS
 NCHAIN	src/dssWLC/source/keys.f90	/^  INTEGER :: NFORCE, NCONNECT, NCHAIN$/;"	v	module:KEYS
 NCHAIN	src/dssWLC/source/manychains.f90	/^     INTEGER :: NCHAIN=/;"	k	type:CHAINGROUP
@@ -524,12 +488,10 @@ NFIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER :: NFIXBEAD$/;"	v	module:KEYS
 NFORCE	src/MISCcode/keys.f90	/^  INTEGER :: NFORCE,/;"	v	module:KEYS
 NFORCE	src/dssWLC/source/keys.f90	/^  INTEGER :: NFORCE,/;"	v	module:KEYS
 NFORCE	src/dssWLC/source/manychains.f90	/^     INTEGER :: NFORCE$/;"	k	type:CHAINGROUP
-NINIT	src/SIMcode/wlcsim.f90	/^      INTEGER NSTEP,NINIT$/;"	v	program:wlcsim
 NORM	src/MISCcode/genutil.f90	/^  DOUBLE PRECISION FUNCTION NORM(/;"	f	module:GENUTIL
 NORM	src/dssWLC/source/genutil.f90	/^  DOUBLE PRECISION FUNCTION NORM(/;"	f	module:GENUTIL
 NORMALIZE	src/MISCcode/genutil.f90	/^  SUBROUTINE NORMALIZE(/;"	s	module:GENUTIL
 NORMALIZE	src/dssWLC/source/genutil.f90	/^  SUBROUTINE NORMALIZE(/;"	s	module:GENUTIL
-NP	src/SIMcode/wlcsim.f90	/^      INTEGER NP /;"	v	program:wlcsim
 NPAR2_ARTH	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_ARTH=16,NPAR2_ARTH=/;"	v	module:nrutil
 NPAR2_GEOP	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_GEOP=4,NPAR2_GEOP=/;"	v	module:nrutil
 NPARAMDATA	src/dssWLC/source/redisc.f90	/^  INTEGER :: NPARAMDATA /;"	v	module:REDISC
@@ -540,8 +502,6 @@ NPAR_GEOP	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_GEOP=
 NPAR_POLY	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_POLY=/;"	v	module:nrutil
 NPAR_POLYTERM	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_POLYTERM=/;"	v	module:nrutil
 NPT	src/dssWLC/source/chainutil.f90	/^     INTEGER :: NPT /;"	k	type:CHAIN
-NSTEP	src/SIMcode/wlcsim.f90	/^      INTEGER NSTEP,/;"	v	program:wlcsim
-NT	src/SIMcode/wlcsim.f90	/^      INTE/;"	v	program:wlcsim
 NZTINY	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
 NZTINY	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
 OBJS	src/dssWLC/source/Makefile	/^OBJS = chainutil.o quatutil.o keys.o readkey.o genutil.o mt19937.o inputparams.o montecarlo.o inpututil.o browndyn.o redisc.o cylinder.o dbrent.o nrtype.o nrutils.o manychains.o dgtsl.o sampleutil.o besselI0.o$/;"	m
@@ -552,7 +512,6 @@ OUTPUTBEADWEIGHT	src/MISCcode/keys.f90	/^  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT
 OUTPUTBEADWEIGHT	src/dssWLC/source/keys.f90	/^  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT$/;"	v	module:KEYS
 OUTPUTCHAINOBST	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE OUTPUTCHAINOBST(/;"	s	module:CHAINUTIL
 OUTPUTSNAPSHOT	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE OUTPUTSNAPSHOT(/;"	s	module:CHAINUTIL
-PARA	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION PARA(/;"	v	program:wlcsim
 PARAMDATA	src/dssWLC/source/redisc.f90	/^  DOUBLE PRECISION, ALLOCATABLE :: PARAMDATA(/;"	v	module:REDISC
 PARAMDATASET	src/dssWLC/source/redisc.f90	/^  LOGICAL :: PARAMDATASET /;"	v	module:REDISC
 PARAMFROMSNAPSHOT	src/MISCcode/keys.f90	/^  LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT$/;"	v	module:KEYS
@@ -591,16 +550,12 @@ QUATUTIL	src/MISCcode/quatutil.f90	/^MODULE QUATUTIL$/;"	m
 QUATUTIL	src/dssWLC/source/quatutil.f90	/^MODULE QUATUTIL /;"	m
 QVPTMULT	src/MISCcode/quatutil.f90	/^  SUBROUTINE QVPTMULT(/;"	s	module:QUATUTIL
 QVPTMULT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE QVPTMULT(/;"	s	module:QUATUTIL
-R	src/SIMcode/wlcsim.f90	/^      DOUBLE PRE/;"	v	program:wlcsim
-R0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R0 /;"	v	program:wlcsim
 RAD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD,/;"	k	type:OBSTACLE
 RADOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB,/;"	v	module:KEYS
 RADOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB,/;"	v	module:KEYS
 RAN2	src/SIMcode/ran2.f90	/^FUNCTION RAN2(/;"	f
 RANDOMAXIS	src/MISCcode/genutil.f90	/^  SUBROUTINE RANDOMAXIS(/;"	s	module:GENUTIL
 RANDOMAXIS	src/dssWLC/source/genutil.f90	/^  SUBROUTINE RANDOMAXIS(/;"	s	module:GENUTIL
-RCOM	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION RCOM(/;"	v	program:wlcsim
-RCOM0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION RCOM0(/;"	v	program:wlcsim
 READA	src/MISCcode/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
 READA	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
 READF	src/MISCcode/inputparams.f90	/^  SUBROUTINE READF(/;"	s	module:INPUTPARAMS
@@ -681,8 +636,6 @@ SHEARABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE,/;"	k	type
 SHEARABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
 SHEARGAMMA	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
 SHEARGAMMA	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
-SIG	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION SIG(/;"	v	program:wlcsim
-SIMTYPE	src/SIMcode/wlcsim.f90	/^      INTEGER SIMTYPE /;"	v	program:wlcsim
 SKIPREAD	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
 SKIPREAD	src/dssWLC/source/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
 SNAPSHOTEVERY	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY,/;"	v	module:KEYS
@@ -723,10 +676,7 @@ STRETCHABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCH
 STRETCHABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE,/;"	v	module:KEYS
 STRING2NUM	src/MISCcode/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
 STRING2NUM	src/dssWLC/source/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
-SUCCESS	src/SIMcode/wlcsim.f90	/^      INTEGER SUCCESS(/;"	v	program:wlcsim
 Structure	src/dssWLC/scripts/pdbutils.py	/^class Structure:$/;"	c
-T0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION T0,/;"	v	program:wlcsim
-TENS	src/SIMcode/wlcsim.f90	/^      INTEGER TENS /;"	v	program:wlcsim
 TESTANALYTIC	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTANALYTIC$/;"	s	program:MAIN
 TESTBEADQINT	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADQINT$/;"	s	program:MAIN
 TESTBEADROD	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADROD$/;"	s	program:MAIN
@@ -744,17 +694,12 @@ TESTQUAT	src/MISCcode/quatutil.f90	/^  LOGICAL :: TESTQUAT /;"	v	module:QUATUTIL
 TESTQUAT	src/dssWLC/source/quatutil.f90	/^  LOGICAL :: TESTQUAT /;"	v	module:QUATUTIL
 TESTREADSNAP	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTREADSNAP$/;"	s	program:MAIN
 TESTSAMPLEUTILS	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTSAMPLEUTILS$/;"	s	program:MAIN
-TF	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION T0,TF /;"	v	program:wlcsim
-TIME	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION TIME /;"	v	program:wlcsim
 TRACKDIST	src/MISCcode/keys.f90	/^  INTEGER :: TRACKDIST(/;"	v	module:KEYS
 TRACKDIST	src/dssWLC/source/keys.f90	/^  INTEGER :: TRACKDIST(/;"	v	module:KEYS
 TRACKLOOPING	src/MISCcode/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module:KEYS
 TRACKLOOPING	src/dssWLC/source/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module:KEYS
-TSAVE	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION TSAVE /;"	v	program:wlcsim
 TWOPI	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: TWOPI=/;"	v	module:nrtype
 TWOPI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: TWOPI_D=/;"	v	module:nrtype
-U	src/SIMcode/wlcsim.f90	/^      DOUB/;"	v	program:wlcsim
-U0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U0 /;"	v	program:wlcsim
 UPLETTERS	src/MISCcode/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
 UPLETTERS	src/dssWLC/source/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
 UPPERCASE	src/MISCcode/inputparams.f90	/^  SUBROUTINE UPPERCASE(/;"	s	module:INPUTPARAMS
@@ -776,7 +721,6 @@ W	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W,/;"	k	type:QUATERNION
 W	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W,/;"	k	type:QUATERNION
 WIDTHDIAMOND	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: WIDTHDIAMOND /;"	v	module:KEYS
 WIDTHDIAMOND	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: WIDTHDIAMOND /;"	v	module:KEYS
-WINDOW	src/SIMcode/wlcsim.f90	/^      INTEGER WINDOW(/;"	v	program:wlcsim
 Wigner3j	src/dssWLC/getparams/Wigner3j.m	/^function wigner = Wigner3j(j1,j2,j3,m1,m2,m3,factsave)$/;"	f
 X	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X,/;"	k	type:QUATERNION
 X	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X,/;"	k	type:QUATERNION
@@ -814,14 +758,17 @@ atomR	src/dssWLC/scripts/pdbutils.py	/^([-0-9]+) *(-?[0-9.]+) *(-?[0-9.]+) *(-?[
 ballsize	src/third_party/kdtree2.f90	/^      real(kdkind)      :: ballsize$/;"	k	type:tree_search_record
 box	src/third_party/kdtree2.f90	/^      type(interval), pointer :: box(/;"	k	type:tree_node
 box_in_search_range	src/third_party/kdtree2.f90	/^  logical function box_in_search_range(/;"	f
+brown	src/SIMcode/sim_params.f90	/^    integer, parameter :: brown /;"	v	module:sim_params
 bucket_size	src/third_party/kdtree2.f90	/^  integer, parameter :: bucket_size /;"	v	module:kdtree2_module
 build_tree	src/third_party/kdtree2.f90	/^    subroutine build_tree(/;"	s	module:kdtree2_module
 build_tree_for_range	src/third_party/kdtree2.f90	/^    recursive function build_tree_for_range(/;"	f
 centeridx	src/third_party/kdtree2.f90	/^      integer           :: centeridx=/;"	k	type:tree_search_record
 chainByName	src/dssWLC/scripts/pdbutils.py	/^    def chainByName(self,name):$/;"	m	class:Structure
 cofactor	src/dssWLC/getparams/cofactor.m	/^function C = cofactor(A,i,j)$/;"	f
+col_type	src/SIMcode/sim_params.f90	/^    integer, parameter :: col_type /;"	v	module:sim_params
 concalc	src/BDcode/concalc.f90	/^      SUBROUTINE concalc(/;"	s
 conline	src/dssWLC/scripts/pdbutils.py	/^    def conline(self):$/;"	m	class:Atom
+cor	src/SIMcode/wlcsim.f90	/^    real(dp) cor$/;"	v	program:wlcsim
 correct_ind	src/tests/test_sort.f90	/^integer, parameter :: correct_ind(/;"	v	program:test_sort
 correltime	src/third_party/kdtree2.f90	/^      integer           :: centeridx=999, correltime=/;"	k	type:tree_search_record
 cumprod	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumprod(/;"	f	module:nrutil
@@ -834,6 +781,8 @@ cut_val_right	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left, 
 data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: data(/;"	k	type:tree_search_record
 dbrent	src/dssWLC/source/dbrent.f90	/^	FUNCTION dbrent(/;"	f
 decim	src/SIMcode/decim.f90	/^      SUBROUTINE decim(/;"	s
+delr	src/SIMcode/wlcsim.f90	/^    real(dp) delr(/;"	v	program:wlcsim
+delr0	src/SIMcode/wlcsim.f90	/^    real(dp) delr0(/;"	v	program:wlcsim
 destroy_node	src/third_party/kdtree2.f90	/^    recursive subroutine destroy_node(/;"	s	subroutine:kdtree2_destroy
 dgtsl	src/dssWLC/source/dgtsl.f	/^      subroutine dgtsl(/;"	s
 diagadd_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagadd_r(/;"	s	module:nrutil
@@ -844,25 +793,35 @@ dimen	src/third_party/kdtree2.f90	/^      integer           :: dimen /;"	k	type:
 dimen	src/third_party/kdtree2.f90	/^      integer :: dimen=/;"	k	type:kdtree2
 dis	src/third_party/kdtree2.f90	/^      real(kdkind)    :: dis!/;"	k	type:kdtree2_result
 dis2_from_bnd	src/third_party/kdtree2.f90	/^  real(kdkind) function dis2_from_bnd(/;"	f
+dp	src/SIMcode/sim_params.f90	/^    integer, parameter :: dp /;"	v	module:sim_params
 dp	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: dp /;"	v	module:mt19937
 dp	src/tests/test_sort.f90	/^integer, parameter :: dp /;"	v	program:test_sort
 dp	src/third_party/kdtree2.f90	/^  integer, parameter :: dp /;"	v	module:kdtree2_precision_module
 dp	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: dp /;"	v	module:mt19937
+drcom	src/SIMcode/wlcsim.f90	/^    real(dp) drcom /;"	v	program:wlcsim
 dssWLCcalcparams	src/dssWLC/getparams/dssWLCcalcparams.m	/^function [eb,gam,epar,eperp,eta,alpha,zetau,delt] = dssWLCcalcparams(del,Nseg,varargin)$/;"	f
 dssWLCgetParams	src/dssWLC/getparams/dssWLCgetParams.m	/^function [g,epari,eperpi,eta]= dssWLCgetParams(del,eb,alpha,R2l,R2c,R4l)$/;"	f
 dssWLClengthScale	src/dssWLC/getparams/dssWLClengthScale.m	/^function [lscale,params,Svals] = dssWLClengthScale(del,alpha,Ltot,klist,Splain,Ycouple,cutoff,LMAX,params)$/;"	f
 dssWLCminLpParams	src/dssWLC/getparams/dssWLCminLpParams.m	/^function [ebeff,geff,epari,eperpi,etaeff,err,plen] = dssWLCminLpParams(del,alpha,Rcoeff)$/;"	f
 dssWLCmoments	src/dssWLC/getparams/dssWLCmoments.m	/^function moms = dssWLCmoments(del,eb,g,epari,eperpi,eta,getR4c)$/;"	f
 dssWLCstructFact	src/dssWLC/getparams/dssWLCstructFact.m	/^function [Svals,LMAX] = dssWLCstructFact(klist,del,eb,g,epari,eperpi,eta,Ycouple,Ltot,LMAXin)$/;"	f
+dt	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: dt /;"	v	module:sim_params
+dt0	src/SIMcode/wlcsim.f90	/^    real(dp) :: dt0 /;"	v	program:wlcsim
+e	src/SIMcode/sim_params.f90	/^    rea/;"	v	module:sim_params
+eelas	src/SIMcode/wlcsim.f90	/^    real(dp) eelas(/;"	v	program:wlcsim
 elems	src/third_party/kdtree2.f90	/^      type(kdtree2_result), pointer :: elems(/;"	k	type:pq
+energy	src/SIMcode/wlcsim.f90	/^    real(dp) energy /;"	v	program:wlcsim
 energy_elas	src/SIMcode/energy_elas.f90	/^      SUBROUTINE energy_elas(/;"	s
 energy_ponp	src/SIMcode/energy_ponp.f90	/^      SUBROUTINE energy_ponp(/;"	s
+eponp	src/SIMcode/wlcsim.f90	/^    real(dp) eponp /;"	v	program:wlcsim
 example_Inx	src/dssWLC/source/bessfin.f90	/^	PROGRAM example_Inx$/;"	p
 expandFsph	src/dssWLC/getparams/expandFsph.m	/^function [xivals,tmp] = expandFsph(del,eb,alpha,LMAX)$/;"	f
-fileind	src/SIMcode/wlcsim.f90	/^      character*4 fileind /;"	v	program:wlcsim
+fileind	src/SIMcode/wlcsim.f90	/^    character*4 fileind /;"	v	program:wlcsim
 find_struc	src/DATAcode/find_struc.f90	/^      SUBROUTINE find_struc(/;"	s
 force_elas	src/BDcode/force_elas.f90	/^      SUBROUTINE force_elas(/;"	s
 force_ponp	src/BDcode/force_ponp.f90	/^      SUBROUTINE force_ponp(/;"	s
+fpt_dist	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: fpt_dist /;"	v	module:sim_params
+frmfile	src/SIMcode/sim_params.f90	/^    integer, parameter :: frmfile /;"	v	module:sim_params
 fromAtomList	src/dssWLC/scripts/pdbutils.py	/^    def fromAtomList(self,atmlist):$/;"	m	class:Chain
 gasdev	src/SIMcode/gasdev.f90	/^FUNCTION gasdev(/;"	f
 genbet	src/dssWLC/source/ranlib.f90	/^function genbet /;"	f
@@ -887,18 +846,22 @@ getCOM	src/dssWLC/scripts/pdbutils.py	/^    def getCOM(self,countHet=0):$/;"	m	c
 getYcouple	src/dssWLC/getparams/getYcouple.m	/^function Ycouple = getYcouple(LMAX,savefile)$/;"	f
 get_diag_dv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_dv(/;"	f	module:nrutil
 get_diag_rv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_rv(/;"	f	module:nrutil
-getpara	src/SIMcode/getpara.f90	/^      SUBROUTINE getpara(/;"	s
+getpara	src/SIMcode/getpara.f90	/^subroutine getpara(/;"	s
 goodPair	src/dssWLC/scripts/pdbutils.py	/^def goodPair(r1,r2):$/;"	f
 grnd	src/dssWLC/source/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
 grnd	src/third_party/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
 grndORIG	src/dssWLC/source/mt19937.f90	/^FUNCTION grndORIG(/;"	f	module:mt19937
 grndORIG	src/third_party/mt19937.f90	/^FUNCTION grndORIG(/;"	f	module:mt19937
+has_collided	src/SIMcode/wlcsim.f90	/^    real(dp), allocatable, dimension(:,:):: has_collided$/;"	v	program:wlcsim
 heap_size	src/third_party/kdtree2.f90	/^      integer :: heap_size /;"	k	type:pq
 heapify	src/third_party/kdtree2.f90	/^  subroutine heapify(/;"	s	module:kdtree2_priority_queue_module
 heapsort	src/third_party/kdtree2.f90	/^  subroutine heapsort(/;"	s
 heapsort_struct	src/third_party/kdtree2.f90	/^  subroutine heapsort_struct(/;"	s
+i	src/SIMcode/wlcsim.f90	/^    in/;"	v	program:wlcsim
 i15	src/dssWLC/source/bessfin.f90	/^    INTEGER, PARAMETER :: i15 /;"	v	program:example_Inx
 i9	src/dssWLC/source/bessfin.f90	/^	INTEGER, PARAMETER  :: i9 /;"	v	program:example_Inx
+ib	src/SIMcode/wlcsim.f90	/^    integer i,j,ib /;"	v	program:wlcsim
+idum	src/SIMcode/wlcsim.f90	/^    integer idum /;"	v	program:wlcsim
 idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
 ifirstloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION ifirstloc(/;"	f	module:nrutil
 ignbin	src/dssWLC/source/ranlib.f90	/^function ignbin /;"	f
@@ -908,17 +871,21 @@ ignuin	src/dssWLC/source/ranlib.f90	/^function ignuin /;"	f
 imaxloc_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION imaxloc_i(/;"	f	module:nrutil
 imaxloc_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION imaxloc_r(/;"	f	module:nrutil
 iminloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION iminloc(/;"	f	module:nrutil
+ind	src/SIMcode/wlcsim.f90	/^    integer ind /;"	v	program:wlcsim
 ind	src/tests/test_sort.f90	/^integer :: ind(/;"	v	program:test_sort
 ind	src/third_party/kdtree2.f90	/^      integer, pointer      :: ind(/;"	k	type:tree_search_record
 ind	src/third_party/kdtree2.f90	/^      integer, pointer :: ind(/;"	k	type:kdtree2
+indmax	src/SIMcode/sim_params.f90	/^    integer, parameter :: indmax /;"	v	module:sim_params
 init	src/third_party/sort.f90	/^  subroutine init(/;"	s	subroutine:sort_1i
 init_genrand	src/dssWLC/source/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
 init_genrand	src/third_party/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
 initcond	src/SIMcode/initcond.f90	/^      SUBROUTINE initcond(/;"	s
 initvars	src/dssWLC/scripts/pdbutils.py	/^    def initvars(self):$/;"	m	class:Structure
 interval	src/third_party/kdtree2.f90	/^  type interval$/;"	t	module:kdtree2_module
+inton	src/SIMcode/sim_params.f90	/^    integer, parameter :: inton /;"	v	module:sim_params
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_dp
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_sp
+j	src/SIMcode/wlcsim.f90	/^    integer i,j,/;"	v	program:wlcsim
 j	src/tests/test_sort.f90	/^integer :: j$/;"	v	program:test_sort
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_dp
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_sp
@@ -939,7 +906,10 @@ kdtree2_r_nearest_around_point	src/third_party/kdtree2.f90	/^  subroutine kdtree
 kdtree2_r_nearest_brute_force	src/third_party/kdtree2.f90	/^  subroutine kdtree2_r_nearest_brute_force(/;"	s
 kdtree2_result	src/third_party/kdtree2.f90	/^  type kdtree2_result$/;"	t	module:kdtree2_priority_queue_module
 kdtree2_sort_results	src/third_party/kdtree2.f90	/^  subroutine kdtree2_sort_results(/;"	s
+l	src/SIMcode/sim_params.f90	/^    real(/;"	v	module:sim_params
 l	src/third_party/kdtree2.f90	/^      integer :: l,/;"	k	type:tree_node
+l0	src/SIMcode/wlcsim.f90	/^    real(dp) l0 /;"	v	program:wlcsim
+lbox	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: lbox /;"	v	module:sim_params
 left	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: left,/;"	k	type:tree_node
 len	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,len$/;"	k	type:sprs2_dp
 len	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,len$/;"	k	type:sprs2_sp
@@ -953,9 +923,11 @@ ljind	src/dssWLC/getparams/ljind.m	/^function ind = ljind(l,j)$/;"	f
 ljindinv	src/dssWLC/getparams/ljindinv.m	/^function [l,j] = ljindinv(a)$/;"	f
 lmask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
 lmask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
+logtime	src/SIMcode/sim_params.f90	/^    integer, parameter :: logtime /;"	v	module:sim_params
 loop_1	src/dssWLC/source/bessfin.f90	/^    INTEGER (KIND = i9) :: n, loop_1 /;"	v	program:example_Inx
 lower	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,/;"	k	type:interval
 lower_triangle	src/dssWLC/source/nrutils.f90	/^	FUNCTION lower_triangle(/;"	f	module:nrutil
+lp	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: lp /;"	v	module:sim_params
 m	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v	module:mt19937
 m	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v	module:mt19937
 makeBareStruct	src/dssWLC/scripts/pdbutils.py	/^def makeBareStruct():$/;"	f
@@ -964,7 +936,10 @@ masked_swap_rs	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rs(/;"	s	
 masked_swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rv(/;"	s	module:nrutil
 mata	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m = 397, mata /;"	v	module:mt19937
 mata	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m = 397, mata /;"	v	module:mt19937
+mcamp	src/SIMcode/wlcsim.f90	/^    real(dp) mcamp(/;"	v	program:wlcsim
+mom	src/SIMcode/wlcsim.f90	/^    real(dp) mom(/;"	v	program:wlcsim
 mov3	src/dssWLC/source/dbrent.f90	/^	SUBROUTINE mov3(/;"	s	function:dbrent
+moveon	src/SIMcode/wlcsim.f90	/^    integer moveon(/;"	v	program:wlcsim
 mt	src/dssWLC/source/mt19937.f90	/^INTEGER, SAVE      :: mt(/;"	v	module:mt19937
 mt	src/third_party/mt19937.f90	/^INTEGER, SAVE      :: mt(/;"	v	module:mt19937
 mt19937	src/dssWLC/source/mt19937.f90	/^MODULE mt19937$/;"	m
@@ -973,6 +948,7 @@ mti	src/dssWLC/source/mt19937.f90	/^INTEGER, SAVE      :: mt(0:n-1), mti /;"	v	m
 mti	src/third_party/mt19937.f90	/^INTEGER, SAVE      :: mt(0:n-1), mti /;"	v	module:mt19937
 mu	src/MISCcode/keys.f90	/^  double precision :: mu$/;"	v	module:KEYS
 mu	src/dssWLC/source/keys.f90	/^  double precision :: mu$/;"	v	module:KEYS
+n	src/SIMcode/sim_params.f90	/^    int/;"	v	module:sim_params
 n	src/dssWLC/source/bessfin.f90	/^    INTEGER (KIND = i9) :: n,/;"	v	program:example_Inx
 n	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n /;"	v	module:mt19937
 n	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,/;"	k	type:sprs2_dp
@@ -983,10 +959,14 @@ n1	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 /;"	v	modul
 n1	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 /;"	v	module:mt19937
 nalloc	src/third_party/kdtree2.f90	/^      integer           :: nalloc /;"	k	type:tree_search_record
 nfound	src/third_party/kdtree2.f90	/^      integer           :: nn, nfound$/;"	k	type:tree_search_record
+ninit	src/SIMcode/sim_params.f90	/^    integer, parameter :: ninit /;"	v	module:sim_params
 nn	src/third_party/kdtree2.f90	/^      integer           :: nn,/;"	k	type:tree_search_record
+np	src/SIMcode/sim_params.f90	/^    integer, parameter :: np /;"	v	module:sim_params
 nrerror	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE nrerror(/;"	s	module:nrutil
 nrtype	src/dssWLC/source/nrtype.f90	/^MODULE nrtype$/;"	m
 nrutil	src/dssWLC/source/nrutils.f90	/^MODULE nrutil$/;"	m
+nstep	src/SIMcode/sim_params.f90	/^    integer, parameter :: nstep /;"	v	module:sim_params
+nt	src/SIMcode/wlcsim.f90	/^    inte/;"	v	program:wlcsim
 outerand	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerand(/;"	f	module:nrutil
 outerdiff_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_d(/;"	f	module:nrutil
 outerdiff_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_i(/;"	f	module:nrutil
@@ -997,8 +977,11 @@ outerprod_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerprod_r(/;"	f	module:n
 outersum	src/dssWLC/source/nrutils.f90	/^	FUNCTION outersum(/;"	f	module:nrutil
 outputPDB	src/dssWLC/scripts/pdbutils.py	/^    def outputPDB(self,outfile,append=0,ident=1):        $/;"	m	class:Structure
 overflow	src/third_party/kdtree2.f90	/^      logical           :: overflow$/;"	k	type:tree_search_record
+para	src/SIMcode/wlcsim.f90	/^    real(dp) para(/;"	v	program:wlcsim
 pdbline	src/dssWLC/scripts/pdbutils.py	/^    def pdbline(self):$/;"	m	class:Atom
 phrtsd	src/dssWLC/source/ranlib.f90	/^subroutine phrtsd /;"	s
+pi	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: pi /;"	v	module:sim_params
+pi	src/SIMcode/wlcsim.f90	/^    real(dp), parameter :: pi=/;"	v	program:wlcsim
 poly_cc	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_cc(/;"	f	module:nrutil
 poly_dd	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_dd(/;"	f	module:nrutil
 poly_ddv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_ddv(/;"	f	module:nrutil
@@ -1027,6 +1010,8 @@ put_diag_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE put_diag_rv(/;"	s	module
 qp	src/tests/test_sort.f90	/^integer, parameter :: qp /;"	v	program:test_sort
 quartic	src/dssWLC/source/quartic.f	/^      subroutine quartic(/;"	s
 qv	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: qv(/;"	k	type:tree_search_record
+r	src/SIMcode/wlcsim.f90	/^    re/;"	v	program:wlcsim
+r0	src/SIMcode/wlcsim.f90	/^    real(dp) :: r0(/;"	v	program:wlcsim
 r4_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r4_exponential_sample /;"	f
 r4vec_covar	src/dssWLC/source/ranlib.f90	/^function r4vec_covar /;"	f
 r8_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r8_exponential_sample /;"	f
@@ -1034,6 +1019,8 @@ r8vec_covar	src/dssWLC/source/ranlib.f90	/^function r8vec_covar /;"	f
 r_min	src/tests/test_sort.f90	/^real(dp) :: r_min(/;"	v	program:test_sort
 r_to_erg	src/SIMcode/r_to_erg.f90	/^      SUBROUTINE r_to_erg(/;"	s
 ran1	src/SIMcode/ran1.f90	/^      function ran1(/;"	f
+rcom	src/SIMcode/wlcsim.f90	/^    real(dp) rcom(/;"	v	program:wlcsim
+rcom0	src/SIMcode/wlcsim.f90	/^    real(dp) rcom0(/;"	v	program:wlcsim
 reallocate_hv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_hv(/;"	f	module:nrutil
 reallocate_im	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_im(/;"	f	module:nrutil
 reallocate_iv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_iv(/;"	f	module:nrutil
@@ -1043,6 +1030,7 @@ rearrange	src/third_party/kdtree2.f90	/^      logical           :: rearrange /;"
 rearrange	src/third_party/kdtree2.f90	/^      logical       :: rearrange /;"	k	type:kdtree2
 rearranged_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: rearranged_data(/;"	k	type:kdtree2
 recenter	src/dssWLC/scripts/pdbutils.py	/^    def recenter(self):$/;"	m	class:Structure
+rend	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: rend /;"	v	module:sim_params
 renumAtoms	src/dssWLC/scripts/pdbutils.py	/^    def renumAtoms(self,start=1):$/;"	m	class:Structure
 renumRes	src/dssWLC/scripts/pdbutils.py	/^    def renumRes(self):$/;"	m	class:Structure
 resetFromChains	src/dssWLC/scripts/pdbutils.py	/^    def resetFromChains(self):$/;"	m	class:Structure
@@ -1071,8 +1059,11 @@ sgrnd	src/dssWLC/source/mt19937.f90	/^SUBROUTINE sgrnd(/;"	s	module:mt19937
 sgrnd	src/third_party/mt19937.f90	/^SUBROUTINE sgrnd(/;"	s	module:mt19937
 shearWLCgetAmat	src/dssWLC/getparams/shearWLCgetAmat.m	/^function A = shearWLCgetAmat(k,eb,g,epari,ephi,eta,LMAX)$/;"	f
 shearWLCpropagator	src/dssWLC/getparams/shearWLCpropagator.m	/^function M = shearWLCpropagator(k,L,lp,g,epari,ephi,eta,LMAX)$/;"	f
+sig	src/SIMcode/wlcsim.f90	/^    real(dp) sig(/;"	v	program:wlcsim
 sigclear_	src/SIMcode/sigclear.c	/^void sigclear_(int *signum)$/;"	f
-snapnm	src/SIMcode/wlcsim.f90	/^      character*16 snapnm /;"	v	program:wlcsim
+sim_params	src/SIMcode/sim_params.f90	/^module sim_params$/;"	m
+simtype	src/SIMcode/wlcsim.f90	/^    integer simtype /;"	v	program:wlcsim
+snapnm	src/SIMcode/wlcsim.f90	/^    character*16 snapnm /;"	v	program:wlcsim
 snorm	src/dssWLC/source/ranlib.f90	/^function snorm /;"	f
 sort	src/third_party/kdtree2.f90	/^      logical       :: sort /;"	k	type:kdtree2
 sort_1i	src/third_party/sort.f90	/^subroutine sort_1i(/;"	s
@@ -1092,6 +1083,7 @@ stats	src/dssWLC/source/ranlib.f90	/^subroutine stats /;"	s
 stress	src/SIMcode/stress.f90	/^      SUBROUTINE stress(/;"	s
 stressp	src/SIMcode/stressp.f90	/^      SUBROUTINE stressp(/;"	s
 structFromFile	src/dssWLC/scripts/pdbutils.py	/^    def structFromFile(self,infile):$/;"	m	class:Structure
+success	src/SIMcode/wlcsim.f90	/^    integer success(/;"	v	program:wlcsim
 swap	src/third_party/sort.f90	/^  subroutine swap(/;"	s	subroutine:sort_1i
 swap_c	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_c(/;"	s	module:nrutil
 swap_cm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_cm(/;"	s	module:nrutil
@@ -1102,8 +1094,11 @@ swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_rv(/;"	s	module:nrutil
 swap_z	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_z(/;"	s	module:nrutil
 swap_zm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zm(/;"	s	module:nrutil
 swap_zv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zv(/;"	s	module:nrutil
+tens	src/SIMcode/wlcsim.f90	/^    integer tens /;"	v	program:wlcsim
 test_sort	src/tests/test_sort.f90	/^program test_sort$/;"	p
+tf	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: tf /;"	v	module:sim_params
 the_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: the_data(/;"	k	type:kdtree2
+time	src/SIMcode/wlcsim.f90	/^    real(dp) time /;"	v	program:wlcsim
 tmaskb	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
 tmaskb	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
 tmaskc	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb= -1658038656, tmaskc=/;"	v	module:mt19937
@@ -1112,6 +1107,7 @@ transformR	src/dssWLC/scripts/pdbutils.py	/^transformR = re.compile('^REMARK +35
 tree_node	src/third_party/kdtree2.f90	/^  type :: tree_node$/;"	t	module:kdtree2_module
 tree_search_record	src/third_party/kdtree2.f90	/^  type :: tree_search_record$/;"	t	module:kdtree2_module
 trstat	src/dssWLC/source/ranlib.f90	/^subroutine trstat /;"	s
+tsave	src/SIMcode/wlcsim.f90	/^    real(dp) tsave /;"	v	program:wlcsim
 tshftl	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftl(/;"	f	module:mt19937
 tshftl	src/third_party/mt19937.f90	/^FUNCTION tshftl(/;"	f	module:mt19937
 tshfts	src/dssWLC/source/mt19937.f90	/^FUNCTION tshfts(/;"	f	module:mt19937
@@ -1120,7 +1116,9 @@ tshftt	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftt(/;"	f	module:mt19937
 tshftt	src/third_party/mt19937.f90	/^FUNCTION tshftt(/;"	f	module:mt19937
 tshftu	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
 tshftu	src/third_party/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
+u	src/SIMcode/wlcsim.f90	/^    real(dp) :: u(/;"	v	program:wlcsim
 u	src/third_party/kdtree2.f90	/^      integer :: l, u$/;"	k	type:tree_node
+u0	src/SIMcode/wlcsim.f90	/^    real(dp) :: u0(/;"	v	program:wlcsim
 umask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
 umask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
 unit_matrix	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE unit_matrix(/;"	s	module:nrutil
@@ -1130,6 +1128,8 @@ vabs	src/dssWLC/source/nrutils.f90	/^	FUNCTION vabs(/;"	f	module:nrutil
 val	src/dssWLC/source/nrtype.f90	/^		REAL(DP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_dp
 val	src/dssWLC/source/nrtype.f90	/^		REAL(SP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_sp
 validate_query_storage	src/third_party/kdtree2.f90	/^  subroutine validate_query_storage(/;"	s
-wlcsim	src/SIMcode/wlcsim.f90	/^      PROGRAM wlcsim$/;"	p
+vhc	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: vhc /;"	v	module:sim_params
+window	src/SIMcode/wlcsim.f90	/^    integer window(/;"	v	program:wlcsim
+wlcsim	src/SIMcode/wlcsim.f90	/^program wlcsim$/;"	p
 x	src/dssWLC/source/bessfin.f90	/^	REAL (KIND = i15)  :: x,/;"	v	program:example_Inx
 zroots_unity	src/dssWLC/source/nrutils.f90	/^	FUNCTION zroots_unity(/;"	f	module:nrutil
