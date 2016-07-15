@@ -1,7 +1,8 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE)
+           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
+           COL_TYPE)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -11,7 +12,7 @@
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
 
-      PARAMETER (PI=3.141592654) ! Value of pi
+      implicit none
 
       DOUBLE PRECISION R(NT,3)  ! Bead positions
       DOUBLE PRECISION U(NT,3)  ! Tangent vectors
@@ -68,6 +69,11 @@
 
       INTEGER SWDT
 
+!     Variable to hold time of first collisions between each bead
+      DOUBLE PRECISION HAS_COLLIDED(NT,NT)
+      DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+      INTEGER, INTENT(IN) :: COL_TYPE ! algorithm to use for collision detection
+
 !     Load the input parameters
 
       EB=PARA(1)
@@ -122,6 +128,9 @@
 !     Begin the time integration
 
       DO WHILE (TIME.LT.TTOT)
+
+         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN=1

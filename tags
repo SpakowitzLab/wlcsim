@@ -1,0 +1,1135 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+1	src/SIMcode/gasdev.f90	/^1    v1=2.*ran2(idum)-1.$/;"	l	function:gasdev	file:
+10	src/BDcode/BDsim.f90	/^ 10   CONTINUE$/;"	l	subroutine:BDsim	file:
+10	src/BDcode/DGTSL.f	/^   10          CONTINUE$/;"	l	subroutine:DGTSL	file:
+10	src/BDcode/RKstep.f90	/^ 10   CONTINUE$/;"	l	subroutine:RKstep	file:
+10	src/BDcode/colchecker.f90	/^10    J=J-1$/;"	l	subroutine:INSERTION_SORT	file:
+10	src/BDcode/concalc.f90	/^ 10      CONTINUE$/;"	l	subroutine:concalc	file:
+10	src/BDcode/dgtsv.f	/^   10    CONTINUE$/;"	l	subroutine:DGTSV	file:
+10	src/BDcode/force_elas.f90	/^ 10   CONTINUE$/;"	l	subroutine:force_elas	file:
+10	src/BDcode/force_ponp.f90	/^ 10   CONTINUE$/;"	l	subroutine:force_ponp	file:
+10	src/DATAcode/find_struc.f90	/^ 10   CONTINUE$/;"	l	subroutine:find_struc	file:
+10	src/MCcode/MC_move.f90	/^ 10      CONTINUE$/;"	l	subroutine:MC_move	file:
+10	src/MCcode/MCsim.f90	/^ 10      CONTINUE$/;"	l	subroutine:MCsim	file:
+10	src/SIMcode/decim.f90	/^ 10   CONTINUE$/;"	l	subroutine:decim	file:
+10	src/SIMcode/initcond.f90	/^ 10      CONTINUE $/;"	l	subroutine:initcond	file:
+10	src/SIMcode/r_to_erg.f90	/^ 10   CONTINUE$/;"	l	subroutine:r_to_erg	file:
+10	src/SIMcode/stress.f90	/^ 10   CONTINUE$/;"	l	subroutine:stress	file:
+10	src/SIMcode/stressp.f90	/^ 10   CONTINUE$/;"	l	subroutine:stressp	file:
+10	src/dssWLC/source/dgtsl.f	/^   10          continue$/;"	l	subroutine:dgtsl	file:
+10	src/dssWLC/source/quartic.f	/^ 10     soli(i) = 0.d+0$/;"	l	subroutine:quartic	file:
+100	src/BDcode/BDsim.f90	/^ 100               CONTINUE$/;"	l	subroutine:BDsim	file:
+100	src/BDcode/DGTSL.f	/^  100 CONTINUE$/;"	l	subroutine:DGTSL	file:
+100	src/BDcode/dgtsv.f	/^  100    CONTINUE$/;"	l	subroutine:DGTSV	file:
+100	src/MCcode/MC_self.f90	/^ 100     CONTINUE$/;"	l	subroutine:MC_self	file:
+100	src/dssWLC/source/bessfin.f90	/^	    100 FORMAT(2x, F5.1, 4x, I3, 4x, ES16.9)		$/;"	l	program:example_Inx	file:
+100	src/dssWLC/source/dgtsl.f	/^  100 continue$/;"	l	subroutine:dgtsl	file:
+100	src/dssWLC/source/quartic.f	/^  100       U(I)=P*COS((PHI+DBLE(2*I)*PI)*THIRD)-W$/;"	l	subroutine:CUBIC	file:
+110	src/BDcode/BDsim.f90	/^ 110     CONTINUE$/;"	l	subroutine:BDsim	file:
+110	src/dssWLC/source/quartic.f	/^  110 CONTINUE$/;"	l	subroutine:CUBIC	file:
+120	src/BDcode/BDsim.f90	/^ 120        CONTINUE$/;"	l	subroutine:BDsim	file:
+130	src/BDcode/BDsim.f90	/^ 130        CONTINUE$/;"	l	subroutine:BDsim	file:
+140	src/BDcode/colchecker.f90	/^140       CONTINUE$/;"	l	subroutine:CHECK_COLLISIONS_BRUTE	file:
+15	src/BDcode/concalc.f90	/^15       CONTINUE$/;"	l	subroutine:concalc	file:
+150	src/BDcode/colchecker.f90	/^150           CONTINUE$/;"	l	subroutine:CHECK_COLLISIONS_BRUTE	file:
+20	src/BDcode/BDsim.f90	/^ 20      CONTINUE$/;"	l	subroutine:BDsim	file:
+20	src/BDcode/DGTSL.f	/^   20          CONTINUE$/;"	l	subroutine:DGTSL	file:
+20	src/BDcode/RKstep.f90	/^ 20      CONTINUE$/;"	l	subroutine:RKstep	file:
+20	src/BDcode/colchecker.f90	/^20    A(J+1)=X$/;"	l	subroutine:INSERTION_SORT	file:
+20	src/BDcode/concalc.f90	/^ 20         CONTINUE$/;"	l	subroutine:concalc	file:
+20	src/BDcode/dgtsv.f	/^   20             CONTINUE$/;"	l	subroutine:DGTSV	file:
+20	src/BDcode/force_elas.f90	/^ 20      CONTINUE$/;"	l	subroutine:force_elas	file:
+20	src/BDcode/force_ponp.f90	/^ 20      CONTINUE$/;"	l	subroutine:force_ponp	file:
+20	src/DATAcode/find_struc.f90	/^ 20   CONTINUE$/;"	l	subroutine:find_struc	file:
+20	src/MCcode/MC_move.f90	/^ 20      CONTINUE$/;"	l	subroutine:MC_move	file:
+20	src/MCcode/MCsim.f90	/^ 20            CONTINUE$/;"	l	subroutine:MCsim	file:
+20	src/SIMcode/decim.f90	/^ 20   continue$/;"	l	subroutine:decim	file:
+20	src/SIMcode/initcond.f90	/^ 20         CONTINUE$/;"	l	subroutine:initcond	file:
+20	src/SIMcode/stress.f90	/^ 20      CONTINUE$/;"	l	subroutine:stress	file:
+20	src/SIMcode/stressp.f90	/^ 20      CONTINUE$/;"	l	subroutine:stressp	file:
+20	src/dssWLC/source/dgtsl.f	/^   20          continue$/;"	l	subroutine:dgtsl	file:
+20	src/dssWLC/source/quartic.f	/^ 20     sol(i) = sol(i) - b\/(4.d+0*a)$/;"	l	subroutine:quartic	file:
+30	src/BDcode/BDsim.f90	/^ 30            CONTINUE$/;"	l	subroutine:BDsim	file:
+30	src/BDcode/DGTSL.f	/^   30       CONTINUE$/;"	l	subroutine:DGTSL	file:
+30	src/BDcode/colchecker.f90	/^30    CONTINUE$/;"	l	subroutine:INSERTION_SORT	file:
+30	src/BDcode/concalc.f90	/^ 30         CONTINUE$/;"	l	subroutine:concalc	file:
+30	src/BDcode/dgtsv.f	/^   30          CONTINUE$/;"	l	subroutine:DGTSV	file:
+30	src/BDcode/force_elas.f90	/^ 30   CONTINUE$/;"	l	subroutine:force_elas	file:
+30	src/BDcode/force_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:force_ponp	file:
+30	src/MCcode/MC_move.f90	/^ 30      CONTINUE$/;"	l	subroutine:MC_move	file:
+30	src/MCcode/MC_self.f90	/^ 30   CONTINUE$/;"	l	subroutine:MC_self	file:
+30	src/SIMcode/decim.f90	/^ 30      continue$/;"	l	subroutine:decim	file:
+30	src/SIMcode/energy_elas.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_elas	file:
+30	src/SIMcode/energy_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_ponp	file:
+30	src/SIMcode/initcond.f90	/^ 30      CONTINUE $/;"	l	subroutine:initcond	file:
+30	src/SIMcode/r_to_erg.f90	/^ 30   CONTINUE$/;"	l	subroutine:r_to_erg	file:
+30	src/SIMcode/stress.f90	/^ 30      CONTINUE$/;"	l	subroutine:stress	file:
+30	src/SIMcode/stressp.f90	/^ 30      CONTINUE$/;"	l	subroutine:stressp	file:
+30	src/dssWLC/source/dgtsl.f	/^   30       continue$/;"	l	subroutine:dgtsl	file:
+35	src/BDcode/concalc.f90	/^ 35         CONTINUE$/;"	l	subroutine:concalc	file:
+40	src/BDcode/BDsim.f90	/^ 40               CONTINUE$/;"	l	subroutine:BDsim	file:
+40	src/BDcode/DGTSL.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSL	file:
+40	src/BDcode/concalc.f90	/^ 40      CONTINUE$/;"	l	subroutine:concalc	file:
+40	src/BDcode/dgtsv.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSV	file:
+40	src/BDcode/force_elas.f90	/^ 40      CONTINUE$/;"	l	subroutine:force_elas	file:
+40	src/BDcode/force_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:force_ponp	file:
+40	src/MCcode/MC_move.f90	/^ 40      CONTINUE$/;"	l	subroutine:MC_move	file:
+40	src/MCcode/MC_self.f90	/^ 40      CONTINUE$/;"	l	subroutine:MC_self	file:
+40	src/MCcode/MCsim.f90	/^ 40           CONTINUE$/;"	l	subroutine:MCsim	file:
+40	src/SIMcode/decim.f90	/^ 40   CONTINUE$/;"	l	subroutine:decim	file:
+40	src/SIMcode/energy_elas.f90	/^ 40      CONTINUE$/;"	l	subroutine:energy_elas	file:
+40	src/SIMcode/energy_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:energy_ponp	file:
+40	src/SIMcode/initcond.f90	/^ 40         CONTINUE$/;"	l	subroutine:initcond	file:
+40	src/SIMcode/r_to_erg.f90	/^ 40   CONTINUE$/;"	l	subroutine:r_to_erg	file:
+40	src/SIMcode/stressp.f90	/^ 40      CONTINUE$/;"	l	subroutine:stressp	file:
+40	src/dssWLC/source/dgtsl.f	/^   40    continue$/;"	l	subroutine:dgtsl	file:
+5	src/BDcode/concalc.f90	/^ 5    CONTINUE$/;"	l	subroutine:concalc	file:
+5	src/dssWLC/source/quartic.f	/^ 5      zsol = max(zsol,z(i))$/;"	l	subroutine:quartic	file:
+50	src/BDcode/DGTSL.f	/^   50    CONTINUE$/;"	l	subroutine:DGTSL	file:
+50	src/BDcode/concalc.f90	/^ 50      CONTINUE$/;"	l	subroutine:concalc	file:
+50	src/BDcode/dgtsv.f	/^   50             CONTINUE$/;"	l	subroutine:DGTSV	file:
+50	src/BDcode/force_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:force_ponp	file:
+50	src/MCcode/MC_move.f90	/^ 50      CONTINUE$/;"	l	subroutine:MC_move	file:
+50	src/MCcode/MC_self.f90	/^ 50         CONTINUE$/;"	l	subroutine:MC_self	file:
+50	src/MCcode/MCsim.f90	/^ 50              CONTINUE$/;"	l	subroutine:MCsim	file:
+50	src/SIMcode/energy_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:energy_ponp	file:
+50	src/SIMcode/initcond.f90	/^ 50      CONTINUE$/;"	l	subroutine:initcond	file:
+50	src/SIMcode/stressp.f90	/^ 50      CONTINUE$/;"	l	subroutine:stressp	file:
+50	src/dssWLC/source/dgtsl.f	/^   50    continue$/;"	l	subroutine:dgtsl	file:
+60	src/BDcode/BDsim.f90	/^ 60               CONTINUE$/;"	l	subroutine:BDsim	file:
+60	src/BDcode/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
+60	src/BDcode/dgtsv.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSV	file:
+60	src/BDcode/force_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:force_ponp	file:
+60	src/MCcode/MCsim.f90	/^ 60         CONTINUE$/;"	l	subroutine:MCsim	file:
+60	src/SIMcode/energy_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:energy_ponp	file:
+60	src/SIMcode/initcond.f90	/^ 60         CONTINUE$/;"	l	subroutine:initcond	file:
+60	src/dssWLC/source/dgtsl.f	/^   60          continue$/;"	l	subroutine:dgtsl	file:
+65	src/BDcode/BDsim.f90	/^ 65                  CONTINUE$/;"	l	subroutine:BDsim	file:
+70	src/BDcode/BDsim.f90	/^ 70         CONTINUE$/;"	l	subroutine:BDsim	file:
+70	src/BDcode/DGTSL.f	/^   70          CONTINUE$/;"	l	subroutine:DGTSL	file:
+70	src/BDcode/dgtsv.f	/^   70    CONTINUE$/;"	l	subroutine:DGTSV	file:
+70	src/BDcode/force_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:force_ponp	file:
+70	src/MCcode/MC_self.f90	/^ 70            CONTINUE$/;"	l	subroutine:MC_self	file:
+70	src/SIMcode/energy_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:energy_ponp	file:
+70	src/dssWLC/source/dgtsl.f	/^   70          continue$/;"	l	subroutine:dgtsl	file:
+80	src/BDcode/BDsim.f90	/^ 80            CONTINUE$/;"	l	subroutine:BDsim	file:
+80	src/BDcode/DGTSL.f	/^   80       CONTINUE$/;"	l	subroutine:DGTSL	file:
+80	src/BDcode/dgtsv.f	/^   80    CONTINUE$/;"	l	subroutine:DGTSV	file:
+80	src/MCcode/MC_self.f90	/^ 80         CONTINUE$/;"	l	subroutine:MC_self	file:
+80	src/dssWLC/source/dgtsl.f	/^   80       continue$/;"	l	subroutine:dgtsl	file:
+90	src/BDcode/BDsim.f90	/^ 90            CONTINUE$/;"	l	subroutine:BDsim	file:
+90	src/BDcode/DGTSL.f	/^   90    CONTINUE$/;"	l	subroutine:DGTSL	file:
+90	src/BDcode/dgtsv.f	/^   90       CONTINUE$/;"	l	subroutine:DGTSV	file:
+90	src/MCcode/MC_self.f90	/^ 90            CONTINUE$/;"	l	subroutine:MC_self	file:
+90	src/dssWLC/source/dgtsl.f	/^   90    continue$/;"	l	subroutine:dgtsl	file:
+A0BOUNDFUNC	src/dssWLC/source/a0boundfunc.f90	/^SUBROUTINE A0BOUNDFUNC(/;"	s
+A0BOUNDFUNC	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE A0BOUNDFUNC(/;"	s	module:SAMPLEUTIL
+ACTION	src/MISCcode/keys.f90	/^  CHARACTER*100 :: ACTION$/;"	v	module:KEYS
+ACTION	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: ACTION$/;"	v	module:KEYS
+ADDBEAD	src/dssWLC/source/redisc.f90	/^  SUBROUTINE ADDBEAD(/;"	s	module:REDISC
+ADJUSTEVERY	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ, ADJUSTEVERY$/;"	v	module:KEYS
+ADJUSTEVERY	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ, ADJUSTEVERY$/;"	v	module:KEYS
+ADJUSTSCL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL,/;"	v	module:KEYS
+ADJUSTSCL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL,/;"	v	module:KEYS
+ADVANCECURPOS	src/MISCcode/inputparams.f90	/^  SUBROUTINE ADVANCECURPOS$/;"	s	module:INPUTPARAMS
+ADVANCECURPOS	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE ADVANCECURPOS$/;"	s	module:INPUTPARAMS
+ANGLE0	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION FUNCTION ANGLE0(/;"	f	module:QUATUTIL
+ANGLE0	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION FUNCTION ANGLE0(/;"	f	module:QUATUTIL
+ANGLE2PI	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION FUNCTION ANGLE2PI(/;"	f	module:QUATUTIL
+ANGLE2PI	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION FUNCTION ANGLE2PI(/;"	f	module:QUATUTIL
+APPENDSNAPSHOTS	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS,/;"	v	module:KEYS
+APPENDSNAPSHOTS	src/dssWLC/source/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS,/;"	v	module:KEYS
+APPLYDEFORM	src/dssWLC/source/manychains.f90	/^  SUBROUTINE APPLYDEFORM(/;"	s	module:MANYCHAINS
+ARRAYSET	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: ARRAYSET /;"	k	type:CHAIN
+Atom	src/dssWLC/scripts/pdbutils.py	/^class Atom:$/;"	c
+Auxiliary Scripts	src/dssWLC/doc/README.tex	/^Run a Monte Carlo simulation of $10^8$ steps for a dssWLC. Output the end-to-end distance every 1000 steps into columns 5-7 of the file \\path=ex.montecarlo.out=.$/;"	s
+BASE2DEC	src/MISCcode/genutil.f90	/^  INTEGER FUNCTION BASE2DEC(/;"	f	module:GENUTIL
+BASE2DEC	src/dssWLC/source/genutil.f90	/^  INTEGER FUNCTION BASE2DEC(/;"	f	module:GENUTIL
+BDDRIVER	src/dssWLC/source/main.f90	/^  SUBROUTINE BDDRIVER$/;"	s	program:MAIN
+BDPRINTEVERY	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: BDPRINTEVERY$/;"	v	module:KEYS
+BDPRINTEVERY	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: BDPRINTEVERY$/;"	v	module:KEYS
+BDPRINTLOG	src/MISCcode/keys.f90	/^  LOGICAL :: BDPRINTLOG,/;"	v	module:KEYS
+BDPRINTLOG	src/dssWLC/source/keys.f90	/^  LOGICAL :: BDPRINTLOG,/;"	v	module:KEYS
+BDSTEPS	src/MISCcode/keys.f90	/^  INTEGER :: BDSTEPS,/;"	v	module:KEYS
+BDSTEPS	src/dssWLC/source/keys.f90	/^  INTEGER :: BDSTEPS,/;"	v	module:KEYS
+BDsim	src/BDcode/BDsim.f90	/^      SUBROUTINE BDsim(/;"	s
+BEADALLENERGY	src/dssWLC/source/manychains.f90	/^  SUBROUTINE BEADALLENERGY(/;"	s	module:MANYCHAINS
+BEADENERGY	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: BEADENERGY(/;"	k	type:CHAIN
+BEADMOVE3	src/dssWLC/source/redisc.f90	/^  SUBROUTINE BEADMOVE3(/;"	s	module:REDISC
+BRCRELAX	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: BRCRELAX$/;"	v	module:KEYS
+BRCRELAX	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: BRCRELAX$/;"	v	module:KEYS
+BROWNDYN	src/dssWLC/source/browndyn.f90	/^MODULE BROWNDYN$/;"	m
+BasePair	src/dssWLC/scripts/pdbutils.py	/^class BasePair:$/;"	c
+Bess_In	src/dssWLC/source/bessfin.f90	/^	REAL (KIND = i15)  :: x, Bess_In$/;"	v	program:example_Inx
+Bessf_I0	src/dssWLC/source/besselI0.f90	/^SUBROUTINE Bessf_I0(/;"	s
+Bessf_I0	src/dssWLC/source/bessfin.f90	/^	SUBROUTINE Bessf_I0(/;"	s	module:Bessf_In_x
+Bessf_I1	src/dssWLC/source/bessfin.f90	/^    SUBROUTINE Bessf_I1(/;"	s	module:Bessf_In_x
+Bessf_In	src/dssWLC/source/bessfin.f90	/^    SUBROUTINE Bessf_In(/;"	s	module:Bessf_In_x
+Bessf_In_gt2	src/dssWLC/source/bessfin.f90	/^	Subroutine Bessf_In_gt2(/;"	s	module:Bessf_In_x
+Bessf_In_x	src/dssWLC/source/bessfin.f90	/^	MODULE Bessf_In_x$/;"	m
+CHAIN	src/dssWLC/source/chainutil.f90	/^  TYPE CHAIN /;"	t	module:CHAINUTIL
+CHAINGROUP	src/dssWLC/source/manychains.f90	/^  TYPE CHAINGROUP$/;"	t	module:MANYCHAINS
+CHAINS	src/dssWLC/source/manychains.f90	/^     TYPE(CHAIN), POINTER :: CHAINS(/;"	k	type:CHAINGROUP
+CHAINUTIL	src/dssWLC/source/chainutil.f90	/^MODULE CHAINUTIL$/;"	m
+CHECKCLASHMV1	src/dssWLC/source/montecarlo.f90	/^    SUBROUTINE CHECKCLASHMV1(/;"	s	module:MONTECARLO
+CHECKCLASHMV2	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE CHECKCLASHMV2(/;"	s	module:MONTECARLO
+CHECKCONFLICT	src/dssWLC/source/redisc.f90	/^  SUBROUTINE CHECKCONFLICT(/;"	s	module:REDISC
+CHECKCUBICROOT	src/dssWLC/source/testmain.f90	/^  SUBROUTINE CHECKCUBICROOT$/;"	s	program:MAIN
+CHECKMINIMONTECARLO	src/dssWLC/source/testmain.f90	/^   SUBROUTINE CHECKMINIMONTECARLO$/;"	s	program:MAIN
+CHECKREDISC	src/dssWLC/source/testmain.f90	/^  SUBROUTINE CHECKREDISC$/;"	s	program:MAIN
+CHECKREMOVEADDBEAD	src/dssWLC/source/testmain.f90	/^    SUBROUTINE CHECKREMOVEADDBEAD$/;"	s	program:MAIN
+CHECKSPHEREINTERSECT	src/dssWLC/source/testmain.f90	/^  SUBROUTINE CHECKSPHEREINTERSECT$/;"	s	program:MAIN
+CHECKSTERICCLASH	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE CHECKSTERICCLASH(/;"	s	module:CHAINUTIL
+CHECK_COLLISIONS	src/BDcode/colchecker.f90	/^      SUBROUTINE CHECK_COLLISIONS(/;"	s
+CHECK_COLLISIONS_BB	src/BDcode/colchecker.f90	/^      SUBROUTINE CHECK_COLLISIONS_BB(/;"	s
+CHECK_COLLISIONS_BRUTE	src/BDcode/colchecker.f90	/^      SUBROUTINE CHECK_COLLISIONS_BRUTE(/;"	s
+CHECK_COLLISIONS_KD	src/BDcode/colchecker.f90	/^      SUBROUTINE CHECK_COLLISIONS_KD(/;"	s
+CHECKparamDATA	src/dssWLC/source/testmain.f90	/^  SUBROUTINE CHECKparamDATA$/;"	s	program:MAIN
+CIRCLELINEDIST	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE CIRCLELINEDIST(/;"	s	module:CYLINDERUTIL
+CLEANUPCHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE CLEANUPCHAIN(/;"	s	module:CHAINUTIL
+CLEANUPCHAINGROUP	src/dssWLC/source/manychains.f90	/^  SUBROUTINE CLEANUPCHAINGROUP(/;"	s	module:MANYCHAINS
+CLEANUPDATA	src/dssWLC/source/redisc.f90	/^  SUBROUTINE CLEANUPDATA$/;"	s	module:REDISC
+CLFUNC	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE CLFUNC(/;"	s	module:CYLINDERUTIL
+COMMENT	src/MISCcode/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
+COMMENT	src/dssWLC/source/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
+CONBEAD	src/dssWLC/source/manychains.f90	/^     INTEGER, POINTER :: CONBEAD(/;"	k	type:CHAINGROUP
+CONNECT	src/dssWLC/source/manychains.f90	/^     INTEGER, POINTER :: CONNECT(/;"	k	type:CHAINGROUP
+CONNECTIONS	src/MISCcode/keys.f90	/^  INTEGER :: CONNECTIONS(/;"	v	module:KEYS
+CONNECTIONS	src/dssWLC/source/keys.f90	/^  INTEGER :: CONNECTIONS(/;"	v	module:KEYS
+CONNECTPOS	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS,/;"	v	module:KEYS
+CONNECTPOS	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS,/;"	v	module:KEYS
+CONNECTPOS	src/dssWLC/source/manychains.f90	/^     LOGICAL :: CONNECTPOS,/;"	k	type:CHAINGROUP
+CONNECTSQUARELATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE CONNECTSQUARELATTICE(/;"	s	module:MANYCHAINS
+CONNECTUVEC	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC,/;"	v	module:KEYS
+CONNECTUVEC	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC,/;"	v	module:KEYS
+CONNECTUVEC	src/dssWLC/source/manychains.f90	/^     LOGICAL :: CONNECTPOS, CONNECTUVEC$/;"	k	type:CHAINGROUP
+CONPOSMOD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: CONPOSMOD,/;"	v	module:KEYS
+CONPOSMOD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: CONPOSMOD,/;"	v	module:KEYS
+CONPOSMOD	src/dssWLC/source/manychains.f90	/^     DOUBLE PRECISION :: CONPOSMOD,/;"	k	type:CHAINGROUP
+CONSTMOD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR, CONSTMOD,/;"	v	module:KEYS
+CONSTMOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: CONSTMOD$/;"	k	type:CHAIN
+CONSTMOD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR, CONSTMOD,/;"	v	module:KEYS
+CONUVECMOD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: CONPOSMOD, CONUVECMOD$/;"	v	module:KEYS
+CONUVECMOD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: CONPOSMOD, CONUVECMOD$/;"	v	module:KEYS
+CONUVECMOD	src/dssWLC/source/manychains.f90	/^     DOUBLE PRECISION :: CONPOSMOD,CONUVECMOD /;"	k	type:CHAINGROUP
+COORDS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: COORDS(/;"	k	type:OBSTACLE
+COORDS2QUAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE COORDS2QUAT(/;"	s	module:QUATUTIL
+COORDS2QUAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE COORDS2QUAT(/;"	s	module:QUATUTIL
+COORDS2ROTMAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE COORDS2ROTMAT(/;"	s	module:QUATUTIL
+COORDS2ROTMAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE COORDS2ROTMAT(/;"	s	module:QUATUTIL
+COPYCHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE COPYCHAIN(/;"	s	module:CHAINUTIL
+COPYCHAINGROUP	src/dssWLC/source/manychains.f90	/^  SUBROUTINE COPYCHAINGROUP(/;"	s	module:MANYCHAINS
+COUPLED	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	v	module:KEYS
+COUPLED	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	k	type:CHAIN
+COUPLED	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	v	module:KEYS
+CRANKMOVE1	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE CRANKMOVE1(/;"	s	module:MONTECARLO
+CRANKMOVE2	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE CRANKMOVE2(/;"	s	module:MONTECARLO
+CROSS_PRODUCT	src/MISCcode/genutil.f90	/^  SUBROUTINE CROSS_PRODUCT(/;"	s	module:GENUTIL
+CROSS_PRODUCT	src/dssWLC/source/genutil.f90	/^  SUBROUTINE CROSS_PRODUCT(/;"	s	module:GENUTIL
+CUBIC	src/dssWLC/source/quartic.f	/^      SUBROUTINE CUBIC(/;"	s
+CUBICROOT	src/dssWLC/source/redisc.f90	/^  SUBROUTINE CUBICROOT(/;"	s	module:REDISC
+CURLINE	src/MISCcode/inputparams.f90	/^  CHARACTER(LEN=MAXLINELEN) :: CURLINE$/;"	v	module:INPUTPARAMS
+CURLINE	src/dssWLC/source/inputparams.f90	/^  CHARACTER(LEN=MAXLINELEN) :: CURLINE$/;"	v	module:INPUTPARAMS
+CURPOS	src/MISCcode/inputparams.f90	/^  INTEGER :: CURPOS /;"	v	module:INPUTPARAMS
+CURPOS	src/dssWLC/source/inputparams.f90	/^  INTEGER :: CURPOS /;"	v	module:INPUTPARAMS
+CYLINDERINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION CYLINDERINTERSECT(/;"	f	module:CYLINDERUTIL
+CYLINDERUTIL	src/dssWLC/source/cylinder.f90	/^MODULE CYLINDERUTIL$/;"	m
+Chain	src/dssWLC/scripts/pdbutils.py	/^class Chain:$/;"	c
+Compilation Instructions	src/dssWLC/doc/README.tex	/^\\newpage$/;"	s
+DEBUGFLAGS	src/dssWLC/source/Makefile	/^DEBUGFLAGS =$/;"	m
+DELS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: DELS(/;"	k	type:CHAIN
+DELTSCL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
+DELTSCL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
+DGTSL	src/BDcode/DGTSL.f	/^      SUBROUTINE DGTSL /;"	s
+DGTSV	src/BDcode/dgtsv.f	/^      SUBROUTINE DGTSV(/;"	s
+DIAMONDLATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
+DIAMONDLATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
+DISCDISCINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION DISCDISCINTERSECT(/;"	f	module:CYLINDERUTIL
+DOBROWN	src/MISCcode/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN,/;"	v	module:KEYS
+DOBROWN	src/dssWLC/source/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN,/;"	v	module:KEYS
+DOLOCALMOVES	src/MISCcode/keys.f90	/^  LOGICAL :: DOLOCALMOVES$/;"	v	module:KEYS
+DOLOCALMOVES	src/dssWLC/source/keys.f90	/^  LOGICAL :: DOLOCALMOVES$/;"	v	module:KEYS
+DOREDISC	src/MISCcode/keys.f90	/^  LOGICAL :: DOREDISC,/;"	v	module:KEYS
+DOREDISC	src/dssWLC/source/keys.f90	/^  LOGICAL :: DOREDISC,/;"	v	module:KEYS
+DP	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: DP /;"	v	module:nrtype
+DPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: DPC /;"	v	module:nrtype
+DUMPSNAPSHOTS	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS,/;"	v	module:KEYS
+DUMPSNAPSHOTS	src/dssWLC/source/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS,/;"	v	module:KEYS
+EC	src/MISCcode/keys.f90	/^  DOUBLE PRECI/;"	v	module:KEYS
+EC	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECI/;"	k	type:CHAIN
+EC	src/dssWLC/source/keys.f90	/^  DOUBLE PRECI/;"	v	module:KEYS
+EDGEEC	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC$/;"	v	module:KEYS
+EDGEEC	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC$/;"	v	module:KEYS
+EDGEEPAR	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR,/;"	v	module:KEYS
+EDGEEPAR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR,/;"	v	module:KEYS
+EDGEEPERP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,/;"	v	module:KEYS
+EDGEEPERP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,/;"	v	module:KEYS
+EDGEGAM	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM,/;"	v	module:KEYS
+EDGEGAM	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM,/;"	v	module:KEYS
+EDGELP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP,/;"	v	module:KEYS
+EDGELP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP,/;"	v	module:KEYS
+EDGELS	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: EDGELS,/;"	v	module:KEYS
+EDGELS	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: EDGELS,/;"	v	module:KEYS
+ENVELOPECYLINDER	src/dssWLC/source/redisc.f90	/^  SUBROUTINE ENVELOPECYLINDER(/;"	s	module:REDISC
+EPAR	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR,/;"	v	module:KEYS
+EPAR	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(:),EPERP(:),EPAR(/;"	k	type:CHAIN
+EPAR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR,/;"	v	module:KEYS
+EPERP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP,/;"	v	module:KEYS
+EPERP	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(:),EPERP(/;"	k	type:CHAIN
+EPERP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP,/;"	v	module:KEYS
+EQUILBEADROD	src/MISCcode/keys.f90	/^  LOGICAL :: EQUILBEADROD,/;"	v	module:KEYS
+EQUILBEADROD	src/dssWLC/source/keys.f90	/^  LOGICAL :: EQUILBEADROD,/;"	v	module:KEYS
+EQUILDISTDRIVER	src/dssWLC/source/main.f90	/^  SUBROUTINE EQUILDISTDRIVER$/;"	s	program:MAIN
+EQUILSAMPLETYPE	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE$/;"	v	module:KEYS
+EQUILSAMPLETYPE	src/dssWLC/source/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE$/;"	v	module:KEYS
+EUL2ROTMAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE EUL2ROTMAT(/;"	s	module:QUATUTIL
+EUL2ROTMAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE EUL2ROTMAT(/;"	s	module:QUATUTIL
+EULER	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: EULER=/;"	v	module:nrtype
+EULER2QUAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE EULER2QUAT(/;"	s	module:QUATUTIL
+EULER2QUAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE EULER2QUAT(/;"	s	module:QUATUTIL
+EXE	src/dssWLC/source/Makefile	/^EXE = ..\/shearableWLC.exe$/;"	m
+Example 1  equilibrium sampling	src/dssWLC/doc/README.tex	/^Example parameter files are located in the \\path=examples= directory$/;"	u
+Example 2  Brownian Dynamics	src/dssWLC/doc/README.tex	/^\\end{verbatim}$/;"	u
+Example 3  Looping first-passage time	src/dssWLC/doc/README.tex	/^The simulation starts from an equilibrium distribution and runs for 10000 steps. $/;"	u
+Example 4  Looping first-passage time  with dynamic rediscretization	src/dssWLC/doc/README.tex	/^Run a Brownian Dynamics simulation to track the first passage time to looping for 1000 chains in parallel. This example uses a chain where the 2 edge segments on either side have a segment length of $0.1$ and corresponding parameters, whereas all other segments have a segment length of $0.2$. The friction coefficients are supplied per unit length, which means the edge beads have half the friction of the 2-nd beads from the edge. Those in turn have half the friction of the inner beads (which correspond to longer segment lengths). The time to looping for each chain is output in the 3rd column of the file \\path=ex.loop.loop.out= as each chain loops.$/;"	u
+Example 5  Monte Carlo	src/dssWLC/doc/README.tex	/^Run a Brownian Dynamics simulation to track the first passage time to looping for 1000 chains in parallel. Rediscretize the whole chain dynamically by a factor of 4 (to segment lengths of 0.05) whenever the end-to-end distance goes below 0.4. Coarsen the chain whenever the end-to-end distance goes above 0.5. Parameters are interpolated from the file \\path=dssWLCparams.txt=.$/;"	u
+Examples for a Quick Start	src/dssWLC/doc/README.tex	/^different calculations are provided in the \\path=examples= directory.$/;"	s
+FACCTARGET	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET,/;"	v	module:KEYS
+FACCTARGET	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET,/;"	v	module:KEYS
+FACCTOL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
+FACCTOL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
+FC	src/dssWLC/source/Makefile	/^FC = gfortran$/;"	m
+FINITEXT	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
+FINITEXT	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT$/;"	k	type:CHAIN
+FINITEXT	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
+FINITSHEAR	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR,/;"	v	module:KEYS
+FINITSHEAR	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FINITSHEAR,/;"	k	type:CHAIN
+FINITSHEAR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR,/;"	v	module:KEYS
+FIXBEAD	src/MISCcode/keys.f90	/^  INTEGER :: FIXBEAD(/;"	v	module:KEYS
+FIXBEAD	src/dssWLC/source/chainutil.f90	/^     INTEGER, POINTER :: FIXBEAD(/;"	k	type:CHAIN
+FIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER :: FIXBEAD(/;"	v	module:KEYS
+FIXBEAD	src/dssWLC/source/manychains.f90	/^     LOGICAL, POINTER :: FIXBEAD(/;"	k	type:CHAINGROUP
+FIXBEAD1	src/MISCcode/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,/;"	v	module:KEYS
+FIXBEAD1	src/dssWLC/source/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,/;"	v	module:KEYS
+FIXBEADMID	src/MISCcode/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,FIXBEADMID$/;"	v	module:KEYS
+FIXBEADMID	src/dssWLC/source/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,FIXBEADMID$/;"	v	module:KEYS
+FIXBOUNDARY	src/MISCcode/keys.f90	/^  LOGICAL :: FIXBOUNDARY(/;"	v	module:KEYS
+FIXBOUNDARY	src/dssWLC/source/keys.f90	/^  LOGICAL :: FIXBOUNDARY(/;"	v	module:KEYS
+FIXCONNECT	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE, FIXCONNECT$/;"	v	module:KEYS
+FIXCONNECT	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE, FIXCONNECT$/;"	v	module:KEYS
+FIXCONNECT	src/dssWLC/source/manychains.f90	/^     LOGICAL :: FIXCONNECT$/;"	k	type:CHAINGROUP
+FLAGS	src/dssWLC/source/Makefile	/^FLAGS = -O3 $/;"	m
+FORCE	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FORCE(/;"	v	module:KEYS
+FORCE	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FINITSHEAR, FORCE$/;"	k	type:CHAIN
+FORCE	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FORCE(/;"	v	module:KEYS
+FORCE	src/dssWLC/source/manychains.f90	/^     DOUBLE PRECISION, POINTER :: FORCE(/;"	k	type:CHAINGROUP
+FORCEBEAD	src/MISCcode/keys.f90	/^  INTEGER :: FORCEBEAD(/;"	v	module:KEYS
+FORCEBEAD	src/dssWLC/source/keys.f90	/^  INTEGER :: FORCEBEAD(/;"	v	module:KEYS
+FORCEBEAD	src/dssWLC/source/manychains.f90	/^     INTEGER, POINTER :: FORCEBEAD(/;"	k	type:CHAINGROUP
+FORCEENERGY	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FORCEENERGY$/;"	k	type:CHAIN
+FRICT	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FRICT$/;"	k	type:OBSTACLE
+FRICTOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB$/;"	v	module:KEYS
+FRICTOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB$/;"	v	module:KEYS
+FRICTPERLEN	src/MISCcode/keys.f90	/^  LOGICAL :: FRICTPERLEN$/;"	v	module:KEYS
+FRICTPERLEN	src/dssWLC/source/keys.f90	/^  LOGICAL :: FRICTPERLEN$/;"	v	module:KEYS
+FRICTR	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR,/;"	v	module:KEYS
+FRICTR	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: FRICTR(/;"	k	type:CHAIN
+FRICTR	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR,/;"	v	module:KEYS
+FRICTU	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU,/;"	v	module:KEYS
+FRICTU	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: FRICTR(:), FRICTU(/;"	k	type:CHAIN
+FRICTU	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU,/;"	v	module:KEYS
+GAM	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM,/;"	v	module:KEYS
+GAM	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(:),GAM(/;"	k	type:CHAIN
+GAM	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM,/;"	v	module:KEYS
+GAUSSIANCHAIN	src/MISCcode/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN,/;"	v	module:KEYS
+GAUSSIANCHAIN	src/dssWLC/source/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN,/;"	v	module:KEYS
+GENUTIL	src/MISCcode/genutil.f90	/^MODULE GENUTIL$/;"	m
+GENUTIL	src/dssWLC/source/genutil.f90	/^MODULE GENUTIL$/;"	m
+GETANGLE	src/MISCcode/quatutil.f90	/^  SUBROUTINE GETANGLE(/;"	s	module:QUATUTIL
+GETANGLE	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE GETANGLE(/;"	s	module:QUATUTIL
+GETBEADENERGY	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETBEADENERGY(/;"	s	module:CHAINUTIL
+GETBEADQRINT	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETBEADQRINT(/;"	s	module:CHAINUTIL
+GETBEADQUINT	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETBEADQUINT(/;"	s	module:CHAINUTIL
+GETBEADRODFORCE	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE GETBEADRODFORCE(/;"	s	module:BROWNDYN
+GETCHAINFORCEGAUSS	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE GETCHAINFORCEGAUSS(/;"	s	module:BROWNDYN
+GETCHAINFORCEINT	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE GETCHAINFORCEINT(/;"	s	module:BROWNDYN
+GETCHAINRG	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETCHAINRG(/;"	s	module:CHAINUTIL
+GETCONNECTENERGY	src/dssWLC/source/manychains.f90	/^  SUBROUTINE GETCONNECTENERGY(/;"	s	module:MANYCHAINS
+GETDIHEDRAL	src/MISCcode/quatutil.f90	/^  SUBROUTINE GETDIHEDRAL(/;"	s	module:QUATUTIL
+GETDIHEDRAL	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE GETDIHEDRAL(/;"	s	module:QUATUTIL
+GETENERGY	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETENERGY(/;"	s	module:CHAINUTIL
+GETEQUILCHAIN	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE GETEQUILCHAIN(/;"	s	module:SAMPLEUTIL
+GETFORCEENERGY	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETFORCEENERGY(/;"	s	module:CHAINUTIL
+GETLORENTZENVELOPE	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE GETLORENTZENVELOPE(/;"	s	module:SAMPLEUTIL
+GETPERP	src/MISCcode/genutil.f90	/^  SUBROUTINE GETPERP(/;"	s	module:GENUTIL
+GETPERP	src/dssWLC/source/genutil.f90	/^  SUBROUTINE GETPERP(/;"	s	module:GENUTIL
+GETSTERICENERGY	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE GETSTERICENERGY(/;"	s	module:CHAINUTIL
+GETSTERMV1	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE GETSTERMV1(/;"	s	module:MONTECARLO
+GROUPENERGY	src/dssWLC/source/manychains.f90	/^  SUBROUTINE GROUPENERGY(/;"	s	module:MANYCHAINS
+GROUPSNAPSHOT	src/dssWLC/source/manychains.f90	/^  SUBROUTINE GROUPSNAPSHOT(/;"	s	module:MANYCHAINS
+HASFORCE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: HASFORCE$/;"	k	type:CHAIN
+I1B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I1B /;"	v	module:nrtype
+I2B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I2B /;"	v	module:nrtype
+I4B	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: I4B /;"	v	module:nrtype
+INITIALIZECHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE INITIALIZECHAIN(/;"	s	module:CHAINUTIL
+INITIALIZEDIAMONDLATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE INITIALIZEDIAMONDLATTICE(/;"	s	module:MANYCHAINS
+INITIALIZESQUARELATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE INITIALIZESQUARELATTICE(/;"	s	module:MANYCHAINS
+INITRANGE	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL, INITRANGE(/;"	v	module:KEYS
+INITRANGE	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL, INITRANGE(/;"	v	module:KEYS
+INPUTPARAMS	src/MISCcode/inputparams.f90	/^MODULE INPUTPARAMS$/;"	m
+INPUTPARAMS	src/dssWLC/source/inputparams.f90	/^MODULE INPUTPARAMS$/;"	m
+INPUTSNAPSHOT	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE INPUTSNAPSHOT(/;"	s	module:CHAINUTIL
+INPUTUTIL	src/dssWLC/source/inpututil.f90	/^MODULE INPUTUTIL$/;"	m
+INSERTION_SORT	src/BDcode/colchecker.f90	/^      SUBROUTINE INSERTION_SORT(/;"	s
+INTERP1	src/MISCcode/genutil.f90	/^  SUBROUTINE INTERP1(/;"	s	module:GENUTIL
+INTERP1	src/dssWLC/source/genutil.f90	/^  SUBROUTINE INTERP1(/;"	s	module:GENUTIL
+INTERPARRAY	src/MISCcode/genutil.f90	/^  SUBROUTINE INTERPARRAY(/;"	s	module:GENUTIL
+INTERPARRAY	src/dssWLC/source/genutil.f90	/^  SUBROUTINE INTERPARRAY(/;"	s	module:GENUTIL
+INTERSECT3SPHERE	src/dssWLC/source/redisc.f90	/^  SUBROUTINE INTERSECT3SPHERE(/;"	s	module:REDISC
+INTRWEIGHTNPT	src/MISCcode/keys.f90	/^  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT$/;"	v	module:KEYS
+INTRWEIGHTNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT$/;"	v	module:KEYS
+INTUWEIGHTNPT	src/MISCcode/keys.f90	/^  INTEGER :: INTUWEIGHTNPT,/;"	v	module:KEYS
+INTUWEIGHTNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: INTUWEIGHTNPT,/;"	v	module:KEYS
+INVQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
+INVQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
+ISFIXED	src/dssWLC/source/chainutil.f90	/^     LOGICAL, POINTER :: ISFIXED(/;"	k	type:CHAIN
+KEYS	src/MISCcode/keys.f90	/^MODULE KEYS$/;"	m
+KEYS	src/dssWLC/source/keys.f90	/^MODULE KEYS$/;"	m
+LANGEVINSTEP	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE LANGEVINSTEP(/;"	s	module:BROWNDYN
+LANGEVINSTEPRK4	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE LANGEVINSTEPRK4(/;"	s	module:BROWNDYN
+LENDIAMOND	src/MISCcode/keys.f90	/^  INTEGER :: LENDIAMOND /;"	v	module:KEYS
+LENDIAMOND	src/dssWLC/source/keys.f90	/^  INTEGER :: LENDIAMOND /;"	v	module:KEYS
+LGT	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: LGT /;"	v	module:nrtype
+LIBS	src/dssWLC/source/Makefile	/^LIBS = -lblas -llapack$/;"	m
+LINEDISCINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION LINEDISCINTERSECT(/;"	f	module:CYLINDERUTIL
+LINESEGDIST	src/dssWLC/source/cylinder.f90	/^    SUBROUTINE LINESEGDIST(/;"	s	module:CYLINDERUTIL
+LOCALMOVE	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE LOCALMOVE(/;"	s	module:MONTECARLO
+LOCALMOVE2bead	src/dssWLC/source/montecarlo.f90	/^   SUBROUTINE LOCALMOVE2bead(/;"	s	module:MONTECARLO
+LOGRTERM	src/MISCcode/keys.f90	/^  LOGICAL :: LOGRTERM,/;"	v	module:KEYS
+LOGRTERM	src/dssWLC/source/keys.f90	/^  LOGICAL :: LOGRTERM,/;"	v	module:KEYS
+LOOPFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: LOOPFILE$/;"	v	module:KEYS
+LOOPFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: LOOPFILE$/;"	v	module:KEYS
+LOOPRAD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LOOPRAD$/;"	v	module:KEYS
+LOOPRAD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LOOPRAD$/;"	v	module:KEYS
+LOWERCASE	src/MISCcode/inputparams.f90	/^  SUBROUTINE LOWERCASE(/;"	s	module:INPUTPARAMS
+LOWERCASE	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE LOWERCASE(/;"	s	module:INPUTPARAMS
+LOWLETTERS	src/MISCcode/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: LOWLETTERS /;"	v	module:INPUTPARAMS
+LOWLETTERS	src/dssWLC/source/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: LOWLETTERS /;"	v	module:INPUTPARAMS
+LP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP,/;"	v	module:KEYS
+LP	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: LP(/;"	k	type:CHAIN
+LP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP,/;"	v	module:KEYS
+LS	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS,/;"	v	module:KEYS
+LS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION,POINTER :: LS(/;"	k	type:CHAIN
+LS	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS,/;"	v	module:KEYS
+MAIN	src/dssWLC/source/main.f90	/^PROGRAM MAIN$/;"	p
+MAIN	src/dssWLC/source/test.f90	/^PROGRAM MAIN$/;"	p
+MAIN	src/dssWLC/source/testmain.f90	/^PROGRAM MAIN$/;"	p
+MANYCHAINS	src/dssWLC/source/manychains.f90	/^MODULE MANYCHAINS$/;"	m
+MAXFIXBEAD	src/MISCcode/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
+MAXFIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
+MAXLINELEN	src/MISCcode/inputparams.f90	/^  INTEGER, PARAMETER :: MAXLINELEN /;"	v	module:INPUTPARAMS
+MAXLINELEN	src/dssWLC/source/inputparams.f90	/^  INTEGER, PARAMETER :: MAXLINELEN /;"	v	module:INPUTPARAMS
+MAXNCONNECT	src/MISCcode/keys.f90	/^  INTEGER, PARAMETER :: MAXNCONNECT /;"	v	module:KEYS
+MAXNCONNECT	src/dssWLC/source/keys.f90	/^  INTEGER, PARAMETER :: MAXNCONNECT /;"	v	module:KEYS
+MAXNFORCE	src/MISCcode/keys.f90	/^  INTEGER, PARAMETER :: MAXNFORCE=/;"	v	module:KEYS
+MAXNFORCE	src/dssWLC/source/keys.f90	/^  INTEGER, PARAMETER :: MAXNFORCE=/;"	v	module:KEYS
+MAXNPT	src/MISCcode/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,/;"	v	module:KEYS
+MAXNPT	src/dssWLC/source/chainutil.f90	/^     INTEGER :: MAXNPT /;"	k	type:CHAIN
+MAXNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,/;"	v	module:KEYS
+MAXSEGLEN	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	v	module:KEYS
+MAXSEGLEN	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	k	type:CHAIN
+MAXSEGLEN	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	v	module:KEYS
+MCDRIVER	src/dssWLC/source/main.f90	/^  SUBROUTINE MCDRIVER$/;"	s	program:MAIN
+MCINITSTEPS	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS,/;"	v	module:KEYS
+MCINITSTEPS	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS,/;"	v	module:KEYS
+MCOUTPUTFREQ	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ,/;"	v	module:KEYS
+MCOUTPUTFREQ	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ,/;"	v	module:KEYS
+MCPRINTFREQ	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ,/;"	v	module:KEYS
+MCPRINTFREQ	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ,/;"	v	module:KEYS
+MCSAMPLERRHOPHI	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE MCSAMPLERRHOPHI(/;"	s	module:SAMPLEUTIL
+MCSTATSTEPS	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,/;"	v	module:KEYS
+MCSTATSTEPS	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,/;"	v	module:KEYS
+MCTOTSTEPS	src/MISCcode/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS,/;"	v	module:KEYS
+MCTOTSTEPS	src/dssWLC/source/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS,/;"	v	module:KEYS
+MC_eelas	src/MCcode/MC_elas.f90	/^      SUBROUTINE MC_eelas(/;"	s
+MC_ex	src/MCcode/MC_capsid_ex.f90	/^      SUBROUTINE MC_ex(/;"	s
+MC_move	src/MCcode/MC_move.f90	/^      SUBROUTINE MC_move(/;"	s
+MC_self	src/MCcode/MC_self.f90	/^      SUBROUTINE MC_self(/;"	s
+MCsim	src/MCcode/MCsim.f90	/^      SUBROUTINE MCsim(/;"	s
+MINIMONTECARLO	src/dssWLC/source/redisc.f90	/^  SUBROUTINE MINIMONTECARLO(/;"	s	module:REDISC
+MINSEGLEN	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN,/;"	v	module:KEYS
+MINSEGLEN	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: MINSEGLEN,/;"	k	type:CHAIN
+MINSEGLEN	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN,/;"	v	module:KEYS
+MINV	src/DATAcode/MINV.f90	/^      SUBROUTINE MINV(/;"	s
+MOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD, MOD$/;"	k	type:OBSTACLE
+MODOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
+MODOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
+MONTECARLO	src/dssWLC/source/montecarlo.f90	/^MODULE MONTECARLO$/;"	m
+MU	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: MU$/;"	k	type:CHAIN
+MVNORM	src/dssWLC/source/mt19937.f90	/^FUNCTION MVNORM(/;"	f	module:mt19937
+NCHAIN	src/MISCcode/keys.f90	/^  INTEGER :: NFORCE, NCONNECT, NCHAIN$/;"	v	module:KEYS
+NCHAIN	src/dssWLC/source/keys.f90	/^  INTEGER :: NFORCE, NCONNECT, NCHAIN$/;"	v	module:KEYS
+NCHAIN	src/dssWLC/source/manychains.f90	/^     INTEGER :: NCHAIN=/;"	k	type:CHAINGROUP
+NCONNECT	src/MISCcode/keys.f90	/^  INTEGER :: NFORCE, NCONNECT,/;"	v	module:KEYS
+NCONNECT	src/dssWLC/source/keys.f90	/^  INTEGER :: NFORCE, NCONNECT,/;"	v	module:KEYS
+NCONNECT	src/dssWLC/source/manychains.f90	/^     INTEGER :: NCONNECT /;"	k	type:CHAINGROUP
+NDIAMOND	src/MISCcode/keys.f90	/^  INTEGER :: NDIAMOND(/;"	v	module:KEYS
+NDIAMOND	src/dssWLC/source/keys.f90	/^  INTEGER :: NDIAMOND(/;"	v	module:KEYS
+NEDGESEG	src/MISCcode/keys.f90	/^  INTEGER :: NEDGESEG$/;"	v	module:KEYS
+NEDGESEG	src/dssWLC/source/keys.f90	/^  INTEGER :: NEDGESEG$/;"	v	module:KEYS
+NFIXBEAD	src/MISCcode/keys.f90	/^  INTEGER :: NFIXBEAD$/;"	v	module:KEYS
+NFIXBEAD	src/dssWLC/source/chainutil.f90	/^     INTEGER :: NFIXBEAD$/;"	k	type:CHAIN
+NFIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER :: NFIXBEAD$/;"	v	module:KEYS
+NFORCE	src/MISCcode/keys.f90	/^  INTEGER :: NFORCE,/;"	v	module:KEYS
+NFORCE	src/dssWLC/source/keys.f90	/^  INTEGER :: NFORCE,/;"	v	module:KEYS
+NFORCE	src/dssWLC/source/manychains.f90	/^     INTEGER :: NFORCE$/;"	k	type:CHAINGROUP
+NORM	src/MISCcode/genutil.f90	/^  DOUBLE PRECISION FUNCTION NORM(/;"	f	module:GENUTIL
+NORM	src/dssWLC/source/genutil.f90	/^  DOUBLE PRECISION FUNCTION NORM(/;"	f	module:GENUTIL
+NORMALIZE	src/MISCcode/genutil.f90	/^  SUBROUTINE NORMALIZE(/;"	s	module:GENUTIL
+NORMALIZE	src/dssWLC/source/genutil.f90	/^  SUBROUTINE NORMALIZE(/;"	s	module:GENUTIL
+NPAR2_ARTH	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_ARTH=16,NPAR2_ARTH=/;"	v	module:nrutil
+NPAR2_GEOP	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_GEOP=4,NPAR2_GEOP=/;"	v	module:nrutil
+NPARAMDATA	src/dssWLC/source/redisc.f90	/^  INTEGER :: NPARAMDATA /;"	v	module:REDISC
+NPAR_ARTH	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_ARTH=/;"	v	module:nrutil
+NPAR_CUMPROD	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_CUMPROD=/;"	v	module:nrutil
+NPAR_CUMSUM	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_CUMSUM=/;"	v	module:nrutil
+NPAR_GEOP	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_GEOP=/;"	v	module:nrutil
+NPAR_POLY	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_POLY=/;"	v	module:nrutil
+NPAR_POLYTERM	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_POLYTERM=/;"	v	module:nrutil
+NPT	src/dssWLC/source/chainutil.f90	/^     INTEGER :: NPT /;"	k	type:CHAIN
+NZTINY	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
+NZTINY	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
+OBJS	src/dssWLC/source/Makefile	/^OBJS = chainutil.o quatutil.o keys.o readkey.o genutil.o mt19937.o inputparams.o montecarlo.o inpututil.o browndyn.o redisc.o cylinder.o dbrent.o nrtype.o nrutils.o manychains.o dgtsl.o sampleutil.o besselI0.o$/;"	m
+OBSTACLE	src/dssWLC/source/chainutil.f90	/^  TYPE OBSTACLE$/;"	t	module:CHAINUTIL
+OUTFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: OUTFILE,/;"	v	module:KEYS
+OUTFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: OUTFILE,/;"	v	module:KEYS
+OUTPUTBEADWEIGHT	src/MISCcode/keys.f90	/^  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT$/;"	v	module:KEYS
+OUTPUTBEADWEIGHT	src/dssWLC/source/keys.f90	/^  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT$/;"	v	module:KEYS
+OUTPUTCHAINOBST	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE OUTPUTCHAINOBST(/;"	s	module:CHAINUTIL
+OUTPUTSNAPSHOT	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE OUTPUTSNAPSHOT(/;"	s	module:CHAINUTIL
+PARAMDATA	src/dssWLC/source/redisc.f90	/^  DOUBLE PRECISION, ALLOCATABLE :: PARAMDATA(/;"	v	module:REDISC
+PARAMDATASET	src/dssWLC/source/redisc.f90	/^  LOGICAL :: PARAMDATASET /;"	v	module:REDISC
+PARAMFROMSNAPSHOT	src/MISCcode/keys.f90	/^  LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT$/;"	v	module:KEYS
+PARAMFROMSNAPSHOT	src/dssWLC/source/keys.f90	/^  LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT$/;"	v	module:KEYS
+PCA	src/dssWLC/scripts/pdbutils.py	/^    def PCA(self):$/;"	m	class:Structure
+PI	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: PI /;"	v	module:QUATUTIL
+PI	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: PI=/;"	v	module:nrtype
+PI	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: PI /;"	v	module:QUATUTIL
+PIO2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: PIO2=/;"	v	module:nrtype
+PIO2_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PIO2_D=/;"	v	module:nrtype
+PI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PI_D=/;"	v	module:nrtype
+POS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: POS(/;"	k	type:CHAIN
+PTLINEDIST	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE PTLINEDIST(/;"	s	module:CYLINDERUTIL
+PTQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
+PTQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
+Parameters for the dssWLC model	src/dssWLC/doc/README.tex	/^To load the resulting snapshots into different states to make a movie do ``load snap.pdb, multiplex=0'' in pymol. Color an visualize in pymol using  \\path=scripts\/viewsnapshots.pml=.$/;"	s
+QDIVIDE	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QDIVIDE(/;"	f	module:QUATUTIL
+QDIVIDE	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QDIVIDE(/;"	f	module:QUATUTIL
+QPRODUCT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QPRODUCT(/;"	f	module:QUATUTIL
+QPRODUCT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QPRODUCT(/;"	f	module:QUATUTIL
+QSLERP	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QSLERP(/;"	f	module:QUATUTIL
+QSLERP	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QSLERP(/;"	f	module:QUATUTIL
+QUAT2EULER	src/MISCcode/quatutil.f90	/^  SUBROUTINE QUAT2EULER(/;"	s	module:QUATUTIL
+QUAT2EULER	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE QUAT2EULER(/;"	s	module:QUATUTIL
+QUAT2PT	src/MISCcode/quatutil.f90	/^  FUNCTION QUAT2PT(/;"	f	module:QUATUTIL
+QUAT2PT	src/dssWLC/source/quatutil.f90	/^  FUNCTION QUAT2PT(/;"	f	module:QUATUTIL
+QUAT2QV	src/MISCcode/quatutil.f90	/^  FUNCTION QUAT2QV(/;"	f	module:QUATUTIL
+QUAT2QV	src/dssWLC/source/quatutil.f90	/^  FUNCTION QUAT2QV(/;"	f	module:QUATUTIL
+QUAT2ROTMAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE QUAT2ROTMAT(/;"	s	module:QUATUTIL
+QUAT2ROTMAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE QUAT2ROTMAT(/;"	s	module:QUATUTIL
+QUAT2SCREW	src/MISCcode/quatutil.f90	/^  SUBROUTINE QUAT2SCREW(/;"	s	module:QUATUTIL
+QUAT2SCREW	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE QUAT2SCREW(/;"	s	module:QUATUTIL
+QUATERNION	src/MISCcode/quatutil.f90	/^  TYPE QUATERNION$/;"	t	module:QUATUTIL
+QUATERNION	src/dssWLC/source/quatutil.f90	/^  TYPE QUATERNION$/;"	t	module:QUATUTIL
+QUATUTIL	src/MISCcode/quatutil.f90	/^MODULE QUATUTIL$/;"	m
+QUATUTIL	src/dssWLC/source/quatutil.f90	/^MODULE QUATUTIL /;"	m
+QVPTMULT	src/MISCcode/quatutil.f90	/^  SUBROUTINE QVPTMULT(/;"	s	module:QUATUTIL
+QVPTMULT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE QVPTMULT(/;"	s	module:QUATUTIL
+RAD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD,/;"	k	type:OBSTACLE
+RADOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB,/;"	v	module:KEYS
+RADOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB,/;"	v	module:KEYS
+RAN2	src/SIMcode/ran2.f90	/^FUNCTION RAN2(/;"	f
+RANDOMAXIS	src/MISCcode/genutil.f90	/^  SUBROUTINE RANDOMAXIS(/;"	s	module:GENUTIL
+RANDOMAXIS	src/dssWLC/source/genutil.f90	/^  SUBROUTINE RANDOMAXIS(/;"	s	module:GENUTIL
+READA	src/MISCcode/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
+READA	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
+READF	src/MISCcode/inputparams.f90	/^  SUBROUTINE READF(/;"	s	module:INPUTPARAMS
+READF	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READF(/;"	s	module:INPUTPARAMS
+READI	src/MISCcode/inputparams.f90	/^  SUBROUTINE READI(/;"	s	module:INPUTPARAMS
+READI	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READI(/;"	s	module:INPUTPARAMS
+READKEY	src/MISCcode/readkey.f90	/^SUBROUTINE READKEY$/;"	s
+READKEY	src/dssWLC/source/readkey.f90	/^SUBROUTINE READKEY$/;"	s
+READL	src/MISCcode/inputparams.f90	/^ SUBROUTINE READL(/;"	s	module:INPUTPARAMS
+READL	src/dssWLC/source/inputparams.f90	/^ SUBROUTINE READL(/;"	s	module:INPUTPARAMS
+READLINE	src/MISCcode/inputparams.f90	/^  SUBROUTINE READLINE(/;"	s	module:INPUTPARAMS
+READLINE	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READLINE(/;"	s	module:INPUTPARAMS
+READO	src/MISCcode/inputparams.f90	/^  SUBROUTINE READO(/;"	s	module:INPUTPARAMS
+READO	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READO(/;"	s	module:INPUTPARAMS
+READPARAMDATA	src/dssWLC/source/redisc.f90	/^  SUBROUTINE READPARAMDATA(/;"	s	module:REDISC
+READSNAPSHOTS	src/dssWLC/source/inpututil.f90	/^   SUBROUTINE READSNAPSHOTS(/;"	s	module:INPUTUTIL
+READSNAPSHOTSold	src/dssWLC/source/inpututil.f90	/^  SUBROUTINE READSNAPSHOTSold(/;"	s	module:INPUTUTIL
+READU	src/MISCcode/inputparams.f90	/^  SUBROUTINE READU(/;"	s	module:INPUTPARAMS
+READU	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE READU(/;"	s	module:INPUTPARAMS
+REDISC	src/dssWLC/source/redisc.f90	/^MODULE REDISC$/;"	m
+REDISCADD	src/dssWLC/source/redisc.f90	/^    SUBROUTINE REDISCADD(/;"	s	module:REDISC
+REDISCADDOLD	src/dssWLC/source/redisc.f90	/^  SUBROUTINE REDISCADDOLD(/;"	s	module:REDISC
+REDISCREMOVE	src/dssWLC/source/redisc.f90	/^  SUBROUTINE REDISCREMOVE(/;"	s	module:REDISC
+REDISCREMOVEOLD	src/dssWLC/source/redisc.f90	/^  SUBROUTINE REDISCREMOVEOLD(/;"	s	module:REDISC
+REMOVEBEAD	src/dssWLC/source/redisc.f90	/^  SUBROUTINE REMOVEBEAD(/;"	s	module:REDISC
+REPLACESUBSTR	src/MISCcode/genutil.f90	/^  SUBROUTINE REPLACESUBSTR(/;"	s	module:GENUTIL
+REPLACESUBSTR	src/dssWLC/source/genutil.f90	/^  SUBROUTINE REPLACESUBSTR(/;"	s	module:GENUTIL
+RESETLINKERS	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE RESETLINKERS(/;"	s	module:CHAINUTIL
+RESTART	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART,/;"	v	module:KEYS
+RESTART	src/dssWLC/source/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART,/;"	v	module:KEYS
+RESTARTFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE,/;"	v	module:KEYS
+RESTARTFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE,/;"	v	module:KEYS
+RHQINTERP	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION RHQINTERP(/;"	f	module:QUATUTIL
+RHQINTERP	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION RHQINTERP(/;"	f	module:QUATUTIL
+RKstep	src/BDcode/RKstep.f90	/^      SUBROUTINE RKstep(/;"	s
+RNGSEED	src/MISCcode/keys.f90	/^  INTEGER :: RNGSEED$/;"	v	module:KEYS
+RNGSEED	src/dssWLC/source/keys.f90	/^  INTEGER :: RNGSEED$/;"	v	module:KEYS
+RNORMRESTART	src/dssWLC/source/mt19937.f90	/^LOGICAL, SAVE :: RNORMRESTART /;"	v	module:mt19937
+RNORMRESTART	src/third_party/mt19937.f90	/^LOGICAL, SAVE :: RNORMRESTART /;"	v	module:mt19937
+RNORMSLNSAVE	src/dssWLC/source/mt19937.f90	/^REAL, SAVE :: RNORMVSAVE, RNORMSLNSAVE$/;"	v	module:mt19937
+RNORMSLNSAVE	src/third_party/mt19937.f90	/^REAL, SAVE :: RNORMVSAVE, RNORMSLNSAVE$/;"	v	module:mt19937
+RNORMVSAVE	src/dssWLC/source/mt19937.f90	/^REAL, SAVE :: RNORMVSAVE,/;"	v	module:mt19937
+RNORMVSAVE	src/third_party/mt19937.f90	/^REAL, SAVE :: RNORMVSAVE,/;"	v	module:mt19937
+ROTANGAX	src/MISCcode/quatutil.f90	/^  SUBROUTINE ROTANGAX(/;"	s	module:QUATUTIL
+ROTANGAX	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE ROTANGAX(/;"	s	module:QUATUTIL
+ROTMAT2QUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTMAT2QUAT(/;"	f	module:QUATUTIL
+ROTMAT2QUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTMAT2QUAT(/;"	f	module:QUATUTIL
+ROTQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTQUAT(/;"	f	module:QUATUTIL
+ROTQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTQUAT(/;"	f	module:QUATUTIL
+ROTQV	src/MISCcode/quatutil.f90	/^  SUBROUTINE ROTQV(/;"	s	module:QUATUTIL
+ROTQV	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE ROTQV(/;"	s	module:QUATUTIL
+RUNBROWNDYN	src/dssWLC/source/browndyn.f90	/^  SUBROUTINE RUNBROWNDYN(/;"	s	module:BROWNDYN
+RUNGEKUTTA	src/MISCcode/keys.f90	/^  INTEGER :: BDSTEPS, RUNGEKUTTA$/;"	v	module:KEYS
+RUNGEKUTTA	src/dssWLC/source/keys.f90	/^  INTEGER :: BDSTEPS, RUNGEKUTTA$/;"	v	module:KEYS
+RUNMONTECARLO	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE RUNMONTECARLO(/;"	s	module:MONTECARLO
+RUNMONTECARLO1CHAIN	src/dssWLC/source/montecarlo.f90	/^  SUBROUTINE RUNMONTECARLO1CHAIN(/;"	s	module:MONTECARLO
+Residue	src/dssWLC/scripts/pdbutils.py	/^class Residue:$/;"	c
+SAMPLECYLNORMAL	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLECYLNORMAL(/;"	s	module:SAMPLEUTIL
+SAMPLEPHICOND	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLEPHICOND(/;"	s	module:SAMPLEUTIL
+SAMPLERELCOORDS	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERELCOORDS(/;"	s	module:SAMPLEUTIL
+SAMPLERELCOORDSGAUSSIAN	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERELCOORDSGAUSSIAN(/;"	s	module:SAMPLEUTIL
+SAMPLERELCOORDSMC	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERELCOORDSMC(/;"	s	module:SAMPLEUTIL
+SAMPLERELCOORDSMVN	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERELCOORDSMVN(/;"	s	module:SAMPLEUTIL
+SAMPLERELCOORDSNOSHEAR	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERELCOORDSNOSHEAR(/;"	s	module:SAMPLEUTIL
+SAMPLERRHOMVN	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERRHOMVN(/;"	s	module:SAMPLEUTIL
+SAMPLERRHOPHI	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERRHOPHI(/;"	s	module:SAMPLEUTIL
+SAMPLEUTIL	src/dssWLC/source/sampleutil.f90	/^MODULE SAMPLEUTIL$/;"	m
+SETCHAINGROUPPARAMS	src/dssWLC/source/manychains.f90	/^  SUBROUTINE SETCHAINGROUPPARAMS(/;"	s	module:MANYCHAINS
+SETCHAINPARAMS	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE SETCHAINPARAMS(/;"	s	module:CHAINUTIL
+SETOBSTACLEPARAMS	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE SETOBSTACLEPARAMS(/;"	s	module:CHAINUTIL
+SETSHEAR	src/MISCcode/keys.f90	/^  LOGICAL :: SETSHEAR$/;"	v	module:KEYS
+SETSHEAR	src/dssWLC/source/keys.f90	/^  LOGICAL :: SETSHEAR$/;"	v	module:KEYS
+SETUPCHAIN	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE SETUPCHAIN(/;"	s	module:CHAINUTIL
+SETUPCHAINGROUP	src/dssWLC/source/manychains.f90	/^  SUBROUTINE SETUPCHAINGROUP(/;"	s	module:MANYCHAINS
+SETUPDIAMONDLATTICE	src/dssWLC/source/manychains.f90	/^  SUBROUTINE SETUPDIAMONDLATTICE(/;"	s	module:MANYCHAINS
+SHEARABLE	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
+SHEARABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE,/;"	k	type:CHAIN
+SHEARABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
+SHEARGAMMA	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
+SHEARGAMMA	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
+SKIPREAD	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
+SKIPREAD	src/dssWLC/source/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
+SNAPSHOTEVERY	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY,/;"	v	module:KEYS
+SNAPSHOTEVERY	src/dssWLC/source/keys.f90	/^  INTEGER :: SNAPSHOTEVERY,/;"	v	module:KEYS
+SNAPSHOTFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE,/;"	v	module:KEYS
+SNAPSHOTFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE,/;"	v	module:KEYS
+SP	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: SP /;"	v	module:nrtype
+SPACE	src/MISCcode/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE /;"	v	module:INPUTPARAMS
+SPACE	src/dssWLC/source/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE /;"	v	module:INPUTPARAMS
+SPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: SPC /;"	v	module:nrtype
+SQRT2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: SQRT2=/;"	v	module:nrtype
+SQUARELATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
+SQUARELATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
+STARTCOLLAPSE	src/MISCcode/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
+STARTCOLLAPSE	src/dssWLC/source/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
+STARTEQUIL	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
+STARTEQUIL	src/dssWLC/source/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
+STARTEQUILLP	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: STARTEQUILLP$/;"	v	module:KEYS
+STARTEQUILLP	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: STARTEQUILLP /;"	v	module:KEYS
+STARTNPT	src/MISCcode/keys.f90	/^  INTEGER :: STARTNPT,/;"	v	module:KEYS
+STARTNPT	src/dssWLC/source/keys.f90	/^  INTEGER :: STARTNPT,/;"	v	module:KEYS
+STERICENERGY	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: STERMOD, STERICENERGY$/;"	k	type:CHAIN
+STERICS	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: STERICS /;"	k	type:CHAIN
+STERMOD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: STERMOD$/;"	v	module:KEYS
+STERMOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: STERMOD,/;"	k	type:CHAIN
+STERMOD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: STERMOD$/;"	v	module:KEYS
+STERRAD	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR, CONSTMOD,STERRAD$/;"	v	module:KEYS
+STERRAD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: STERRAD,/;"	k	type:CHAIN
+STERRAD	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR, CONSTMOD,STERRAD$/;"	v	module:KEYS
+STERRAD2	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: STERRAD,STERRAD2 /;"	k	type:CHAIN
+STERSKIP	src/MISCcode/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,STERSKIP$/;"	v	module:KEYS
+STERSKIP	src/dssWLC/source/chainutil.f90	/^     INTEGER :: STERSKIP /;"	k	type:CHAIN
+STERSKIP	src/dssWLC/source/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,STERSKIP$/;"	v	module:KEYS
+STRESSFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE$/;"	v	module:KEYS
+STRESSFILE	src/dssWLC/source/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE$/;"	v	module:KEYS
+STRETCHABLE	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE,/;"	v	module:KEYS
+STRETCHABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE,/;"	k	type:CHAIN
+STRETCHABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE,/;"	v	module:KEYS
+STRING2NUM	src/MISCcode/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
+STRING2NUM	src/dssWLC/source/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
+Structure	src/dssWLC/scripts/pdbutils.py	/^class Structure:$/;"	c
+TESTANALYTIC	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTANALYTIC$/;"	s	program:MAIN
+TESTBEADQINT	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADQINT$/;"	s	program:MAIN
+TESTBEADROD	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADROD$/;"	s	program:MAIN
+TESTBESSEL	src/dssWLC/source/test.f90	/^  SUBROUTINE TESTBESSEL$/;"	s	program:MAIN
+TESTBROWNDYN	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBROWNDYN$/;"	s	program:MAIN
+TESTCHAINEQUIL	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTCHAINEQUIL$/;"	s	program:MAIN
+TESTCHAINFORCE	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTCHAINFORCE$/;"	s	program:MAIN
+TESTCHAINGROUP	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTCHAINGROUP$/;"	s	program:MAIN
+TESTCHOLESKY	src/dssWLC/source/test.f90	/^SUBROUTINE TESTCHOLESKY$/;"	s	program:MAIN
+TESTCRANK	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTCRANK$/;"	s	program:MAIN
+TESTEXE	src/dssWLC/source/Makefile	/^TESTEXE = ..\/testrun.exe$/;"	m
+TESTMCSAMPLEREL	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTMCSAMPLEREL$/;"	s	program:MAIN
+TESTMULTINORM	src/dssWLC/source/test.f90	/^SUBROUTINE TESTMULTINORM$/;"	s	program:MAIN
+TESTQUAT	src/MISCcode/quatutil.f90	/^  LOGICAL :: TESTQUAT /;"	v	module:QUATUTIL
+TESTQUAT	src/dssWLC/source/quatutil.f90	/^  LOGICAL :: TESTQUAT /;"	v	module:QUATUTIL
+TESTREADSNAP	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTREADSNAP$/;"	s	program:MAIN
+TESTSAMPLEUTILS	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTSAMPLEUTILS$/;"	s	program:MAIN
+TRACKDIST	src/MISCcode/keys.f90	/^  INTEGER :: TRACKDIST(/;"	v	module:KEYS
+TRACKDIST	src/dssWLC/source/keys.f90	/^  INTEGER :: TRACKDIST(/;"	v	module:KEYS
+TRACKLOOPING	src/MISCcode/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module:KEYS
+TRACKLOOPING	src/dssWLC/source/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module:KEYS
+TWOPI	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: TWOPI=/;"	v	module:nrtype
+TWOPI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: TWOPI_D=/;"	v	module:nrtype
+UPLETTERS	src/MISCcode/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
+UPLETTERS	src/dssWLC/source/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
+UPPERCASE	src/MISCcode/inputparams.f90	/^  SUBROUTINE UPPERCASE(/;"	s	module:INPUTPARAMS
+UPPERCASE	src/dssWLC/source/inputparams.f90	/^  SUBROUTINE UPPERCASE(/;"	s	module:INPUTPARAMS
+USEBDENERGY	src/MISCcode/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY,/;"	v	module:KEYS
+USEBDENERGY	src/dssWLC/source/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY,/;"	v	module:KEYS
+USEPSEUDOFORCE	src/MISCcode/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN, USEPSEUDOFORCE$/;"	v	module:KEYS
+USEPSEUDOFORCE	src/dssWLC/source/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN, USEPSEUDOFORCE$/;"	v	module:KEYS
+USESTERICS	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT, USESTERICS$/;"	v	module:KEYS
+USESTERICS	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT, USESTERICS$/;"	v	module:KEYS
+UVEC	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: UVEC(/;"	k	type:CHAIN
+Usage Instructions	src/dssWLC/doc/README.tex	/^If the compilation works properly, the executable \\path=shearableWLC.exe= will appear in the main directory.$/;"	s
+VERBOSE	src/MISCcode/keys.f90	/^  LOGICAL :: VERBOSE$/;"	v	module:KEYS
+VERBOSE	src/dssWLC/source/browndyn.f90	/^  LOGICAL :: VERBOSE /;"	v	module:BROWNDYN
+VERBOSE	src/dssWLC/source/keys.f90	/^  LOGICAL :: VERBOSE$/;"	v	module:KEYS
+VERBOSECHAIN	src/dssWLC/source/browndyn.f90	/^  INTEGER :: VERBOSECHAIN /;"	v	module:BROWNDYN
+Visualizing structures	src/dssWLC/doc/README.tex	/^\\section{Auxiliary Scripts}$/;"	u
+W	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W,/;"	k	type:QUATERNION
+W	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W,/;"	k	type:QUATERNION
+WIDTHDIAMOND	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: WIDTHDIAMOND /;"	v	module:KEYS
+WIDTHDIAMOND	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: WIDTHDIAMOND /;"	v	module:KEYS
+Wigner3j	src/dssWLC/getparams/Wigner3j.m	/^function wigner = Wigner3j(j1,j2,j3,m1,m2,m3,factsave)$/;"	f
+X	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X,/;"	k	type:QUATERNION
+X	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X,/;"	k	type:QUATERNION
+Y	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y,/;"	k	type:QUATERNION
+Y	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y,/;"	k	type:QUATERNION
+Z	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y, Z$/;"	k	type:QUATERNION
+Z	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y, Z$/;"	k	type:QUATERNION
+__init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__ (self,atoms=None):$/;"	m	class:Residue
+__init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,infile = None):$/;"	m	class:Structure
+__init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,pdbmatch = None,coords = None, name = 'X',num=0):$/;"	m	class:Atom
+__init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,residues = None):$/;"	m	class:BasePair
+__init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,residues = None):$/;"	m	class:Chain
+__repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Atom	file:
+__repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:BasePair	file:
+__repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Chain	file:
+__repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Residue	file:
+array_copy_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE array_copy_d(/;"	s	module:nrutil
+array_copy_i	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE array_copy_i(/;"	s	module:nrutil
+array_copy_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE array_copy_r(/;"	s	module:nrutil
+arth_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION arth_d(/;"	f	module:nrutil
+arth_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION arth_i(/;"	f	module:nrutil
+arth_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION arth_r(/;"	f	module:nrutil
+assert1	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert1(/;"	s	module:nrutil
+assert2	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert2(/;"	s	module:nrutil
+assert3	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert3(/;"	s	module:nrutil
+assert4	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert4(/;"	s	module:nrutil
+assert_eq2	src/dssWLC/source/nrutils.f90	/^	FUNCTION assert_eq2(/;"	f	module:nrutil
+assert_eq3	src/dssWLC/source/nrutils.f90	/^	FUNCTION assert_eq3(/;"	f	module:nrutil
+assert_eq4	src/dssWLC/source/nrutils.f90	/^	FUNCTION assert_eq4(/;"	f	module:nrutil
+assert_eqn	src/dssWLC/source/nrutils.f90	/^	FUNCTION assert_eqn(/;"	f	module:nrutil
+assert_v	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert_v(/;"	s	module:nrutil
+atomByBum	src/dssWLC/scripts/pdbutils.py	/^    def atomByBum(self,num):$/;"	m	class:Structure
+atomByNum	src/dssWLC/scripts/pdbutils.py	/^    def atomByNum(self,num):$/;"	m	class:Structure
+atomR	src/dssWLC/scripts/pdbutils.py	/^([-0-9]+) *(-?[0-9.]+) *(-?[0-9.]+) *(-?[0-9.]+)(.*$)')$/;"	v
+ballsize	src/third_party/kdtree2.f90	/^      real(kdkind)      :: ballsize$/;"	k	type:tree_search_record
+box	src/third_party/kdtree2.f90	/^      type(interval), pointer :: box(/;"	k	type:tree_node
+box_in_search_range	src/third_party/kdtree2.f90	/^  logical function box_in_search_range(/;"	f
+brown	src/SIMcode/sim_params.f90	/^    integer, parameter :: brown /;"	v	module:sim_params
+bucket_size	src/third_party/kdtree2.f90	/^  integer, parameter :: bucket_size /;"	v	module:kdtree2_module
+build_tree	src/third_party/kdtree2.f90	/^    subroutine build_tree(/;"	s	module:kdtree2_module
+build_tree_for_range	src/third_party/kdtree2.f90	/^    recursive function build_tree_for_range(/;"	f
+centeridx	src/third_party/kdtree2.f90	/^      integer           :: centeridx=/;"	k	type:tree_search_record
+chainByName	src/dssWLC/scripts/pdbutils.py	/^    def chainByName(self,name):$/;"	m	class:Structure
+cofactor	src/dssWLC/getparams/cofactor.m	/^function C = cofactor(A,i,j)$/;"	f
+col_type	src/SIMcode/sim_params.f90	/^    integer, parameter :: col_type /;"	v	module:sim_params
+concalc	src/BDcode/concalc.f90	/^      SUBROUTINE concalc(/;"	s
+conline	src/dssWLC/scripts/pdbutils.py	/^    def conline(self):$/;"	m	class:Atom
+cor	src/SIMcode/wlcsim.f90	/^    real(dp) cor$/;"	v	program:wlcsim
+correct_ind	src/tests/test_sort.f90	/^integer, parameter :: correct_ind(/;"	v	program:test_sort
+correltime	src/third_party/kdtree2.f90	/^      integer           :: centeridx=999, correltime=/;"	k	type:tree_search_record
+cumprod	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumprod(/;"	f	module:nrutil
+cumsum_i	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumsum_i(/;"	f	module:nrutil
+cumsum_r	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumsum_r(/;"	f	module:nrutil
+cut_dim	src/third_party/kdtree2.f90	/^      integer :: cut_dim$/;"	k	type:tree_node
+cut_val	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val$/;"	k	type:tree_node
+cut_val_left	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left,/;"	k	type:tree_node
+cut_val_right	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left, cut_val_right /;"	k	type:tree_node
+data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: data(/;"	k	type:tree_search_record
+dbrent	src/dssWLC/source/dbrent.f90	/^	FUNCTION dbrent(/;"	f
+decim	src/SIMcode/decim.f90	/^      SUBROUTINE decim(/;"	s
+delr	src/SIMcode/wlcsim.f90	/^    real(dp) delr(/;"	v	program:wlcsim
+delr0	src/SIMcode/wlcsim.f90	/^    real(dp) delr0(/;"	v	program:wlcsim
+destroy_node	src/third_party/kdtree2.f90	/^    recursive subroutine destroy_node(/;"	s	subroutine:kdtree2_destroy
+dgtsl	src/dssWLC/source/dgtsl.f	/^      subroutine dgtsl(/;"	s
+diagadd_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagadd_r(/;"	s	module:nrutil
+diagadd_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagadd_rv(/;"	s	module:nrutil
+diagmult_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagmult_r(/;"	s	module:nrutil
+diagmult_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagmult_rv(/;"	s	module:nrutil
+dimen	src/third_party/kdtree2.f90	/^      integer           :: dimen /;"	k	type:tree_search_record
+dimen	src/third_party/kdtree2.f90	/^      integer :: dimen=/;"	k	type:kdtree2
+dis	src/third_party/kdtree2.f90	/^      real(kdkind)    :: dis!/;"	k	type:kdtree2_result
+dis2_from_bnd	src/third_party/kdtree2.f90	/^  real(kdkind) function dis2_from_bnd(/;"	f
+dp	src/SIMcode/sim_params.f90	/^    integer, parameter :: dp /;"	v	module:sim_params
+dp	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: dp /;"	v	module:mt19937
+dp	src/tests/test_sort.f90	/^integer, parameter :: dp /;"	v	program:test_sort
+dp	src/third_party/kdtree2.f90	/^  integer, parameter :: dp /;"	v	module:kdtree2_precision_module
+dp	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: dp /;"	v	module:mt19937
+drcom	src/SIMcode/wlcsim.f90	/^    real(dp) drcom /;"	v	program:wlcsim
+dssWLCcalcparams	src/dssWLC/getparams/dssWLCcalcparams.m	/^function [eb,gam,epar,eperp,eta,alpha,zetau,delt] = dssWLCcalcparams(del,Nseg,varargin)$/;"	f
+dssWLCgetParams	src/dssWLC/getparams/dssWLCgetParams.m	/^function [g,epari,eperpi,eta]= dssWLCgetParams(del,eb,alpha,R2l,R2c,R4l)$/;"	f
+dssWLClengthScale	src/dssWLC/getparams/dssWLClengthScale.m	/^function [lscale,params,Svals] = dssWLClengthScale(del,alpha,Ltot,klist,Splain,Ycouple,cutoff,LMAX,params)$/;"	f
+dssWLCminLpParams	src/dssWLC/getparams/dssWLCminLpParams.m	/^function [ebeff,geff,epari,eperpi,etaeff,err,plen] = dssWLCminLpParams(del,alpha,Rcoeff)$/;"	f
+dssWLCmoments	src/dssWLC/getparams/dssWLCmoments.m	/^function moms = dssWLCmoments(del,eb,g,epari,eperpi,eta,getR4c)$/;"	f
+dssWLCstructFact	src/dssWLC/getparams/dssWLCstructFact.m	/^function [Svals,LMAX] = dssWLCstructFact(klist,del,eb,g,epari,eperpi,eta,Ycouple,Ltot,LMAXin)$/;"	f
+dt	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: dt /;"	v	module:sim_params
+dt0	src/SIMcode/wlcsim.f90	/^    real(dp) :: dt0 /;"	v	program:wlcsim
+e	src/SIMcode/sim_params.f90	/^    rea/;"	v	module:sim_params
+eelas	src/SIMcode/wlcsim.f90	/^    real(dp) eelas(/;"	v	program:wlcsim
+elems	src/third_party/kdtree2.f90	/^      type(kdtree2_result), pointer :: elems(/;"	k	type:pq
+energy	src/SIMcode/wlcsim.f90	/^    real(dp) energy /;"	v	program:wlcsim
+energy_elas	src/SIMcode/energy_elas.f90	/^      SUBROUTINE energy_elas(/;"	s
+energy_ponp	src/SIMcode/energy_ponp.f90	/^      SUBROUTINE energy_ponp(/;"	s
+eponp	src/SIMcode/wlcsim.f90	/^    real(dp) eponp /;"	v	program:wlcsim
+example_Inx	src/dssWLC/source/bessfin.f90	/^	PROGRAM example_Inx$/;"	p
+expandFsph	src/dssWLC/getparams/expandFsph.m	/^function [xivals,tmp] = expandFsph(del,eb,alpha,LMAX)$/;"	f
+fileind	src/SIMcode/wlcsim.f90	/^    character*4 fileind /;"	v	program:wlcsim
+find_struc	src/DATAcode/find_struc.f90	/^      SUBROUTINE find_struc(/;"	s
+force_elas	src/BDcode/force_elas.f90	/^      SUBROUTINE force_elas(/;"	s
+force_ponp	src/BDcode/force_ponp.f90	/^      SUBROUTINE force_ponp(/;"	s
+fpt_dist	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: fpt_dist /;"	v	module:sim_params
+frmfile	src/SIMcode/sim_params.f90	/^    integer, parameter :: frmfile /;"	v	module:sim_params
+fromAtomList	src/dssWLC/scripts/pdbutils.py	/^    def fromAtomList(self,atmlist):$/;"	m	class:Chain
+gasdev	src/SIMcode/gasdev.f90	/^FUNCTION gasdev(/;"	f
+genbet	src/dssWLC/source/ranlib.f90	/^function genbet /;"	f
+genchi	src/dssWLC/source/ranlib.f90	/^function genchi /;"	f
+genexp	src/dssWLC/source/ranlib.f90	/^function genexp /;"	f
+genf	src/dssWLC/source/ranlib.f90	/^function genf /;"	f
+gengam	src/dssWLC/source/ranlib.f90	/^function gengam /;"	f
+genmn	src/dssWLC/source/ranlib.f90	/^subroutine genmn /;"	s
+genmul	src/dssWLC/source/ranlib.f90	/^subroutine genmul /;"	s
+gennch	src/dssWLC/source/ranlib.f90	/^function gennch /;"	f
+gennf	src/dssWLC/source/ranlib.f90	/^function gennf /;"	f
+gennor	src/dssWLC/source/ranlib.f90	/^function gennor /;"	f
+genprm	src/dssWLC/source/ranlib.f90	/^subroutine genprm /;"	s
+genunf	src/dssWLC/source/ranlib.f90	/^function genunf /;"	f
+geop_c	src/dssWLC/source/nrutils.f90	/^	FUNCTION geop_c(/;"	f	module:nrutil
+geop_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION geop_d(/;"	f	module:nrutil
+geop_dv	src/dssWLC/source/nrutils.f90	/^	FUNCTION geop_dv(/;"	f	module:nrutil
+geop_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION geop_i(/;"	f	module:nrutil
+geop_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION geop_r(/;"	f	module:nrutil
+getAtomByName	src/dssWLC/scripts/pdbutils.py	/^    def getAtomByName(self,name,regexp=0):$/;"	m	class:Residue
+getCOM	src/dssWLC/scripts/pdbutils.py	/^    def getCOM(self,countHet=0):$/;"	m	class:Structure
+getYcouple	src/dssWLC/getparams/getYcouple.m	/^function Ycouple = getYcouple(LMAX,savefile)$/;"	f
+get_diag_dv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_dv(/;"	f	module:nrutil
+get_diag_rv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_rv(/;"	f	module:nrutil
+getpara	src/SIMcode/getpara.f90	/^subroutine getpara(/;"	s
+goodPair	src/dssWLC/scripts/pdbutils.py	/^def goodPair(r1,r2):$/;"	f
+grnd	src/dssWLC/source/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
+grnd	src/third_party/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
+grndORIG	src/dssWLC/source/mt19937.f90	/^FUNCTION grndORIG(/;"	f	module:mt19937
+grndORIG	src/third_party/mt19937.f90	/^FUNCTION grndORIG(/;"	f	module:mt19937
+has_collided	src/SIMcode/wlcsim.f90	/^    real(dp), allocatable, dimension(:,:):: has_collided$/;"	v	program:wlcsim
+heap_size	src/third_party/kdtree2.f90	/^      integer :: heap_size /;"	k	type:pq
+heapify	src/third_party/kdtree2.f90	/^  subroutine heapify(/;"	s	module:kdtree2_priority_queue_module
+heapsort	src/third_party/kdtree2.f90	/^  subroutine heapsort(/;"	s
+heapsort_struct	src/third_party/kdtree2.f90	/^  subroutine heapsort_struct(/;"	s
+i	src/SIMcode/wlcsim.f90	/^    in/;"	v	program:wlcsim
+i15	src/dssWLC/source/bessfin.f90	/^    INTEGER, PARAMETER :: i15 /;"	v	program:example_Inx
+i9	src/dssWLC/source/bessfin.f90	/^	INTEGER, PARAMETER  :: i9 /;"	v	program:example_Inx
+ib	src/SIMcode/wlcsim.f90	/^    integer i,j,ib /;"	v	program:wlcsim
+idum	src/SIMcode/wlcsim.f90	/^    integer idum /;"	v	program:wlcsim
+idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
+ifirstloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION ifirstloc(/;"	f	module:nrutil
+ignbin	src/dssWLC/source/ranlib.f90	/^function ignbin /;"	f
+ignnbn	src/dssWLC/source/ranlib.f90	/^function ignnbn /;"	f
+ignpoi	src/dssWLC/source/ranlib.f90	/^function ignpoi /;"	f
+ignuin	src/dssWLC/source/ranlib.f90	/^function ignuin /;"	f
+imaxloc_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION imaxloc_i(/;"	f	module:nrutil
+imaxloc_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION imaxloc_r(/;"	f	module:nrutil
+iminloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION iminloc(/;"	f	module:nrutil
+ind	src/SIMcode/wlcsim.f90	/^    integer ind /;"	v	program:wlcsim
+ind	src/tests/test_sort.f90	/^integer :: ind(/;"	v	program:test_sort
+ind	src/third_party/kdtree2.f90	/^      integer, pointer      :: ind(/;"	k	type:tree_search_record
+ind	src/third_party/kdtree2.f90	/^      integer, pointer :: ind(/;"	k	type:kdtree2
+indmax	src/SIMcode/sim_params.f90	/^    integer, parameter :: indmax /;"	v	module:sim_params
+init	src/third_party/sort.f90	/^  subroutine init(/;"	s	subroutine:sort_1i
+init_genrand	src/dssWLC/source/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
+init_genrand	src/third_party/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
+initcond	src/SIMcode/initcond.f90	/^      SUBROUTINE initcond(/;"	s
+initvars	src/dssWLC/scripts/pdbutils.py	/^    def initvars(self):$/;"	m	class:Structure
+interval	src/third_party/kdtree2.f90	/^  type interval$/;"	t	module:kdtree2_module
+inton	src/SIMcode/sim_params.f90	/^    integer, parameter :: inton /;"	v	module:sim_params
+irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_dp
+irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_sp
+j	src/SIMcode/wlcsim.f90	/^    integer i,j,/;"	v	program:wlcsim
+j	src/tests/test_sort.f90	/^integer :: j$/;"	v	program:test_sort
+jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_dp
+jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_sp
+kdkind	src/third_party/kdtree2.f90	/^  integer, parameter :: kdkind /;"	v	module:kdtree2_precision_module
+kdtree2	src/third_party/kdtree2.f90	/^  type :: kdtree2$/;"	t	module:kdtree2_module
+kdtree2_create	src/third_party/kdtree2.f90	/^  function kdtree2_create(/;"	f	module:kdtree2_module
+kdtree2_destroy	src/third_party/kdtree2.f90	/^  subroutine kdtree2_destroy(/;"	s
+kdtree2_module	src/third_party/kdtree2.f90	/^module kdtree2_module$/;"	m
+kdtree2_n_nearest	src/third_party/kdtree2.f90	/^  subroutine kdtree2_n_nearest(/;"	s
+kdtree2_n_nearest_around_point	src/third_party/kdtree2.f90	/^  subroutine kdtree2_n_nearest_around_point(/;"	s
+kdtree2_n_nearest_brute_force	src/third_party/kdtree2.f90	/^  subroutine kdtree2_n_nearest_brute_force(/;"	s
+kdtree2_precision_module	src/third_party/kdtree2.f90	/^module kdtree2_precision_module$/;"	m
+kdtree2_priority_queue_module	src/third_party/kdtree2.f90	/^module kdtree2_priority_queue_module$/;"	m
+kdtree2_r_count	src/third_party/kdtree2.f90	/^  function kdtree2_r_count(/;"	f
+kdtree2_r_count_around_point	src/third_party/kdtree2.f90	/^  function kdtree2_r_count_around_point(/;"	f
+kdtree2_r_nearest	src/third_party/kdtree2.f90	/^  subroutine kdtree2_r_nearest(/;"	s
+kdtree2_r_nearest_around_point	src/third_party/kdtree2.f90	/^  subroutine kdtree2_r_nearest_around_point(/;"	s
+kdtree2_r_nearest_brute_force	src/third_party/kdtree2.f90	/^  subroutine kdtree2_r_nearest_brute_force(/;"	s
+kdtree2_result	src/third_party/kdtree2.f90	/^  type kdtree2_result$/;"	t	module:kdtree2_priority_queue_module
+kdtree2_sort_results	src/third_party/kdtree2.f90	/^  subroutine kdtree2_sort_results(/;"	s
+l	src/SIMcode/sim_params.f90	/^    real(/;"	v	module:sim_params
+l	src/third_party/kdtree2.f90	/^      integer :: l,/;"	k	type:tree_node
+l0	src/SIMcode/wlcsim.f90	/^    real(dp) l0 /;"	v	program:wlcsim
+lbox	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: lbox /;"	v	module:sim_params
+left	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: left,/;"	k	type:tree_node
+len	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,len$/;"	k	type:sprs2_dp
+len	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,len$/;"	k	type:sprs2_sp
+lennob	src/dssWLC/source/ranlib.f90	/^function lennob /;"	f
+less_than	src/third_party/sort.f90	/^  function less_than(/;"	f	subroutine:sort_1i
+less_than	src/third_party/sort.f90	/^  function less_than(/;"	f	subroutine:sortp_1r4
+less_than	src/third_party/sort.f90	/^  function less_than(/;"	f	subroutine:sortp_1r8
+less_than	src/third_party/sort.f90	/^  function less_than(/;"	f	subroutine:sortp_string
+lines2Struct	src/dssWLC/scripts/snapshot2pdb.py	/^def lines2Struct(lines,branchscl=0.1,scl=10):$/;"	f
+ljind	src/dssWLC/getparams/ljind.m	/^function ind = ljind(l,j)$/;"	f
+ljindinv	src/dssWLC/getparams/ljindinv.m	/^function [l,j] = ljindinv(a)$/;"	f
+lmask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
+lmask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
+logtime	src/SIMcode/sim_params.f90	/^    integer, parameter :: logtime /;"	v	module:sim_params
+loop_1	src/dssWLC/source/bessfin.f90	/^    INTEGER (KIND = i9) :: n, loop_1 /;"	v	program:example_Inx
+lower	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,/;"	k	type:interval
+lower_triangle	src/dssWLC/source/nrutils.f90	/^	FUNCTION lower_triangle(/;"	f	module:nrutil
+lp	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: lp /;"	v	module:sim_params
+m	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v	module:mt19937
+m	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v	module:mt19937
+makeBareStruct	src/dssWLC/scripts/pdbutils.py	/^def makeBareStruct():$/;"	f
+masked_swap_rm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rm(/;"	s	module:nrutil
+masked_swap_rs	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rs(/;"	s	module:nrutil
+masked_swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rv(/;"	s	module:nrutil
+mata	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m = 397, mata /;"	v	module:mt19937
+mata	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m = 397, mata /;"	v	module:mt19937
+mcamp	src/SIMcode/wlcsim.f90	/^    real(dp) mcamp(/;"	v	program:wlcsim
+mom	src/SIMcode/wlcsim.f90	/^    real(dp) mom(/;"	v	program:wlcsim
+mov3	src/dssWLC/source/dbrent.f90	/^	SUBROUTINE mov3(/;"	s	function:dbrent
+moveon	src/SIMcode/wlcsim.f90	/^    integer moveon(/;"	v	program:wlcsim
+mt	src/dssWLC/source/mt19937.f90	/^INTEGER, SAVE      :: mt(/;"	v	module:mt19937
+mt	src/third_party/mt19937.f90	/^INTEGER, SAVE      :: mt(/;"	v	module:mt19937
+mt19937	src/dssWLC/source/mt19937.f90	/^MODULE mt19937$/;"	m
+mt19937	src/third_party/mt19937.f90	/^MODULE mt19937$/;"	m
+mti	src/dssWLC/source/mt19937.f90	/^INTEGER, SAVE      :: mt(0:n-1), mti /;"	v	module:mt19937
+mti	src/third_party/mt19937.f90	/^INTEGER, SAVE      :: mt(0:n-1), mti /;"	v	module:mt19937
+mu	src/MISCcode/keys.f90	/^  double precision :: mu$/;"	v	module:KEYS
+mu	src/dssWLC/source/keys.f90	/^  double precision :: mu$/;"	v	module:KEYS
+n	src/SIMcode/sim_params.f90	/^    int/;"	v	module:sim_params
+n	src/dssWLC/source/bessfin.f90	/^    INTEGER (KIND = i9) :: n,/;"	v	program:example_Inx
+n	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n /;"	v	module:mt19937
+n	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,/;"	k	type:sprs2_dp
+n	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B) :: n,/;"	k	type:sprs2_sp
+n	src/third_party/kdtree2.f90	/^      int/;"	k	type:kdtree2
+n	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n /;"	v	module:mt19937
+n1	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 /;"	v	module:mt19937
+n1	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 /;"	v	module:mt19937
+nalloc	src/third_party/kdtree2.f90	/^      integer           :: nalloc /;"	k	type:tree_search_record
+nfound	src/third_party/kdtree2.f90	/^      integer           :: nn, nfound$/;"	k	type:tree_search_record
+ninit	src/SIMcode/sim_params.f90	/^    integer, parameter :: ninit /;"	v	module:sim_params
+nn	src/third_party/kdtree2.f90	/^      integer           :: nn,/;"	k	type:tree_search_record
+np	src/SIMcode/sim_params.f90	/^    integer, parameter :: np /;"	v	module:sim_params
+nrerror	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE nrerror(/;"	s	module:nrutil
+nrtype	src/dssWLC/source/nrtype.f90	/^MODULE nrtype$/;"	m
+nrutil	src/dssWLC/source/nrutils.f90	/^MODULE nrutil$/;"	m
+nstep	src/SIMcode/sim_params.f90	/^    integer, parameter :: nstep /;"	v	module:sim_params
+nt	src/SIMcode/wlcsim.f90	/^    inte/;"	v	program:wlcsim
+outerand	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerand(/;"	f	module:nrutil
+outerdiff_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_d(/;"	f	module:nrutil
+outerdiff_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_i(/;"	f	module:nrutil
+outerdiff_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_r(/;"	f	module:nrutil
+outerdiv	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiv(/;"	f	module:nrutil
+outerprod_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerprod_d(/;"	f	module:nrutil
+outerprod_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerprod_r(/;"	f	module:nrutil
+outersum	src/dssWLC/source/nrutils.f90	/^	FUNCTION outersum(/;"	f	module:nrutil
+outputPDB	src/dssWLC/scripts/pdbutils.py	/^    def outputPDB(self,outfile,append=0,ident=1):        $/;"	m	class:Structure
+overflow	src/third_party/kdtree2.f90	/^      logical           :: overflow$/;"	k	type:tree_search_record
+para	src/SIMcode/wlcsim.f90	/^    real(dp) para(/;"	v	program:wlcsim
+pdbline	src/dssWLC/scripts/pdbutils.py	/^    def pdbline(self):$/;"	m	class:Atom
+phrtsd	src/dssWLC/source/ranlib.f90	/^subroutine phrtsd /;"	s
+pi	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: pi /;"	v	module:sim_params
+pi	src/SIMcode/wlcsim.f90	/^    real(dp), parameter :: pi=/;"	v	program:wlcsim
+poly_cc	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_cc(/;"	f	module:nrutil
+poly_dd	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_dd(/;"	f	module:nrutil
+poly_ddv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_ddv(/;"	f	module:nrutil
+poly_msk_ddv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_msk_ddv(/;"	f	module:nrutil
+poly_msk_rrv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_msk_rrv(/;"	f	module:nrutil
+poly_rc	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_rc(/;"	f	module:nrutil
+poly_rr	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_rr(/;"	f	module:nrutil
+poly_rrv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_rrv(/;"	f	module:nrutil
+poly_term_cc	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION poly_term_cc(/;"	f	module:nrutil
+poly_term_rr	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION poly_term_rr(/;"	f	module:nrutil
+pq	src/third_party/kdtree2.f90	/^      type(pq)/;"	k	type:tree_search_record
+pq	src/third_party/kdtree2.f90	/^  type pq$/;"	t	module:kdtree2_priority_queue_module
+pq_adjust_heap	src/third_party/kdtree2.f90	/^  subroutine pq_adjust_heap(/;"	s	module:kdtree2_priority_queue_module
+pq_create	src/third_party/kdtree2.f90	/^  function pq_create(/;"	f	module:kdtree2_priority_queue_module
+pq_delete	src/third_party/kdtree2.f90	/^  subroutine pq_delete(/;"	s	module:kdtree2_priority_queue_module
+pq_extract_max	src/third_party/kdtree2.f90	/^  subroutine pq_extract_max(/;"	s	module:kdtree2_priority_queue_module
+pq_insert	src/third_party/kdtree2.f90	/^  real(kdkind) function pq_insert(/;"	f	module:kdtree2_priority_queue_module
+pq_max	src/third_party/kdtree2.f90	/^  subroutine pq_max(/;"	s	module:kdtree2_priority_queue_module
+pq_maxpri	src/third_party/kdtree2.f90	/^  real(kdkind) function pq_maxpri(/;"	f	module:kdtree2_priority_queue_module
+pq_replace_max	src/third_party/kdtree2.f90	/^  real(kdkind) function pq_replace_max(/;"	f	module:kdtree2_priority_queue_module
+prcomp	src/dssWLC/source/ranlib.f90	/^subroutine prcomp /;"	s
+process_terminal_node	src/third_party/kdtree2.f90	/^  subroutine process_terminal_node(/;"	s
+process_terminal_node_fixedball	src/third_party/kdtree2.f90	/^  subroutine process_terminal_node_fixedball(/;"	s
+put_diag_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE put_diag_r(/;"	s	module:nrutil
+put_diag_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE put_diag_rv(/;"	s	module:nrutil
+qp	src/tests/test_sort.f90	/^integer, parameter :: qp /;"	v	program:test_sort
+quartic	src/dssWLC/source/quartic.f	/^      subroutine quartic(/;"	s
+qv	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: qv(/;"	k	type:tree_search_record
+r	src/SIMcode/wlcsim.f90	/^    re/;"	v	program:wlcsim
+r0	src/SIMcode/wlcsim.f90	/^    real(dp) :: r0(/;"	v	program:wlcsim
+r4_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r4_exponential_sample /;"	f
+r4vec_covar	src/dssWLC/source/ranlib.f90	/^function r4vec_covar /;"	f
+r8_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r8_exponential_sample /;"	f
+r8vec_covar	src/dssWLC/source/ranlib.f90	/^function r8vec_covar /;"	f
+r_min	src/tests/test_sort.f90	/^real(dp) :: r_min(/;"	v	program:test_sort
+r_to_erg	src/SIMcode/r_to_erg.f90	/^      SUBROUTINE r_to_erg(/;"	s
+ran1	src/SIMcode/ran1.f90	/^      function ran1(/;"	f
+rcom	src/SIMcode/wlcsim.f90	/^    real(dp) rcom(/;"	v	program:wlcsim
+rcom0	src/SIMcode/wlcsim.f90	/^    real(dp) rcom0(/;"	v	program:wlcsim
+reallocate_hv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_hv(/;"	f	module:nrutil
+reallocate_im	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_im(/;"	f	module:nrutil
+reallocate_iv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_iv(/;"	f	module:nrutil
+reallocate_rm	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_rm(/;"	f	module:nrutil
+reallocate_rv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_rv(/;"	f	module:nrutil
+rearrange	src/third_party/kdtree2.f90	/^      logical           :: rearrange /;"	k	type:tree_search_record
+rearrange	src/third_party/kdtree2.f90	/^      logical       :: rearrange /;"	k	type:kdtree2
+rearranged_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: rearranged_data(/;"	k	type:kdtree2
+recenter	src/dssWLC/scripts/pdbutils.py	/^    def recenter(self):$/;"	m	class:Structure
+rend	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: rend /;"	v	module:sim_params
+renumAtoms	src/dssWLC/scripts/pdbutils.py	/^    def renumAtoms(self,start=1):$/;"	m	class:Structure
+renumRes	src/dssWLC/scripts/pdbutils.py	/^    def renumRes(self):$/;"	m	class:Structure
+resetFromChains	src/dssWLC/scripts/pdbutils.py	/^    def resetFromChains(self):$/;"	m	class:Structure
+resetFromResidues	src/dssWLC/scripts/pdbutils.py	/^    def resetFromResidues(self):$/;"	m	class:Structure
+results	src/third_party/kdtree2.f90	/^      type(kdtree2_result), pointer :: results(/;"	k	type:tree_search_record
+right	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: left, right$/;"	k	type:tree_node
+rnorm	src/dssWLC/source/mt19937.f90	/^FUNCTION rnorm(/;"	f	module:mt19937
+rnorm	src/third_party/mt19937.f90	/^FUNCTION rnorm(/;"	f	module:mt19937
+root	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: root /;"	k	type:kdtree2
+rotateM	src/dssWLC/scripts/pdbutils.py	/^    def rotateM(self,M):$/;"	m	class:Structure
+rshift	src/third_party/sort.f90	/^  subroutine rshift(/;"	s	subroutine:sort_1i
+runcode	src/dssWLC/scripts/snapshot2pdb.py	/^def runcode(argv):$/;"	f
+scatter_add_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_add_d(/;"	s	module:nrutil
+scatter_add_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_add_r(/;"	s	module:nrutil
+scatter_max_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_max_d(/;"	s	module:nrutil
+scatter_max_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_max_r(/;"	s	module:nrutil
+sdot	src/dssWLC/source/ranlib.f90	/^function sdot /;"	f
+search	src/third_party/kdtree2.f90	/^  recursive subroutine search(/;"	s
+select_on_coordinate	src/third_party/kdtree2.f90	/^    subroutine select_on_coordinate(/;"	s
+select_on_coordinate_value	src/third_party/kdtree2.f90	/^    integer function select_on_coordinate_value(/;"	f
+setcov	src/dssWLC/source/ranlib.f90	/^subroutine setcov /;"	s
+setgmn	src/dssWLC/source/ranlib.f90	/^subroutine setgmn /;"	s
+sexpo	src/dssWLC/source/ranlib.f90	/^function sexpo /;"	f
+sgamma	src/dssWLC/source/ranlib.f90	/^function sgamma /;"	f
+sgrnd	src/dssWLC/source/mt19937.f90	/^SUBROUTINE sgrnd(/;"	s	module:mt19937
+sgrnd	src/third_party/mt19937.f90	/^SUBROUTINE sgrnd(/;"	s	module:mt19937
+shearWLCgetAmat	src/dssWLC/getparams/shearWLCgetAmat.m	/^function A = shearWLCgetAmat(k,eb,g,epari,ephi,eta,LMAX)$/;"	f
+shearWLCpropagator	src/dssWLC/getparams/shearWLCpropagator.m	/^function M = shearWLCpropagator(k,L,lp,g,epari,ephi,eta,LMAX)$/;"	f
+sig	src/SIMcode/wlcsim.f90	/^    real(dp) sig(/;"	v	program:wlcsim
+sigclear_	src/SIMcode/sigclear.c	/^void sigclear_(int *signum)$/;"	f
+sim_params	src/SIMcode/sim_params.f90	/^module sim_params$/;"	m
+simtype	src/SIMcode/wlcsim.f90	/^    integer simtype /;"	v	program:wlcsim
+snapnm	src/SIMcode/wlcsim.f90	/^    character*16 snapnm /;"	v	program:wlcsim
+snorm	src/dssWLC/source/ranlib.f90	/^function snorm /;"	f
+sort	src/third_party/kdtree2.f90	/^      logical       :: sort /;"	k	type:kdtree2
+sort_1i	src/third_party/sort.f90	/^subroutine sort_1i(/;"	s
+sortp_1r4	src/third_party/sort.f90	/^subroutine sortp_1r4(/;"	s
+sortp_1r8	src/third_party/sort.f90	/^subroutine sortp_1r8(/;"	s
+sortp_string	src/third_party/sort.f90	/^subroutine sortp_string(/;"	s
+sp	src/tests/test_sort.f90	/^integer, parameter :: sp /;"	v	program:test_sort
+sp	src/third_party/kdtree2.f90	/^  integer, parameter :: sp /;"	v	module:kdtree2_precision_module
+spofa	src/dssWLC/source/ranlib.f90	/^subroutine spofa /;"	s
+spread_in_coordinate	src/third_party/kdtree2.f90	/^   subroutine spread_in_coordinate(/;"	s
+sprs2_dp	src/dssWLC/source/nrtype.f90	/^	TYPE sprs2_dp$/;"	t	module:nrtype
+sprs2_sp	src/dssWLC/source/nrtype.f90	/^	TYPE sprs2_sp$/;"	t	module:nrtype
+square_distance	src/third_party/kdtree2.f90	/^  function square_distance(/;"	f
+sr	src/third_party/kdtree2.f90	/^  type(tree_search_record), save, target :: sr /;"	v	module:kdtree2_module
+ssWLCdynamics	src/dssWLC/getparams/ssWLCdynamics.m	/^function [evals,evecs,pareval,Amat] = ssWLCdynamics(eb,g,epar,eperph,eta,L,xir,xiu,pmax)$/;"	f
+stats	src/dssWLC/source/ranlib.f90	/^subroutine stats /;"	s
+stress	src/SIMcode/stress.f90	/^      SUBROUTINE stress(/;"	s
+stressp	src/SIMcode/stressp.f90	/^      SUBROUTINE stressp(/;"	s
+structFromFile	src/dssWLC/scripts/pdbutils.py	/^    def structFromFile(self,infile):$/;"	m	class:Structure
+success	src/SIMcode/wlcsim.f90	/^    integer success(/;"	v	program:wlcsim
+swap	src/third_party/sort.f90	/^  subroutine swap(/;"	s	subroutine:sort_1i
+swap_c	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_c(/;"	s	module:nrutil
+swap_cm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_cm(/;"	s	module:nrutil
+swap_cv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_cv(/;"	s	module:nrutil
+swap_i	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_i(/;"	s	module:nrutil
+swap_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_r(/;"	s	module:nrutil
+swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_rv(/;"	s	module:nrutil
+swap_z	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_z(/;"	s	module:nrutil
+swap_zm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zm(/;"	s	module:nrutil
+swap_zv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zv(/;"	s	module:nrutil
+tens	src/SIMcode/wlcsim.f90	/^    integer tens /;"	v	program:wlcsim
+test_sort	src/tests/test_sort.f90	/^program test_sort$/;"	p
+tf	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: tf /;"	v	module:sim_params
+the_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: the_data(/;"	k	type:kdtree2
+time	src/SIMcode/wlcsim.f90	/^    real(dp) time /;"	v	program:wlcsim
+tmaskb	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
+tmaskb	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
+tmaskc	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb= -1658038656, tmaskc=/;"	v	module:mt19937
+tmaskc	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb= -1658038656, tmaskc=/;"	v	module:mt19937
+transformR	src/dssWLC/scripts/pdbutils.py	/^transformR = re.compile('^REMARK +350 +BIOMT[1-3] *(\\d+) +(-?[0-9.]+) +(-?[0-9.]+) +(-?[0-9.]+) +(-?[0-9.]+) *$')$/;"	v
+tree_node	src/third_party/kdtree2.f90	/^  type :: tree_node$/;"	t	module:kdtree2_module
+tree_search_record	src/third_party/kdtree2.f90	/^  type :: tree_search_record$/;"	t	module:kdtree2_module
+trstat	src/dssWLC/source/ranlib.f90	/^subroutine trstat /;"	s
+tsave	src/SIMcode/wlcsim.f90	/^    real(dp) tsave /;"	v	program:wlcsim
+tshftl	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftl(/;"	f	module:mt19937
+tshftl	src/third_party/mt19937.f90	/^FUNCTION tshftl(/;"	f	module:mt19937
+tshfts	src/dssWLC/source/mt19937.f90	/^FUNCTION tshfts(/;"	f	module:mt19937
+tshfts	src/third_party/mt19937.f90	/^FUNCTION tshfts(/;"	f	module:mt19937
+tshftt	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftt(/;"	f	module:mt19937
+tshftt	src/third_party/mt19937.f90	/^FUNCTION tshftt(/;"	f	module:mt19937
+tshftu	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
+tshftu	src/third_party/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
+u	src/SIMcode/wlcsim.f90	/^    real(dp) :: u(/;"	v	program:wlcsim
+u	src/third_party/kdtree2.f90	/^      integer :: l, u$/;"	k	type:tree_node
+u0	src/SIMcode/wlcsim.f90	/^    real(dp) :: u0(/;"	v	program:wlcsim
+umask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
+umask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
+unit_matrix	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE unit_matrix(/;"	s	module:nrutil
+upper	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,upper$/;"	k	type:interval
+upper_triangle	src/dssWLC/source/nrutils.f90	/^	FUNCTION upper_triangle(/;"	f	module:nrutil
+vabs	src/dssWLC/source/nrutils.f90	/^	FUNCTION vabs(/;"	f	module:nrutil
+val	src/dssWLC/source/nrtype.f90	/^		REAL(DP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_dp
+val	src/dssWLC/source/nrtype.f90	/^		REAL(SP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_sp
+validate_query_storage	src/third_party/kdtree2.f90	/^  subroutine validate_query_storage(/;"	s
+vhc	src/SIMcode/sim_params.f90	/^    real(dp), parameter :: vhc /;"	v	module:sim_params
+window	src/SIMcode/wlcsim.f90	/^    integer window(/;"	v	program:wlcsim
+wlcsim	src/SIMcode/wlcsim.f90	/^program wlcsim$/;"	p
+x	src/dssWLC/source/bessfin.f90	/^	REAL (KIND = i15)  :: x,/;"	v	program:example_Inx
+zroots_unity	src/dssWLC/source/nrutils.f90	/^	FUNCTION zroots_unity(/;"	f	module:nrutil
