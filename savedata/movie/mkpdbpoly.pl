@@ -6,7 +6,7 @@
 # Converts coordinate into properly formatted pdb files
 # Written by Andy Spakowitz 5-20-05
 
-my $total=2000;         # Total number of snapshots
+my $total=30;         # Total number of snapshots
 my $skip=1;            # Skip number of snapshots
 my $np=1;               # Number of polymers
 my $n0=2000;
