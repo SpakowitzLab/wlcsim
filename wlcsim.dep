@@ -6,6 +6,8 @@ src/DATAcode/find_struc.o :
 	gfortran -c -g -Jsrc -Isrc -cpp   src/DATAcode/find_struc.f90 -o src/DATAcode/find_struc.o
 src/SIMcode/energy_ponp.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/energy_ponp.f90 -o src/SIMcode/energy_ponp.o
+src/BDcode/dgtsv.o : 
+	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/dgtsv.f -o src/BDcode/dgtsv.o
 src/SIMcode/ran1.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/ran1.f90 -o src/SIMcode/ran1.o
 src/SIMcode/stressp.o : 
