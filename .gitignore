@@ -4,3 +4,6 @@ trash/*
 .DS_store
 *.out
 tags
+*~
+.*.sw*
+.DS_Store
