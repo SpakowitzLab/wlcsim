@@ -19,8 +19,6 @@ program wlcsim
                            inton, logtime, ninit, nstep, fpt_dist, col_type
     implicit none
 
-    external write_coltimes ! must declare sighandlers as external
-
     real(dp), parameter :: pi=3.141592654 ! value of pi
 
     integer, parameter :: nt = n*np ! total # beads among all polymers in sim

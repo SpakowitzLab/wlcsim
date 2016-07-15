@@ -15,23 +15,24 @@
 
       SUBROUTINE CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
       IMPLICIT NONE
-      INTEGER NT, COL_TYPE
-      DOUBLE PRECISION FPT_DIST, TIME
-      DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
+      INTEGER, intent(in) :: NT, COL_TYPE
+      DOUBLE PRECISION, intent(in) :: FPT_DIST, TIME
+      DOUBLE PRECISION, intent(in) :: R(NT,3)
+      DOUBLE PRECISION, intent(inout) :: HAS_COLLIDED(NT, NT)
       if (COL_TYPE.EQ.0) then
          return
       else if (COL_TYPE.EQ.1) then
-         call CHECK_COLLISIONS_BRUTE(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+         call CHECK_COLLISIONS_BRUTE(R, NT, HAS_COLLIDED, FPT_DIST, TIME)
       else if (COL_TYPE.EQ.2) then
-         call CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+         call CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME)
       else if (COL_TYPE.EQ.3) then
-         call CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+         call CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME)
       end if
       END
 
       SUBROUTINE CHECK_COLLISIONS_BRUTE(R, NT, HAS_COLLIDED, FPT_DIST, &
-          TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE
+          TIME)
+      INTEGER NT
       DOUBLE PRECISION FPT_DIST, TIME
       DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
 !     Check if the particles have collided
@@ -48,11 +49,11 @@
 
       END
 
-      SUBROUTINE CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+      SUBROUTINE CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME)
       use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, &
                                  kdtree2_r_nearest_around_point
 
-      INTEGER NT, COL_TYPE, NFOUND, NALLOC, K1, K2, I
+      INTEGER NT, NFOUND, NALLOC, K1, K2, I
       DOUBLE PRECISION FPT_DIST, TIME
       DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
       type(kdtree2), pointer :: col_tree
@@ -72,8 +73,8 @@
       enddo
       END
 
-      SUBROUTINE CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE
+      SUBROUTINE CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME)
+      INTEGER NT
       DOUBLE PRECISION FPT_DIST, TIME
       DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
          WRITE(*,*) "Not yet implemented!"

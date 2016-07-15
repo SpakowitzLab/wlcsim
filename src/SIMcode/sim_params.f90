@@ -19,7 +19,7 @@ module sim_params
     integer, parameter :: brown = 1
     integer, parameter :: inton = 0
     integer, parameter :: logtime = 0
-    integer, parameter :: ninit = 1000000
+    integer, parameter :: ninit = 10000
     integer, parameter :: nstep = 0
     real(dp), parameter :: fpt_dist = 2.0_dp
     integer, parameter :: col_type = 1
