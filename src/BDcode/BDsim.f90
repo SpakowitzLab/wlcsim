@@ -1,7 +1,7 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST &
+           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
            COL_TYPE)
 
 !
@@ -129,7 +129,7 @@
 
       DO WHILE (TIME.LT.TTOT)
 
-         call CHECK_COLLISIONS(R, HAS_COLLIDED, FPT_DIST, COL_TYPE)
+         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
 
 
 !     Calculate the random forces and torques for use in this

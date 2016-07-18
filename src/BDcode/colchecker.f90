@@ -48,8 +48,7 @@
       END
 
       SUBROUTINE CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create
-      use kdtree2_precision_module, only : kdtree_r_nearest_around_point
+      use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, kdtree2_r_nearest_around_point
 
       INTEGER NT, COL_TYPE, NFOUND, NALLOC, K1, K2, I
       DOUBLE PRECISION FPT_DIST, TIME
@@ -60,7 +59,7 @@
       col_tree => kdtree2_create(R, rearrange = .true., sort = .false.)
       do K1 = 1,NT
          call kdtree2_r_nearest_around_point(col_tree, idxin = K1, &
-               correltime = 1, r2 = FPT_DIST, nfound = NFOUND, nalloc = NALLOC &
+               correltime = 1, r2 = FPT_DIST, nfound = NFOUND, nalloc = NALLOC, &
                results = kd_results)
          do I = 1,NFOUND
              K2 = kd_results(I)%idx
@@ -72,8 +71,8 @@
       END
 
       SUBROUTINE CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE, TIME
-      DOUBLE PRECISION FPT_DIST
+      INTEGER NT, COL_TYPE
+      DOUBLE PRECISION FPT_DIST, TIME
       DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
          WRITE(*,*) "Not yet implemented!"
          STOP 1

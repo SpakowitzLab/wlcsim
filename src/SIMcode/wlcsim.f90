@@ -20,8 +20,6 @@
 
       external WRITE_COLTIMES ! must declare sighandlers as external
 
-      PARAMETER (PI=3.141592654) ! Value of pi
-
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R     ! Conformation of polymer chains
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U     ! Conformation of polymer chains
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R0 ! Conformation of polymer chains
@@ -128,7 +126,7 @@
       ALLOCATE(U(NT,3))
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
-      if COL_TYPE.NE.0 then
+      if (COL_TYPE.NE.0) then
          ALLOCATE(HAS_COLLIDED(NT,NT))
          HAS_COLLIDED = -1.0d+0
       endif
