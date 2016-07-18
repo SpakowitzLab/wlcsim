@@ -8,7 +8,7 @@ tags
 .*.sw*
 .DS_Store
 *.mod
-savedata/movie/xyz/*
-savedata/movie/pdb/*
-savedata/movie/pdb0/*
-savedata/movie/png/*
+vizualization/xyz/*
+vizualization/pdb/*
+vizualization/pdb0/*
+vizualization/png/*

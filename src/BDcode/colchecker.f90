@@ -1,79 +1,180 @@
-      SUBROUTINE INSERTION_SORT(N,A)
-      IMPLICIT NONE
-      INTEGER N,I,J
-      DOUBLE PRECISION A(N),X
-      DO 30 I=2,N
-      X=A(I)
-      J=I
-10    J=J-1
-      IF(J.EQ.0 .OR. A(J).LE.X) GO TO 20
-      A(J+1)=A(J)
-      GO TO 10
-20    A(J+1)=X
-30    CONTINUE
-      END
+subroutine insertion_sort(n,a)
+    implicit none
+    integer n,i,j
+    double precision a(n),x
+    do 30 i=2,n
+        x=a(i)
+        j=i
+10      j=j-1
+        if (j.eq.0 .or. a(j).le.x) go to 20
+        a(j+1)=a(j)
+        go to 10
+20      a(j+1)=x
+30  continue
+end
 
-      SUBROUTINE CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE
-      DOUBLE PRECISION FPT_DIST, TIME
-      DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
-      if (COL_TYPE.EQ.0) then
-         return
-      else if (COL_TYPE.EQ.1) then
-         call CHECK_COLLISIONS_BRUTE(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      else if (COL_TYPE.EQ.2) then
-         call CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      else if (COL_TYPE.EQ.3) then
-         call CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      end if
-      END
+subroutine check_collisions(r, nt, has_collided, fpt_dist, time, col_type)
+    implicit none
+    integer, intent(in) :: nt, col_type
+    double precision, intent(in) :: fpt_dist, time
+    double precision, intent(in) :: r(nt,3)
+    double precision, intent(inout) :: has_collided(nt, nt)
+    if (col_type.eq.0) then
+        return
+    else if (col_type.eq.1) then
+        call check_collisions_brute(r, nt, has_collided, fpt_dist, time)
+    else if (col_type.eq.2) then
+        call check_collisions_kd(r, nt, has_collided, fpt_dist, time)
+    else if (col_type.eq.3) then
+        call check_collisions_bb(r, nt, has_collided, fpt_dist, time)
+    end if
+end
 
-      SUBROUTINE CHECK_COLLISIONS_BRUTE(R, NT, HAS_COLLIDED, FPT_DIST, &
-          TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE
-      DOUBLE PRECISION FPT_DIST, TIME
-      DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
-!     Check if the particles have collided
-          DO 140 K1 = 1, NT
-              DO 150 K2 = 1, NT
-                  IF (HAS_COLLIDED(K1,K2).LT.0.0d0 .AND. K1.NE.K2 &
-                        .AND. abs(R(K1,1) - R(K2,1)) < FPT_DIST &
-                        .AND. abs(R(K1,2) - R(K2,2)) < FPT_DIST &
-                        .AND. abs(R(K1,3) - R(K2,3)) < FPT_DIST) THEN
-                     HAS_COLLIDED(K1,K2) = TIME
-                  END IF
-150           CONTINUE
-140       CONTINUE
+subroutine check_collisions_brute(r, nt, has_collided, fpt_dist, &
+        time)
+    integer nt
+    double precision fpt_dist, time
+    double precision r(nt,3), has_collided(nt, nt)
+    !     check if the particles have collided
+    do k1 = 1, nt
+        do k2 = 1, nt
+            if (has_collided(k1,k2).lt.0.0d0 .and. k1.ne.k2 &
+                .and. abs(r(k1,1) - r(k2,1)) < fpt_dist &
+                .and. abs(r(k1,2) - r(k2,2)) < fpt_dist &
+                .and. abs(r(k1,3) - r(k2,3)) < fpt_dist) then
+                has_collided(k1,k2) = time
+            end if
+        end do
+    end do
 
-      END
+end
 
-      SUBROUTINE CHECK_COLLISIONS_KD(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, kdtree2_r_nearest_around_point
+subroutine check_collisions_kd(r, nt, has_collided, fpt_dist, time)
+    use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, &
+                                kdtree2_r_nearest_around_point
 
-      INTEGER NT, COL_TYPE, NFOUND, NALLOC, K1, K2, I
-      DOUBLE PRECISION FPT_DIST, TIME
-      DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
-      type(kdtree2), pointer :: col_tree
-      type(kdtree2_result), allocatable :: kd_results(:)
+    integer nt, nfound, nalloc, k1, k2, i
+    double precision fpt_dist, time
+    double precision r(nt,3), has_collided(nt, nt)
+    type(kdtree2), pointer :: col_tree
+    type(kdtree2_result), allocatable :: kd_results(:)
 
-      col_tree => kdtree2_create(R, rearrange = .true., sort = .false.)
-      do K1 = 1,NT
-         call kdtree2_r_nearest_around_point(col_tree, idxin = K1, &
-               correltime = 1, r2 = FPT_DIST, nfound = NFOUND, nalloc = NALLOC, &
-               results = kd_results)
-         do I = 1,NFOUND
-             K2 = kd_results(I)%idx
-             if (HAS_COLLIDED(K1,K2) .LT. 0) then
-                 HAS_COLLIDED(K1,K2) = TIME
-             endif
-         enddo
-      enddo
-      END
+    col_tree => kdtree2_create(r, rearrange = .true., sort = .false.)
+    do k1 = 1,nt
+        call kdtree2_r_nearest_around_point(col_tree, idxin = k1, &
+            correltime = 1, r2 = fpt_dist, nfound = nfound, nalloc = nalloc, &
+            results = kd_results)
+        do i = 1,nfound
+            k2 = kd_results(i)%idx
+            if (has_collided(k1,k2) .lt. 0) then
+                has_collided(k1,k2) = time
+            endif
+        enddo
+    enddo
+end
 
-      SUBROUTINE CHECK_COLLISIONS_BB(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-      INTEGER NT, COL_TYPE
-      DOUBLE PRECISION FPT_DIST, TIME
-      DOUBLE PRECISION R(NT,3), HAS_COLLIDED(NT, NT)
-         WRITE(*,*) "Not yet implemented!"
-         STOP 1
-      END
+subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
+    implicit none
+    integer :: nt
+    double precision :: fpt_dist, time
+    double precision :: r(nt,3), has_collided(nt, nt)
+    integer :: neighbors(nt,nt)  ! most of array won't be used, probably
+    integer :: num_neighbors(nt) ! to prevent O(nt^2) access to neighbors
+    integer :: neighbor_triplet_keeper(nt) ! O(nt)-space "hash table"
+    integer :: neighbor_zeroer(nt), num_zeros ! to zero out hash table quickly
+    integer, save, allocatable, dimension(:,:) :: ind, indi
+    integer, save :: is_allocated = 0 ! "static" variable
+    integer :: curr_indi, curr_ind, i, j, d, rd0
+    double precision :: rneighbor
+    ! if (is_allocated == 0) then
+    !     is_allocated = 1
+    !     allocate(ind(nt,3))
+    !     allocate(indi(nt,3))
+    !     !todo qsort ind,indi using r
+    ! else if
+    !     !todo isort ind,indi using r
+    ! endif
+    ! ! initialize loop variables
+    ! num_zeros = 0
+    ! do i = 1, nt
+    !     num_neighbors(i) = 0
+    !     neighbor_triplet_keeper(i) = 0
+    !     neighbor_zeroer(i) = 0
+    ! enddo
+    ! ! fills neighbors(:,i) with num_neighbors(i) indices of particles that the
+    ! ! ith particle has collided with
+    ! do i = 1, nt
+    !     ! look at three dimensions one-by-one
+    !     do d = 1, 3
+    !         curr_indi = indi(i,d)
+    !         rd0 = r(curr_ind,d)
+    !         ! first we're going to look for particles to the "right"
+    !         j = 1
+    !         curr_ind = ind(curr_indi + j,d)
+    !         rneighbor = r(curr_ind,d)
+    !         do while (rneighbor < rd0 + fpt_dist)
+! ! on the first pass, just mark that a collision happened in this coord
+! ! then mark that index in the "hash table" as "needs zeroing"
+    !             if (d == 1) then
+    !                 num_zeros = num_zeros + 1
+    !                 neighbor_zeroer(num_zeros) = curr_ind
+    !                 neighbor_triplet_keeper(curr_ind) = 1
+! ! on the second pass, only mark if it also happened on the first pass
+    !             elseif (d == 2) then
+    !                 if (neighbor_triplet_keeper(curr_ind) == 1) then
+    !                     neighbor_triplet_keeper(curr_ind) = 2
+    !                 endif
+! ! on the third pass, make the ones that have hit the official colliders
+    !             else ! (d == 3)
+    !                 if (neighbor_triplet_keeper(curr_ind) == 2) then
+    !                     num_neighbors(i) = num_neighbors(i) + 1
+    !                     neighbors(num_neighbors(i),i) = curr_ind
+    !                 endif
+    !             endif
+    !             j = j + 1
+    !             curr_ind = ind(curr_indi + j,d)
+    !             rneighbor = r(curr_ind,d)
+    !         enddo
+    !         ! now we look for particles to the "left"
+    !         j = 1
+    !         neighbor_ind = curr_ind - j
+    !         do while (rneighbor > rd0 - fpt_dist)
+! ! on the first pass, just mark that a collision happened in this coord
+    !             if (d == 1) then
+    !                 num_zeros = num_zeros + 1
+    !                 neighbor_zeroer(num_zeros) = neighbor_ind
+    !                 neighbor_triplet_keeper(neighbor_ind,i) = 1
+! ! on the second pass, only mark if it also happened on the first pass
+    !             elseif (d == 2) then
+    !                 if (neighbor_triplet_keeper(neighbor_ind,i) /= 1) exit
+! ! on the third pass, make the ones that have hit the official colliders
+    !             else ! (d == 3)
+    !                 if (neighbor_triplet_keeper(neighbor_ind,i) == 2) then
+    !                     num_neighbors(i) = num_neighbors(i) + 1
+    !                     neighbors(num_neighbors(i),i) = neighbor_ind
+    !                 endif
+    !             endif
+    !             j = j - 1
+    !             neighbor_ind = curr_ind - j
+    !             rneighbor = r(neighbor_ind,d)
+    !         enddo
+    !     enddo
+    !     ! zero out the "hash table"
+    !     do j = 1, num_zeros
+    !         neighbor_triplet_keeper(neighbor_zeroer(j)) = 0
+    !     enddo
+    ! enddo
+    ! ! from the neighbors, num_neighbors arrays, we can rapidly extract
+    ! ! exactly those elements that have collided
+    ! do i = 1, nt
+    !     do j = 1, num_neighbors(i)
+    !         if (has_collided(i, neighbors(
+    !     enddo
+    ! enddo
+
+
+
+
+        write(*,*) "not yet implemented!"
+        stop 1
+end

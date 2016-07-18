@@ -4,7 +4,7 @@ rm pdb/snap* || true
 
 mkdir -p xyz pdb png
 
-cp ../../data/* xyz/.
+cp ../data/* xyz/.
 
 chmod u+x mkpdbpoly.pl
 ./mkpdbpoly.pl

@@ -23,55 +23,56 @@ while ($itot <= $nsim) {
     while ($ii <= $npara) {
 
 # Evaluate the value (either linear or log spaced)
-	if ($logspace == 1) {
-	    $val=$val1*exp(($ii-1)/($npara-1)*log($val2/$val1));
-	} else {
-	    $val=$val1+($ii-1)/($npara-1)*($val2-$val1);
-	}
+    if ($logspace == 1) {
+        $val=$val1*exp(($ii-1)/($npara-1)*log($val2/$val1));
+    } else {
+        $val=$val1+($ii-1)/($npara-1)*($val2-$val1);
+    }
 
 # Reset value to an integer (if $intval==1)
 
-	if ($intval == 1) {
-	    $val=int($val+$val/abs($val*2));
-	}
-	
+    if ($intval == 1) {
+        $val=int($val+$val/abs($val*2));
+    }
+
 # Alter the value in the input file
 
-	my $filein="input/input-save";
-	my $fileout="input/input";
-	open my $in,  '<',  $filein      or die "Can't read old file: $!";
-	open my $out, '>',  $fileout     or die "Can't write new file: $!";
-	
-	while( <$in> )   # print the lines before the change
-	{
-	    print $out $_;
-	    last if $. == 2+4*$paraind-1; # line number before change
-	}
-	
-	my $line = <$in>;
-	$line = "  $val\n";
-	print $out $line;
-	
-	while( <$in> )   # print the rest of the lines
-	{
-	    print $out $_;
-	}
-	
-	close $in;    
-	close $out;
-	
+    my $filein="input/input-save";
+    my $fileout="input/input";
+    open my $in,  '<',  $filein      or die "Can't read old file: $!";
+    open my $out, '>',  $fileout     or die "Can't write new file: $!";
+
+    while( <$in> )   # print the lines before the change
+    {
+        print $out $_;
+        last if $. == 2+4*$paraind-1; # line number before change
+    }
+
+    my $line = <$in>;
+    $line = "  $val\n";
+    print $out $line;
+
+    while( <$in> )   # print the rest of the lines
+    {
+        print $out $_;
+    }
+
+    close $in;
+    close $out;
+
 # Run simulation and move data to savedata directory in numbered folder
 
-	system("./runsim");
-	if ($itot == 1) {
-	    system("mkdir savedata/data$ii");
-	}
-	system("cp data/out1 savedata/data$ii/out1-$itot");
-	system("cp data/out2 savedata/data$ii/out2-$itot");
-	system("cp data/out3 savedata/data$ii/out3-$itot");
-	system("cp input/input savedata/data$ii/input$ii");
-	
-	$ii++;
+    unless(-e savedata or mkdir savedata) { die "Unable to stat savedata dir"; }
+    system("./runsim");
+    if ($itot == 1) {
+        system("mkdir savedata/data$ii");
+    }
+    system("cp data/out1 savedata/data$ii/out1-$itot");
+    system("cp data/out2 savedata/data$ii/out2-$itot");
+    system("cp data/out3 savedata/data$ii/out3-$itot");
+    system("cp input/input savedata/data$ii/input$ii");
+
+    $ii++;
     }
     $itot++;
 }
