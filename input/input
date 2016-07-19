@@ -31,7 +31,7 @@
 
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
-  1000
+  100
 
  !-Record 9
  !  INDMAX          Total number of save points
@@ -64,5 +64,13 @@
  !-Record 16
  !  NSTEP          Number MC steps per save
   0
+
+ !-Record 17
+ !  FPT_DIST       l1 distance triggering a "collision" between beads
+  2
+
+ !-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
+ !  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1, 
+  1
 
  ! ----------------------------------------------------

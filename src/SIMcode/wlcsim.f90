@@ -16,7 +16,9 @@
 
       use mt19937, only : grnd, sgrnd, rnorm, mt, mti
 
-      PARAMETER (PI=3.141592654) ! Value of pi
+      implicit none
+
+      external WRITE_COLTIMES ! must declare sighandlers as external
 
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R     ! Conformation of polymer chains
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U     ! Conformation of polymer chains
@@ -80,6 +82,11 @@
       INTEGER IDUM              ! Seed for the generator
       DOUBLE PRECISION MOM(6)
 
+!     Variable to hold time of first collisions between each bead
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
+      DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+      INTEGER COL_TYPE ! what kind of collision checking to use
+
 
 !     Load in the parameters for the simulation
 
@@ -106,6 +113,10 @@
       read (unit=5, fmt=*) NINIT
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) NSTEP
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) FPT_DIST
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) COL_TYPE
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
@@ -115,6 +126,10 @@
       ALLOCATE(U(NT,3))
       ALLOCATE(R0(NT,3))
       ALLOCATE(U0(NT,3))
+      if (COL_TYPE.NE.0) then
+         ALLOCATE(HAS_COLLIDED(NT,NT))
+         HAS_COLLIDED = -1.0d+0
+      endif
 
 !     Setup the initial condition
 
@@ -231,7 +246,8 @@
             TSAVE = DT0*exp((IND-1.)/(INDMAX-1.)*log(TF/DT0))
          endif
          if (NSTEP.EQ.0) then
-            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM,PARA,SIMTYPE)
+            call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
+                       PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE)
          endif
 
 !     Save the conformation and the metrics
@@ -258,6 +274,13 @@
                IB=IB+1
  80         CONTINUE
  70      CONTINUE
+         CLOSE(1)
+
+         snapnm='data/coltimes'
+         OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
+         DO, I=1,NT
+             WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
+         ENDDO
          CLOSE(1)
 
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
@@ -290,8 +313,8 @@
          IND=IND+1
 
       ENDDO
-
       END
+
 
 !---------------------------------------------------------------*
 

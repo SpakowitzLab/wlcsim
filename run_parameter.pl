@@ -19,15 +19,15 @@ while ($ii <= $npara) {
 
 # Evaluate the value (either linear or log spaced)
     if ($logspace == 1) {
-	$val=$val1*exp(($ii-1)/($npara-1)*log($val2/$val1));
+        $val=$val1*exp(($ii-1)/($npara-1)*log($val2/$val1));
     } else {
-	$val=$val1+($ii-1)/($npara-1)*($val2-$val1);
+        $val=$val1+($ii-1)/($npara-1)*($val2-$val1);
     }
 
 # Reset value to an integer (if $intval==1)
 
     if ($intval == 1) {
-	$val=int($val+$val/abs($val*2));
+        $val=int($val+$val/abs($val*2));
     }
 
 # Alter the value in the input file
@@ -39,8 +39,8 @@ while ($ii <= $npara) {
 
     while( <$in> )   # print the lines before the change
     {
-	print $out $_;
-	last if $. == 2+4*$paraind-1; # line number before change
+        print $out $_;
+        last if $. == 2+4*$paraind-1; # line number before change
     }
 
     my $line = <$in>;
@@ -49,15 +49,16 @@ while ($ii <= $npara) {
 
     while( <$in> )   # print the rest of the lines
     {
-	print $out $_;
+        print $out $_;
     }
 
-    close $in;    
+    close $in;
     close $out;
-    
+
 # Run simulation and move data to savedata directory in numbered folder
 
-    system("./runsim");
+    unless(-e "savedata" or mkdir "savedata") { die "Unable to stat savedata dir"; }
+    system("./runsim.sh");
     system("cp -r data savedata/data$ii");
     system("cp input/input savedata/data$ii/input$ii");
 
