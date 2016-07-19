@@ -6,8 +6,6 @@ src/DATAcode/find_struc.o :
 	gfortran -c -g -Jsrc -Isrc -cpp   src/DATAcode/find_struc.f90 -o src/DATAcode/find_struc.o
 src/SIMcode/energy_ponp.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/energy_ponp.f90 -o src/SIMcode/energy_ponp.o
-src/BDcode/dgtsv.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/dgtsv.f -o src/BDcode/dgtsv.o
 src/SIMcode/ran1.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/ran1.f90 -o src/SIMcode/ran1.o
 src/SIMcode/stressp.o : 
@@ -24,8 +22,6 @@ src/BDcode/concalc.o :
 src/BDcode/BDsim.o :  \
 	src/third_party/mt19937.o
 	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/BDsim.f90 -o src/BDcode/BDsim.o
-src/third_party/sort.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/third_party/sort.f90 -o src/third_party/sort.o
 src/SIMcode/r_to_erg.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/r_to_erg.f90 -o src/SIMcode/r_to_erg.o
 src/SIMcode/getpara.o : 
@@ -37,6 +33,8 @@ src/BDcode/colchecker.o :  \
 	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/colchecker.f90 -o src/BDcode/colchecker.o
 src/SIMcode/ran2.o : 
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/ran2.f90 -o src/SIMcode/ran2.o
+src/third_party/dgtsv.o : 
+	gfortran -c -g -Jsrc -Isrc -cpp   src/third_party/dgtsv.f -o src/third_party/dgtsv.o
 src/SIMcode/initcond.o :  \
 	src/third_party/mt19937.o
 	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/initcond.f90 -o src/SIMcode/initcond.o

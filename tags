@@ -6,11 +6,9 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 1	src/SIMcode/gasdev.f90	/^1    v1=2.*ran2(idum)-1.$/;"	l	function:gasdev	file:
 10	src/BDcode/BDsim.f90	/^ 10   CONTINUE$/;"	l	subroutine:BDsim	file:
-10	src/BDcode/DGTSL.f	/^   10          CONTINUE$/;"	l	subroutine:DGTSL	file:
 10	src/BDcode/RKstep.f90	/^ 10   CONTINUE$/;"	l	subroutine:RKstep	file:
 10	src/BDcode/colchecker.f90	/^10      j=j-1$/;"	l	subroutine:insertion_sort	file:
 10	src/BDcode/concalc.f90	/^ 10      CONTINUE$/;"	l	subroutine:concalc	file:
-10	src/BDcode/dgtsv.f	/^   10    CONTINUE$/;"	l	subroutine:DGTSV	file:
 10	src/BDcode/force_elas.f90	/^ 10   CONTINUE$/;"	l	subroutine:force_elas	file:
 10	src/BDcode/force_ponp.f90	/^ 10   CONTINUE$/;"	l	subroutine:force_ponp	file:
 10	src/DATAcode/find_struc.f90	/^ 10   CONTINUE$/;"	l	subroutine:find_struc	file:
@@ -18,31 +16,31 @@
 10	src/MCcode/MCsim.f90	/^ 10      CONTINUE$/;"	l	subroutine:MCsim	file:
 10	src/SIMcode/decim.f90	/^ 10   CONTINUE$/;"	l	subroutine:decim	file:
 10	src/SIMcode/getpara.f90	/^ 10   CONTINUE$/;"	l	subroutine:getpara	file:
-10	src/SIMcode/initcond.f90	/^ 10      CONTINUE $/;"	l	subroutine:initcond	file:
+10	src/SIMcode/initcond.f90	/^ 10      CONTINUE$/;"	l	subroutine:initcond	file:
 10	src/SIMcode/r_to_erg.f90	/^ 10   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 10	src/SIMcode/stress.f90	/^ 10   CONTINUE$/;"	l	subroutine:stress	file:
 10	src/SIMcode/stressp.f90	/^ 10   CONTINUE$/;"	l	subroutine:stressp	file:
 10	src/SIMcode/wlcsim.f90	/^ 10   CONTINUE$/;"	l	program:wlcsim	file:
 10	src/dssWLC/source/dgtsl.f	/^   10          continue$/;"	l	subroutine:dgtsl	file:
 10	src/dssWLC/source/quartic.f	/^ 10     soli(i) = 0.d+0$/;"	l	subroutine:quartic	file:
+10	src/third_party/DGTSL.f	/^   10          CONTINUE$/;"	l	subroutine:DGTSL	file:
+10	src/third_party/dgtsv.f	/^   10    CONTINUE$/;"	l	subroutine:DGTSV	file:
 100	src/BDcode/BDsim.f90	/^ 100               CONTINUE$/;"	l	subroutine:BDsim	file:
-100	src/BDcode/DGTSL.f	/^  100 CONTINUE$/;"	l	subroutine:DGTSL	file:
-100	src/BDcode/dgtsv.f	/^  100    CONTINUE$/;"	l	subroutine:DGTSV	file:
 100	src/MCcode/MC_self.f90	/^ 100     CONTINUE$/;"	l	subroutine:MC_self	file:
 100	src/dssWLC/source/bessfin.f90	/^	    100 FORMAT(2x, F5.1, 4x, I3, 4x, ES16.9)		$/;"	l	program:example_Inx	file:
 100	src/dssWLC/source/dgtsl.f	/^  100 continue$/;"	l	subroutine:dgtsl	file:
 100	src/dssWLC/source/quartic.f	/^  100       U(I)=P*COS((PHI+DBLE(2*I)*PI)*THIRD)-W$/;"	l	subroutine:CUBIC	file:
+100	src/third_party/DGTSL.f	/^  100 CONTINUE$/;"	l	subroutine:DGTSL	file:
+100	src/third_party/dgtsv.f	/^  100    CONTINUE$/;"	l	subroutine:DGTSV	file:
 110	src/BDcode/BDsim.f90	/^ 110     CONTINUE$/;"	l	subroutine:BDsim	file:
 110	src/dssWLC/source/quartic.f	/^  110 CONTINUE$/;"	l	subroutine:CUBIC	file:
 120	src/BDcode/BDsim.f90	/^ 120        CONTINUE$/;"	l	subroutine:BDsim	file:
 130	src/BDcode/BDsim.f90	/^ 130        CONTINUE$/;"	l	subroutine:BDsim	file:
 15	src/BDcode/concalc.f90	/^15       CONTINUE$/;"	l	subroutine:concalc	file:
 20	src/BDcode/BDsim.f90	/^ 20      CONTINUE$/;"	l	subroutine:BDsim	file:
-20	src/BDcode/DGTSL.f	/^   20          CONTINUE$/;"	l	subroutine:DGTSL	file:
 20	src/BDcode/RKstep.f90	/^ 20      CONTINUE$/;"	l	subroutine:RKstep	file:
 20	src/BDcode/colchecker.f90	/^20      a(j+1)=x$/;"	l	subroutine:insertion_sort	file:
 20	src/BDcode/concalc.f90	/^ 20         CONTINUE$/;"	l	subroutine:concalc	file:
-20	src/BDcode/dgtsv.f	/^   20             CONTINUE$/;"	l	subroutine:DGTSV	file:
 20	src/BDcode/force_elas.f90	/^ 20      CONTINUE$/;"	l	subroutine:force_elas	file:
 20	src/BDcode/force_ponp.f90	/^ 20      CONTINUE$/;"	l	subroutine:force_ponp	file:
 20	src/DATAcode/find_struc.f90	/^ 20   CONTINUE$/;"	l	subroutine:find_struc	file:
@@ -55,11 +53,11 @@
 20	src/SIMcode/wlcsim.f90	/^ 20      CONTINUE$/;"	l	program:wlcsim	file:
 20	src/dssWLC/source/dgtsl.f	/^   20          continue$/;"	l	subroutine:dgtsl	file:
 20	src/dssWLC/source/quartic.f	/^ 20     sol(i) = sol(i) - b\/(4.d+0*a)$/;"	l	subroutine:quartic	file:
+20	src/third_party/DGTSL.f	/^   20          CONTINUE$/;"	l	subroutine:DGTSL	file:
+20	src/third_party/dgtsv.f	/^   20             CONTINUE$/;"	l	subroutine:DGTSV	file:
 30	src/BDcode/BDsim.f90	/^ 30            CONTINUE$/;"	l	subroutine:BDsim	file:
-30	src/BDcode/DGTSL.f	/^   30       CONTINUE$/;"	l	subroutine:DGTSL	file:
 30	src/BDcode/colchecker.f90	/^30  continue$/;"	l	subroutine:insertion_sort	file:
 30	src/BDcode/concalc.f90	/^ 30         CONTINUE$/;"	l	subroutine:concalc	file:
-30	src/BDcode/dgtsv.f	/^   30          CONTINUE$/;"	l	subroutine:DGTSV	file:
 30	src/BDcode/force_elas.f90	/^ 30   CONTINUE$/;"	l	subroutine:force_elas	file:
 30	src/BDcode/force_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:force_ponp	file:
 30	src/MCcode/MC_move.f90	/^ 30      CONTINUE$/;"	l	subroutine:MC_move	file:
@@ -67,17 +65,17 @@
 30	src/SIMcode/decim.f90	/^ 30      continue$/;"	l	subroutine:decim	file:
 30	src/SIMcode/energy_elas.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_elas	file:
 30	src/SIMcode/energy_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_ponp	file:
-30	src/SIMcode/initcond.f90	/^ 30      CONTINUE $/;"	l	subroutine:initcond	file:
+30	src/SIMcode/initcond.f90	/^ 30      CONTINUE$/;"	l	subroutine:initcond	file:
 30	src/SIMcode/r_to_erg.f90	/^ 30   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 30	src/SIMcode/stress.f90	/^ 30      CONTINUE$/;"	l	subroutine:stress	file:
 30	src/SIMcode/stressp.f90	/^ 30      CONTINUE$/;"	l	subroutine:stressp	file:
 30	src/SIMcode/wlcsim.f90	/^ 30   CONTINUE$/;"	l	program:wlcsim	file:
 30	src/dssWLC/source/dgtsl.f	/^   30       continue$/;"	l	subroutine:dgtsl	file:
+30	src/third_party/DGTSL.f	/^   30       CONTINUE$/;"	l	subroutine:DGTSL	file:
+30	src/third_party/dgtsv.f	/^   30          CONTINUE$/;"	l	subroutine:DGTSV	file:
 35	src/BDcode/concalc.f90	/^ 35         CONTINUE$/;"	l	subroutine:concalc	file:
 40	src/BDcode/BDsim.f90	/^ 40               CONTINUE$/;"	l	subroutine:BDsim	file:
-40	src/BDcode/DGTSL.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSL	file:
 40	src/BDcode/concalc.f90	/^ 40      CONTINUE$/;"	l	subroutine:concalc	file:
-40	src/BDcode/dgtsv.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSV	file:
 40	src/BDcode/force_elas.f90	/^ 40      CONTINUE$/;"	l	subroutine:force_elas	file:
 40	src/BDcode/force_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:force_ponp	file:
 40	src/MCcode/MC_move.f90	/^ 40      CONTINUE$/;"	l	subroutine:MC_move	file:
@@ -91,11 +89,11 @@
 40	src/SIMcode/stressp.f90	/^ 40      CONTINUE$/;"	l	subroutine:stressp	file:
 40	src/SIMcode/wlcsim.f90	/^ 40      CONTINUE$/;"	l	program:wlcsim	file:
 40	src/dssWLC/source/dgtsl.f	/^   40    continue$/;"	l	subroutine:dgtsl	file:
+40	src/third_party/DGTSL.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSL	file:
+40	src/third_party/dgtsv.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSV	file:
 5	src/BDcode/concalc.f90	/^ 5    CONTINUE$/;"	l	subroutine:concalc	file:
 5	src/dssWLC/source/quartic.f	/^ 5      zsol = max(zsol,z(i))$/;"	l	subroutine:quartic	file:
-50	src/BDcode/DGTSL.f	/^   50    CONTINUE$/;"	l	subroutine:DGTSL	file:
 50	src/BDcode/concalc.f90	/^ 50      CONTINUE$/;"	l	subroutine:concalc	file:
-50	src/BDcode/dgtsv.f	/^   50             CONTINUE$/;"	l	subroutine:DGTSV	file:
 50	src/BDcode/force_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:force_ponp	file:
 50	src/MCcode/MC_move.f90	/^ 50      CONTINUE$/;"	l	subroutine:MC_move	file:
 50	src/MCcode/MC_self.f90	/^ 50         CONTINUE$/;"	l	subroutine:MC_self	file:
@@ -105,35 +103,37 @@
 50	src/SIMcode/stressp.f90	/^ 50      CONTINUE$/;"	l	subroutine:stressp	file:
 50	src/SIMcode/wlcsim.f90	/^ 50      CONTINUE$/;"	l	program:wlcsim	file:
 50	src/dssWLC/source/dgtsl.f	/^   50    continue$/;"	l	subroutine:dgtsl	file:
+50	src/third_party/DGTSL.f	/^   50    CONTINUE$/;"	l	subroutine:DGTSL	file:
+50	src/third_party/dgtsv.f	/^   50             CONTINUE$/;"	l	subroutine:DGTSV	file:
 60	src/BDcode/BDsim.f90	/^ 60               CONTINUE$/;"	l	subroutine:BDsim	file:
-60	src/BDcode/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
-60	src/BDcode/dgtsv.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSV	file:
 60	src/BDcode/force_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:force_ponp	file:
 60	src/MCcode/MCsim.f90	/^ 60         CONTINUE$/;"	l	subroutine:MCsim	file:
 60	src/SIMcode/energy_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:energy_ponp	file:
 60	src/SIMcode/initcond.f90	/^ 60         CONTINUE$/;"	l	subroutine:initcond	file:
 60	src/SIMcode/wlcsim.f90	/^ 60         CONTINUE$/;"	l	program:wlcsim	file:
 60	src/dssWLC/source/dgtsl.f	/^   60          continue$/;"	l	subroutine:dgtsl	file:
+60	src/third_party/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
+60	src/third_party/dgtsv.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSV	file:
 65	src/BDcode/BDsim.f90	/^ 65                  CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/BDcode/BDsim.f90	/^ 70         CONTINUE$/;"	l	subroutine:BDsim	file:
-70	src/BDcode/DGTSL.f	/^   70          CONTINUE$/;"	l	subroutine:DGTSL	file:
-70	src/BDcode/dgtsv.f	/^   70    CONTINUE$/;"	l	subroutine:DGTSV	file:
 70	src/BDcode/force_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:force_ponp	file:
 70	src/MCcode/MC_self.f90	/^ 70            CONTINUE$/;"	l	subroutine:MC_self	file:
 70	src/SIMcode/energy_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:energy_ponp	file:
 70	src/SIMcode/wlcsim.f90	/^ 70      CONTINUE$/;"	l	program:wlcsim	file:
 70	src/dssWLC/source/dgtsl.f	/^   70          continue$/;"	l	subroutine:dgtsl	file:
+70	src/third_party/DGTSL.f	/^   70          CONTINUE$/;"	l	subroutine:DGTSL	file:
+70	src/third_party/dgtsv.f	/^   70    CONTINUE$/;"	l	subroutine:DGTSV	file:
 80	src/BDcode/BDsim.f90	/^ 80            CONTINUE$/;"	l	subroutine:BDsim	file:
-80	src/BDcode/DGTSL.f	/^   80       CONTINUE$/;"	l	subroutine:DGTSL	file:
-80	src/BDcode/dgtsv.f	/^   80    CONTINUE$/;"	l	subroutine:DGTSV	file:
 80	src/MCcode/MC_self.f90	/^ 80         CONTINUE$/;"	l	subroutine:MC_self	file:
 80	src/SIMcode/wlcsim.f90	/^ 80         CONTINUE$/;"	l	program:wlcsim	file:
 80	src/dssWLC/source/dgtsl.f	/^   80       continue$/;"	l	subroutine:dgtsl	file:
+80	src/third_party/DGTSL.f	/^   80       CONTINUE$/;"	l	subroutine:DGTSL	file:
+80	src/third_party/dgtsv.f	/^   80    CONTINUE$/;"	l	subroutine:DGTSV	file:
 90	src/BDcode/BDsim.f90	/^ 90            CONTINUE$/;"	l	subroutine:BDsim	file:
-90	src/BDcode/DGTSL.f	/^   90    CONTINUE$/;"	l	subroutine:DGTSL	file:
-90	src/BDcode/dgtsv.f	/^   90       CONTINUE$/;"	l	subroutine:DGTSV	file:
 90	src/MCcode/MC_self.f90	/^ 90            CONTINUE$/;"	l	subroutine:MC_self	file:
 90	src/dssWLC/source/dgtsl.f	/^   90    continue$/;"	l	subroutine:dgtsl	file:
+90	src/third_party/DGTSL.f	/^   90    CONTINUE$/;"	l	subroutine:DGTSL	file:
+90	src/third_party/dgtsv.f	/^   90       CONTINUE$/;"	l	subroutine:DGTSV	file:
 A0BOUNDFUNC	src/dssWLC/source/a0boundfunc.f90	/^SUBROUTINE A0BOUNDFUNC(/;"	s
 A0BOUNDFUNC	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE A0BOUNDFUNC(/;"	s	module:SAMPLEUTIL
 ACTION	src/MISCcode/keys.f90	/^  CHARACTER*100 :: ACTION$/;"	v	module:KEYS
@@ -247,6 +247,7 @@ CYLINDERINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION CYLINDERIN
 CYLINDERUTIL	src/dssWLC/source/cylinder.f90	/^MODULE CYLINDERUTIL$/;"	m
 Chain	src/dssWLC/scripts/pdbutils.py	/^class Chain:$/;"	c
 Compilation Instructions	src/dssWLC/doc/README.tex	/^\\newpage$/;"	s
+DEATH	Makefile	/^DEATH=rm -rf trash data savedata par-run-dir.*$/;"	m
 DEBUGFLAGS	src/dssWLC/source/Makefile	/^DEBUGFLAGS =$/;"	m
 DELR	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR(/;"	v	program:wlcsim
 DELR0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR0(/;"	v	program:wlcsim
@@ -254,8 +255,8 @@ DELS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: DELS(/;
 DELTSCL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
 DELTSCL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
 DEP_FILE	Makefile	/^DEP_FILE = wlcsim.dep$/;"	m
-DGTSL	src/BDcode/DGTSL.f	/^      SUBROUTINE DGTSL /;"	s
-DGTSV	src/BDcode/dgtsv.f	/^      SUBROUTINE DGTSV(/;"	s
+DGTSL	src/third_party/DGTSL.f	/^      SUBROUTINE DGTSL /;"	s
+DGTSV	src/third_party/dgtsv.f	/^      SUBROUTINE DGTSV(/;"	s
 DIAMONDLATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
 DIAMONDLATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
 DISCDISCINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION DISCDISCINTERSECT(/;"	f	module:CYLINDERUTIL
@@ -458,7 +459,7 @@ LS	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS,/;"	v	module:KEYS
 MAIN	src/dssWLC/source/main.f90	/^PROGRAM MAIN$/;"	p
 MAIN	src/dssWLC/source/test.f90	/^PROGRAM MAIN$/;"	p
 MAIN	src/dssWLC/source/testmain.f90	/^PROGRAM MAIN$/;"	p
-MAKEDEPEND	Makefile	/^MAKEDEPEND=fort_depend.py$/;"	m
+MAKEDEPEND	Makefile	/^MAKEDEPEND=.\/fort_depend.py$/;"	m
 MANYCHAINS	src/dssWLC/source/manychains.f90	/^MODULE MANYCHAINS$/;"	m
 MAXFIXBEAD	src/MISCcode/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
 MAXFIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
@@ -683,6 +684,7 @@ SHEARABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE,/;"	k	type
 SHEARABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
 SHEARGAMMA	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
 SHEARGAMMA	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
+SHELL	Makefile	/^SHELL:=\/bin\/bash$/;"	m
 SIG	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION SIG(/;"	v	program:wlcsim
 SIMTYPE	src/SIMcode/wlcsim.f90	/^      INTEGER SIMTYPE /;"	v	program:wlcsim
 SKIPREAD	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
@@ -698,7 +700,7 @@ SPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: SPC /;"	v	module:nrtyp
 SQRT2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: SQRT2=/;"	v	module:nrtype
 SQUARELATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
 SQUARELATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
-SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/BDcode\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/stressp.f90 src\/SIMcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/SIMcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90 src\/third_party\/sort.f90$/;"	m
+SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/third_party\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/stressp.f90 src\/SIMcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/SIMcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90$/;"	m
 STARTCOLLAPSE	src/MISCcode/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTCOLLAPSE	src/dssWLC/source/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTEQUIL	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
