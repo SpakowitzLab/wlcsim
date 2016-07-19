@@ -36,7 +36,7 @@ OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))
 TEST := src/CCcode/test_sort.f90
 
 # program name
-PROGRAM = wlcsim
+PROGRAM = wlcsim.exe
 
 # test:
 # 	@echo $(value MOD_MOD)
@@ -46,7 +46,7 @@ all: $(PROGRAM) Makefile $(DEP_FILE)
 
 # a target to just run the main program
 run: $(PROGRAM) dataclean
-	$(PROGRAM)
+	./$(PROGRAM)
 
 # target to build main program
 $(PROGRAM): $(OBJ)
