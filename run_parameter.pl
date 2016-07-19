@@ -3,24 +3,19 @@
 #use strict;
 #require 'calcVecs.pl';
 
-my $npara=20;       # Number of simulations
-my $paraind=6;    # Index of parameter to vary
-my $val1=5;       # First value of parameter
-my $val2=500;       # Second value of parameter
-my $logspace=1;   # Are parameter values log spaced?
-my $intval=1;     # Is the parameter an integer?
-my $nsim=50;     # Total number of duplicates
+my $npara=41;       # Number of simulations
+my $paraind=4;    # Index of parameter to vary
+my $val1=0.0;       # First value of parameter
+my $val2=1.0;       # Second value of parameter
+my $logspace=0;   # Are parameter values log spaced?
+my $intval=0;     # Is the parameter an integer?
 
-my $ii;
+my $ii=1;
 my $val;
-my $itot;
 
 system("cp input/input input/input-save");
 
-$itot=1;
-while ($itot <= $nsim) {
-    $ii=1;
-    while ($ii <= $npara) {
+while ($ii <= $npara) {
 
 # Evaluate the value (either linear or log spaced)
     if ($logspace == 1) {
@@ -62,17 +57,10 @@ while ($itot <= $nsim) {
 
 # Run simulation and move data to savedata directory in numbered folder
 
-    unless(-e savedata or mkdir savedata) { die "Unable to stat savedata dir"; }
-    system("./runsim");
-    if ($itot == 1) {
-        system("mkdir savedata/data$ii");
-    }
-    system("cp data/out1 savedata/data$ii/out1-$itot");
-    system("cp data/out2 savedata/data$ii/out2-$itot");
-    system("cp data/out3 savedata/data$ii/out3-$itot");
+    unless(-e "savedata" or mkdir "savedata") { die "Unable to stat savedata dir"; }
+    system("./runsim.sh");
+    system("cp -r data savedata/data$ii");
     system("cp input/input savedata/data$ii/input$ii");
 
     $ii++;
-    }
-    $itot++;
 }
