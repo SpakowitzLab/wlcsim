@@ -7,8 +7,8 @@
 #
 
 # # replaced rm **.o with more portable find commands
-# SHELL:=/bin/bash
-# .SHELLFLAGS="-O extglob -c"
+SHELL:=/bin/bash
+.SHELLFLAGS="-O extglob -c"
 
 # script to automatically generate dependencies
 MAKEDEPEND=fort_depend.py
@@ -55,15 +55,22 @@ $(PROGRAM): $(OBJ)
 
 clean: dataclean
 	find src \( -iname '*.o' -or -iname '*.mod' \) -delete
-	rm -f wlcsim
+	rm -f wlcsim wlcsim.dep
 
 dataclean:
 	mkdir -p data trash
 	touch "data/`date`"
 	mv data/* trash/.
 
-destroy: clean
-	rm -rf trash/* data/*
+DEATH=rm -rf trash data savedata par-run-dir.*
+distclean: clean
+	@echo "About to destroy all simulation data, are you sure? ";
+	@read REPLY; \
+	echo ""; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo 'Running `${DEATH}`'; \
+		${DEATH}; \
+	fi
 
 # Make dependencies
 depend: $(DEP_FILE)
