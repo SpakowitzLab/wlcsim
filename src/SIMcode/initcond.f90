@@ -10,6 +10,7 @@
 
       SUBROUTINE initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
 
+      use, intrinsic :: iso_fortran_env
       use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 
       PARAMETER (PI=3.141593)
@@ -26,6 +27,7 @@
       DOUBLE PRECISION RMIN
       DOUBLE PRECISION R0(3)
       DOUBLE PRECISION PARA(10)
+      double precision arg
 
 !     Parameters for end constraint
 
@@ -102,7 +104,10 @@
          REND=PARA(9)
          DEL=PARA(10)
          IMID=nint((N+1.)/2.)
-         ALPHA=acos(((REND/DEL)**2.-((N-IMID)**2.+(IMID-1)**2.))/(2.*(IMID-1.)*(N-IMID)))
+         arg = ((REND/DEL)**2.-((N-IMID)**2.+(IMID-1)**2.))/(2.*(IMID-1.)*(N-IMID))
+         arg = max(-1.0_REAL64, arg)
+         arg = min(1.0_REAL64, arg)
+         ALPHA=acos(arg)
 
          IB=1
          DO 50 I=1,NP
