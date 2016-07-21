@@ -144,6 +144,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
             rd0 = r(curr_ind,d)
             ! first we're going to look for particles to the "right"
             j = 1
+            if (curr_indi == nt) exit
             curr_ind = ind(curr_indi + j,d)
             rneighbor = r(curr_ind,d)
             do while (rneighbor < rd0 + fpt_dist)
@@ -174,6 +175,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
             enddo
             ! now we look for particles to the "left"
             j = 1
+            if (curr_indi == 1) exit
             curr_ind = ind(curr_indi - j,d)
             rneighbor = r(curr_ind,d)
             do while (rneighbor > rd0 - fpt_dist)

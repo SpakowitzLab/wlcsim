@@ -5,7 +5,7 @@
 ! (indi(:,k) == indexi, ind(:,k) == index, r(:,k) == value
 !
 ! in reasoning about the following, it is useful to note that ind and indi as
-! functions from 1,n to 1,n are inverses
+! functions from 1,n to 1,n are inverses: indi(ind(i)) == i && ind(indi(i)) == i
 
     ! do-nothing initialization routine required for qsort_inline.inc
     subroutine init()
@@ -47,10 +47,10 @@
     logical &
     function less_than(a,b)
         integer, intent(in) :: a,b
-        real(dp), parameter :: small=1.0e-15
-        if ( abs(value(index(a))-value(index(b))) < small ) then
-            less_than = index(a) < index(b)
-        else
+!       real(dp), parameter :: small=1.0e-15
+!       if ( abs(value(index(a))-value(index(b))) < small ) then
+!           less_than = index(a) < index(b)
+!       else
             less_than = value(index(a)) < value(index(b))
-        end if
-    end function less_than
+!       end if
+   end function less_than

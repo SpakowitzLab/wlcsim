@@ -129,6 +129,9 @@
       if (COL_TYPE.NE.0) then
          ALLOCATE(HAS_COLLIDED(NT,NT))
          HAS_COLLIDED = -1.0d+0
+      else
+         ALLOCATE(HAS_COLLIDED(1,1))
+         HAS_COLLIDED = -1.0d+0
       endif
 
 !     Setup the initial condition
@@ -277,11 +280,13 @@
          CLOSE(1)
 
          snapnm='data/coltimes'
+         IF (COL_TYPE.NE.0) then
          OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
          DO, I=1,NT
              WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
          ENDDO
          CLOSE(1)
+         ENDIF
 
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
          call stressp(COR,R,U,R0,U0,NT,N,NP,PARA,INTON,SIMTYPE)

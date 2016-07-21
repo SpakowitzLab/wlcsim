@@ -21,7 +21,7 @@ DEP_FILE = wlcsim.dep
 FC = gfortran
 
 # compile flags
-FCFLAGS = -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp #-Wall -pedantic
+FCFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp #-fcheck=all -Wall -pedantic
 
 # link flags
 FLFLAGS =
