@@ -1,66 +1,70 @@
 # This file is generated automatically. DO NOT EDIT!
 
 src/third_party/mt19937.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/third_party/mt19937.f90 -o src/third_party/mt19937.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/mt19937.f90 -o src/third_party/mt19937.o
 src/DATAcode/find_struc.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/DATAcode/find_struc.f90 -o src/DATAcode/find_struc.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/DATAcode/find_struc.f90 -o src/DATAcode/find_struc.o
 src/SIMcode/energy_ponp.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/energy_ponp.f90 -o src/SIMcode/energy_ponp.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/energy_ponp.f90 -o src/SIMcode/energy_ponp.o
 src/SIMcode/ran1.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/ran1.f90 -o src/SIMcode/ran1.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/ran1.f90 -o src/SIMcode/ran1.o
 src/SIMcode/stressp.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/stressp.f90 -o src/SIMcode/stressp.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/stressp.f90 -o src/SIMcode/stressp.o
 src/MCcode/MC_capsid_ex.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/MCcode/MC_capsid_ex.f90 -o src/MCcode/MC_capsid_ex.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_capsid_ex.f90 -o src/MCcode/MC_capsid_ex.o
 src/MCcode/MC_move.o :  \
 	src/third_party/mt19937.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/MCcode/MC_move.f90 -o src/MCcode/MC_move.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_move.f90 -o src/MCcode/MC_move.o
 src/BDcode/RKstep.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/RKstep.f90 -o src/BDcode/RKstep.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/RKstep.f90 -o src/BDcode/RKstep.o
 src/BDcode/concalc.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/concalc.f90 -o src/BDcode/concalc.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/concalc.f90 -o src/BDcode/concalc.o
 src/BDcode/BDsim.o :  \
 	src/third_party/mt19937.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/BDsim.f90 -o src/BDcode/BDsim.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/BDsim.f90 -o src/BDcode/BDsim.o
 src/SIMcode/r_to_erg.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/r_to_erg.f90 -o src/SIMcode/r_to_erg.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/r_to_erg.f90 -o src/SIMcode/r_to_erg.o
 src/SIMcode/getpara.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/getpara.f90 -o src/SIMcode/getpara.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/getpara.f90 -o src/SIMcode/getpara.o
 src/SIMcode/decim.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/decim.f90 -o src/SIMcode/decim.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/decim.f90 -o src/SIMcode/decim.o
 src/BDcode/colchecker.o :  \
 	src/third_party/kdtree2.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/colchecker.f90 -o src/BDcode/colchecker.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colchecker.f90 -o src/BDcode/colchecker.o
 src/SIMcode/ran2.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/ran2.f90 -o src/SIMcode/ran2.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/ran2.f90 -o src/SIMcode/ran2.o
 src/third_party/dgtsv.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/third_party/dgtsv.f -o src/third_party/dgtsv.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/dgtsv.f -o src/third_party/dgtsv.o
 src/SIMcode/initcond.o :  \
 	src/third_party/mt19937.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/initcond.f90 -o src/SIMcode/initcond.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/initcond.f90 -o src/SIMcode/initcond.o
+src/BDcode/colsort.o : 
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colsort.f90 -o src/BDcode/colsort.o
 src/SIMcode/wlcsim.o :  \
 	src/third_party/mt19937.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/wlcsim.f90 -o src/SIMcode/wlcsim.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/wlcsim.f90 -o src/SIMcode/wlcsim.o
 src/BDcode/force_elas.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/force_elas.f90 -o src/BDcode/force_elas.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/force_elas.f90 -o src/BDcode/force_elas.o
 src/SIMcode/gasdev.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/gasdev.f90 -o src/SIMcode/gasdev.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/gasdev.f90 -o src/SIMcode/gasdev.o
 src/MCcode/MC_elas.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/MCcode/MC_elas.f90 -o src/MCcode/MC_elas.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_elas.f90 -o src/MCcode/MC_elas.o
 src/BDcode/force_ponp.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/BDcode/force_ponp.f90 -o src/BDcode/force_ponp.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/force_ponp.f90 -o src/BDcode/force_ponp.o
 src/DATAcode/MINV.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/DATAcode/MINV.f90 -o src/DATAcode/MINV.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/DATAcode/MINV.f90 -o src/DATAcode/MINV.o
 src/SIMcode/stress.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/stress.f90 -o src/SIMcode/stress.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/stress.f90 -o src/SIMcode/stress.o
 src/third_party/kdtree2.o :  \
 	src/third_party/kdtree2.o \
 	src/third_party/kdtree2.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
+src/third_party/debugging.o : 
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/debugging.f90 -o src/third_party/debugging.o
 src/MCcode/MC_self.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/MCcode/MC_self.f90 -o src/MCcode/MC_self.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_self.f90 -o src/MCcode/MC_self.o
 src/SIMcode/energy_elas.o : 
-	gfortran -c -g -Jsrc -Isrc -cpp   src/SIMcode/energy_elas.f90 -o src/SIMcode/energy_elas.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/energy_elas.f90 -o src/SIMcode/energy_elas.o
 src/MCcode/MCsim.o :  \
 	src/third_party/mt19937.o
-	gfortran -c -g -Jsrc -Isrc -cpp   src/MCcode/MCsim.f90 -o src/MCcode/MCsim.o
+	gfortran -c -ggdb -fcheck=all -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MCsim.f90 -o src/MCcode/MCsim.o
