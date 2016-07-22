@@ -3,10 +3,10 @@
 #use strict;
 #require 'calcVecs.pl';
 
-my $npara=41;       # Number of simulations
-my $paraind=4;    # Index of parameter to vary
-my $val1=0.0;       # First value of parameter
-my $val2=1.0;       # Second value of parameter
+my $npara=200;       # Number of simulations
+my $paraind=17;    # Index of parameter to vary
+my $val1=0.1;       # First value of parameter
+my $val2=0.2;       # Second value of parameter
 my $logspace=0;   # Are parameter values log spaced?
 my $intval=0;     # Is the parameter an integer?
 

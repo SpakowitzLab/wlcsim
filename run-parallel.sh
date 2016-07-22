@@ -7,14 +7,17 @@
 # you can pass a name for the run to save it in a unique folder, otherwise
 # the script will just use par-run-dir/run.$runnumber as the folder to save in
 
+# runs num_cores-1 copies of run_parameter.pl in a host/run specific directory
+
 set -eu
 set -o pipefail
 
-codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+codedir=`pwd`
 compname=`hostname`
 #nprocs=`grep -c ^processor /proc/cpuinfo`
-nprocs=20
-if [ $# -eq 0 ]; then
+nprocs=8
+commit=`git rev-parse HEAD`
+if [ -z $1 ]; then
     run_name="par-run-dir/run"
 else
     run_name="par-run-dir/$1"
