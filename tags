@@ -321,7 +321,7 @@ FACCTOL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	
 FACCTOL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
 FC	Makefile	/^FC = gfortran$/;"	m
 FC	src/dssWLC/source/Makefile	/^FC = gfortran$/;"	m
-FCFLAGS	Makefile	/^FCFLAGS = -g -Jsrc -Isrc -cpp #-Wall -pedantic$/;"	m
+FCFLAGS	Makefile	/^FCFLAGS = -ggdb -Jsrc -Isrc -Isrc\/third_party -cpp #-fcheck=all -Wall -pedantic$/;"	m
 FINITEXT	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
 FINITEXT	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT$/;"	k	type:CHAIN
 FINITEXT	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
@@ -502,7 +502,7 @@ MOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD, MOD$/;"	k	ty
 MODOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
 MODOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
 MOD_MOD	Makefile	/^MOD_MOD := $(addprefix src\/,$(notdir $(MOD_SRC:.f90=.mod)))$/;"	m
-MOD_SRC	Makefile	/^MOD_SRC := src\/third_party\/mt19937.f90 src\/third_party\/kdtree2.f90$/;"	m
+MOD_SRC	Makefile	/^MOD_SRC := src\/third_party\/mt19937.f90 src\/third_party\/kdtree2.f90 src\/BDcode\/colsort.f90$/;"	m
 MOM	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION MOM(/;"	v	program:wlcsim
 MONTECARLO	src/dssWLC/source/montecarlo.f90	/^MODULE MONTECARLO$/;"	m
 MOVEON	src/SIMcode/wlcsim.f90	/^      INTEGER MOVEON(/;"	v	program:wlcsim
@@ -567,7 +567,7 @@ PIO2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: PIO2=/;"	v	module:nr
 PIO2_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PIO2_D=/;"	v	module:nrtype
 PI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PI_D=/;"	v	module:nrtype
 POS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: POS(/;"	k	type:CHAIN
-PROGRAM	Makefile	/^PROGRAM = wlcsim$/;"	m
+PROGRAM	Makefile	/^PROGRAM = wlcsim.exe$/;"	m
 PTLINEDIST	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE PTLINEDIST(/;"	s	module:CYLINDERUTIL
 PTQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
 PTQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
@@ -700,7 +700,7 @@ SPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: SPC /;"	v	module:nrtyp
 SQRT2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: SQRT2=/;"	v	module:nrtype
 SQUARELATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
 SQUARELATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
-SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/third_party\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/stressp.f90 src\/SIMcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/SIMcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90$/;"	m
+SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/third_party\/debugging.f90 src\/third_party\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/stressp.f90 src\/SIMcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/SIMcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90$/;"	m
 STARTCOLLAPSE	src/MISCcode/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTCOLLAPSE	src/dssWLC/source/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTEQUIL	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
@@ -820,6 +820,7 @@ assert_v	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert_v(/;"	s	module:nruti
 atomByBum	src/dssWLC/scripts/pdbutils.py	/^    def atomByBum(self,num):$/;"	m	class:Structure
 atomByNum	src/dssWLC/scripts/pdbutils.py	/^    def atomByNum(self,num):$/;"	m	class:Structure
 atomR	src/dssWLC/scripts/pdbutils.py	/^([-0-9]+) *(-?[0-9.]+) *(-?[0-9.]+) *(-?[0-9.]+)(.*$)')$/;"	v
+b_any	src/third_party/debugging.f90	/^logical function b_any(/;"	f
 ballsize	src/third_party/kdtree2.f90	/^      real(kdkind)      :: ballsize$/;"	k	type:tree_search_record
 box	src/third_party/kdtree2.f90	/^      type(interval), pointer :: box(/;"	k	type:tree_node
 box_in_search_range	src/third_party/kdtree2.f90	/^  logical function box_in_search_range(/;"	f
@@ -923,6 +924,7 @@ heapsort	src/third_party/kdtree2.f90	/^  subroutine heapsort(/;"	s
 heapsort_struct	src/third_party/kdtree2.f90	/^  subroutine heapsort_struct(/;"	s
 i15	src/dssWLC/source/bessfin.f90	/^    INTEGER, PARAMETER :: i15 /;"	v	program:example_Inx
 i9	src/dssWLC/source/bessfin.f90	/^	INTEGER, PARAMETER  :: i9 /;"	v	program:example_Inx
+icolsort	src/BDcode/colsort.f90	/^subroutine icolsort(/;"	s
 idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
 ifirstloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION ifirstloc(/;"	f	module:nrutil
 ignbin	src/dssWLC/source/ranlib.f90	/^function ignbin /;"	f
@@ -944,6 +946,7 @@ insertion_sort	src/BDcode/colchecker.f90	/^subroutine insertion_sort(/;"	s
 interval	src/third_party/kdtree2.f90	/^  type interval$/;"	t	module:kdtree2_module
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_dp
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_sp
+isanynan	src/third_party/debugging.f90	/^logical function isanynan(/;"	f
 j	src/tests/test_sort.f90	/^integer :: j$/;"	v	program:test_sort
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_dp
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_sp
@@ -1053,6 +1056,7 @@ process_terminal_node	src/third_party/kdtree2.f90	/^  subroutine process_termina
 process_terminal_node_fixedball	src/third_party/kdtree2.f90	/^  subroutine process_terminal_node_fixedball(/;"	s
 put_diag_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE put_diag_r(/;"	s	module:nrutil
 put_diag_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE put_diag_rv(/;"	s	module:nrutil
+qcolsort	src/BDcode/colsort.f90	/^subroutine qcolsort(/;"	s
 qp	src/tests/test_sort.f90	/^integer, parameter :: qp /;"	v	program:test_sort
 quartic	src/dssWLC/source/quartic.f	/^      subroutine quartic(/;"	s
 qv	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: qv(/;"	k	type:tree_search_record
