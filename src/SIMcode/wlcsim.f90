@@ -14,8 +14,6 @@
 
 !     Variables within the simulation
 
-      use mt19937, only : grnd, sgrnd, rnorm, mt, mti
-
       implicit none
 
       external WRITE_COLTIMES ! must declare sighandlers as external

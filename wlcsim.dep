@@ -24,24 +24,30 @@ src/BDcode/BDsim.o :  \
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/BDsim.f90 -o src/BDcode/BDsim.o
 src/SIMcode/r_to_erg.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/r_to_erg.f90 -o src/SIMcode/r_to_erg.o
+src/SIMcode/debugging.o :  \
+	src/SIMcode/globals.o
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/debugging.f90 -o src/SIMcode/debugging.o
 src/SIMcode/getpara.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/getpara.f90 -o src/SIMcode/getpara.o
+src/SIMcode/globals.o : 
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/globals.f90 -o src/SIMcode/globals.o
 src/SIMcode/decim.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/decim.f90 -o src/SIMcode/decim.o
 src/BDcode/colchecker.o :  \
-	src/third_party/kdtree2.o
+	src/third_party/kdtree2.o \
+	src/SIMcode/globals.o
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colchecker.f90 -o src/BDcode/colchecker.o
 src/SIMcode/ran2.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/ran2.f90 -o src/SIMcode/ran2.o
 src/third_party/dgtsv.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/dgtsv.f -o src/third_party/dgtsv.o
 src/SIMcode/initcond.o :  \
+	src/SIMcode/globals.o \
 	src/third_party/mt19937.o
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/initcond.f90 -o src/SIMcode/initcond.o
 src/BDcode/colsort.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colsort.f90 -o src/BDcode/colsort.o
-src/SIMcode/wlcsim.o :  \
-	src/third_party/mt19937.o
+src/SIMcode/wlcsim.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/wlcsim.f90 -o src/SIMcode/wlcsim.o
 src/BDcode/force_elas.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/force_elas.f90 -o src/BDcode/force_elas.o
@@ -59,8 +65,6 @@ src/third_party/kdtree2.o :  \
 	src/third_party/kdtree2.o \
 	src/third_party/kdtree2.o
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
-src/third_party/debugging.o : 
-	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/debugging.f90 -o src/third_party/debugging.o
 src/MCcode/MC_self.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_self.f90 -o src/MCcode/MC_self.o
 src/SIMcode/energy_elas.o : 

@@ -81,6 +81,7 @@ def create_file_objs(files=None, macros={}):
 def get_uses(infile=None, macros={}):
     "Return which modules are used in infile after expanding macros"
     p=re.compile("^\s*use\s*(?P<moduse>\w*)\s*(,)?\s*(only)?\s*(:)?.*?$",re.IGNORECASE).match
+    intrinsic = re.compile("^\s*use\s*(,)?\s*(only)?\s*,\s*intrinsic.*$",re.IGNORECASE).match
 
     uses=[]
 
@@ -89,7 +90,7 @@ def get_uses(infile=None, macros={}):
 
     for i in t:
         tmp=p(i)
-        if tmp:
+        if tmp and not intrinsic(i):
             uses.append(tmp.group('moduse').strip())
 
     # Remove duplicates

@@ -10,9 +10,7 @@
 !     Andrew Spakowitz
 !     Written 11-11-13
 
-      use mt19937, only : grnd, sgrnd, rnorm, mt, mti
-
-      PARAMETER (PI=3.141592654) ! Value of pi
+      use mt19937, only : rnorm
 
       DOUBLE PRECISION R(NT,3)  ! Bead positions
       DOUBLE PRECISION U(NT,3)  ! Tangent vectors
