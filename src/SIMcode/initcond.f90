@@ -101,6 +101,10 @@
             LBOX=PARA(8)
          endif
 
+! The initial configuration is supposed to be two line segments, intersecting at
+! an angle $\alpha$. The first line is layed along the x-axis with one end at
+! $(0,0,0)$, and the other segment starts half the polymer's length along the
+! x-axis, with the other end sitting in the $xy$-plane with $x>0$ and $y>0$.
          REND=PARA(9)
          DEL=PARA(10)
          IMID=nint((N+1.)/2.)
