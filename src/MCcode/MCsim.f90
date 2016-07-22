@@ -6,7 +6,7 @@
       SUBROUTINE MCsim(R,U,NT,N,NP,NSTEP,BROWN, &
            INTON,IDUM,PARA,MCAMP,SUCCESS,MOVEON,WINDOW,SIMTYPE)
 
-      use mt19937, only : grnd, sgrnd, rnorm, mt, mti
+      use mt19937, only : grnd
 
       PARAMETER (PI=3.141592654) ! Value of pi
 

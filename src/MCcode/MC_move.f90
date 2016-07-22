@@ -15,7 +15,7 @@
       SUBROUTINE MC_move(R,U,RP,UP,NT,N,NP,IP,IB1,IB2, &
            IT1,IT2,IDUM,MCTYPE,MCAMP)
 
-      use mt19937, only : grnd, sgrnd, rnorm, mt, mti
+      use mt19937, only : grnd
 
       PARAMETER (PI=3.141592654) ! Value of pi
 

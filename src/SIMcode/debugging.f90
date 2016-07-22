@@ -1,9 +1,9 @@
 logical function isanynan(arr)
-    use, intrinsic :: iso_fortran_env
+    use globals, only : dp
 
     implicit none
 
-    real(REAL64), dimension(:,:) :: arr
+    real(dp), dimension(:,:) :: arr
     integer, dimension(2) :: shapes
     integer :: i, j
 
