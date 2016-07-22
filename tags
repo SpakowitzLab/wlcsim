@@ -321,7 +321,7 @@ FACCTOL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	
 FACCTOL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
 FC	Makefile	/^FC = gfortran$/;"	m
 FC	src/dssWLC/source/Makefile	/^FC = gfortran$/;"	m
-FCFLAGS	Makefile	/^FCFLAGS = -ggdb -fcheck=all -Jsrc -Isrc -Isrc\/third_party -cpp #-Wall -pedantic$/;"	m
+FCFLAGS	Makefile	/^FCFLAGS = -ggdb -Jsrc -Isrc -Isrc\/third_party -cpp #-fcheck=all -Wall -pedantic$/;"	m
 FINITEXT	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
 FINITEXT	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT$/;"	k	type:CHAIN
 FINITEXT	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
@@ -567,7 +567,7 @@ PIO2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: PIO2=/;"	v	module:nr
 PIO2_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PIO2_D=/;"	v	module:nrtype
 PI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PI_D=/;"	v	module:nrtype
 POS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: POS(/;"	k	type:CHAIN
-PROGRAM	Makefile	/^PROGRAM = wlcsim$/;"	m
+PROGRAM	Makefile	/^PROGRAM = wlcsim.exe$/;"	m
 PTLINEDIST	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE PTLINEDIST(/;"	s	module:CYLINDERUTIL
 PTQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
 PTQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL

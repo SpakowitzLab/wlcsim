@@ -129,6 +129,9 @@
       if (COL_TYPE.NE.0) then
          ALLOCATE(HAS_COLLIDED(NT,NT))
          HAS_COLLIDED = -1.0d+0
+      else if (COL_TYPE.EQ.2) then
+          WRITE(*,*) "Not yet implemented: KD-tree based collision detection."
+          STOP 1
       else
          ALLOCATE(HAS_COLLIDED(1,1))
          HAS_COLLIDED = -1.0d+0
