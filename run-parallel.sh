@@ -15,7 +15,7 @@ compname=`hostname`
 #nprocs=`grep -c ^processor /proc/cpuinfo`
 nprocs=8
 commit=`git rev-parse HEAD`
-if [ -z $1 ]; then
+if [ $# -eq 0 ]; then
     run_name="par-run-dir/run"
 else
     run_name="par-run-dir/$1"
