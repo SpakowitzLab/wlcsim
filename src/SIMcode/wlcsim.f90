@@ -230,7 +230,7 @@
       OPEN (UNIT = 3, FILE = 'data/out2', STATUS = 'NEW')
       OPEN (UNIT = 4, FILE = 'data/out3', STATUS = 'NEW')
 
-      call stress(SIG,R,U,NT,N,NP,PARA,INTON)
+      call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
 
       WRITE(3,*) real(SIG(1,1)),real(SIG(1,2)),real(SIG(1,3)),real(SIG(2,1)),real(SIG(2,2))
       WRITE(4,*) real(SIG(2,3)),real(SIG(3,1)),real(SIG(3,2)),real(SIG(3,3))
