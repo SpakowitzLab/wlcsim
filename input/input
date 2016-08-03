@@ -23,7 +23,7 @@
 
  !-Record 6
  !  N               Number of beads
-  1001
+  101
 
  !-Record 7         Sarah was running 1000
  !  NP              Number of polymers - won't interact unless interaction code added

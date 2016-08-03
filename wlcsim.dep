@@ -34,8 +34,7 @@ src/SIMcode/globals.o :
 src/SIMcode/decim.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/decim.f90 -o src/SIMcode/decim.o
 src/BDcode/colchecker.o :  \
-	src/third_party/kdtree2.o \
-	src/SIMcode/globals.o
+	src/third_party/kdtree2.o
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colchecker.f90 -o src/BDcode/colchecker.o
 src/SIMcode/ran2.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/ran2.f90 -o src/SIMcode/ran2.o
