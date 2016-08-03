@@ -10,19 +10,24 @@
 set -eu
 set -o pipefail
 
-codedir=`pwd`
+codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 compname=`hostname`
 #nprocs=`grep -c ^processor /proc/cpuinfo`
-nprocs=8
-commit=`git rev-parse HEAD`
+nprocs=20
 if [ $# -eq 0 ]; then
     run_name="par-run-dir/run"
 else
     run_name="par-run-dir/$1"
 fi
 
+# go to the code
+cd "$codedir"
+# get the current commit
+commit=`git rev-parse HEAD`
+
+# can't do this if sharing the git dir over nfs and running on many computers
 # first, make sure we've build the latest version of the executable possible
-make clean && make
+#make clean && make
 
 # now, get the next available directory name to save output in given
 # run name
@@ -45,7 +50,7 @@ for core in `seq 1 $nprocs`; do
     cd "$rundir"
     mkdir -p data savedata
     echo "#!/bin/bash"  >> runsim.sh
-    echo "rm data/* || true"    >> runsim.sh
+    echo "rm -f data/* || true"    >> runsim.sh
     echo "./wlcsim.exe >/dev/null 2>&1" >> runsim.sh
     chmod a+x runsim.sh
     ./run_parameter.pl &
