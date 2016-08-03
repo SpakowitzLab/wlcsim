@@ -12,12 +12,12 @@
 set -eu
 set -o pipefail
 
-codedir=`pwd`
+codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 compname=`hostname`
-#nprocs=`grep -c ^processor /proc/cpuinfo`
-nprocs=8
-commit=`git rev-parse HEAD`
-if [ -z $1 ]; then
+nprocs=`grep -c ^processor /proc/cpuinfo`
+let nprocs-=1
+#nprocs=30
+if [ $# -eq 0 ]; then
     run_name="par-run-dir/run"
 else
     run_name="par-run-dir/$1"
@@ -43,7 +43,6 @@ echo "Running simulations in ${pardir}!"
 mkdir -p "$pardir"
 echo "Logging current commit hash: $commit"
 echo "$commit" > "$pardir/commit_hash"
-let nprocs-=1
 echo "Using $nprocs processors!"
 cd "$pardir"
 for core in `seq 1 $nprocs`; do

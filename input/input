@@ -23,7 +23,7 @@
 
  !-Record 6
  !  N               Number of beads
-  101
+  1001
 
  !-Record 7         Sarah was running 1000
  !  NP              Number of polymers - won't interact unless interaction code added
@@ -31,11 +31,11 @@
 
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
-  10000
+  1000000
 
  !-Record 9
  !  INDMAX          Total number of save points
-  100
+  1000
 
  !-Record 10
  !  DT              Timestep for integration - Sarah used 0.2 in above
