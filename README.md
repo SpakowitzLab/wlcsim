@@ -24,7 +24,10 @@ reaction volume, no interactions are assumed.
 To scan parameters, the Perl scripts `run_parameter.pl` or
 `run_parameter_series.pl` can be used. Care must be taken to match the
 parameters in these scripts with the parameters of the simulation. To run these
-in parallel over many cores, simply call them via the `run-parallel.sh` script.
+in parallel over many cores, call them via the `run-parallel.sh` script to make
+sure that the outputs are saved into different folders and don't overwrite each
+other. These scripts are very custom and should only be used if they are totally
+understood after reading them.
 
 ## Disclaimer
 
