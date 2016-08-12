@@ -8,31 +8,35 @@ import subprocess # for git hash and moving files
 import shutil # for copying files
 import multiprocessing
 
-# specify where simulations will be run and where output will go
-# you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
-# preserve your sanity
-run_name = 'run'
-output_base = 'par-run-dir'
-
 params = {}
 jparams = []
 count_funcs = []
 
 ## START PARAM SCANNING CONFIG
 
+# specify where simulations will be run and where output will go
+# you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
+# preserve your sanity
+run_name = 'run'
+output_base = 'par-run-dir'
+
+# the following uses numpy to create arrays of parameters
+# (http://docs.scipy.org/doc/numpy/reference/routines.array-creation.html)
+# don't forget to specify dtype=np.int32 if you need integers!
+
 # to vary parameters combinatorially, list all the values for all parameters
 # you want like this, all combinations will be exected automatically
-params['FPT_DIST'] = np.linspace(0.1, 1.5, 2)
+params['FPT_DIST'] = np.linspace(0.1, 1.5, 15)
 # to vary parameters jointly, make dictionaries with values of matching size
 # like this. see pscan.py for more details.
 jparam = {}
-jparam['L'] = np.linspace(2, 50, 2, dtype=np.int32)
-jparam['N'] = np.linspace(3, 51, 2, dtype=np.int32)
+jparam['L'] = np.linspace(2, 50, 49, dtype=np.int32)
+jparam['N'] = np.linspace(3, 51, 49, dtype=np.int32)
 jparams.append(jparam)
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 2
+default_repeats_per_param = 1
 count_funcs.append(lambda p: default_repeats_per_param)
 
 # how many cores to use on this computer
@@ -48,7 +52,7 @@ contains_period_re = re.compile('\.')
 next_line_is_val = False
 ordered_param_names = []
 simulation_params = {}
-with open('input/input-save') as f:
+with open('input/input') as f:
     # first three lines are garbage
     for i in range(3):
         f.readline()
@@ -116,7 +120,9 @@ def run_wlcsim(params):
     # and run the simulation
     with open('./data/wlcsim.log', 'w') as f:
         subprocess.run(['./wlcsim.exe'], stdout=f, stderr=subprocess.STDOUT)
+    os.chdir(script_dir)
 
 if __name__ == '__main__':
     p = multiprocessing.Pool(num_cores)
     p.imap_unordered(run_wlcsim, scan.params(), chunksize=1)
+    #run_wlcsim(next(scan.params()))
