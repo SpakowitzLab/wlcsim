@@ -12,8 +12,11 @@ For *VERY* stretchable polymers, a purely Gaussian chain is used.
 
 ## To Run
 
-Simply typing `make run` in the top level directory will build the simulator
-from source and run it with the parameters in the file `input/input`.
+Simply typing `make` in the top level directory will build the simulator
+from source. The executable created (`wlcsim.exe`) will use the parameters in
+the file `input/input` and write its output to the `data` directory.
+To force a rerun without having to manually delete all the old output files, you
+can also simply type `make run` at any time.
 
 The output can be vizualized using the PyMol scripts in the `vizualization`
 directory or by hand using the output in the `data` directory, which contains
@@ -21,10 +24,9 @@ rank two arrays of shape `num_beads*num_polymers-by-3`, with one file per time
 point. Specifying multiple polymers just simulates them in parallel in the same
 reaction volume, no interactions are assumed.
 
-To scan parameters, the Perl scripts `run_parameter.pl` or
-`run_parameter_series.pl` can be used. Care must be taken to match the
-parameters in these scripts with the parameters of the simulation. To run these
-in parallel over many cores, simply call them via the `run-parallel.sh` script.
+To scan parameters, the Python script `scan_wlcsim.py` should be used. It takes
+care of saving the current git commit\_hash, all inputs, etc. into a unique
+directory, preventing race conditions even on shared filesystems.
 
 ## Disclaimer
 

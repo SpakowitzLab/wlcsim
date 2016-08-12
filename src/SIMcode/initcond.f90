@@ -60,6 +60,9 @@
 ! concatenate filename, time within mins, secs, millisecs to seed random number generator
 
       IDUM=-seedvalues(5)*1E7-seedvalues(6)*1E5-seedvalues(7)*1E3-seedvalues(8)
+      OPEN (UNIT = 47, FILE = 'data/mt19337_seed', STATUS = 'NEW')
+      WRITE(47,*) IDUM
+      CLOSE(47)
       call init_genrand(IDUM)
 
 !     Input the conformation if FRMFILE=1
