@@ -7,6 +7,7 @@ import socket # for getting hostname
 import subprocess # for git hash and moving files
 import shutil # for copying files
 import multiprocessing
+import datetime
 
 params = {}
 jparams = []
@@ -36,7 +37,7 @@ jparams.append(jparam)
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 1
+default_repeats_per_param = 2
 count_funcs.append(lambda p: default_repeats_per_param)
 
 # how many cores to use on this computer
@@ -121,8 +122,13 @@ def run_wlcsim(params):
     with open('./data/wlcsim.log', 'w') as f:
         subprocess.run(['./wlcsim.exe'], stdout=f, stderr=subprocess.STDOUT)
     os.chdir(script_dir)
+    return params
 
 if __name__ == '__main__':
     p = multiprocessing.Pool(num_cores)
-    p.imap_unordered(run_wlcsim, scan.params(), chunksize=1)
-    #run_wlcsim(next(scan.params()))
+    script_name = os.path.basename(__file__)
+    print(script_name + ': Running scan!')
+    for params in p.imap_unordered(run_wlcsim, scan.params(), chunksize=1):
+        print(script_name + ": " + datetime.datetime.now().time()
+              + ": completed run with params: " str(params))
+    print(script_name + ': Completed scan!')
