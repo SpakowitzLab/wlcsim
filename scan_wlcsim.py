@@ -120,7 +120,7 @@ def run_wlcsim(params):
     # now we're in the right directory, with input and output ready, go ahead
     # and run the simulation
     with open('./data/wlcsim.log', 'w') as f:
-        subprocess.run(['./wlcsim.exe'], stdout=f, stderr=subprocess.STDOUT)
+        subprocess.run(['time', './wlcsim.exe'], stdout=f, stderr=subprocess.STDOUT)
     os.chdir(script_dir)
     return params
 
@@ -129,6 +129,6 @@ if __name__ == '__main__':
     script_name = os.path.basename(__file__)
     print(script_name + ': Running scan!')
     for params in p.imap_unordered(run_wlcsim, scan.params(), chunksize=1):
-        print(script_name + ": " + datetime.datetime.now().time()
-              + ": completed run with params: " str(params))
+        print(script_name + ": " + datetime.datetime.now().isoformat()
+              + ": completed run with params: " + str(params))
     print(script_name + ': Completed scan!')
