@@ -18,7 +18,7 @@ count_funcs = []
 # specify where simulations will be run and where output will go
 # you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
 # preserve your sanity
-run_name = 'run'
+run_name = 'timing-test-small-chains'
 output_base = 'par-run-dir'
 
 # the following uses numpy to create arrays of parameters
@@ -28,6 +28,7 @@ output_base = 'par-run-dir'
 # to vary parameters combinatorially, list all the values for all parameters
 # you want like this, all combinations will be exected automatically
 params['FPT_DIST'] = np.linspace(0.1, 1.5, 15)
+params['DT'] = np.array([0.1, 0.01])
 # to vary parameters jointly, make dictionaries with values of matching size
 # like this. see pscan.py for more details.
 jparam = {}
@@ -37,8 +38,9 @@ jparams.append(jparam)
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 2
+default_repeats_per_param = 10
 count_funcs.append(lambda p: default_repeats_per_param)
+count_funcs.append(lambda p: max(1,int(default_repeats_per_param/10)) if p['DT'] < 0.1 else None)
 
 # how many cores to use on this computer
 num_cores = multiprocessing.cpu_count() - 1

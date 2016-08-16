@@ -22,6 +22,8 @@ FC = gfortran
 
 # compile flags
 FCFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
+# DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp
+# FCFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
 # FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
 # PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
 

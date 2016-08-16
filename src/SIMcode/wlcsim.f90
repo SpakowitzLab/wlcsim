@@ -82,6 +82,7 @@
 
 !     Variable to hold time of first collisions between each bead
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
+      INTEGER NUM_POSSIBLE_COLLISIONS
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! what kind of collision checking to use
 
@@ -116,6 +117,7 @@
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) COL_TYPE
       close(5)
+      NUM_POSSIBLE_COLLISIONS = N*N - N
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
 
@@ -315,6 +317,10 @@
          print*, 'End-to-end distance poly 1 ', &
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
+
+         IF (COUNT(HAS_COLLIDED.NE.-1.0d+0) == NUM_POSSIBLE_COLLISIONS) THEN
+             EXIT
+         ENDIF
 
          IND=IND+1
 
