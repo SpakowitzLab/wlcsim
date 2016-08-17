@@ -60,7 +60,7 @@ $(PROGRAM): $(OBJ)
 
 clean: dataclean
 	find src \( -iname '*.o' -or -iname '*.mod' \) -delete
-	rm -f wlcsim wlcsim.dep
+	rm -f $(PROGRAM) wlcsim.dep
 
 dataclean:
 	mkdir -p data trash
