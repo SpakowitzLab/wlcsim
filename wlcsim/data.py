@@ -20,16 +20,16 @@ class Sim:
                           ' WlcsimData does not exist!')
         self.sim_dir = sim_dir
         input_file = os.path.join(sim_dir, 'input')
-        _, self.params = winput.read_file(input_file)
+        self.param_names, self.params = winput.read_file(input_file)
         data_dir = os.path.join(sim_dir, 'data')
         coltimes_file = os.path.join(data_dir, 'coltimes')
         rfile_base = os.path.join(data_dir, 'r')
         ufile_base = os.path.join(data_dir, 'u')
+        self.coltimes = pd.DataFrame()
         if not os.path.isfile(coltimes_file):
             logger.warning(coltimes_file + 'does not exist!')
         else:
             coltimes = np.loadtxt(coltimes_file)
-            self.coltimes = pd.DataFrame()
             # make a Series out of the lower triangular part of coltimes matrix
             for i in range(coltimes.shape[0]):
                 for j in range(i-1):
@@ -66,12 +66,18 @@ class Scan:
     def __init__(self, par_run_dir):
         self.wlcsim_data = [Sim(folder) for folder in
                             glob.glob(os.path.join(par_run_dir, '*'))]
+        self.param_names = self.wlcsim_data[0].param_names
         for sim in self.wlcsim_data:
             sim.coltimes['run_name'] = os.path.basename(sim.sim_dir)
             for param in sim.params:
                 sim.coltimes[param] = sim.params[param]
         coltimes = [sim.coltimes for sim in self.wlcsim_data]
         self.coltimes = pd.concat(coltimes)
+        self.calculate_linear_distance()
+    def calculate_linear_distance(self):
 # actual distance along polymer is dx*(number_separating)
         self.coltimes['dx'] = self.coltimes['L']/(self.coltimes['N'] - 1)
         self.coltimes['linear_distance'] = self.coltimes['dx']*np.abs(self.coltimes['i'] - self.coltimes['j'])
+    def calculate_for_each_param(self, f):
+        """unimplemented"""
+        pass
