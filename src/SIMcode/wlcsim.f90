@@ -85,6 +85,11 @@
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! what kind of collision checking to use
 
+!     Variables for tracking methylation profile
+      INTEGER, ALLOCATABLE, DIMENSION(:):: METH_STATUS ! methylation status of each site: 1 = methylated, 0 = unmethylated
+      DOUBLE PRECISION KM ! rate of methylation
+      DOUBLE PRECISION KD ! rate of demethylation
+
 
 !     Load in the parameters for the simulation
 
@@ -115,6 +120,10 @@
       read (unit=5, fmt=*) FPT_DIST
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) COL_TYPE
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) KM
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) KD
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
@@ -134,10 +143,17 @@
          ALLOCATE(HAS_COLLIDED(1,1))
          HAS_COLLIDED = -1.0d+0
       endif
+      ALLOCATE(METH_STATUS(NT))
+
+!!!! debugging
+      print *, "The methylation rate is ", KM
+      print *, "The demethylation rate is ", KD
 
 !     Setup the initial condition
 
       call initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
+
+      call initial_methyl_profile(NT)
 
 !     Turn on moves for each simulation type
 
@@ -251,7 +267,8 @@
          endif
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
-                       PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE)
+                 PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE, &
+                 METH_STATUS,KM,KD)
          endif
 
 !     Save the conformation and the metrics
@@ -283,12 +300,19 @@
          snapnm='data/coltimes'
          IF (COL_TYPE.NE.0) then
          OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
-         DO, I=1,NT
+         DO I=1,NT
              WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
          ENDDO
          CLOSE(1)
          ENDIF
 
+         snapnm='data/methylation'//fileind((4-TENS+1):4)
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
+         DO I=1,NT
+             WRITE(1,*) METH_STATUS(I)
+         ENDDO
+         CLOSE(1)
+         
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
          call stressp(COR,R,U,R0,U0,NT,N,NP,PARA,INTON,SIMTYPE)
 
