@@ -145,15 +145,18 @@
       endif
       ALLOCATE(METH_STATUS(NT))
 
-!!!! debugging
-      print *, "The methylation rate is ", KM
-      print *, "The demethylation rate is ", KD
-
 !     Setup the initial condition
 
       call initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
 
-      call initial_methyl_profile(NT)
+      call initial_methyl_profile(NT,METH_STATUS)
+
+      OPEN (UNIT = 1, FILE = 'data/m0', STATUS = 'NEW')
+      DO I=1,NT
+            WRITE(1,*) meth_status(I)
+      ENDDO
+      CLOSE(1)
+
 
 !     Turn on moves for each simulation type
 
@@ -306,7 +309,7 @@
          CLOSE(1)
          ENDIF
 
-         snapnm='data/methylation'//fileind((4-TENS+1):4)
+         snapnm='data/m'//fileind((4-TENS+1):4)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          DO I=1,NT
              WRITE(1,*) METH_STATUS(I)

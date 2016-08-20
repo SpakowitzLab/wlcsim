@@ -138,7 +138,7 @@
 
       DO WHILE (TIME.LT.TTOT)
 
-         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
+         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
 
          COULD_REACT = 0
          
@@ -148,7 +148,7 @@
 
          RXN_HAPPEN = 1
          
-         call METHYL_PROFILE(NT,METH_STATUS, KTOT, KM, KD, NUM_METHYLATED, TIME, RXN_HAPPEN, PAIRS, DT)
+         call METHYL_PROFILE(NT,METH_STATUS, KTOT, KM, KD, NUM_METHYLATED, TIME, RXN_HAPPEN, PAIRS, DT, NUC_SITE)
 
 
 !     Calculate the random forces and torques for use in this

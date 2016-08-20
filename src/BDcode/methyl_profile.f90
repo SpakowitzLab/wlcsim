@@ -1,7 +1,7 @@
-subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt)
+subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt,nuc_site)
     use mt19937, only : grnd
     implicit none
-    integer, intent(in) :: nt,num_methylated, pairs(2,nt)
+    integer, intent(in) :: nt,num_methylated,pairs(2,nt),nuc_site
     integer, intent(inout) :: meth_status(nt),rxn_happen
     double precision, intent(in) :: km, kd, ktot, time, dt
     double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn
@@ -18,6 +18,10 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
             rn2 = grnd()
             if (rn2.lt.(kd/ktot)*num_methylated) then ! one site is demethylated
                 site_rxn = ceiling(rn2/(kd/ktot))
+                if (site_rxn.eq.nuc_site) then
+                    rxn_happen = 0
+                    go to 16
+                end if
                 count = 0
                 i = 1
                 do while (count.lt.site_rxn)
@@ -36,6 +40,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
         else
             rxn_happen = 0
         end if
+        16 continue
     end if
 end 
    

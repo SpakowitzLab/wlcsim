@@ -37,7 +37,7 @@ subroutine check_reactions(r, nt, meth_status, in_rxn_rad, could_react, fpt_dist
             end if
         else if (sum(in_rxn_rad(k1,:)).gt.1) then
             c1 = k1
-            call calc_dist(r,nt,c1,fpt_dist)
+            call calc_dist(r,nt,c1,fpt_dist,in_rxn_rad)
             k2 = c2
             if (check_pair(k1,k2).eq.0) then
                 check_pair(k1,k2) = 1
