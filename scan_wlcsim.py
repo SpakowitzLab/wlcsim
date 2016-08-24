@@ -19,7 +19,7 @@ count_funcs = []
 # specify where simulations will be run and where output will go
 # you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
 # preserve your sanity
-run_name = 'test-script-save'
+run_name = 'small-chains-fix'
 output_base = 'par-run-dir'
 
 # the following uses numpy to create arrays of parameters
@@ -31,10 +31,13 @@ output_base = 'par-run-dir'
 params['FPT_DIST'] = np.array([0.1])
 params['DT'] = np.array([1, 0.1, 0.01])
 params['L'] = np.array([10], dtype=np.int32)
-params['N'] = np.array([2, 11, 21, 31, 41], dtype=np.int32)
+params['N'] = np.array([2, 3, 4, 11, 21, 31, 41], dtype=np.int32)
+params['TF'] = np.array([1000000]) # max sim time
+params['INDMAX'] = np.array([1000]) # max num saves (determines save freq)
+params['SAVE_RU'] = np.array([0])
+params['EXIT_WHEN_COLLIDED'] = np.array([1])
 # to vary parameters jointly, make dictionaries with values of matching size
 # like this. see pscan.py for more details.
-# jparam = {}
 # jparam['L'] = np.array([10], dtype=np.int32)
 # jparam['N'] = np.array([2, 11, 21, 31, 41], dtype=np.int32)
 # jparams.append(jparam)
@@ -42,7 +45,7 @@ params['N'] = np.array([2, 11, 21, 31, 41], dtype=np.int32)
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 2
+default_repeats_per_param = 100
 count_funcs.append(lambda p: default_repeats_per_param)
 count_funcs.append(lambda p: max(1,int(default_repeats_per_param/50)) if p['DT'] < 0.1 else None)
 
@@ -51,9 +54,13 @@ num_cores = multiprocessing.cpu_count()
 
 ## END PARAM SCANNING CONFIG
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+os.chdir(script_dir)
+
 # read in parameter names and "default" values
 # from files in Andy's input format
-ordered_param_names, simulation_params = wlcsim.input.read_file('input/input')
+input_file = os.path.join(script_dir, 'input', 'input')
+ordered_param_names, simulation_params = wlcsim.input.read_file(input_file)
 simulation_params.update(params)
 scan = pscan.Scan(simulation_params)
 for jparam in jparams:
@@ -61,7 +68,6 @@ for jparam in jparams:
 for count_func in count_funcs:
     scan.add_count(count_func)
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
 hostname = socket.gethostname()
 run_base = os.path.join(output_base, run_name, hostname)
 def run_wlcsim(params):

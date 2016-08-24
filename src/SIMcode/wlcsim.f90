@@ -86,6 +86,9 @@
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! what kind of collision checking to use
 
+!     Variables to control simulation output
+      INTEGER SAVE_RU
+      INTEGER EXIT_WHEN_COLLIDED
 
 !     Load in the parameters for the simulation
 
@@ -116,6 +119,10 @@
       read (unit=5, fmt=*) FPT_DIST
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) COL_TYPE
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) SAVE_RU
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) EXIT_WHEN_COLLIDED
       close(5)
       NUM_POSSIBLE_COLLISIONS = N*N - N
       call getpara(PARA,DT,SIMTYPE)
@@ -260,6 +267,9 @@
 
          TENS=nint(log10(1.*IND)-0.4999)+1
          write (fileind,'(I4)'), IND
+
+         IF (SAVE_RU.NE.0) THEN
+
          snapnm= 'data/r'//fileind((4-TENS+1):4)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
@@ -281,6 +291,8 @@
  80         CONTINUE
  70      CONTINUE
          CLOSE(1)
+
+         ENDIF
 
          snapnm='data/coltimes'
          IF (COL_TYPE.NE.0) then
@@ -319,7 +331,9 @@
          PRINT*, 'Simulation type ', SIMTYPE
 
          IF (COUNT(HAS_COLLIDED.NE.-1.0d+0) == NUM_POSSIBLE_COLLISIONS) THEN
-             EXIT
+             IF (EXIT_WHEN_COLLIDED.NE.0) THEN
+                EXIT
+             ENDIF
          ENDIF
 
          IND=IND+1
