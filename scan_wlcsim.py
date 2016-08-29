@@ -19,7 +19,7 @@ count_funcs = []
 # specify where simulations will be run and where output will go
 # you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
 # preserve your sanity
-run_name = 'small-chains-fix'
+run_name = 'increasing-chain-length-0.1_fpt_dist'
 output_base = 'par-run-dir'
 
 # the following uses numpy to create arrays of parameters
@@ -29,25 +29,27 @@ output_base = 'par-run-dir'
 # to vary parameters combinatorially, list all the values for all parameters
 # you want like this, all combinations will be exected automatically
 params['FPT_DIST'] = np.array([0.1])
-params['DT'] = np.array([1, 0.1, 0.01])
-params['L'] = np.array([10], dtype=np.int32)
-params['N'] = np.array([2, 3, 4, 11, 21, 31, 41], dtype=np.int32)
-params['TF'] = np.array([1000000]) # max sim time
-params['INDMAX'] = np.array([1000]) # max num saves (determines save freq)
+params['DT'] = np.array([0.5])
+# 2 bead chains basically never loop since no bend
+# similarly, < 1 bead per persistence length seems to give silly answers
+# similarly, < 2 bead per persistence length quantitatively incorrect answers
+params['TF'] = np.array([10000000]) # max sim time
+params['INDMAX'] = np.array([10000]) # max num saves (determines save freq)
 params['SAVE_RU'] = np.array([0])
 params['EXIT_WHEN_COLLIDED'] = np.array([1])
 # to vary parameters jointly, make dictionaries with values of matching size
 # like this. see pscan.py for more details.
-# jparam['L'] = np.array([10], dtype=np.int32)
-# jparam['N'] = np.array([2, 11, 21, 31, 41], dtype=np.int32)
-# jparams.append(jparam)
+jparam = {}
+jparam['L'] = np.linspace(10, 100, 10, dtype=np.int32)
+jparam['N'] = np.linspace(20, 200, 10, dtype=np.int32) + 1
+jparams.append(jparam)
 
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 100
+default_repeats_per_param = 10
 count_funcs.append(lambda p: default_repeats_per_param)
-count_funcs.append(lambda p: max(1,int(default_repeats_per_param/50)) if p['DT'] < 0.1 else None)
+#count_funcs.append(lambda p: max(1,int(default_repeats_per_param/50)) if p['DT'] < 0.1 else None)
 
 # how many cores to use on this computer
 num_cores = multiprocessing.cpu_count()

@@ -2,10 +2,19 @@ import os
 import glob
 import shutil
 
-def fix_coltimes(coldir, newdir):
+def fix_coltimes(coldir, newdir, resume=None):
     dirs = glob.glob(coldir + '/*/core.*')
     os.makedirs(newdir, mode=0o755, exist_ok=True)
+    if resume:
+        have_reached_resume = False
+    else:
+        have_reached_resume = True
     for sim in dirs:
+        if not have_reached_resume:
+            if sim == resume:
+                have_reached_resume = True
+            else:
+                continue
         hostname = sim
         hostname = hostname[hostname.find('/')+1:]
         hostname = hostname[:hostname.find('/')]

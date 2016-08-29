@@ -1,5 +1,6 @@
 """ This module "understands" the input format of wlcsim.exe """
 import re
+import os
 # def __init__(self, sim_dir):
 #     input_dir = os.path.join(sim_dir, 'input')
 #     input_file = os.path.join(input_dir, 'input')
@@ -30,7 +31,12 @@ def read_file(input_file):
     next_line_is_val = False
     ordered_param_names = []
     simulation_params = {}
-    with open('input/input') as f:
+    # if we get the sim dir or the input dir, resolve to the actual input file
+    if not os.path.isfile(input_file) and os.path.isdir(input_file):
+        input_file = os.path.join(input_file, 'input')
+    if not os.path.isfile(input_file) and os.path.isdir(input_file):
+        input_file = os.path.join(input_file, 'input')
+    with open(input_file) as f:
         # first three lines are garbage
         for i in range(3):
             f.readline()
