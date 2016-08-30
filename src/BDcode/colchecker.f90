@@ -21,23 +21,33 @@ subroutine check_collisions(r, nt, has_collided, fpt_dist, time, col_type, in_rx
     double precision, intent(in) :: r(nt,3)
     double precision, intent(inout) :: has_collided(nt, nt)
     integer, intent(inout) :: in_rxn_rad(nt,nt)
+
     if (col_type.eq.0) then
         return
     else if (col_type.eq.1) then
-        call check_collisions_brute(r, nt, has_collided, fpt_dist, time)
+        call check_collisions_brute(r, nt, has_collided, fpt_dist, time, in_rxn_rad)
     else if (col_type.eq.2) then
         call check_collisions_kd(r, nt, has_collided, fpt_dist, time)
     else if (col_type.eq.3) then
         call check_collisions_bb(r, nt, has_collided, fpt_dist, time, in_rxn_rad)
-    end if
+    end if  
 end
 
 subroutine check_collisions_brute(r, nt, has_collided, fpt_dist, &
-        time)
+        time, in_rxn_rad)
     implicit none 
-    integer nt, in_rxn_rad(nt,nt),k1,k2
-    double precision fpt_dist, time
-    double precision r(nt,3), has_collided(nt, nt)
+
+    integer, intent(in) :: nt
+    integer k1, k2
+    double precision, intent(in) :: fpt_dist, time, r(nt,3)
+    double precision, intent(inout) :: has_collided(nt, nt)
+    integer, intent(inout) :: in_rxn_rad(nt,nt)
+
+
+    !integer nt, in_rxn_rad(nt,nt),k1,k2
+    !double precision fpt_dist, time
+    !double precision r(nt,3), has_collided(nt, nt)
+
     ! initialize in_rxn_rad
     do k1 = 1, nt
         do k2 = 1, nt
@@ -48,10 +58,10 @@ subroutine check_collisions_brute(r, nt, has_collided, fpt_dist, &
     !     check if the particles have collided
     do k1 = 1, nt
         do k2 = 1, nt
-            if (k1.ne.k2 &
-                .and. abs(r(k1,1) - r(k2,1)) < fpt_dist &
-                .and. abs(r(k1,2) - r(k2,2)) < fpt_dist &
-                .and. abs(r(k1,3) - r(k2,3)) < fpt_dist) then
+            if ((k1.ne.k2) &
+                .and. (abs(r(k1,1) - r(k2,1)) < fpt_dist) &
+                .and. (abs(r(k1,2) - r(k2,2)) < fpt_dist) &
+                .and. (abs(r(k1,3) - r(k2,3)) < fpt_dist)) then
                 in_rxn_rad(k1,k2) = 1
                 if (has_collided(k1,k2).lt.0.0d0) then
                    has_collided(k1,k2) = time
@@ -105,9 +115,9 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time, in_rxn_rad)
     integer, parameter :: dp = REAL64
 
     integer, intent(in) :: nt
-    integer, intent(inout) :: in_rxn_rad(nt,nt)
     double precision, intent(in) :: fpt_dist, time, r(nt,3)
     double precision, intent(inout) :: has_collided(nt, nt)
+    integer, intent(inout) :: in_rxn_rad(nt,nt)
 
     integer :: neighbors(nt,nt)  ! most of array won't be used, probably
         ! neighbors(1:num_neighbors(i),i) holds neighbors of bead i for each i
@@ -247,7 +257,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time, in_rxn_rad)
     ! neighbors(neighborj, beadi), num_neighbors(beadi)
     do i = 1, nt
         do j = 1, num_neighbors(i)
-            in_rxn_rad(neighbors(j,i),i) = 1
+            in_rxn_rad(i,neighbors(j,i)) = 1
             if (has_collided(neighbors(j,i),i) < 0.0_dp) then
                 has_collided(neighbors(j,i),i) = time
             endif

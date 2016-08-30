@@ -2,7 +2,7 @@
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
            INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
-           COL_TYPE, METH_STATUS, KM, KD)
+           COL_TYPE, METH_STATUS, KM, KD, NUM_SPREAD, IN_RXN_RAD, PAIRS)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -82,6 +82,7 @@
       DOUBLE PRECISION KD ! rate of demethylation
       DOUBLE PRECISION KTOT ! total rate constant
       INTEGER NUM_METHYLATED ! number of methylated sites
+      INTEGER NUM_SPREAD ! total number of spreading events
 
 !     Load the input parameters
 
@@ -134,6 +135,10 @@
  20      CONTINUE
  10   CONTINUE
 
+      KTOT = 1
+      NUM_METHYLATED = 1
+
+
 !     Begin the time integration
 
       DO WHILE (TIME.LT.TTOT)
@@ -142,13 +147,13 @@
 
          COULD_REACT = 0
          
-         call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST)
+         call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
 
-         call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD)
+         call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
 
          RXN_HAPPEN = 1
          
-         call METHYL_PROFILE(NT,METH_STATUS, KTOT, KM, KD, NUM_METHYLATED, TIME, RXN_HAPPEN, PAIRS, DT, NUC_SITE)
+         call METHYL_PROFILE(NT,METH_STATUS, KTOT, KM, KD, NUM_METHYLATED, TIME, RXN_HAPPEN, PAIRS, DT, NUC_SITE,NUM_SPREAD)
 
 
 !     Calculate the random forces and torques for use in this

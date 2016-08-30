@@ -36,7 +36,7 @@
       INTEGER INDMAX            ! Maximum index in series
       INTEGER IND               ! Ind in series
       INTEGER TENS              ! Decimal of index
-      character*4 fileind       ! Index of output
+      character*5 fileind       ! Index of output
       character*16 snapnm       ! File for output
 
 !     Simulation input variables
@@ -87,8 +87,11 @@
 
 !     Variables for tracking methylation profile
       INTEGER, ALLOCATABLE, DIMENSION(:):: METH_STATUS ! methylation status of each site: 1 = methylated, 0 = unmethylated
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IN_RXN_RAD
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PAIRS
       DOUBLE PRECISION KM ! rate of methylation
       DOUBLE PRECISION KD ! rate of demethylation
+      INTEGER NUM_SPREAD ! total number of spreading events
 
 
 !     Load in the parameters for the simulation
@@ -144,6 +147,10 @@
          HAS_COLLIDED = -1.0d+0
       endif
       ALLOCATE(METH_STATUS(NT))
+      ALLOCATE(IN_RXN_RAD(NT,NT))
+      ALLOCATE(PAIRS(2,NT))
+
+      NUM_SPREAD = 0
 
 !     Setup the initial condition
 
@@ -271,14 +278,14 @@
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
                  PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE, &
-                 METH_STATUS,KM,KD)
+                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS)
          endif
 
 !     Save the conformation and the metrics
 
-         TENS=nint(log10(1.*IND)-0.4999)+1
-         write (fileind,'(I4)'), IND
-         snapnm= 'data/r'//fileind((4-TENS+1):4)
+         TENS=nint(log10(1.*IND)-0.49999)+1
+         write (fileind,'(I5)'), IND
+         snapnm= 'data/r'//fileind((5-TENS+1):5)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 50 I=1,NP
@@ -289,7 +296,7 @@
  50      CONTINUE
          CLOSE(1)
 
-         snapnm= 'data/u'//fileind((4-TENS+1):4)
+         snapnm= 'data/u'//fileind((5-TENS+1):5)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 70 I=1,NP
@@ -309,11 +316,16 @@
          CLOSE(1)
          ENDIF
 
-         snapnm='data/m'//fileind((4-TENS+1):4)
+         snapnm='data/m'//fileind((5-TENS+1):5)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          DO I=1,NT
              WRITE(1,*) METH_STATUS(I)
          ENDDO
+         CLOSE(1)
+
+         snapnm='data/num_spread'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_SPREAD
          CLOSE(1)
          
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
@@ -342,6 +354,7 @@
          print*, 'End-to-end distance poly 1 ', &
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
+         PRINT*, 'Number of spreading events ', NUM_SPREAD
 
          IND=IND+1
 

@@ -1,11 +1,12 @@
-subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt,nuc_site)
+subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt,nuc_site,num_spread)
     use mt19937, only : grnd
     implicit none
-    integer, intent(in) :: nt,num_methylated,pairs(2,nt),nuc_site
-    integer, intent(inout) :: meth_status(nt),rxn_happen
+    integer, intent(in) :: nt, num_methylated, pairs(2,nt), nuc_site
+    integer, intent(inout) :: meth_status(nt), rxn_happen, num_spread
     double precision, intent(in) :: km, kd, ktot, time, dt
     double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn
     integer :: site_rxn, count, i
+
     ! for pairs of beads that could transfer a methyl mark,
     ! perform Gillespie algorithm to determine if reaction happens and then update methyl profile
     dt_mod = dt
@@ -16,7 +17,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
         if (rn1.gt.prob_no_rxn) then
             ! which reaction occurred?
             rn2 = grnd()
-            if (rn2.lt.(kd/ktot)*num_methylated) then ! one site is demethylated
+            if (rn2.lt.((kd/ktot)*num_methylated)) then ! one site is demethylated
                 site_rxn = ceiling(rn2/(kd/ktot))
                 if (site_rxn.eq.nuc_site) then
                     rxn_happen = 0
@@ -32,6 +33,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
             else ! one site is methylated 
                 site_rxn = ceiling(rn2/(km/ktot))
                 meth_status(pairs(2,site_rxn)) = 1
+                num_spread = num_spread + 1
             end if
             ! at what time did it occur?
             rn3 = grnd()
