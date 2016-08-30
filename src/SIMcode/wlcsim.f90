@@ -91,7 +91,11 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PAIRS
       DOUBLE PRECISION KM ! rate of methylation
       DOUBLE PRECISION KD ! rate of demethylation
+      DOUBLE PRECISION KTOT ! total rate constant
+      INTEGER NUC_SITE ! bead index of nucleation site
       INTEGER NUM_SPREAD ! total number of spreading events
+      INTEGER NUM_METHYLATED ! number of methylated sites
+      INTEGER NUM_DECAY ! total number of decay events
 
 
 !     Load in the parameters for the simulation
@@ -151,18 +155,24 @@
       ALLOCATE(PAIRS(2,NT))
 
       NUM_SPREAD = 0
+      NUM_DECAY = 0
 
 !     Setup the initial condition
 
       call initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
 
-      call initial_methyl_profile(NT,METH_STATUS)
+      call initial_methyl_profile(NT,METH_STATUS,NUC_SITE)
 
       OPEN (UNIT = 1, FILE = 'data/m0', STATUS = 'NEW')
       DO I=1,NT
             WRITE(1,*) meth_status(I)
       ENDDO
       CLOSE(1)
+
+      KTOT = 1.0
+      NUM_METHYLATED = sum(meth_status)
+
+      PRINT *, 'initial number of methylated sites =', NUM_METHYLATED
 
 
 !     Turn on moves for each simulation type
@@ -278,7 +288,7 @@
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
                  PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE, &
-                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS)
+                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS,NUC_SITE,NUM_METHYLATED,NUM_DECAY)
          endif
 
 !     Save the conformation and the metrics
@@ -327,6 +337,11 @@
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
          WRITE(1,*) NUM_SPREAD
          CLOSE(1)
+
+         snapnm='data/num_decay'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_DECAY
+         CLOSE(1)
          
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
          call stressp(COR,R,U,R0,U0,NT,N,NP,PARA,INTON,SIMTYPE)
@@ -355,6 +370,8 @@
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
          PRINT*, 'Number of spreading events ', NUM_SPREAD
+         PRINT*, 'Number of methylated sites ', NUM_METHYLATED
+         PRINT*, 'Number of decay events ', NUM_DECAY
 
          IND=IND+1
 

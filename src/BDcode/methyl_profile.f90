@@ -1,8 +1,8 @@
-subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt,nuc_site,num_spread)
+subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happen,pairs,dt,nuc_site,num_spread,num_decay)
     use mt19937, only : grnd
     implicit none
-    integer, intent(in) :: nt, num_methylated, pairs(2,nt), nuc_site
-    integer, intent(inout) :: meth_status(nt), rxn_happen, num_spread
+    integer, intent(in) :: nt, pairs(2,nt), nuc_site
+    integer, intent(inout) :: meth_status(nt), rxn_happen, num_spread, num_methylated, num_decay
     double precision, intent(in) :: km, kd, ktot, time, dt
     double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn
     integer :: site_rxn, count, i
@@ -30,6 +30,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
                     i = i+1
                 end do
                 meth_status(i-1) = 0 
+                num_decay = num_decay + 1
             else ! one site is methylated 
                 site_rxn = ceiling(rn2/(km/ktot))
                 meth_status(pairs(2,site_rxn)) = 1
@@ -44,6 +45,9 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
         end if
         16 continue
     end if
+
+    num_methylated = sum(meth_status)
+
 end 
    
      

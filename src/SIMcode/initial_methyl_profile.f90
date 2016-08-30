@@ -1,8 +1,8 @@
-subroutine initial_methyl_profile(nt,meth_status)
+subroutine initial_methyl_profile(nt,meth_status,nuc_site)
     implicit none
     integer, intent(in) :: nt
-    integer, intent(inout) :: meth_status(nt)
-    integer :: i, nuc_site
+    integer, intent(inout) :: meth_status(nt), nuc_site
+    integer :: i
 
     nuc_site = ceiling(real(nt/2.0))
 
