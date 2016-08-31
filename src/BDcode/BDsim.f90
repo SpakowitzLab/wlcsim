@@ -137,6 +137,7 @@
  20      CONTINUE
  10   CONTINUE
 
+      RXN_HAPPEN = 1
 
 !     Begin the time integration
 
@@ -144,16 +145,20 @@
 
          call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
 
-         COULD_REACT = 0
-         
-         call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
+         DO WHILE (RXN_HAPPEN.EQ.1)
 
-         call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
+            COULD_REACT = 0
+         
+            call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
+
+            call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
+         
+            call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
+                 RXN_HAPPEN,PAIRS,DT,NUC_SITE,NUM_SPREAD,NUM_DECAY)
+
+         END DO
 
          RXN_HAPPEN = 1
-         
-         call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME,RXN_HAPPEN,PAIRS,DT,NUC_SITE,NUM_SPREAD,NUM_DECAY)
-
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN=1
