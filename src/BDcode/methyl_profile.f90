@@ -4,7 +4,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
     integer, intent(in) :: nt, pairs(2,nt), nuc_site
     integer, intent(inout) :: meth_status(nt), rxn_happen, num_spread, num_methylated, num_decay
     double precision, intent(in) :: km, kd, ktot, time, dt
-    double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn
+    double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn, pr
     integer :: site_rxn, count, i
 
     ! for pairs of beads that could transfer a methyl mark,
@@ -32,7 +32,8 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
                 meth_status(i-1) = 0 
                 num_decay = num_decay + 1
             else ! one site is methylated 
-                site_rxn = ceiling(rn2/(km/ktot))
+                pr = rn2 - ((kd/ktot)*num_methylated)
+                site_rxn = ceiling(pr/(km/ktot))
                 meth_status(pairs(2,site_rxn)) = 1
                 num_spread = num_spread + 1
             end if
