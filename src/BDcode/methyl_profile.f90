@@ -4,7 +4,7 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
     integer, intent(in) :: nt, pairs(2,nt), nuc_site
     integer, intent(inout) :: meth_status(nt), rxn_happen, num_spread, num_methylated, num_decay
     double precision, intent(in) :: km, kd, ktot, time, dt
-    double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn, pr
+    double precision :: time_rxn, rn1, rn2, rn3, dt_mod, prob_no_rxn, prob_demeth, prob_meth
     integer :: site_rxn, count, i
 
     ! for pairs of beads that could transfer a methyl mark,
@@ -17,23 +17,30 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
         if (rn1.gt.prob_no_rxn) then
             ! which reaction occurred?
             rn2 = grnd()
-            if (rn2.lt.((kd/ktot)*num_methylated)) then ! one site is demethylated
+            prob_demeth = (kd/ktot)*(num_methylated-1)
+            if (rn2.lt.prob_demeth) then ! one site is demethylated
                 site_rxn = ceiling(rn2/(kd/ktot))
-                if (site_rxn.eq.nuc_site) then
-                    rxn_happen = 0
-                    go to 16
-                end if
                 count = 0
                 i = 1
-                do while (count.lt.site_rxn)
+                do while ((count.lt.site_rxn).and.(i.lt.nuc_site))
                     count = count + meth_status(i)
                     i = i+1
                 end do
-                meth_status(i-1) = 0 
-                num_decay = num_decay + 1
+                if ((count.eq.site_rxn).and.(i.lt.nuc_site)) then
+                    meth_status(i-1) = 0 
+                    num_decay = num_decay + 1
+                elseif ((count.lt.site_rxn).and.(i.eq.nuc_site)) then
+                    i = i+1
+                    do while (count.lt.site_rxn)
+                        count = count + meth_status(i)
+                        i = i+1
+                    end do
+                    meth_status(i-1) = 0
+                    num_decay = num_decay + 1
+                end if
             else ! one site is methylated 
-                pr = rn2 - ((kd/ktot)*num_methylated)
-                site_rxn = ceiling(pr/(km/ktot))
+                prob_meth = rn2 - prob_demeth
+                site_rxn = ceiling(prob_meth/(km/ktot))
                 meth_status(pairs(2,site_rxn)) = 1
                 num_spread = num_spread + 1
             end if
@@ -44,7 +51,6 @@ subroutine methyl_profile(nt,meth_status,ktot,km,kd,num_methylated,time,rxn_happ
         else
             rxn_happen = 0
         end if
-        16 continue
     end if
 
     num_methylated = sum(meth_status)
