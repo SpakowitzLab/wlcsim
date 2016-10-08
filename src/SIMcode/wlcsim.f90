@@ -96,6 +96,7 @@
       INTEGER NUM_SPREAD ! total number of spreading events
       INTEGER NUM_METHYLATED ! number of methylated sites
       INTEGER NUM_DECAY ! total number of decay events
+      INTEGER COULD_REACT ! number of pairs in which methyl mark could spread
 
 
 !     Load in the parameters for the simulation
@@ -224,8 +225,10 @@
 
 !     Perform an initialization MC simulation
 
-      call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA,MCAMP, &
-           SUCCESS,MOVEON,WINDOW,SIMTYPE)
+      if (NINIT.NE.0) then
+         call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA,MCAMP, &
+              SUCCESS,MOVEON,WINDOW,SIMTYPE)
+      endif
 
 !     Save the conformation and PSI angles
 
@@ -288,7 +291,8 @@
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
                  PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE, &
-                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS,NUC_SITE,NUM_METHYLATED,NUM_DECAY)
+                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS, &
+                 NUC_SITE,NUM_METHYLATED,NUM_DECAY,COULD_REACT)
          endif
 
 !     Save the conformation and the metrics
@@ -333,6 +337,11 @@
          ENDDO
          CLOSE(1)
 
+         snapnm='data/p'//fileind((5-TENS+1):5)
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
+         WRITE(1,*) COULD_REACT
+         CLOSE(1)
+
          snapnm='data/num_spread'
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
          WRITE(1,*) NUM_SPREAD
@@ -341,6 +350,11 @@
          snapnm='data/num_decay'
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
          WRITE(1,*) NUM_DECAY
+         CLOSE(1)
+
+         snapnm='data/num_meth'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_METHYLATED
          CLOSE(1)
          
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)

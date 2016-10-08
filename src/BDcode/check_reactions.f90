@@ -20,10 +20,9 @@ subroutine check_reactions(r, nt, meth_status, in_rxn_rad, could_react, fpt_dist
      
     ! for pairs of beads that are close enough to react, check that one
     ! is methylated and one unmethylated
-    do k1 = 1, nt
-        if (sum(in_rxn_rad(k1,:)).eq.1) then
-            k2 = maxloc(in_rxn_rad(k1,:),1)
-            if (check_pair(k1,k2).eq.0) then
+    do k1 = 1, nt - 1
+        do k2 = k1 + 1, nt
+            if ((in_rxn_rad(k1,k2).eq.1).and.(check_pair(k1,k2).eq.0)) then
                 check_pair(k1,k2) = 1
                 check_pair(k2,k1) = 1
                 if (meth_status(k1).eq.1 .and. meth_status(k2).eq.0) then
@@ -36,22 +35,7 @@ subroutine check_reactions(r, nt, meth_status, in_rxn_rad, could_react, fpt_dist
                     pairs(2,could_react) = k1
                 end if
             end if
-        else if (sum(in_rxn_rad(k1,:)).gt.1) then
-            call calc_dist(r,nt,fpt_dist,in_rxn_rad,k1,k2)
-            if (check_pair(k1,k2).eq.0) then
-                check_pair(k1,k2) = 1
-                check_pair(k2,k1) = 1
-                if ((meth_status(k1).eq.1) .and. (meth_status(k2).eq.0)) then
-                    could_react = could_react + 1
-                    pairs(1,could_react) = k1
-                    pairs(2,could_react) = k2
-                else if ((meth_status(k1).eq.0) .and. (meth_status(k2).eq.1)) then
-                    could_react = could_react + 1
-                    pairs(1,could_react) = k2
-                    pairs(2,could_react) = k1
-                end if
-            end if
-        end if
+        end do
     end do
 end 
      

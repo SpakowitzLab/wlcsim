@@ -2,7 +2,8 @@
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
            INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
-           COL_TYPE, METH_STATUS, KM, KD, NUM_SPREAD, IN_RXN_RAD, PAIRS, NUC_SITE, NUM_METHYLATED, NUM_DECAY)
+           COL_TYPE, METH_STATUS, KM, KD, NUM_SPREAD, IN_RXN_RAD, &
+           PAIRS, NUC_SITE, NUM_METHYLATED, NUM_DECAY, COULD_REACT)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -85,6 +86,7 @@
       INTEGER NUM_SPREAD ! total number of spreading events
       INTEGER NUC_SITE ! index of nucleation site
       INTEGER NUM_DECAY ! total number of decay events
+      DOUBLE PRECISION DT_MOD ! time remaining in timestep for Gillespie algorithm
 
 !     Load the input parameters
 
@@ -145,6 +147,8 @@
 
          call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
 
+         DT_MOD = DT
+
          DO WHILE (RXN_HAPPEN.EQ.1)
 
             COULD_REACT = 0
@@ -154,7 +158,7 @@
             call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
          
             call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
-                 RXN_HAPPEN,PAIRS,DT,NUC_SITE,NUM_SPREAD,NUM_DECAY)
+                 RXN_HAPPEN,PAIRS,DT,DT_MOD,NUC_SITE,NUM_SPREAD,NUM_DECAY)
 
          END DO
 
