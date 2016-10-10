@@ -36,7 +36,7 @@
       INTEGER INDMAX            ! Maximum index in series
       INTEGER IND               ! Ind in series
       INTEGER TENS              ! Decimal of index
-      character*4 fileind       ! Index of output
+      character*5 fileind       ! Index of output
       character*16 snapnm       ! File for output
 
 !     Simulation input variables
@@ -85,6 +85,20 @@
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! what kind of collision checking to use
 
+!     Variables for tracking methylation profile
+      INTEGER, ALLOCATABLE, DIMENSION(:):: METH_STATUS ! methylation status of each site: 1 = methylated, 0 = unmethylated
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IN_RXN_RAD ! is pair of sites within reaction radius? 1 = yes, 0 = no
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PAIRS ! array that holds indices of sites that could react
+      DOUBLE PRECISION KM ! rate of methylation
+      DOUBLE PRECISION KD ! rate of demethylation
+      DOUBLE PRECISION KTOT ! total rate constant
+      INTEGER NUC_SITE ! bead index of nucleation site
+      INTEGER NUM_SPREAD ! total number of spreading events
+      INTEGER NUM_METHYLATED ! number of methylated sites
+      INTEGER NUM_DECAY ! total number of decay events
+      INTEGER COULD_REACT ! number of pairs in which methyl mark could spread
+      INTEGER RXN_HAPPEN ! reaction status: 1 = reaction, 0 = no reaction
+      DOUBLE PRECISION DT_MOD ! time remaining in timestep for Gillespie algorithm
 
 !     Load in the parameters for the simulation
 
@@ -115,6 +129,10 @@
       read (unit=5, fmt=*) FPT_DIST
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) COL_TYPE
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) KM
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) KD
       close(5)
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
@@ -134,10 +152,31 @@
          ALLOCATE(HAS_COLLIDED(1,1))
          HAS_COLLIDED = -1.0d+0
       endif
+      ALLOCATE(METH_STATUS(NT))
+      ALLOCATE(IN_RXN_RAD(NT,NT))
+      ALLOCATE(PAIRS(2,NT))
+
+      NUM_SPREAD = 0
+      NUM_DECAY = 0
 
 !     Setup the initial condition
 
       call initcond(R,U,NT,N,NP,IDUM,FRMFILE,PARA)
+
+      call initial_methyl_profile(NT,METH_STATUS,NUC_SITE)
+
+      OPEN (UNIT = 1, FILE = 'data/m0', STATUS = 'NEW')
+      DO I=1,NT
+            WRITE(1,*) meth_status(I)
+      ENDDO
+      CLOSE(1)
+
+      KTOT = 1.0
+      NUM_METHYLATED = sum(meth_status)
+      RXN_HAPPEN = 1
+
+      PRINT *, 'initial number of methylated sites =', NUM_METHYLATED
+
 
 !     Turn on moves for each simulation type
 
@@ -188,8 +227,10 @@
 
 !     Perform an initialization MC simulation
 
-      call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA,MCAMP, &
-           SUCCESS,MOVEON,WINDOW,SIMTYPE)
+      if (NINIT.NE.0) then
+         call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA,MCAMP, &
+              SUCCESS,MOVEON,WINDOW,SIMTYPE)
+      endif
 
 !     Save the conformation and PSI angles
 
@@ -237,6 +278,25 @@
 
       DO WHILE (IND.LE.INDMAX)
 
+         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
+
+         DT_MOD = DT
+
+         DO WHILE (RXN_HAPPEN.EQ.1)
+
+            COULD_REACT = 0
+         
+            call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
+
+            call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
+         
+            call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
+                 RXN_HAPPEN,PAIRS,DT,DT_MOD,NUC_SITE,NUM_SPREAD,NUM_DECAY)
+
+         END DO
+
+         RXN_HAPPEN = 1
+
 !     Perform a MC simulation, only if NSTEP.NE.0
 
          call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,PARA,MCAMP, &
@@ -251,14 +311,14 @@
          endif
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
-                       PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE)
+                 PARA,SIMTYPE)
          endif
 
 !     Save the conformation and the metrics
 
-         TENS=nint(log10(1.*IND)-0.4999)+1
-         write (fileind,'(I4)'), IND
-         snapnm= 'data/r'//fileind((4-TENS+1):4)
+         TENS=nint(log10(1.*IND)-0.49999)+1
+         write (fileind,'(I5)'), IND
+         snapnm= 'data/r'//fileind((5-TENS+1):5)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 50 I=1,NP
@@ -269,7 +329,7 @@
  50      CONTINUE
          CLOSE(1)
 
-         snapnm= 'data/u'//fileind((4-TENS+1):4)
+         snapnm= 'data/u'//fileind((5-TENS+1):5)
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 70 I=1,NP
@@ -283,12 +343,39 @@
          snapnm='data/coltimes'
          IF (COL_TYPE.NE.0) then
          OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
-         DO, I=1,NT
+         DO I=1,NT
              WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
          ENDDO
          CLOSE(1)
          ENDIF
 
+         snapnm='data/m'//fileind((5-TENS+1):5)
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
+         DO I=1,NT
+             WRITE(1,*) METH_STATUS(I)
+         ENDDO
+         CLOSE(1)
+
+         snapnm='data/p'//fileind((5-TENS+1):5)
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
+         WRITE(1,*) COULD_REACT
+         CLOSE(1)
+
+         snapnm='data/num_spread'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_SPREAD
+         CLOSE(1)
+
+         snapnm='data/num_decay'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_DECAY
+         CLOSE(1)
+
+         snapnm='data/num_meth'
+         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+         WRITE(1,*) NUM_METHYLATED
+         CLOSE(1)
+         
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
          call stressp(COR,R,U,R0,U0,NT,N,NP,PARA,INTON,SIMTYPE)
 
@@ -315,6 +402,9 @@
          print*, 'End-to-end distance poly 1 ', &
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
+         PRINT*, 'Number of spreading events ', NUM_SPREAD
+         PRINT*, 'Number of methylated sites ', NUM_METHYLATED
+         PRINT*, 'Number of decay events ', NUM_DECAY
 
          IND=IND+1
 

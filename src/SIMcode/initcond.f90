@@ -51,7 +51,9 @@
 
 !     Setup the choice parameters
 
-      INPUT=1
+      ! use input = 0 for initial conformation to be straight chain
+      !INPUT=1
+      INPUT=0
 
 !     Seed the random number generator off the computer clock
 

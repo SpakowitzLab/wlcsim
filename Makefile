@@ -21,7 +21,7 @@ DEP_FILE = wlcsim.dep
 FC = gfortran
 
 # compile flags
-FCFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp #-fcheck=all -Wall -pedantic
+FCFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp #-fbounds-check #-fcheck=all -Wall -pedantic
 
 # link flags
 FLFLAGS =
@@ -31,7 +31,7 @@ FLFLAGS =
 # depends on
 MOD_SRC := src/third_party/mt19937.f90 src/third_party/kdtree2.f90 src/BDcode/colsort.f90
 MOD_MOD := $(addprefix src/,$(notdir $(MOD_SRC:.f90=.mod)))
-SRC := src/DATAcode/MINV.f90 src/DATAcode/find_struc.f90 src/BDcode/force_elas.f90 src/BDcode/force_ponp.f90 src/BDcode/RKstep.f90 src/BDcode/concalc.f90 src/SIMcode/debugging.f90 src/third_party/dgtsv.f src/BDcode/BDsim.f90 src/MCcode/MC_move.f90 src/MCcode/MCsim.f90 src/MCcode/MC_elas.f90 src/MCcode/MC_capsid_ex.f90 src/MCcode/MC_self.f90 src/SIMcode/globals.f90 src/SIMcode/stressp.f90 src/SIMcode/energy_ponp.f90 src/SIMcode/gasdev.f90 src/SIMcode/r_to_erg.f90 src/SIMcode/ran2.f90 src/SIMcode/decim.f90 src/SIMcode/wlcsim.f90 src/SIMcode/stress.f90 src/SIMcode/ran1.f90 src/SIMcode/energy_elas.f90 src/SIMcode/initcond.f90 src/SIMcode/getpara.f90 src/BDcode/colchecker.f90
+SRC := src/DATAcode/MINV.f90 src/DATAcode/find_struc.f90 src/BDcode/force_elas.f90 src/BDcode/force_ponp.f90 src/BDcode/RKstep.f90 src/BDcode/concalc.f90 src/SIMcode/debugging.f90 src/third_party/dgtsv.f src/BDcode/BDsim.f90 src/MCcode/MC_move.f90 src/MCcode/MCsim.f90 src/MCcode/MC_elas.f90 src/MCcode/MC_capsid_ex.f90 src/MCcode/MC_self.f90 src/SIMcode/globals.f90 src/SIMcode/stressp.f90 src/SIMcode/energy_ponp.f90 src/SIMcode/gasdev.f90 src/SIMcode/r_to_erg.f90 src/SIMcode/ran2.f90 src/SIMcode/decim.f90 src/SIMcode/wlcsim.f90 src/SIMcode/stress.f90 src/SIMcode/ran1.f90 src/SIMcode/energy_elas.f90 src/SIMcode/initcond.f90 src/SIMcode/getpara.f90 src/BDcode/colchecker.f90 src/BDcode/check_reactions.f90 src/BDcode/tot_rate_constant.f90 src/BDcode/methyl_profile.f90 src/SIMcode/initial_methyl_profile.f90 src/BDcode/calc_dist.f90 
 OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))
 TEST := src/CCcode/test_sort.f90
 

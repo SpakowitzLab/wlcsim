@@ -1,8 +1,7 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
-           COL_TYPE)
+           INTON,IDUM,PARA,SIMTYPE)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -20,7 +19,7 @@
 
 !     Variables in the simulation
 
-      DOUBLE PRECISION B(NT-1)  ! Bond length
+      DOUBLE PRECISION B(NT,1)  ! Bond length
       DOUBLE PRECISION RS(NT,3) ! R during the step
       DOUBLE PRECISION US(NT,3) ! R during the step
       DOUBLE PRECISION L0       ! Bond distances
@@ -123,12 +122,8 @@
  20      CONTINUE
  10   CONTINUE
 
+
 !     Begin the time integration
-
-      DO WHILE (TIME.LT.TTOT)
-
-         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN=1

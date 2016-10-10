@@ -2,10 +2,14 @@
 
 src/third_party/mt19937.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/mt19937.f90 -o src/third_party/mt19937.o
+src/SIMcode/initial_methyl_profile.o : 
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/initial_methyl_profile.f90 -o src/SIMcode/initial_methyl_profile.o
 src/DATAcode/find_struc.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/DATAcode/find_struc.f90 -o src/DATAcode/find_struc.o
 src/SIMcode/energy_ponp.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/energy_ponp.f90 -o src/SIMcode/energy_ponp.o
+src/BDcode/tot_rate_constant.o : 
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/tot_rate_constant.f90 -o src/BDcode/tot_rate_constant.o
 src/SIMcode/ran1.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/ran1.f90 -o src/SIMcode/ran1.o
 src/SIMcode/stressp.o : 
@@ -31,6 +35,8 @@ src/SIMcode/getpara.o :
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/getpara.f90 -o src/SIMcode/getpara.o
 src/SIMcode/globals.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/globals.f90 -o src/SIMcode/globals.o
+src/BDcode/check_reactions.o : 
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/check_reactions.f90 -o src/BDcode/check_reactions.o
 src/SIMcode/decim.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/decim.f90 -o src/SIMcode/decim.o
 src/BDcode/colchecker.o :  \
@@ -46,6 +52,10 @@ src/SIMcode/initcond.o :  \
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/initcond.f90 -o src/SIMcode/initcond.o
 src/BDcode/colsort.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/colsort.f90 -o src/BDcode/colsort.o
+src/third_party/kdtree2.o :  \
+	src/third_party/kdtree2.o \
+	src/third_party/kdtree2.o
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
 src/SIMcode/wlcsim.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/wlcsim.f90 -o src/SIMcode/wlcsim.o
 src/BDcode/force_elas.o : 
@@ -60,10 +70,11 @@ src/DATAcode/MINV.o :
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/DATAcode/MINV.f90 -o src/DATAcode/MINV.o
 src/SIMcode/stress.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/SIMcode/stress.f90 -o src/SIMcode/stress.o
-src/third_party/kdtree2.o :  \
-	src/third_party/kdtree2.o \
-	src/third_party/kdtree2.o
-	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
+src/BDcode/calc_dist.o : 
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/calc_dist.f90 -o src/BDcode/calc_dist.o
+src/BDcode/methyl_profile.o :  \
+	src/third_party/mt19937.o
+	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/BDcode/methyl_profile.f90 -o src/BDcode/methyl_profile.o
 src/MCcode/MC_self.o : 
 	gfortran -c -ggdb -Jsrc -Isrc -Isrc/third_party -cpp   src/MCcode/MC_self.f90 -o src/MCcode/MC_self.o
 src/SIMcode/energy_elas.o : 
