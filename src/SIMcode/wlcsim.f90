@@ -87,8 +87,8 @@
 
 !     Variables for tracking methylation profile
       INTEGER, ALLOCATABLE, DIMENSION(:):: METH_STATUS ! methylation status of each site: 1 = methylated, 0 = unmethylated
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IN_RXN_RAD
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PAIRS
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IN_RXN_RAD ! is pair of sites within reaction radius? 1 = yes, 0 = no
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PAIRS ! array that holds indices of sites that could react
       DOUBLE PRECISION KM ! rate of methylation
       DOUBLE PRECISION KD ! rate of demethylation
       DOUBLE PRECISION KTOT ! total rate constant
@@ -97,7 +97,8 @@
       INTEGER NUM_METHYLATED ! number of methylated sites
       INTEGER NUM_DECAY ! total number of decay events
       INTEGER COULD_REACT ! number of pairs in which methyl mark could spread
-
+      INTEGER RXN_HAPPEN ! reaction status: 1 = reaction, 0 = no reaction
+      DOUBLE PRECISION DT_MOD ! time remaining in timestep for Gillespie algorithm
 
 !     Load in the parameters for the simulation
 
@@ -172,6 +173,7 @@
 
       KTOT = 1.0
       NUM_METHYLATED = sum(meth_status)
+      RXN_HAPPEN = 1
 
       PRINT *, 'initial number of methylated sites =', NUM_METHYLATED
 
@@ -276,6 +278,25 @@
 
       DO WHILE (IND.LE.INDMAX)
 
+         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
+
+         DT_MOD = DT
+
+         DO WHILE (RXN_HAPPEN.EQ.1)
+
+            COULD_REACT = 0
+         
+            call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
+
+            call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
+         
+            call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
+                 RXN_HAPPEN,PAIRS,DT,DT_MOD,NUC_SITE,NUM_SPREAD,NUM_DECAY)
+
+         END DO
+
+         RXN_HAPPEN = 1
+
 !     Perform a MC simulation, only if NSTEP.NE.0
 
          call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,PARA,MCAMP, &
@@ -290,9 +311,7 @@
          endif
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
-                 PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST,COL_TYPE, &
-                 METH_STATUS,KM,KD,NUM_SPREAD,IN_RXN_RAD,PAIRS, &
-                 NUC_SITE,NUM_METHYLATED,NUM_DECAY,COULD_REACT)
+                 PARA,SIMTYPE)
          endif
 
 !     Save the conformation and the metrics

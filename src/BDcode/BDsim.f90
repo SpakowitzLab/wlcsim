@@ -1,9 +1,7 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
-           COL_TYPE, METH_STATUS, KM, KD, NUM_SPREAD, IN_RXN_RAD, &
-           PAIRS, NUC_SITE, NUM_METHYLATED, NUM_DECAY, COULD_REACT)
+           INTON,IDUM,PARA,SIMTYPE)
 
 !
 !     External subroutine to perform a Brownian dynamics simulation.
@@ -73,21 +71,6 @@
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! algorithm to use for collision detection
 
-!     Variables for tracking methylation profile
-      INTEGER IN_RXN_RAD(NT,NT) ! is pair of sites within reaction radius? 1 = yes, 0 = no
-      INTEGER METH_STATUS(NT) ! methylation status of each site: 1 = methylated, 0 = unmethylated
-      INTEGER COULD_REACT ! number of pairs that meet criteria for reaction (i.e. within reaction radius, one bead methylated, one bead unmethylated)
-      INTEGER PAIRS(2,NT) ! array that holds indices of sites that could react
-      INTEGER RXN_HAPPEN ! reaction status: 1 = reaction, 0 = no reaction 
-      DOUBLE PRECISION KM ! rate of methylation
-      DOUBLE PRECISION KD ! rate of demethylation
-      DOUBLE PRECISION KTOT ! total rate constant
-      INTEGER NUM_METHYLATED ! number of methylated sites
-      INTEGER NUM_SPREAD ! total number of spreading events
-      INTEGER NUC_SITE ! index of nucleation site
-      INTEGER NUM_DECAY ! total number of decay events
-      DOUBLE PRECISION DT_MOD ! time remaining in timestep for Gillespie algorithm
-
 !     Load the input parameters
 
       EB=PARA(1)
@@ -139,30 +122,8 @@
  20      CONTINUE
  10   CONTINUE
 
-      RXN_HAPPEN = 1
 
 !     Begin the time integration
-
-      DO WHILE (TIME.LT.TTOT)
-
-         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
-
-         DT_MOD = DT
-
-         DO WHILE (RXN_HAPPEN.EQ.1)
-
-            COULD_REACT = 0
-         
-            call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
-
-            call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
-         
-            call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
-                 RXN_HAPPEN,PAIRS,DT,DT_MOD,NUC_SITE,NUM_SPREAD,NUM_DECAY)
-
-         END DO
-
-         RXN_HAPPEN = 1
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN=1
