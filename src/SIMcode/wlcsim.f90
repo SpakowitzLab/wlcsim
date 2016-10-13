@@ -270,37 +270,48 @@
 
          IF (SAVE_RU.NE.0) THEN
 
-         snapnm= 'data/r'//fileind((4-TENS+1):4)
-         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
-         IB=1
-         DO 50 I=1,NP
-            DO 60 J=1,N
-               WRITE(1,*) R(IB,1),R(IB,2),R(IB,3)
-               IB=IB+1
- 60         CONTINUE
- 50      CONTINUE
-         CLOSE(1)
+            IF (SAVE_RU.EQ.1) THEN
+                snapnm= 'data/r'//fileind((4-TENS+1):4)
+            ELSE IF (SAVE_RU.EQ.2) THEN
+                snapnm= 'data/r'
+                OPEN (UNIT = 1, FILE = 'data/t', STATUS = 'REPLACE')
+                    WRITE(1,*) fileind((4-TENS+1):4)
+                CLOSE(1)
+            ENDIF
+            OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+                IB=1
+                DO 50 I=1,NP
+                    DO 60 J=1,N
+                    WRITE(1,*) R(IB,1),R(IB,2),R(IB,3)
+                    IB=IB+1
+60                  CONTINUE
+50              CONTINUE
+            CLOSE(1)
 
-         snapnm= 'data/u'//fileind((4-TENS+1):4)
-         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
-         IB=1
-         DO 70 I=1,NP
-            DO 80 J=1,N
-               WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
-               IB=IB+1
- 80         CONTINUE
- 70      CONTINUE
-         CLOSE(1)
+            IF (SAVE_RU.EQ.1) THEN
+                snapnm= 'data/u'//fileind((4-TENS+1):4)
+            ELSE IF (SAVE_RU.EQ.2) THEN
+                snapnm= 'data/u'
+            ENDIF
+            OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+                IB=1
+                DO 70 I=1,NP
+                    DO 80 J=1,N
+                    WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
+                    IB=IB+1
+80                  CONTINUE
+70              CONTINUE
+            CLOSE(1)
 
          ENDIF
 
-         snapnm='data/coltimes'
+         snapnm= 'data/coltimes'
          IF (COL_TYPE.NE.0) then
-         OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
-         DO, I=1,NT
-             WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
-         ENDDO
-         CLOSE(1)
+            OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
+                DO, I=1,NT
+                    WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
+                ENDDO
+            CLOSE(1)
          ENDIF
 
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
