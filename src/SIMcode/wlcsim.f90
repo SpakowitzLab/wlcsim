@@ -47,6 +47,7 @@
       INTEGER LOGTIME           ! Is data recorded in log time?
       DOUBLE PRECISION DT0      ! Initial time step size
       INTEGER NSTEP,NINIT
+      INTEGER DYN               ! Include dynamics
 
 !     Monte Carlo variables
 
@@ -125,6 +126,8 @@
       read (unit=5, fmt=*) NINIT
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) NSTEP
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) DYN
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) FPT_DIST
       read (unit=5, fmt='(2(/))')
@@ -278,31 +281,12 @@
 
       DO WHILE (IND.LE.INDMAX)
 
-         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE, IN_RXN_RAD)
-
-         DT_MOD = DT
-
-         DO WHILE (RXN_HAPPEN.EQ.1)
-
-            COULD_REACT = 0
-         
-            call CHECK_REACTIONS(R, NT, METH_STATUS, IN_RXN_RAD, COULD_REACT, FPT_DIST, PAIRS)
-
-            call TOT_RATE_CONSTANT(NT, COULD_REACT, METH_STATUS, KM, KD, KTOT, NUM_METHYLATED)
-         
-            call METHYL_PROFILE(NT,METH_STATUS,KTOT,KM,KD,NUM_METHYLATED,TIME, &
-                 RXN_HAPPEN,PAIRS,DT,DT_MOD,NUC_SITE,NUM_SPREAD,NUM_DECAY)
-
-         END DO
-
-         RXN_HAPPEN = 1
-
 !     Perform a MC simulation, only if NSTEP.NE.0
 
          call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,PARA,MCAMP, &
               SUCCESS,MOVEON,WINDOW,SIMTYPE)
 
-!     Perform a Brownian dynamics simulation over time step
+!     Perform a Brownian dynamics simulation over time step, only if DYN.EQ.1
 
          if (LOGTIME.EQ.0) then
             TSAVE = TF*IND/INDMAX
@@ -311,7 +295,10 @@
          endif
          if (NSTEP.EQ.0) then
             call BDsim(R,U,NT,N,NP,TIME,TSAVE,DT,BROWN,INTON,IDUM, &
-                 PARA,SIMTYPE)
+                 PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, COL_TYPE, &
+                 METH_STATUS,IN_RXN_RAD,PAIRS,KM,KD,KTOT, &
+                 NUC_SITE,NUM_SPREAD,NUM_METHYLATED,NUM_DECAY, &
+                 COULD_REACT,RXN_HAPPEN,DT_MOD,DYN)
          endif
 
 !     Save the conformation and the metrics
