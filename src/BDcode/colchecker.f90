@@ -29,6 +29,8 @@ subroutine check_collisions(r, nt, has_collided, fpt_dist, time, col_type)
     else if (col_type.eq.3) then
         call check_collisions_bb(r, nt, has_collided, fpt_dist, time)
     else if (col_type.eq.4) then
+        print*, 'Unimplemented: col_type == 4: check_collisions_bin.'
+        stop 1
         call check_collisions_bin(r, nt, has_collided, fpt_dist, time)
     end if
 end
@@ -229,6 +231,7 @@ end
 
 subroutine check_collisions_bin(r, nt, has_collided, fpt_dist, &
         time)
+!TODO actually implement this function. copy/pasta of _brute for now
     integer nt
     double precision fpt_dist, time
     double precision r(nt,3), has_collided(nt, nt)
