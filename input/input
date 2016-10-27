@@ -23,7 +23,7 @@
 
  !-Record 6
  !  N               Number of beads
-  101
+  1001
 
  !-Record 7         Sarah was running 1000
  !  NP              Number of polymers - won't interact unless interaction code added
@@ -31,15 +31,15 @@
 
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
-  10
+  1000000
 
  !-Record 9
  !  INDMAX          Total number of save points
-  100
+  1000
 
  !-Record 10
  !  DT              Timestep for integration - Sarah used 0.2 in above
-  0.01
+  0.1
 
  !-Record 11
  !  FRMFILE         Load in the inital conf? - otherwise from MC
@@ -67,10 +67,10 @@
 
  !-Record 17
  !  FPT_DIST       l1 distance triggering a "collision" between beads
-  2
+  1
 
  !-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
  !  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1,
-  1
+  3
 
  ! ----------------------------------------------------

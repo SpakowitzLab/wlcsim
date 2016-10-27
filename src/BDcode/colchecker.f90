@@ -28,6 +28,8 @@ subroutine check_collisions(r, nt, has_collided, fpt_dist, time, col_type)
         call check_collisions_kd(r, nt, has_collided, fpt_dist, time)
     else if (col_type.eq.3) then
         call check_collisions_bb(r, nt, has_collided, fpt_dist, time)
+    else if (col_type.eq.4) then
+        call check_collisions_bin(r, nt, has_collided, fpt_dist, time)
     end if
 end
 
@@ -80,9 +82,9 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
 ! at all time points
 !
 ! acf means "after collision found" with ith bead in dimension d
-    use, intrinsic :: iso_fortran_env
+    use globals, only : dp
+
     implicit none
-    integer, parameter :: dp = REAL64
 
     integer, intent(in) :: nt
     double precision, intent(in) :: fpt_dist, time, r(nt,3)
@@ -224,3 +226,22 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
         enddo
     enddo
 end
+
+subroutine check_collisions_bin(r, nt, has_collided, fpt_dist, &
+        time)
+    integer nt
+    double precision fpt_dist, time
+    double precision r(nt,3), has_collided(nt, nt)
+    !     check if the particles have collided
+    do k1 = 1, nt
+        do k2 = 1, nt
+            if (has_collided(k1,k2).lt.0.0d0 .and. k1.ne.k2 &
+                .and. abs(r(k1,1) - r(k2,1)) < fpt_dist &
+                .and. abs(r(k1,2) - r(k2,2)) < fpt_dist &
+                .and. abs(r(k1,3) - r(k2,3)) < fpt_dist) then
+                has_collided(k1,k2) = time
+            end if
+        end do
+    end do
+end
+
