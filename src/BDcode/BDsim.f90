@@ -257,13 +257,7 @@
 
          IB=1
          DO 110 I=1,NP
-            R0(1)=nint(R(IB,1)/LBOX-0.5)*LBOX
-            R0(2)=nint(R(IB,2)/LBOX-0.5)*LBOX
-            R0(3)=nint(R(IB,3)/LBOX-0.5)*LBOX
             DO 120 J=1,N
-               R(IB,1)=R(IB,1)-R0(1)
-               R(IB,2)=R(IB,2)-R0(2)
-               R(IB,3)=R(IB,3)-R0(3)
                RS(IB,1)=R(IB,1)
                RS(IB,2)=R(IB,2)
                RS(IB,3)=R(IB,3)

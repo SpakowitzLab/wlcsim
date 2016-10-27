@@ -21,11 +21,10 @@ DEP_FILE = wlcsim.dep
 FC = gfortran
 
 # compile flags
-FCFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-# DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp
-# FCFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-# FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-# PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
+DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp
+FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
+PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
+FCFLAGS = ${FASTFLAGS}
 
 # link flags
 FLFLAGS =
@@ -60,7 +59,7 @@ $(PROGRAM): $(OBJ)
 
 clean: dataclean
 	find src \( -iname '*.o' -or -iname '*.mod' \) -delete
-	rm -f $(PROGRAM) wlcsim.dep
+	rm -f ${PROGRAM} wlcsim.dep
 
 dataclean:
 	mkdir -p data trash
