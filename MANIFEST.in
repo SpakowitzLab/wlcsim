@@ -1,0 +1,2 @@
+include versioneer.py
+include wlcsim/_version.py
