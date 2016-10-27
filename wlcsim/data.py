@@ -180,6 +180,12 @@ class Sim:
         return u
 
     @cached_property
+    def center_of_mass(self):
+        num_time_points, ndim, N = self.r.shape
+        # "equal mass" beads, so just average positions
+        return np.sum(self.r, axis=2)/N
+
+    @cached_property
     def rtime_idxs(self):
         rfiles = glob.glob(self._rfile_base + '*')
         return self.time_idxs(self._rfile_base, rfiles)
