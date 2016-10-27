@@ -247,14 +247,12 @@ CYLINDERINTERSECT	src/dssWLC/source/cylinder.f90	/^  LOGICAL FUNCTION CYLINDERIN
 CYLINDERUTIL	src/dssWLC/source/cylinder.f90	/^MODULE CYLINDERUTIL$/;"	m
 Chain	src/dssWLC/scripts/pdbutils.py	/^class Chain:$/;"	c
 Compilation Instructions	src/dssWLC/doc/README.tex	/^\\newpage$/;"	s
-DEATH	Makefile	/^DEATH=rm -rf trash data savedata par-run-dir.*$/;"	m
 DEBUGFLAGS	src/dssWLC/source/Makefile	/^DEBUGFLAGS =$/;"	m
 DELR	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR(/;"	v	program:wlcsim
 DELR0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION DELR0(/;"	v	program:wlcsim
 DELS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: DELS(/;"	k	type:CHAIN
 DELTSCL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
 DELTSCL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	v	module:KEYS
-DEP_FILE	Makefile	/^DEP_FILE = wlcsim.dep$/;"	m
 DGTSL	src/third_party/DGTSL.f	/^      SUBROUTINE DGTSL /;"	s
 DGTSV	src/third_party/dgtsv.f	/^      SUBROUTINE DGTSV(/;"	s
 DIAMONDLATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
@@ -309,6 +307,7 @@ EULER	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: EULER=/;"	v	module:
 EULER2QUAT	src/MISCcode/quatutil.f90	/^  SUBROUTINE EULER2QUAT(/;"	s	module:QUATUTIL
 EULER2QUAT	src/dssWLC/source/quatutil.f90	/^  SUBROUTINE EULER2QUAT(/;"	s	module:QUATUTIL
 EXE	src/dssWLC/source/Makefile	/^EXE = ..\/shearableWLC.exe$/;"	m
+EXIT_WHEN_COLLIDED	src/SIMcode/wlcsim.f90	/^      INTEGER EXIT_WHEN_COLLIDED$/;"	v	program:wlcsim
 Example 1  equilibrium sampling	src/dssWLC/doc/README.tex	/^Example parameter files are located in the \\path=examples= directory$/;"	u
 Example 2  Brownian Dynamics	src/dssWLC/doc/README.tex	/^\\end{verbatim}$/;"	u
 Example 3  Looping first-passage time	src/dssWLC/doc/README.tex	/^The simulation starts from an equilibrium distribution and runs for 10000 steps. $/;"	u
@@ -319,9 +318,7 @@ FACCTARGET	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET,/;"	v	module
 FACCTARGET	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET,/;"	v	module:KEYS
 FACCTOL	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
 FACCTOL	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
-FC	Makefile	/^FC = gfortran$/;"	m
 FC	src/dssWLC/source/Makefile	/^FC = gfortran$/;"	m
-FCFLAGS	Makefile	/^FCFLAGS = -ggdb -Jsrc -Isrc -Isrc\/third_party -cpp #-fcheck=all -Wall -pedantic$/;"	m
 FINITEXT	src/MISCcode/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
 FINITEXT	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT$/;"	k	type:CHAIN
 FINITEXT	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
@@ -342,7 +339,6 @@ FIXCONNECT	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUAREL
 FIXCONNECT	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE, FIXCONNECT$/;"	v	module:KEYS
 FIXCONNECT	src/dssWLC/source/manychains.f90	/^     LOGICAL :: FIXCONNECT$/;"	k	type:CHAINGROUP
 FLAGS	src/dssWLC/source/Makefile	/^FLAGS = -O3 $/;"	m
-FLFLAGS	Makefile	/^FLFLAGS =$/;"	m
 FORCE	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: FORCE(/;"	v	module:KEYS
 FORCE	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: FINITSHEAR, FORCE$/;"	k	type:CHAIN
 FORCE	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: FORCE(/;"	v	module:KEYS
@@ -426,6 +422,7 @@ INVQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	mo
 INVQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
 ISFIXED	src/dssWLC/source/chainutil.f90	/^     LOGICAL, POINTER :: ISFIXED(/;"	k	type:CHAIN
 J	src/SIMcode/wlcsim.f90	/^      INTEGER I,J,/;"	v	program:wlcsim
+JointParameterListSizeError	pscan.py	/^class JointParameterListSizeError(Exception):$/;"	c
 KEYS	src/MISCcode/keys.f90	/^MODULE KEYS$/;"	m
 KEYS	src/dssWLC/source/keys.f90	/^MODULE KEYS$/;"	m
 L0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION L0 /;"	v	program:wlcsim
@@ -459,7 +456,6 @@ LS	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: LP, LS,/;"	v	module:KEYS
 MAIN	src/dssWLC/source/main.f90	/^PROGRAM MAIN$/;"	p
 MAIN	src/dssWLC/source/test.f90	/^PROGRAM MAIN$/;"	p
 MAIN	src/dssWLC/source/testmain.f90	/^PROGRAM MAIN$/;"	p
-MAKEDEPEND	Makefile	/^MAKEDEPEND=.\/fort_depend.py$/;"	m
 MANYCHAINS	src/dssWLC/source/manychains.f90	/^MODULE MANYCHAINS$/;"	m
 MAXFIXBEAD	src/MISCcode/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
 MAXFIXBEAD	src/dssWLC/source/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
@@ -501,8 +497,6 @@ MINV	src/DATAcode/MINV.f90	/^      SUBROUTINE MINV(/;"	s
 MOD	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION :: RAD, MOD$/;"	k	type:OBSTACLE
 MODOB	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
 MODOB	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
-MOD_MOD	Makefile	/^MOD_MOD := $(addprefix src\/,$(notdir $(MOD_SRC:.f90=.mod)))$/;"	m
-MOD_SRC	Makefile	/^MOD_SRC := src\/third_party\/mt19937.f90 src\/third_party\/kdtree2.f90 src\/BDcode\/colsort.f90$/;"	m
 MOM	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION MOM(/;"	v	program:wlcsim
 MONTECARLO	src/dssWLC/source/montecarlo.f90	/^MODULE MONTECARLO$/;"	m
 MOVEON	src/SIMcode/wlcsim.f90	/^      INTEGER MOVEON(/;"	v	program:wlcsim
@@ -543,9 +537,9 @@ NPAR_POLYTERM	src/dssWLC/source/nrutils.f90	/^	INTEGER(I4B), PARAMETER :: NPAR_P
 NPT	src/dssWLC/source/chainutil.f90	/^     INTEGER :: NPT /;"	k	type:CHAIN
 NSTEP	src/SIMcode/wlcsim.f90	/^      INTEGER NSTEP,/;"	v	program:wlcsim
 NT	src/SIMcode/wlcsim.f90	/^      INTE/;"	v	program:wlcsim
+NUM_POSSIBLE_COLLISIONS	src/SIMcode/wlcsim.f90	/^      INTEGER NUM_POSSIBLE_COLLISIONS$/;"	v	program:wlcsim
 NZTINY	src/MISCcode/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
 NZTINY	src/dssWLC/source/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
-OBJ	Makefile	/^OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))$/;"	m
 OBJS	src/dssWLC/source/Makefile	/^OBJS = chainutil.o quatutil.o keys.o readkey.o genutil.o mt19937.o inputparams.o montecarlo.o inpututil.o browndyn.o redisc.o cylinder.o dbrent.o nrtype.o nrutils.o manychains.o dgtsl.o sampleutil.o besselI0.o$/;"	m
 OBSTACLE	src/dssWLC/source/chainutil.f90	/^  TYPE OBSTACLE$/;"	t	module:CHAINUTIL
 OUTFILE	src/MISCcode/keys.f90	/^  CHARACTER*100 :: OUTFILE,/;"	v	module:KEYS
@@ -567,7 +561,6 @@ PIO2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: PIO2=/;"	v	module:nr
 PIO2_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PIO2_D=/;"	v	module:nrtype
 PI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: PI_D=/;"	v	module:nrtype
 POS	src/dssWLC/source/chainutil.f90	/^     DOUBLE PRECISION, POINTER :: POS(/;"	k	type:CHAIN
-PROGRAM	Makefile	/^PROGRAM = wlcsim.exe$/;"	m
 PTLINEDIST	src/dssWLC/source/cylinder.f90	/^  SUBROUTINE PTLINEDIST(/;"	s	module:CYLINDERUTIL
 PTQUAT	src/MISCcode/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
 PTQUAT	src/dssWLC/source/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
@@ -671,6 +664,7 @@ SAMPLERELCOORDSNOSHEAR	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLEREL
 SAMPLERRHOMVN	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERRHOMVN(/;"	s	module:SAMPLEUTIL
 SAMPLERRHOPHI	src/dssWLC/source/sampleutil.f90	/^  SUBROUTINE SAMPLERRHOPHI(/;"	s	module:SAMPLEUTIL
 SAMPLEUTIL	src/dssWLC/source/sampleutil.f90	/^MODULE SAMPLEUTIL$/;"	m
+SAVE_RU	src/SIMcode/wlcsim.f90	/^      INTEGER SAVE_RU$/;"	v	program:wlcsim
 SETCHAINGROUPPARAMS	src/dssWLC/source/manychains.f90	/^  SUBROUTINE SETCHAINGROUPPARAMS(/;"	s	module:MANYCHAINS
 SETCHAINPARAMS	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE SETCHAINPARAMS(/;"	s	module:CHAINUTIL
 SETOBSTACLEPARAMS	src/dssWLC/source/chainutil.f90	/^  SUBROUTINE SETOBSTACLEPARAMS(/;"	s	module:CHAINUTIL
@@ -684,7 +678,6 @@ SHEARABLE	src/dssWLC/source/chainutil.f90	/^     LOGICAL :: SHEARABLE,/;"	k	type
 SHEARABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
 SHEARGAMMA	src/MISCcode/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
 SHEARGAMMA	src/dssWLC/source/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
-SHELL	Makefile	/^SHELL:=\/bin\/bash$/;"	m
 SIG	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION SIG(/;"	v	program:wlcsim
 SIMTYPE	src/SIMcode/wlcsim.f90	/^      INTEGER SIMTYPE /;"	v	program:wlcsim
 SKIPREAD	src/MISCcode/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
@@ -700,7 +693,6 @@ SPC	src/dssWLC/source/nrtype.f90	/^	INTEGER, PARAMETER :: SPC /;"	v	module:nrtyp
 SQRT2	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: SQRT2=/;"	v	module:nrtype
 SQUARELATTICE	src/MISCcode/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
 SQUARELATTICE	src/dssWLC/source/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
-SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/third_party\/debugging.f90 src\/third_party\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/stressp.f90 src\/SIMcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/SIMcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90$/;"	m
 STARTCOLLAPSE	src/MISCcode/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTCOLLAPSE	src/dssWLC/source/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTEQUIL	src/MISCcode/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
@@ -729,10 +721,14 @@ STRETCHABLE	src/dssWLC/source/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE,/;"
 STRING2NUM	src/MISCcode/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
 STRING2NUM	src/dssWLC/source/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
 SUCCESS	src/SIMcode/wlcsim.f90	/^      INTEGER SUCCESS(/;"	v	program:wlcsim
+Scan	pscan.py	/^class Scan:$/;"	c
+Scan	wlcsim/data.py	/^class Scan:$/;"	c
+Scan	wlcsim/olddata.py	/^class Scan:$/;"	c
+Sim	wlcsim/data.py	/^class Sim:$/;"	c
+Sim	wlcsim/olddata.py	/^class Sim:$/;"	c
 Structure	src/dssWLC/scripts/pdbutils.py	/^class Structure:$/;"	c
 T0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION T0,/;"	v	program:wlcsim
 TENS	src/SIMcode/wlcsim.f90	/^      INTEGER TENS /;"	v	program:wlcsim
-TEST	Makefile	/^TEST := src\/CCcode\/test_sort.f90$/;"	m
 TESTANALYTIC	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTANALYTIC$/;"	s	program:MAIN
 TESTBEADQINT	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADQINT$/;"	s	program:MAIN
 TESTBEADROD	src/dssWLC/source/testmain.f90	/^  SUBROUTINE TESTBEADROD$/;"	s	program:MAIN
@@ -759,6 +755,7 @@ TRACKLOOPING	src/dssWLC/source/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module
 TSAVE	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION TSAVE /;"	v	program:wlcsim
 TWOPI	src/dssWLC/source/nrtype.f90	/^	REAL(SP), PARAMETER :: TWOPI=/;"	v	module:nrtype
 TWOPI_D	src/dssWLC/source/nrtype.f90	/^	REAL(DP), PARAMETER :: TWOPI_D=/;"	v	module:nrtype
+TestScan	pscan.py	/^class TestScan:$/;"	c
 U	src/SIMcode/wlcsim.f90	/^      DOUB/;"	v	program:wlcsim
 U0	src/SIMcode/wlcsim.f90	/^      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U0 /;"	v	program:wlcsim
 UPLETTERS	src/MISCcode/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
@@ -790,17 +787,29 @@ Y	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y,/;"	k	type:QUATER
 Y	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y,/;"	k	type:QUATERNION
 Z	src/MISCcode/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y, Z$/;"	k	type:QUATERNION
 Z	src/dssWLC/source/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y, Z$/;"	k	type:QUATERNION
+__get__	wlcsim/utils/cached_property.py	/^    def __get__(self, obj, type=None):$/;"	m	class:cached_property	file:
 __init__	fort_depend.py	/^    def __init__(self):$/;"	m	class:file_obj
+__init__	pscan.py	/^    def __init__(self, dic={}, joint_lists=[], default_repeats=1,$/;"	m	class:Scan
 __init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__ (self,atoms=None):$/;"	m	class:Residue
 __init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,infile = None):$/;"	m	class:Structure
 __init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,pdbmatch = None,coords = None, name = 'X',num=0):$/;"	m	class:Atom
 __init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,residues = None):$/;"	m	class:BasePair
 __init__	src/dssWLC/scripts/pdbutils.py	/^    def __init__(self,residues = None):$/;"	m	class:Chain
+__init__	wlcsim/data.py	/^    def __init__(self, run_dir, *args, **kwargs):$/;"	m	class:Scan
+__init__	wlcsim/data.py	/^    def __init__(self, sim_dir, load_method=3):$/;"	m	class:Sim
+__init__	wlcsim/olddata.py	/^    def __init__(self, par_run_dir, load_ru=False, load_method=3):$/;"	m	class:Scan
+__init__	wlcsim/olddata.py	/^    def __init__(self, sim_dir, load_coltimes=False, load_ru=False,$/;"	m	class:Sim
+__init__	wlcsim/utils/cached_property.py	/^    def __init__(self, func, name=None, doc=None):$/;"	m	class:cached_property
 __repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Atom	file:
 __repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:BasePair	file:
 __repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Chain	file:
 __repr__	src/dssWLC/scripts/pdbutils.py	/^    def __repr__(self):$/;"	m	class:Residue	file:
-arccos	vizualization/mkpdbpoly.pl	/^sub arccos$/;"	s
+_check_joint_params	pscan.py	/^def _check_joint_params(jparam):$/;"	f
+_missing	wlcsim/utils/cached_property.py	/^_missing = object()$/;"	v
+add_count	pscan.py	/^    def add_count(self, func):$/;"	m	class:Scan
+add_jparam	pscan.py	/^    def add_jparam(self, jparam):$/;"	m	class:Scan
+add_params	pscan.py	/^    def add_params(self, p):$/;"	m	class:Scan
+aggregate_r0_group_NP_L0	wlcsim/data.py	/^    def aggregate_r0_group_NP_L0(run_dir, overwrite=True, *args, **kwargs):$/;"	m	class:Scan
 args	fort_depend.py	/^    args = parser.parse_args()$/;"	v
 array_copy_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE array_copy_d(/;"	s	module:nrutil
 array_copy_i	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE array_copy_i(/;"	s	module:nrutil
@@ -820,7 +829,7 @@ assert_v	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE assert_v(/;"	s	module:nruti
 atomByBum	src/dssWLC/scripts/pdbutils.py	/^    def atomByBum(self,num):$/;"	m	class:Structure
 atomByNum	src/dssWLC/scripts/pdbutils.py	/^    def atomByNum(self,num):$/;"	m	class:Structure
 atomR	src/dssWLC/scripts/pdbutils.py	/^([-0-9]+) *(-?[0-9.]+) *(-?[0-9.]+) *(-?[0-9.]+)(.*$)')$/;"	v
-b_any	src/third_party/debugging.f90	/^logical function b_any(/;"	f
+b_any	src/SIMcode/debugging.f90	/^logical function b_any(/;"	f
 ballsize	src/third_party/kdtree2.f90	/^      real(kdkind)      :: ballsize$/;"	k	type:tree_search_record
 box	src/third_party/kdtree2.f90	/^      type(interval), pointer :: box(/;"	k	type:tree_node
 box_in_search_range	src/third_party/kdtree2.f90	/^  logical function box_in_search_range(/;"	f
@@ -828,20 +837,29 @@ bucket_size	src/third_party/kdtree2.f90	/^  integer, parameter :: bucket_size /;
 build	fort_depend.py	/^    build = args.build[0] if args.build else ''$/;"	v
 build_tree	src/third_party/kdtree2.f90	/^    subroutine build_tree(/;"	s	module:kdtree2_module
 build_tree_for_range	src/third_party/kdtree2.f90	/^    recursive function build_tree_for_range(/;"	f
+cached_property	wlcsim/utils/cached_property.py	/^class cached_property(object):$/;"	c
+calculate_for_each_param	wlcsim/data.py	/^    def calculate_for_each_param(self, f):$/;"	m	class:Scan
+calculate_for_each_param	wlcsim/olddata.py	/^    def calculate_for_each_param(self, f):$/;"	m	class:Scan
+calculate_linear_distance	wlcsim/data.py	/^    def calculate_linear_distance(self):$/;"	m	class:Scan
+calculate_linear_distance	wlcsim/olddata.py	/^    def calculate_linear_distance(self):$/;"	m	class:Scan
 centeridx	src/third_party/kdtree2.f90	/^      integer           :: centeridx=/;"	k	type:tree_search_record
 chainByName	src/dssWLC/scripts/pdbutils.py	/^    def chainByName(self,name):$/;"	m	class:Structure
 check_collisions	src/BDcode/colchecker.f90	/^subroutine check_collisions(/;"	s
 check_collisions_bb	src/BDcode/colchecker.f90	/^subroutine check_collisions_bb(/;"	s
+check_collisions_bin	src/BDcode/colchecker.f90	/^subroutine check_collisions_bin(/;"	s
 check_collisions_brute	src/BDcode/colchecker.f90	/^subroutine check_collisions_brute(/;"	s
 check_collisions_kd	src/BDcode/colchecker.f90	/^subroutine check_collisions_kd(/;"	s
 cofactor	src/dssWLC/getparams/cofactor.m	/^function C = cofactor(A,i,j)$/;"	f
-color_b	vizualization/color_b.py	/^def color_b(selection='all',item='b',mode='hist',gradient='bgr',nbins=11,sat=1.,value=1.,minimum='',maximum=''):$/;"	f
-color_q	vizualization/color_b.py	/^def color_q(selection="all",mode="hist",gradient="bgr",nbins=11,sat=1.,value=1.,minimum='',maximum=''):$/;"	f
+coltimes	wlcsim/data.py	/^    def coltimes(self):$/;"	m	class:Sim
+combine_coltimes_csvs	wlcsim/data.py	/^    def combine_coltimes_csvs(run_dir, *args, **kwargs):$/;"	m	class:Scan
+combine_coltimes_csvs	wlcsim/olddata.py	/^    def combine_coltimes_csvs(par_run_dir, *args, **kwargs):$/;"	m	class:Scan
+combine_initial_dists_csvs	wlcsim/data.py	/^    def combine_initial_dists_csvs(run_dir, *args, **kwargs):$/;"	m	class:Scan
 compile_string	fort_depend.py	/^    compile_string = args.compile_string[0] if args.compile_string else ''$/;"	v
 concalc	src/BDcode/concalc.f90	/^      SUBROUTINE concalc(/;"	s
 conline	src/dssWLC/scripts/pdbutils.py	/^    def conline(self):$/;"	m	class:Atom
 correct_ind	src/tests/test_sort.f90	/^integer, parameter :: correct_ind(/;"	v	program:test_sort
 correltime	src/third_party/kdtree2.f90	/^      integer           :: centeridx=999, correltime=/;"	k	type:tree_search_record
+count_funcs	scan_wlcsim.py	/^count_funcs = []$/;"	v
 create_file_objs	fort_depend.py	/^def create_file_objs(files=None, macros={}):$/;"	f
 cumprod	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumprod(/;"	f	module:nrutil
 cumsum_i	src/dssWLC/source/nrutils.f90	/^	RECURSIVE FUNCTION cumsum_i(/;"	f	module:nrutil
@@ -853,7 +871,16 @@ cut_val_right	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left, 
 data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: data(/;"	k	type:tree_search_record
 dbrent	src/dssWLC/source/dbrent.f90	/^	FUNCTION dbrent(/;"	f
 decim	src/SIMcode/decim.f90	/^      SUBROUTINE decim(/;"	s
+default_repeats_per_param	scan_wlcsim.py	/^default_repeats_per_param = 100$/;"	v
 destroy_node	src/third_party/kdtree2.f90	/^    recursive subroutine destroy_node(/;"	s	subroutine:kdtree2_destroy
+df_from_coltimes	wlcsim/data.py	/^def df_from_coltimes(coltimes, method=3):$/;"	f
+df_from_coltimes	wlcsim/olddata.py	/^def df_from_coltimes(coltimes, method=3):$/;"	f
+df_from_coltimes_method1	wlcsim/data.py	/^def df_from_coltimes_method1(coltimes):$/;"	f
+df_from_coltimes_method1	wlcsim/olddata.py	/^def df_from_coltimes_method1(coltimes):$/;"	f
+df_from_coltimes_method2	wlcsim/data.py	/^def df_from_coltimes_method2(coltimes):$/;"	f
+df_from_coltimes_method2	wlcsim/olddata.py	/^def df_from_coltimes_method2(coltimes):$/;"	f
+df_from_coltimes_method3	wlcsim/data.py	/^def df_from_coltimes_method3(coltimes):$/;"	f
+df_from_coltimes_method3	wlcsim/olddata.py	/^def df_from_coltimes_method3(coltimes):$/;"	f
 dgtsl	src/dssWLC/source/dgtsl.f	/^      subroutine dgtsl(/;"	s
 diagadd_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagadd_r(/;"	s	module:nrutil
 diagadd_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE diagadd_rv(/;"	s	module:nrutil
@@ -863,6 +890,7 @@ dimen	src/third_party/kdtree2.f90	/^      integer           :: dimen /;"	k	type:
 dimen	src/third_party/kdtree2.f90	/^      integer :: dimen=/;"	k	type:kdtree2
 dis	src/third_party/kdtree2.f90	/^      real(kdkind)    :: dis!/;"	k	type:kdtree2_result
 dis2_from_bnd	src/third_party/kdtree2.f90	/^  real(kdkind) function dis2_from_bnd(/;"	f
+dp	src/SIMcode/globals.f90	/^    integer, parameter :: dp /;"	v	module:globals
 dp	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: dp /;"	v	module:mt19937
 dp	src/tests/test_sort.f90	/^integer, parameter :: dp /;"	v	program:test_sort
 dp	src/third_party/kdtree2.f90	/^  integer, parameter :: dp /;"	v	module:kdtree2_precision_module
@@ -882,9 +910,12 @@ file_obj	fort_depend.py	/^class file_obj:$/;"	c
 file_objs_to_mod_dict	fort_depend.py	/^def file_objs_to_mod_dict(file_objs=[]):$/;"	f
 fileind	src/SIMcode/wlcsim.f90	/^      character*4 fileind /;"	v	program:wlcsim
 find_struc	src/DATAcode/find_struc.f90	/^      SUBROUTINE find_struc(/;"	s
+fix_coltimes	wlcsim/reshape_old_runs.py	/^def fix_coltimes(coldir, newdir, resume=None):$/;"	f
+fix_old0	wlcsim/reshape_old_runs.py	/^def fix_old0(old0_dir, newdir):$/;"	f
 force_elas	src/BDcode/force_elas.f90	/^      SUBROUTINE force_elas(/;"	s
 force_ponp	src/BDcode/force_ponp.f90	/^      SUBROUTINE force_ponp(/;"	s
 fromAtomList	src/dssWLC/scripts/pdbutils.py	/^    def fromAtomList(self,atmlist):$/;"	m	class:Chain
+from_dict	pscan.py	/^    def from_dict(cls, dic, joint_lists=[]):$/;"	m	class:Scan
 gasdev	src/SIMcode/gasdev.f90	/^FUNCTION gasdev(/;"	f
 genbet	src/dssWLC/source/ranlib.f90	/^function genbet /;"	f
 genchi	src/dssWLC/source/ranlib.f90	/^function genchi /;"	f
@@ -910,9 +941,11 @@ get_contains	fort_depend.py	/^def get_contains(infile=None):$/;"	f
 get_depends	fort_depend.py	/^def get_depends(fob=[],m2f=[]):$/;"	f
 get_diag_dv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_dv(/;"	f	module:nrutil
 get_diag_rv	src/dssWLC/source/nrutils.f90	/^	FUNCTION get_diag_rv(/;"	f	module:nrutil
+get_first	pscan.py	/^def get_first(iterable, default=None):$/;"	f
 get_source	fort_depend.py	/^def get_source(ext=[".f90",".F90"]):$/;"	f
 get_uses	fort_depend.py	/^def get_uses(infile=None, macros={}):$/;"	f
 getpara	src/SIMcode/getpara.f90	/^      SUBROUTINE getpara(/;"	s
+globals	src/SIMcode/globals.f90	/^module globals$/;"	m
 goodPair	src/dssWLC/scripts/pdbutils.py	/^def goodPair(r1,r2):$/;"	f
 grnd	src/dssWLC/source/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
 grnd	src/third_party/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
@@ -922,8 +955,11 @@ heap_size	src/third_party/kdtree2.f90	/^      integer :: heap_size /;"	k	type:pq
 heapify	src/third_party/kdtree2.f90	/^  subroutine heapify(/;"	s	module:kdtree2_priority_queue_module
 heapsort	src/third_party/kdtree2.f90	/^  subroutine heapsort(/;"	s
 heapsort_struct	src/third_party/kdtree2.f90	/^  subroutine heapsort_struct(/;"	s
+hostname	scan_wlcsim.py	/^hostname = socket.gethostname()$/;"	v
 i15	src/dssWLC/source/bessfin.f90	/^    INTEGER, PARAMETER :: i15 /;"	v	program:example_Inx
 i9	src/dssWLC/source/bessfin.f90	/^	INTEGER, PARAMETER  :: i9 /;"	v	program:example_Inx
+i_arr	wlcsim/data.py	/^i_arr = np.array([[1]])$/;"	v
+i_arr	wlcsim/olddata.py	/^i_arr = np.array([[1]])$/;"	v
 icolsort	src/BDcode/colsort.f90	/^subroutine icolsort(/;"	s
 idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
 ifirstloc	src/dssWLC/source/nrutils.f90	/^	FUNCTION ifirstloc(/;"	f	module:nrutil
@@ -942,14 +978,18 @@ init_genrand	src/dssWLC/source/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	modul
 init_genrand	src/third_party/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
 initcond	src/SIMcode/initcond.f90	/^      SUBROUTINE initcond(/;"	s
 initvars	src/dssWLC/scripts/pdbutils.py	/^    def initvars(self):$/;"	m	class:Structure
+input_file	scan_wlcsim.py	/^input_file = os.path.join(script_dir, 'input', 'input')$/;"	v
 insertion_sort	src/BDcode/colchecker.f90	/^subroutine insertion_sort(/;"	s
 interval	src/third_party/kdtree2.f90	/^  type interval$/;"	t	module:kdtree2_module
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_dp
 irow	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: irow$/;"	k	type:sprs2_sp
-isanynan	src/third_party/debugging.f90	/^logical function isanynan(/;"	f
+isanynan	src/SIMcode/debugging.f90	/^logical function isanynan(/;"	f
 j	src/tests/test_sort.f90	/^integer :: j$/;"	v	program:test_sort
+j_arr	wlcsim/data.py	/^j_arr = np.array([[1]])$/;"	v
+j_arr	wlcsim/olddata.py	/^j_arr = np.array([[1]])$/;"	v
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_dp
 jcol	src/dssWLC/source/nrtype.f90	/^		INTEGER(I4B), DIMENSION(:), POINTER :: jcol$/;"	k	type:sprs2_sp
+jparams	scan_wlcsim.py	/^jparams = []$/;"	v
 kdkind	src/third_party/kdtree2.f90	/^  integer, parameter :: kdkind /;"	v	module:kdtree2_precision_module
 kdtree2	src/third_party/kdtree2.f90	/^  type :: kdtree2$/;"	t	module:kdtree2_module
 kdtree2_create	src/third_party/kdtree2.f90	/^  function kdtree2_create(/;"	f	module:kdtree2_module
@@ -981,6 +1021,9 @@ ljind	src/dssWLC/getparams/ljind.m	/^function ind = ljind(l,j)$/;"	f
 ljindinv	src/dssWLC/getparams/ljindinv.m	/^function [l,j] = ljindinv(a)$/;"	f
 lmask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
 lmask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: lmask /;"	v	module:mt19937
+load_r	wlcsim/olddata.py	/^    def load_r(self, ti, index_type="index"):$/;"	m	class:Sim
+logger	wlcsim/data.py	/^logger = logging.getLogger(__name__)$/;"	v
+logger	wlcsim/olddata.py	/^logger = logging.getLogger(__name__)$/;"	v
 loop_1	src/dssWLC/source/bessfin.f90	/^    INTEGER (KIND = i9) :: n, loop_1 /;"	v	program:example_Inx
 lower	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,/;"	k	type:interval
 lower_triangle	src/dssWLC/source/nrutils.f90	/^	FUNCTION lower_triangle(/;"	f	module:nrutil
@@ -988,7 +1031,6 @@ m	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"
 m	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v	module:mt19937
 macros	fort_depend.py	/^    macros = {}$/;"	v
 makeBareStruct	src/dssWLC/scripts/pdbutils.py	/^def makeBareStruct():$/;"	f
-make_gradient	vizualization/color_b.py	/^def make_gradient(sel,gradient,nbins,sat,value):$/;"	f
 masked_swap_rm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rm(/;"	s	module:nrutil
 masked_swap_rs	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rs(/;"	s	module:nrutil
 masked_swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE masked_swap_rv(/;"	s	module:nrutil
@@ -1017,6 +1059,7 @@ nn	src/third_party/kdtree2.f90	/^      integer           :: nn,/;"	k	type:tree_s
 nrerror	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE nrerror(/;"	s	module:nrutil
 nrtype	src/dssWLC/source/nrtype.f90	/^MODULE nrtype$/;"	m
 nrutil	src/dssWLC/source/nrutils.f90	/^MODULE nrutil$/;"	m
+num_cores	scan_wlcsim.py	/^num_cores = multiprocessing.cpu_count()$/;"	v
 outerand	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerand(/;"	f	module:nrutil
 outerdiff_d	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_d(/;"	f	module:nrutil
 outerdiff_i	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerdiff_i(/;"	f	module:nrutil
@@ -1027,10 +1070,18 @@ outerprod_r	src/dssWLC/source/nrutils.f90	/^	FUNCTION outerprod_r(/;"	f	module:n
 outersum	src/dssWLC/source/nrutils.f90	/^	FUNCTION outersum(/;"	f	module:nrutil
 output	fort_depend.py	/^    output = args.output[0] if args.output else None$/;"	v
 outputPDB	src/dssWLC/scripts/pdbutils.py	/^    def outputPDB(self,outfile,append=0,ident=1):        $/;"	m	class:Structure
+output_base	scan_wlcsim.py	/^output_base = 'par-run-dir'$/;"	v
 overflow	src/third_party/kdtree2.f90	/^      logical           :: overflow$/;"	k	type:tree_search_record
+p	scan_wlcsim.py	/^    p = multiprocessing.Pool(num_cores)$/;"	v
+pairwise_distances3	wlcsim/data.py	/^def pairwise_distances3(r):$/;"	f
+param_names	wlcsim/data.py	/^    def param_names(self):$/;"	m	class:Sim
+params	pscan.py	/^    def params(self):$/;"	m	class:Scan
+params	scan_wlcsim.py	/^params = {}$/;"	v
+params	wlcsim/data.py	/^    def params(self):$/;"	m	class:Sim
 parser	fort_depend.py	/^    parser = argparse.ArgumentParser(description='Generate Fortran dependencies')$/;"	v
 pdbline	src/dssWLC/scripts/pdbutils.py	/^    def pdbline(self):$/;"	m	class:Atom
 phrtsd	src/dssWLC/source/ranlib.f90	/^subroutine phrtsd /;"	s
+pi	src/SIMcode/globals.f90	/^    real(dp), parameter :: pi /;"	v	module:globals
 poly_cc	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_cc(/;"	f	module:nrutil
 poly_dd	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_dd(/;"	f	module:nrutil
 poly_ddv	src/dssWLC/source/nrutils.f90	/^	FUNCTION poly_ddv(/;"	f	module:nrutil
@@ -1060,6 +1111,8 @@ qcolsort	src/BDcode/colsort.f90	/^subroutine qcolsort(/;"	s
 qp	src/tests/test_sort.f90	/^integer, parameter :: qp /;"	v	program:test_sort
 quartic	src/dssWLC/source/quartic.f	/^      subroutine quartic(/;"	s
 qv	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: qv(/;"	k	type:tree_search_record
+r	wlcsim/data.py	/^    def r(self):$/;"	m	class:Sim
+r0	wlcsim/data.py	/^    def r0(self):$/;"	m	class:Sim
 r4_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r4_exponential_sample /;"	f
 r4vec_covar	src/dssWLC/source/ranlib.f90	/^function r4vec_covar /;"	f
 r8_exponential_sample	src/dssWLC/source/ranlib.f90	/^function r8_exponential_sample /;"	f
@@ -1067,6 +1120,7 @@ r8vec_covar	src/dssWLC/source/ranlib.f90	/^function r8vec_covar /;"	f
 r_min	src/tests/test_sort.f90	/^real(dp) :: r_min(/;"	v	program:test_sort
 r_to_erg	src/SIMcode/r_to_erg.f90	/^      SUBROUTINE r_to_erg(/;"	s
 ran1	src/SIMcode/ran1.f90	/^      function ran1(/;"	f
+read_file	wlcsim/input.py	/^def read_file(input_file):$/;"	f
 reallocate_hv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_hv(/;"	f	module:nrutil
 reallocate_im	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_im(/;"	f	module:nrutil
 reallocate_iv	src/dssWLC/source/nrutils.f90	/^	FUNCTION reallocate_iv(/;"	f	module:nrutil
@@ -1087,12 +1141,21 @@ rnorm	src/third_party/mt19937.f90	/^FUNCTION rnorm(/;"	f	module:mt19937
 root	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: root /;"	k	type:kdtree2
 rotateM	src/dssWLC/scripts/pdbutils.py	/^    def rotateM(self,M):$/;"	m	class:Structure
 rshift	src/third_party/sort.f90	/^  subroutine rshift(/;"	s	subroutine:sort_1i
+rtime_idxs	wlcsim/data.py	/^    def rtime_idxs(self):$/;"	m	class:Sim
+rtimes	wlcsim/data.py	/^    def rtimes(self):$/;"	m	class:Sim
 run	fort_depend.py	/^def run(files=None,verbose=True,overwrite=None,output=None,macros={},build='',compile_string=''):$/;"	f
+run_base	scan_wlcsim.py	/^run_base = os.path.join(output_base, run_name, hostname)$/;"	v
+run_name	scan_wlcsim.py	/^run_name = 'small-chains-fix'$/;"	v
+run_scan	pscan.py	/^    def run_scan(self, f):$/;"	m	class:Scan
+run_wlcsim	scan_wlcsim.py	/^def run_wlcsim(params):$/;"	f
 runcode	src/dssWLC/scripts/snapshot2pdb.py	/^def runcode(argv):$/;"	f
+scan	scan_wlcsim.py	/^scan = pscan.Scan(simulation_params)$/;"	v
 scatter_add_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_add_d(/;"	s	module:nrutil
 scatter_add_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_add_r(/;"	s	module:nrutil
 scatter_max_d	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_max_d(/;"	s	module:nrutil
 scatter_max_r	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE scatter_max_r(/;"	s	module:nrutil
+script_dir	scan_wlcsim.py	/^script_dir = os.path.dirname(os.path.realpath(__file__))$/;"	v
+script_name	scan_wlcsim.py	/^    script_name = os.path.basename(__file__)$/;"	v
 sdot	src/dssWLC/source/ranlib.f90	/^function sdot /;"	f
 search	src/third_party/kdtree2.f90	/^  recursive subroutine search(/;"	s
 select_on_coordinate	src/third_party/kdtree2.f90	/^    subroutine select_on_coordinate(/;"	s
@@ -1136,8 +1199,13 @@ swap_rv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_rv(/;"	s	module:nrutil
 swap_z	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_z(/;"	s	module:nrutil
 swap_zm	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zm(/;"	s	module:nrutil
 swap_zv	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE swap_zv(/;"	s	module:nrutil
+test_docs_example	pscan.py	/^    def test_docs_example():$/;"	m	class:TestScan
+test_error_if_joint_size_wrong	pscan.py	/^    def test_error_if_joint_size_wrong():$/;"	m	class:TestScan
+test_error_if_param_val_not_iterable	pscan.py	/^    def test_error_if_param_val_not_iterable():$/;"	m	class:TestScan
+test_init_end_to_end_distance	wlcsim/tests.py	/^def test_init_end_to_end_distance(run_dir):$/;"	f
 test_sort	src/tests/test_sort.f90	/^program test_sort$/;"	p
 the_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: the_data(/;"	k	type:kdtree2
+time_idxs	wlcsim/data.py	/^    def time_idxs(self, base, file_names):$/;"	m	class:Sim
 tmaskb	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
 tmaskb	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb=/;"	v	module:mt19937
 tmaskc	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: tmaskb= -1658038656, tmaskc=/;"	v	module:mt19937
@@ -1155,16 +1223,29 @@ tshftt	src/third_party/mt19937.f90	/^FUNCTION tshftt(/;"	f	module:mt19937
 tshftu	src/dssWLC/source/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
 tshftu	src/third_party/mt19937.f90	/^FUNCTION tshftu(/;"	f	module:mt19937
 u	src/third_party/kdtree2.f90	/^      integer :: l, u$/;"	k	type:tree_node
+u	wlcsim/data.py	/^    def u(self):$/;"	m	class:Sim
+u0	wlcsim/data.py	/^    def u0(self):$/;"	m	class:Sim
+ui	wlcsim/data.py	/^ui = (np.array([0]), np.array([0]))$/;"	v
+ui	wlcsim/olddata.py	/^ui = (np.array([0]), np.array([0]))$/;"	v
 umask	src/dssWLC/source/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
 umask	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: umask /;"	v	module:mt19937
 unit_matrix	src/dssWLC/source/nrutils.f90	/^	SUBROUTINE unit_matrix(/;"	s	module:nrutil
 upper	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,upper$/;"	k	type:interval
 upper_triangle	src/dssWLC/source/nrutils.f90	/^	FUNCTION upper_triangle(/;"	f	module:nrutil
+utime_idxs	wlcsim/data.py	/^    def utime_idxs(self):$/;"	m	class:Sim
+utimes	wlcsim/data.py	/^    def utimes(self):$/;"	m	class:Sim
 vabs	src/dssWLC/source/nrutils.f90	/^	FUNCTION vabs(/;"	f	module:nrutil
 val	src/dssWLC/source/nrtype.f90	/^		REAL(DP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_dp
 val	src/dssWLC/source/nrtype.f90	/^		REAL(SP), DIMENSION(:), POINTER :: val$/;"	k	type:sprs2_sp
 validate_query_storage	src/third_party/kdtree2.f90	/^  subroutine validate_query_storage(/;"	s
 wlcsim	src/SIMcode/wlcsim.f90	/^      PROGRAM wlcsim$/;"	p
+write_coltimes_csvs	wlcsim/data.py	/^    def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):$/;"	m	class:Scan
+write_coltimes_csvs	wlcsim/olddata.py	/^    def write_coltimes_csvs(par_run_dir, overwrite=False, *args, **kwargs):$/;"	m	class:Scan
+write_coltimes_pkls	wlcsim/data.py	/^    def write_coltimes_pkls(run_dir, *args, **kwargs):$/;"	m	class:Scan
+write_coltimes_pkls	wlcsim/olddata.py	/^    def write_coltimes_pkls(par_run_dir, *args, **kwargs):$/;"	m	class:Scan
 write_depend	fort_depend.py	/^def write_depend(outfile="makefile.dep",dep=[],overwrite=False,build='',compile_string=''):$/;"	f
+write_file	wlcsim/input.py	/^def write_file(input_file, ordered_param_names, params):$/;"	f
+write_initial_dists_csvs	wlcsim/data.py	/^    def write_initial_dists_csvs(run_dir, overwrite=True, *args, **kwargs):$/;"	m	class:Scan
+write_initial_dists_csvs	wlcsim/olddata.py	/^    def write_initial_dists_csvs(par_run_dir, overwrite=True, *args, **kwargs):$/;"	m	class:Scan
 x	src/dssWLC/source/bessfin.f90	/^	REAL (KIND = i15)  :: x,/;"	v	program:example_Inx
 zroots_unity	src/dssWLC/source/nrutils.f90	/^	FUNCTION zroots_unity(/;"	f	module:nrutil

@@ -82,9 +82,13 @@
 
 !     Variable to hold time of first collisions between each bead
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: HAS_COLLIDED
+      INTEGER NUM_POSSIBLE_COLLISIONS
       DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! what kind of collision checking to use
 
+!     Variables to control simulation output
+      INTEGER SAVE_RU
+      INTEGER EXIT_WHEN_COLLIDED
 
 !     Load in the parameters for the simulation
 
@@ -115,7 +119,12 @@
       read (unit=5, fmt=*) FPT_DIST
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) COL_TYPE
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) SAVE_RU
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) EXIT_WHEN_COLLIDED
       close(5)
+      NUM_POSSIBLE_COLLISIONS = N*N - N
       call getpara(PARA,DT,SIMTYPE)
       DT0=DT
 
@@ -258,35 +267,51 @@
 
          TENS=nint(log10(1.*IND)-0.4999)+1
          write (fileind,'(I4)'), IND
-         snapnm= 'data/r'//fileind((4-TENS+1):4)
-         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
-         IB=1
-         DO 50 I=1,NP
-            DO 60 J=1,N
-               WRITE(1,*) R(IB,1),R(IB,2),R(IB,3)
-               IB=IB+1
- 60         CONTINUE
- 50      CONTINUE
-         CLOSE(1)
 
-         snapnm= 'data/u'//fileind((4-TENS+1):4)
-         OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
-         IB=1
-         DO 70 I=1,NP
-            DO 80 J=1,N
-               WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
-               IB=IB+1
- 80         CONTINUE
- 70      CONTINUE
-         CLOSE(1)
+         IF (SAVE_RU.NE.0) THEN
 
-         snapnm='data/coltimes'
+            IF (SAVE_RU.EQ.1) THEN
+                snapnm= 'data/r'//fileind((4-TENS+1):4)
+            ELSE IF (SAVE_RU.EQ.2) THEN
+                snapnm= 'data/r'
+                OPEN (UNIT = 1, FILE = 'data/t', STATUS = 'REPLACE')
+                    WRITE(1,*) fileind((4-TENS+1):4)
+                CLOSE(1)
+            ENDIF
+            OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+                IB=1
+                DO 50 I=1,NP
+                    DO 60 J=1,N
+                    WRITE(1,*) R(IB,1),R(IB,2),R(IB,3)
+                    IB=IB+1
+60                  CONTINUE
+50              CONTINUE
+            CLOSE(1)
+
+            IF (SAVE_RU.EQ.1) THEN
+                snapnm= 'data/u'//fileind((4-TENS+1):4)
+            ELSE IF (SAVE_RU.EQ.2) THEN
+                snapnm= 'data/u'
+            ENDIF
+            OPEN (UNIT = 1, FILE = snapnm, STATUS = 'REPLACE')
+                IB=1
+                DO 70 I=1,NP
+                    DO 80 J=1,N
+                    WRITE(1,*) U(IB,1),U(IB,2),U(IB,3)
+                    IB=IB+1
+80                  CONTINUE
+70              CONTINUE
+            CLOSE(1)
+
+         ENDIF
+
+         snapnm= 'data/coltimes'
          IF (COL_TYPE.NE.0) then
-         OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
-         DO, I=1,NT
-             WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
-         ENDDO
-         CLOSE(1)
+            OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
+                DO, I=1,NT
+                    WRITE(1,*) ( HAS_COLLIDED(i,j), j=1,NT )
+                ENDDO
+            CLOSE(1)
          ENDIF
 
          call stress(SIG,R,U,NT,N,NP,PARA,INTON,SIMTYPE)
@@ -315,6 +340,12 @@
          print*, 'End-to-end distance poly 1 ', &
               sqrt((R(N,1)-R(1,1))**2.+(R(N,2)-R(1,2))**2.+(R(N,3)-R(1,3))**2.)
          PRINT*, 'Simulation type ', SIMTYPE
+
+         IF (COUNT(HAS_COLLIDED.NE.-1.0d+0) == NUM_POSSIBLE_COLLISIONS) THEN
+             IF (EXIT_WHEN_COLLIDED.NE.0) THEN
+                EXIT
+             ENDIF
+         ENDIF
 
          IND=IND+1
 

@@ -1,3 +1,9 @@
+"""A module whose sole purpose is to facilitate parameter scans via a generic
+framework for specifying parameter values to scan.
+Combinatorial parameter sweeps, joint parameter sweeps, and advanced options
+for how many times to repeat simulations are available.
+TODO: implement "scientific" sweeps, where one parameter is varied at a time
+from baseline."""
 from functools import reduce # for roll-your-own product()
 import operator # for operator.mul in map in roll-your-own product()
 import numpy as np # just for unravel_index

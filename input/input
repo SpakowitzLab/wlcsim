@@ -7,7 +7,7 @@
 
  !-Record 2
  !  L               Chain length
-  1000.0
+  10.0
 
  !-Record 3
  !  LBOX            Box edge length - for MC box sizes
@@ -23,7 +23,7 @@
 
  !-Record 6
  !  N               Number of beads
-  1001
+  51
 
  !-Record 7         Sarah was running 1000
  !  NP              Number of polymers - won't interact unless interaction code added
@@ -31,11 +31,11 @@
 
  !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
  !  TF              Total simulation time
-  1000000
+  100
 
  !-Record 9
  !  INDMAX          Total number of save points
-  1000
+  100
 
  !-Record 10
  !  DT              Timestep for integration - Sarah used 0.2 in above
@@ -59,7 +59,7 @@
 
  !-Record 15       Quinn: 1000s times #polymers, there's a script to check if OK
  !  NINIT          Number initialization MC steps - 40beads@rigid@2000poly==4e6
-  1000
+  10000
 
  !-Record 16
  !  NSTEP          Number MC steps per save
@@ -72,5 +72,13 @@
  !-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
  !  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1,
   3
+
+ !-Record 19       Whether to save the positions/momentums at each time point
+ !  SAVE_RU
+  1
+
+ !-Record 20       Whether to terminate simulation when all collisions finish
+ !  EXIT_WHEN_COLLIDED
+  0
 
  ! ----------------------------------------------------
