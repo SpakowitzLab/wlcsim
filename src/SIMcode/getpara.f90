@@ -51,6 +51,10 @@
       L=L/LP
       LP=1.0d0
       DEL=L/(N-1.0d0)
+      if (N.EQ.1.0d0) then
+          PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
+          STOP 1
+      endif
       REND=REND*L
 
 !     Load the tabulated parameters
