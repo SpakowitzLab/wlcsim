@@ -36,7 +36,7 @@
       INTEGER INDMAX            ! Maximum index in series
       INTEGER IND               ! Ind in series
       INTEGER TENS              ! Decimal of index
-      character*4 fileind       ! Index of output
+      character*10 fileind       ! Index of output
       character*16 snapnm       ! File for output
 
 !     Simulation input variables
@@ -256,9 +256,8 @@
 
 !     Save the conformation and the metrics
 
-         TENS=nint(log10(1.*IND)-0.4999)+1
-         write (fileind,'(I4)'), IND
-         snapnm= 'data/r'//fileind((4-TENS+1):4)
+         write (fileind,'(I10)'), IND
+         snapnm= 'data/r' // trim(adjustL(fileind))
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 50 I=1,NP
@@ -269,7 +268,7 @@
  50      CONTINUE
          CLOSE(1)
 
-         snapnm= 'data/u'//fileind((4-TENS+1):4)
+         snapnm= 'data/u' // trim(adjustL(fileind))
          OPEN (UNIT = 1, FILE = snapnm, STATUS = 'NEW')
          IB=1
          DO 70 I=1,NP
@@ -281,6 +280,7 @@
          CLOSE(1)
 
          snapnm='data/coltimes'
+
          IF (COL_TYPE.NE.0) then
          OPEN (UNIT=1, FILE=snapnm, STATUS='REPLACE')
          DO, I=1,NT
