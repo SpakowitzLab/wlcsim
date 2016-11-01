@@ -78,7 +78,7 @@
 !    Setup the parameters for GC simulation
 
       if (DEL.GT.PVEC(679,1)) then
-         EPAR=1.5/(DEL*LP**2.)
+         EPAR=1.5/DEL
          GAM=0.
          SIMTYPE=3
          XIR=L/N
