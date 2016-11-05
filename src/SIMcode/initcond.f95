@@ -1,9 +1,9 @@
 !! ---------------------------------------------------------------*
-      
-!     
+
+!
 !     This subroutine sets the initial condition for a chain within
 !     the capsid
-!     
+!
 !     Andrew Spakowitz
 !     Written 4-16-04
 !
@@ -68,13 +68,13 @@ if(FRMFILE)then
        U(I,1)=U(I,1)/mag
        U(I,2)=U(I,2)/mag
        U(I,3)=U(I,3)/mag
-   enddo 
+   enddo
 
    CLOSE(5)
    return
 endif
 
-   
+
 !     Fix the initial condition
 if(setType.eq.1) then
 ! staight line in y direction with random starting position
@@ -95,13 +95,13 @@ if(setType.eq.1) then
           U(IB,3)=0.
           IB=IB+1
        enddo
-    enddo 
+    enddo
 else if(setType.eq.2) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
-    ! slit boundary in z direction            
+    ! slit boundary in z direction
     GAM=PARA(4)
-    
+
     IB=1
     DO  I=1,NP
         call random_number(urand,rand_stat)
@@ -114,7 +114,7 @@ else if(setType.eq.2) then
         Uold(1)=sqrt(1-z*z)*cos(theta)
         Uold(2)=sqrt(1-z*z)*sin(theta)
         Uold(3)=z
-        
+
         DO J=1,N
            search=.TRUE.
            ii=0
@@ -154,16 +154,16 @@ else if(setType.eq.2) then
            U(IB,1)=Uold(1)
            U(IB,2)=Uold(2)
            U(IB,3)=Uold(3)
-           
+
            IB=IB+1
         enddo
-    enddo 
+    enddo
 else if(setType.eq.3) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
-    ! square boundary             
+    ! square boundary
     GAM=PARA(4)
-    
+
     IB=1
     DO  I=1,NP
        call random_number(urand,rand_stat)
@@ -176,7 +176,7 @@ else if(setType.eq.3) then
        Uold(1)=sqrt(1-z*z)*cos(theta)
        Uold(2)=sqrt(1-z*z)*sin(theta)
        Uold(3)=z
-       
+
        DO J=1,N
           search=.TRUE.
           ii=0
@@ -228,16 +228,16 @@ else if(setType.eq.3) then
           U(IB,1)=Uold(1)
           U(IB,2)=Uold(2)
           U(IB,3)=Uold(3)
-          
+
           IB=IB+1
-       enddo 
+       enddo
     enddo
-                 
+
 else if(setType.eq.4) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! shpere boundary
-    ! radius of LBox/2 centered at LBox/2             
+    ! radius of LBox/2 centered at LBox/2
     Rc=LBOX(1)/2.0_dp ! use LBOX as radius
        GAM=PARA(4)
     IB=1
@@ -254,7 +254,7 @@ else if(setType.eq.4) then
        z=urand(2)*2.0_dp-1.0_dp
        Uold(1)=sqrt(1-z*z)*cos(theta)
        Uold(2)=sqrt(1-z*z)*sin(theta)
-       Uold(3)=z                  
+       Uold(3)=z
        DO J=1,N
            search=.TRUE.
            do while(search)
@@ -288,7 +288,7 @@ else if(setType.eq.4) then
            IB=IB+1
        enddo ! loop to N
     enddo ! loop to np
-else if(setType.eq.5) then 
+else if(setType.eq.5) then
     ! randomly distribute beads in shereical confinement
     do IB=1,NT
         search=.true.
@@ -306,14 +306,43 @@ else if(setType.eq.5) then
         R(IB,1)=test(1)
         R(IB,2)=test(2)
         R(IB,3)=test(3)
-        U(IB,1)=0.00_dp 
+        U(IB,1)=0.00_dp
         U(IB,2)=0.00_dp
         U(IB,3)=0.00_dp
     enddo
+else if (setType == 6) then
+    IB=1
+    DO  I=1,NP
+        call random_number(urand,rand_stat)
+        R0(1)=urand(1)*LBOX(1)
+        call random_number(urand,rand_stat)
+        R0(2)=urand(1)*LBOX(1)
+        call random_number(urand,rand_stat)
+        R0(3)=urand(1)*LBOX(1)
+        DO  J=1,NB
+            IF (RING.EQ.0) THEN
+                R(IB,1)=R0(1)
+                R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp)
+                R(IB,3)=R0(3)
+                U(IB,1)=0.0_dp
+                U(IB,2)=1.0_dp
+                U(IB,3)=0.0_dp
+            ELSE
+                R(IB,1)=R0(1)+((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
+                R(IB,2)=R0(2)+((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
+                R(IB,3)=0.0_dp
+                U(IB,1)=-Sin(J*2.0_dp*PI/NB)
+                U(IB,2)=Cos(J*2.0_dp*PI/NB)
+                U(IB,3)=0.0_dp;
+            ENDIF
+        IB=IB+1
+        ENDDO
+    ENDDO
+
 endif
 
- 
-RETURN     
+
+RETURN
 END
-      
+
 !---------------------------------------------------------------*

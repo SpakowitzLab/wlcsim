@@ -1,18 +1,18 @@
 !---------------------------------------------------------------!
-      
-!     
+
+!
 !     This subroutine calculates the change in the self energy for
 !     a small Monte Carlo move in the position.
-!     
+!
 !     Corrections to force magnitude made 6-3-04.
-!     
+!
 !     Andrew Spakowitz
 !     Written 6-29-04
 !
 !     Edited by Shifan
 !
 !     Edited by Quinn in 2016
-      
+
 SUBROUTINE MC_int(mc,md,I1,I2,initialize)
 use simMod
 use setPrecision
@@ -28,12 +28,12 @@ INTEGER, intent(in) :: I2           ! Test bead position 2
 INTEGER I                 ! For looping over bins
 INTEGER IB                ! Bead index
 INTEGER rrdr ! -1 if r, 1 if r+dr
-INTEGER IX(2),IY(2),IZ(2)      
+INTEGER IX(2),IY(2),IZ(2)
 DOUBLE PRECISION WX(2),WY(2),WZ(2)
 DOUBLE PRECISION WTOT       ! total weight ascribed to bin
 DOUBLE PRECISION RBIN(3)    ! bead position
 INTEGER INDBIN              ! index of bin
-INTEGER ISX,ISY,ISZ 
+INTEGER ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
 
 ! Copy so I don't have to type mc% everywhere
@@ -76,13 +76,13 @@ do IB=I1,I2
        RBIN(1)=md%R(IB,1)
        RBIN(2)=md%R(IB,2)
        RBIN(3)=md%R(IB,3)
-   else     
+   else
        RBIN(1)=md%RP(IB,1)
        RBIN(2)=md%RP(IB,2)
        RBIN(3)=md%RP(IB,3)
    endif
    isA=md%AB(IB).eq.1
-   temp=rrdr*mc%V*mc%DEL**3
+   temp=rrdr*mc%V/(mc%DEL**3)
    ! --------------------------------------------------
    !
    !  Interpolate beads into bins
@@ -113,7 +113,7 @@ do IB=I1,I2
                 else
                     ! Generate list of which phi's change and by how much
                     I=mc%NPHI
-                    do 
+                    do
                        if (I.eq.0) then
                           mc%NPHI=mc%NPHI+1
                           md%INDPHI(mc%NPHI)=INDBIN
@@ -127,7 +127,7 @@ do IB=I1,I2
                           exit
                        else
                           I=I-1
-                       endif                     
+                       endif
                     enddo
                 endif
              enddo
@@ -148,7 +148,7 @@ do IB=I1,I2
                 else
                     ! Generate list of which phi's change and by how much
                     I=mc%NPHI
-                    do 
+                    do
                        if (I.eq.0) then
                           mc%NPHI=mc%NPHI+1
                           md%INDPHI(mc%NPHI)=INDBIN
@@ -162,12 +162,12 @@ do IB=I1,I2
                           exit
                        else
                           I=I-1
-                       endif                     
+                       endif
                     enddo
                 endif
              enddo !ISZ
           enddo !ISY
-       enddo !ISX 
+       enddo !ISX
    endif
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads

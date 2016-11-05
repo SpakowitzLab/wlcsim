@@ -1,209 +1,385 @@
-!---------------------------------------------------------------*
-
-!     subroutine MC_move
+!--------------------------------------------------------------*
 !
-!     Subroutine to perform conformational moves for MC simulation
-!     Move type include:
-!     1. Crank-shaft move (internal segment)
-!     2. Translational slide (internal segment)
-!     3. End pivot move (end segment)
-!     4. Tangent rotation (single tangent)
-!     5. Whole chain rotation (whole chain)
-!     6. Whole chain translation (whole chain)
+!           Makes Monti Carlo Moves
 !
+!    Quinn Made Changes to this file starting on 12/15/15
+!
+!---------------------------------------------------------------
+SUBROUTINE MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
+                  ,MCAMP,WINDOW,AB,ABP,BPM,rand_stat,winType &
+                  ,IT3,IT4,forward)
 
-      SUBROUTINE MC_move(R,U,RP,UP,NT,N,NP,IP,IB1,IB2, &
-           IT1,IT2,IDUM,MCTYPE,MCAMP)
+use mersenne_twister
+use setPrecision
+IMPLICIT NONE
+DOUBLE PRECISION, PARAMETER :: PI=3.141592653589793_dp ! Value of pi
 
-      use mt19937, only : grnd
+DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
+DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
+DOUBLE PRECISION, intent(out) :: RP(NT,3)  ! Bead positions
+DOUBLE PRECISION, intent(out) :: UP(NT,3)  ! Tangent vectors
+INTEGER, intent(in) :: NB     ! Number of beads on a polymer
+INTEGER, intent(in) :: NP     ! Number of polymers
+INTEGER, intent(in) :: NT     ! Total beads in simulation
+INTEGER, intent(in) :: BPM    ! Beads per monomer, aka G
+INTEGER, intent(out) :: IP    ! Test polymer
+INTEGER IP2   ! Second Test polymer if applicable
+INTEGER, intent(out) :: IB1   ! Test bead position 1
+INTEGER, intent(out) :: IT1   ! Index of test bead 1
+INTEGER, intent(out) :: IB2   ! Test bead position 2
+INTEGER, intent(out) :: IT2   ! Index of test bead 2
+INTEGER, intent(out) :: IT3   ! Test bead position 3 if applicable
+INTEGER, intent(out) :: IT4   ! Test bead position 4 if applicable
 
-      PARAMETER (PI=3.141592654) ! Value of pi
-
-      DOUBLE PRECISION R(NT,3)  ! Bead positions
-      DOUBLE PRECISION U(NT,3)  ! Tangent vectors
-      DOUBLE PRECISION RP(NT,3) ! Bead positions
-      DOUBLE PRECISION UP(NT,3) ! Tangent vectors
-      INTEGER N,NP,NT           ! Number of beads
-
-      INTEGER IP                ! Test polymer
-      INTEGER IB1               ! Test bead position 1
-      INTEGER IT1               ! Index of test bead 1
-      INTEGER IB2               ! Test bead position 2
-      INTEGER IT2               ! Index of test bead 2
-
-      INTEGER I,J            ! Test indices
-
+INTEGER I,J  ! Test indices
+! Things for random number generator
+type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
+real urand(3)  ! random vector
+real urnd(1) ! single random number
 ! Variables for the crank-shaft move
 
-      DOUBLE PRECISION TA(3)    ! Axis of rotation
-      DOUBLE PRECISION P1(3)    ! Point on rotation line
-      DOUBLE PRECISION MAG      ! Magnitude of vector
-      DOUBLE PRECISION ROT(4,4) ! Rotation matrix
+DOUBLE PRECISION TA(3)    ! Axis of rotation
+DOUBLE PRECISION P1(3)    ! Point on rotation line
+DOUBLE PRECISION MAG      ! Magnitude of vector
+DOUBLE PRECISION ROT(4,4) ! Rotation matrix
 
-      INTEGER IDUM              ! Seed for the generator
-      DOUBLE PRECISION ALPHA    ! Angle of move
-      DOUBLE PRECISION BETA     ! Angle of move
+DOUBLE PRECISION ALPHA    ! Angle of move
+DOUBLE PRECISION BETA     ! Angle of move
 
 !     MC adaptation variables
 
-      DOUBLE PRECISION MCAMP(6) ! Amplitude of random change
-      INTEGER MCTYPE            ! Type of MC move
-      DOUBLE PRECISION DR(3)    ! Displacement for slide move
-      INTEGER TEMP
+INTEGER, PARAMETER :: moveTypes=7 ! Number of different move types
+DOUBLE PRECISION, intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
+INTEGER, intent(in) :: MCTYPE            ! Type of MC move
+INTEGER, intent(in) :: winType
+Double precision, intent(in) :: WINDOW(moveTypes) ! Size of window for bead selection
+DOUBLE PRECISION DR(3)    ! Displacement for slide move
+INTEGER TEMP
+
+! Variables for change of binding state move
+INTEGER, intent(in) :: AB(NT)            ! Chemical (binding) state
+INTEGER, intent(out) :: ABP(NT)          ! Underlying (methalation) state
+Double precision d1,d2  !for testing
+
+! variables for reptation move
+double precision Uvec(3) ! parallel component of triad
+double precision pDir(3) ! perp component of triad
+double precision tDir(3) ! twist component of triad
+double precision r_relative(3) ! r in new coordinate system
+double precision u_relative(3) ! u in new coordinate system
+logical, intent(out) :: forward
+
+!TODO saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
+if (RING .EQ. 1 .OR. INTERP_BEAD_LENNARD_JONES) then
+    RP = R
+    UP = U
+    P1 = 0.0_dp
+endif
 
 !     Perform crank-shaft move (MCTYPE 1)
 
-      if (MCTYPE.EQ.1) then
-         IP=nint(0.5+grnd()*NP)
-         IB1=nint(0.5+grnd()*N)
-         IB2=nint(0.5+grnd()*N)
-         if (IB2.LT.IB1) then
+if (MCTYPE.EQ.1) then
+   call random_number(urand,rand_stat)
+   IP=ceiling(urand(1)*NP)
+   IB1=ceiling(urand(2)*NB)
+   ! IB2=ceiling(urand(2)*NB)
+   ! instead of the above, we now choose only one random point and an
+   ! exponentially-sized window after that point to move around, to ensure that
+   ! small enough sections of chain are moved.
+   if (winType.eq.0) then
+       IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
+   elseif (winType.eq.1) then
+       call random_number(urnd,rand_stat)
+       IB2=IB1+(2*nint(urand(3))-1)* &
+               nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
+   endif
+
+   if (RING.EQ.0) then
+        if (IB2.LT.1) then
+            IB2=1
+        endif
+        if (IB2.GT.NB) then
+            IB2=NB
+        endif
+
+        if (IB2.LT.IB1) then
             TEMP=IB1
             IB1=IB2
             IB2=TEMP
-         endif
-         IT1=N*(IP-1)+IB1
-         IT2=N*(IP-1)+IB2
+        endif
+    endif
+   IT1=NB*(IP-1)+IB1
+   IT2=NB*(IP-1)+IB2
 
-         if (IB1.EQ.IB2.AND.IB1.EQ.1) then
-            TA(1)=R(IT1+1,1)-R(IT1,1)
-            TA(2)=R(IT1+1,2)-R(IT1,2)
-            TA(3)=R(IT1+1,3)-R(IT1,3)
-         elseif (IB1.EQ.IB2.AND.IB1.EQ.N) then
-            TA(1)=R(IT1,1)-R(IT1-1,1)
-            TA(2)=R(IT1,2)-R(IT1-1,2)
-            TA(3)=R(IT1,3)-R(IT1-1,3)
-         elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.N) then
-            TA(1)=R(IT1+1,1)-R(IT1-1,1)
-            TA(2)=R(IT1+1,2)-R(IT1-1,2)
-            TA(3)=R(IT1+1,3)-R(IT1-1,3)
-         else
-            TA(1)=R(IT2,1)-R(IT1,1)
-            TA(2)=R(IT2,2)-R(IT1,2)
-            TA(3)=R(IT2,3)-R(IT1,3)
-         endif
-         MAG=sqrt(TA(1)**2.+TA(2)**2.+TA(3)**2.)
-         TA(1)=TA(1)/MAG
-         TA(2)=TA(2)/MAG
-         TA(3)=TA(3)/MAG
-         P1(1)=R(IT1,1)
-         P1(2)=R(IT1,2)
-         P1(3)=R(IT1,3)
+     DIB = IB2 - IB1
+     if (RING.EQ.1) then                    !Polymer is a ring
+        IF (IB2.GT.N) THEN
+           IB2=DIB-(N-IB1)
+        ENDIF
+        IT2=N*(IP-1)+IB2
 
-         ALPHA=MCAMP(1)*(grnd()-0.5)
+        if (IB1.EQ.IB2.AND.IB1.EQ.1) then
+           TA(1)=R(IT1+1,1)-R(N*IP,1)
+           TA(2)=R(IT1+1,2)-R(N*IP,2)
+           TA(3)=R(IT1+1,3)-R(N*IP,3)
+        elseif (IB1.EQ.IB2.AND.IB1.EQ.N) then
+           TA(1)=R(N*(IP-1)+1,1)-R(IT1-1,1)
+           TA(2)=R(N*(IP-1)+1,2)-R(IT1-1,2)
+           TA(3)=R(N*(IP-1)+1,3)-R(IT1-1,3)
+        elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.N) then
+           TA(1)=R(IT1+1,1)-R(IT1-1,1)
+           TA(2)=R(IT1+1,2)-R(IT1-1,2)
+           TA(3)=R(IT1+1,3)-R(IT1-1,3)
+        else
+           TA(1)=R(IT2,1)-R(IT1,1)
+           TA(2)=R(IT2,2)-R(IT1,2)
+           TA(3)=R(IT2,3)-R(IT1,3)
+        endif
+     else                                 !Polymer is not a ring
+        if (IB1.EQ.IB2.AND.IB1.EQ.1) then
+           TA(1)=R(IT1+1,1)-R(IT1,1)
+           TA(2)=R(IT1+1,2)-R(IT1,2)
+           TA(3)=R(IT1+1,3)-R(IT1,3)
+        elseif (IB1.EQ.IB2.AND.IB1.EQ.N) then
+           TA(1)=R(N*IP,1)-R(N*IP-1,1)
+           TA(2)=R(N*IP,2)-R(N*IP-1,2)
+           TA(3)=R(N*IP,3)-R(N*IP-1,3)
+        elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.N) then
+           TA(1)=R(IT1+1,1)-R(IT1-1,1)
+           TA(2)=R(IT1+1,2)-R(IT1-1,2)
+           TA(3)=R(IT1+1,3)-R(IT1-1,3)
+        else
+           TA(1)=R(IT2,1)-R(IT1,1)
+           TA(2)=R(IT2,2)-R(IT1,2)
+           TA(3)=R(IT2,3)-R(IT1,3)
+        endif
+     endif
 
-         ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
-         ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-         ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
-         ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
-         -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
 
-         ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
-         ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
-         ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-         ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
-         -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
+     MAG=sqrt(TA(1)**2.+TA(2)**2.+TA(3)**2.)
+     TA(1)=TA(1)/MAG
+     TA(2)=TA(2)/MAG
+     TA(3)=TA(3)/MAG
+     P1(1)=R(IT1,1)
+     P1(2)=R(IT1,2)
+     P1(3)=R(IT1,3)
+     call random_number(urand,stat)
+     ALPHA=MCAMP(1)*(urand(1)-0.5)
 
-         ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-         ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
-         ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
-         ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
-         -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+     ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
+     ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
+     ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
+     ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
+          -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
 
-         DO 10 I=IT1,IT2
-            RP(I,1)=ROT(1,4)+ROT(1,1)*R(I,1)+ROT(1,2)*R(I,2)+ROT(1,3)*R(I,3)
-            RP(I,2)=ROT(2,4)+ROT(2,1)*R(I,1)+ROT(2,2)*R(I,2)+ROT(2,3)*R(I,3)
-            RP(I,3)=ROT(3,4)+ROT(3,1)*R(I,1)+ROT(3,2)*R(I,2)+ROT(3,3)*R(I,3)
-            UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
-            UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
-            UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
- 10      CONTINUE
+     ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
+     ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
+     ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
+     ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
+          -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
+
+     ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
+     ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
+     ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
+     ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
+          -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+
+     I=IT1
+
+     DO  J=0,DIB
+        if (I.EQ.(N*IP+1).AND.RING.EQ.1) then
+           I=N*(IP-1)+1
+        endif
+        RP(I,1)=ROT(1,4)+ROT(1,1)*R(I,1)+ROT(1,2)*R(I,2)+ROT(1,3)*R(I,3)
+        RP(I,2)=ROT(2,4)+ROT(2,1)*R(I,1)+ROT(2,2)*R(I,2)+ROT(2,3)*R(I,3)
+        RP(I,3)=ROT(3,4)+ROT(3,1)*R(I,1)+ROT(3,2)*R(I,2)+ROT(3,3)*R(I,3)
+        UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
+        UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
+        UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
+
+        I=I+1
+
+     ENDDO
+  !  ------begining testing---------
+  if(.false.) then
+      ! This is a code block for testing
+      if (abs(RP(IT1,1)-R(IT1,1)).gt.0.000001) then
+          print*, "error in crank-shaft move"
+          print*, RP(IT1,1), R(IT1,1)
+          stop 1
+      endif
+      if (abs(RP(IT2,1)-R(IT2,1)).gt.0.000001) then
+          print*, "error in crank-shaft move"
+          print*, RP(IT1,1), R(IT1,1)
+          stop 1
+      endif
+      if(IT1.ne.IT2) then
+          d1=(R(IT1+1,1)-R(IT1,1))**2+&
+             (R(IT1+1,2)-R(IT1,2))**2+&
+             (R(IT1+1,3)-R(IT1,3))**2
+          d2=(RP(IT1+1,1)-RP(IT1,1))**2+&
+             (RP(IT1+1,2)-RP(IT1,2))**2+&
+             (RP(IT1+1,3)-RP(IT1,3))**2
+          if (abs(d1-d2).gt.0.000001) then
+              print*, "error in crank-shaft move"
+              print*, "distance change in 1"
+              print*, "IT1",IT1," IT2",IT2
+              print*, d1,d2
+              stop 1
+          endif
+          d1=(R(IT2-1,1)-R(IT2,1))**2+&
+             (R(IT2-1,2)-R(IT2,2))**2+&
+             (R(IT2-1,3)-R(IT2,3))**2
+          d2=(RP(IT2-1,1)-RP(IT2,1))**2+&
+             (RP(IT2-1,2)-RP(IT2,2))**2+&
+             (RP(IT2-1,3)-RP(IT2,3))**2
+          if (abs(d1-d2).gt.0.000001) then
+              print*, "error in crank-shaft move"
+              print*, "distance change in 2"
+              print*, d1,d2
+              stop 1
+          endif
+      endif
+  endif
+  ! --------end testing--------
 
 !     Perform slide move (MCTYPE 2)
 
-      elseif (MCTYPE.EQ.2) then
+elseif (MCTYPE.EQ.2) then
+   call random_number(urand,rand_stat)
+   IP=ceiling(urand(1)*NP)
+   IB1=ceiling(urand(2)*NB)
+   ! again, we use a window
+   if (winType.eq.0) then
+       IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
+   elseif (winType.eq.1) then
+       call random_number(urnd,rand_stat)
+       IB2=IB1+(2*nint(urand(3))-1)* &
+               nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
+   endif
 
-         IP=nint(0.5+grnd()*NP)
-         IB1=nint(1.5+grnd()*(N-2.))
-         IB2=nint(1.5+grnd()*(N-2.))
-         if (IB2.LT.IB1) then
-            TEMP=IB1
-            IB1=IB2
-            IB2=TEMP
-         endif
-         IT1=N*(IP-1)+IB1
-         IT2=N*(IP-1)+IB2
+   if (RING .EQ. 0) then
+    if (IB2.LT.1) then
+        IB2=1
+    endif
+    if (IB2.GT.NB) then
+        IB2=NB
+    endif
+    if (IB2.LT.IB1) then
+        TEMP=IB1
+        IB1=IB2
+        IB2=TEMP
+    endif
+   else
+    DIB=IB2-IB1
+    if (IB2 .GT. N) then
+        IB2=DIB-(N-IB1)
+    endif
+    IT2=N*(IP-1)+IB2
+   endif
 
-         DR(1)=MCAMP(2)*(grnd()-0.5)
-         DR(2)=MCAMP(2)*(grnd()-0.5)
-         DR(3)=MCAMP(2)*(grnd()-0.5)
+   IT1=NB*(IP-1)+IB1
+   IT2=NB*(IP-1)+IB2
 
-         DO 20 I=IT1,IT2
-            RP(I,1)=R(I,1)+DR(1)
-            RP(I,2)=R(I,2)+DR(2)
-            RP(I,3)=R(I,3)+DR(3)
-            UP(I,1)=U(I,1)
-            UP(I,2)=U(I,2)
-            UP(I,3)=U(I,3)
- 20      CONTINUE
+   call random_number(urand,rand_stat)
+   DR(1)=MCAMP(2)*(urand(1)-0.5)
+   DR(2)=MCAMP(2)*(urand(2)-0.5)
+   DR(3)=MCAMP(2)*(urand(3)-0.5)
 
+     I=IT1
+     DO  J=0,DIB
+
+        if (I.EQ.(N*IP+1).AND.RING.EQ.1) then
+           I=N*(IP-1)+1
+        endif
+
+        RP(I,1)=R(I,1)+DR(1)
+        RP(I,2)=R(I,2)+DR(2)
+        RP(I,3)=R(I,3)+DR(3)
+        UP(I,1)=U(I,1)
+        UP(I,2)=U(I,2)
+        UP(I,3)=U(I,3)
+        I=I+1
+
+     ENDDO
+! We don't have to protect moves 4-10 with if ring because the code is identical in both cases
 !     Perform pivot move (MCTYPE 3)
 
-      elseif (MCTYPE.EQ.3) then
+elseif (MCTYPE.EQ.3) then
 
-         IP=nint(0.5+grnd()*NP)
-         IB1=nint(0.5+grnd()*N)
-         if (IB1.LT.(N/2.)) then
-            IB2=IB1
-            IB1=1
-            IT1=N*(IP-1)+IB1
-            IT2=N*(IP-1)+IB2
-            P1(1)=R(IT2,1)
-            P1(2)=R(IT2,2)
-            P1(3)=R(IT2,3)
-         else
-            IB2=N
-            IT1=N*(IP-1)+IB1
-            IT2=N*(IP-1)+IB2
-            P1(1)=R(IT1,1)
-            P1(2)=R(IT1,2)
-            P1(3)=R(IT1,3)
-         endif
+   call random_number(urnd,rand_stat)
+   IP=ceiling(urnd(1)*NP)
+   if (wintype.eq.0) then
+       print*, "Error, wintype 0 out of service"
+       stop 1
+   elseif(winType.eq.1) then
+       call random_number(urnd,rand_stat)
+       if (urnd(1).gt.0.5_dp) then
+          call random_number(urnd,rand_stat)
+          IB2=nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))+1
+          if (IB2.GT.NB) then
+              IB2=NB
+          endif
+          IB1=1
+          IT1=NB*(IP-1)+IB1
+          IT2=NB*(IP-1)+IB2
+          P1(1)=R(IT2,1)
+          P1(2)=R(IT2,2)
+          P1(3)=R(IT2,3)
+       else
+          call random_number(urnd,rand_stat)
+          IB1=NB-nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))
+          if (IB1.LT.1) then
+             IB1=1
+          endif
+          IB2=NB
+          IT1=NB*(IP-1)+IB1
+          IT2=NB*(IP-1)+IB2
+          P1(1)=R(IT1,1)
+          P1(2)=R(IT1,2)
+          P1(3)=R(IT1,3)
+       endif
+   else
+       print*, "Error, no other option"
+       stop 1
+   endif
 
-         ALPHA=2.*PI*grnd()
-         BETA=acos(2.*grnd()-1.)
-         TA(1)=sin(BETA)*cos(ALPHA)
-         TA(2)=sin(BETA)*sin(ALPHA)
-         TA(3)=cos(BETA)
+   call random_number(urand,rand_stat)
+   ALPHA=2.*PI*urand(1)
+   BETA=acos(2.*urand(2)-1.)
+   TA(1)=sin(BETA)*cos(ALPHA)
+   TA(2)=sin(BETA)*sin(ALPHA)
+   TA(3)=cos(BETA)
 
-         ALPHA=MCAMP(3)*(grnd()-0.5)
+   ALPHA=MCAMP(3)*(urand(3)-0.5)
 
-         ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
-         ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-         ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
-         ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
-         -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
+   ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
+   ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
+   ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
+   ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
+   -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
 
-         ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
-         ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
-         ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-         ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
-         -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
+   ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
+   ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
+   ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
+   ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
+   -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
 
-         ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-         ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
-         ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
-         ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
-         -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+   ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
+   ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
+   ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
+   ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
+   -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
-         DO 30 I=IT1,IT2
-            RP(I,1)=ROT(1,4)+ROT(1,1)*R(I,1)+ROT(1,2)*R(I,2)+ROT(1,3)*R(I,3)
-            RP(I,2)=ROT(2,4)+ROT(2,1)*R(I,1)+ROT(2,2)*R(I,2)+ROT(2,3)*R(I,3)
-            RP(I,3)=ROT(3,4)+ROT(3,1)*R(I,1)+ROT(3,2)*R(I,2)+ROT(3,3)*R(I,3)
-            UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
-            UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
-            UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
- 30      CONTINUE
+   DO I=IT1,IT2
+      RP(I,1)=ROT(1,4)+ROT(1,1)*R(I,1)+ROT(1,2)*R(I,2)+ROT(1,3)*R(I,3)
+      RP(I,2)=ROT(2,4)+ROT(2,1)*R(I,1)+ROT(2,2)*R(I,2)+ROT(2,3)*R(I,3)
+      RP(I,3)=ROT(3,4)+ROT(3,1)*R(I,1)+ROT(3,2)*R(I,2)+ROT(3,3)*R(I,3)
+      UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
+      UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
+      UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
+      ABP(I)=AB(I)
+   enddo
 
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
@@ -252,20 +428,20 @@ elseif (MCTYPE.EQ.4) then
 !     Perform a full chain rotation
 
 elseif (MCTYPE.EQ.5) then
-    
+
     call random_number(urand,rand_stat)
     IP=ceiling(urand(1)*NP)
     IB1=1
     IB2=NB
     IT1=NB*(IP-1)+IB1
     IT2=NB*(IP-1)+IB2
-    
+
     ALPHA=2.0_dp*PI*urand(2)
     BETA=acos(2.0_dp*urand(3)-1.0_dp)
     TA(1)=sin(BETA)*cos(ALPHA)
     TA(2)=sin(BETA)*sin(ALPHA)
     TA(3)=cos(BETA)
-   
+
     ! use ~central bead to put axes through
     ! you could also use center of mass if you wanted
     P1(1)=R((IT1+IT2)/2,1)
@@ -274,25 +450,25 @@ elseif (MCTYPE.EQ.5) then
 
     call random_number(urnd,rand_stat)
     ALPHA=MCAMP(5)*(urnd(1)-0.5)
-        
+
     ROT(1,1)=TA(1)**2.+(TA(2)**2.+TA(3)**2.)*cos(ALPHA)
     ROT(1,2)=TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
     ROT(1,3)=TA(1)*TA(3)*(1.-cos(ALPHA))+TA(2)*sin(ALPHA)
     ROT(1,4)=(P1(1)*(1.-TA(1)**2.) &
     -TA(1)*(P1(2)*TA(2)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-        
+
     ROT(2,1)=TA(1)*TA(2)*(1.-cos(ALPHA))+TA(3)*sin(ALPHA)
     ROT(2,2)=TA(2)**2.+(TA(1)**2.+TA(3)**2.)*cos(ALPHA)
     ROT(2,3)=TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
     ROT(2,4)=(P1(2)*(1.-TA(2)**2.) &
     -TA(2)*(P1(1)*TA(1)+P1(3)*TA(3)))*(1.-cos(ALPHA))+(P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-        
+
     ROT(3,1)=TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
     ROT(3,2)=TA(2)*TA(3)*(1.-cos(ALPHA))+TA(1)*sin(ALPHA)
     ROT(3,3)=TA(3)**2.+(TA(1)**2.+TA(2)**2.)*cos(ALPHA)
     ROT(3,4)=(P1(3)*(1.-TA(3)**2.) &
     -TA(3)*(P1(1)*TA(1)+P1(2)*TA(2)))*(1.-cos(ALPHA))+(P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
-        
+
     DO I=IT1,IT2
        RP(I,1)=ROT(1,4)+ROT(1,1)*R(I,1)+ROT(1,2)*R(I,2)+ROT(1,3)*R(I,3)
        RP(I,2)=ROT(2,4)+ROT(2,1)*R(I,1)+ROT(2,2)*R(I,2)+ROT(2,3)*R(I,3)
@@ -305,19 +481,19 @@ elseif (MCTYPE.EQ.5) then
 
 !     Perform full chain slide move (MCTYPE 6)
 elseif (MCTYPE.EQ.6) then
-   
+
    call random_number(urnd,rand_stat)
    IP=ceiling(urnd(1)*NP)
    IB1=1
    IB2=NB
    IT1=NB*(IP-1)+IB1
    IT2=NB*(IP-1)+IB2
-   
+
    call random_number(urand,rand_stat)
    DR(1)=MCAMP(6)*(urand(1)-0.5_dp)
    DR(2)=MCAMP(6)*(urand(2)-0.5_dp)
    DR(3)=MCAMP(6)*(urand(3)-0.5_dp)
-   
+
    DO I=IT1,IT2
       RP(I,1)=R(I,1)+DR(1)
       RP(I,2)=R(I,2)+DR(2)
@@ -328,7 +504,7 @@ elseif (MCTYPE.EQ.6) then
       ABP(I)=AB(I)
    enddo
 
-elseif (MCTYPE.EQ.7) then  
+elseif (MCTYPE.EQ.7) then
    ! Change AB (a.k.a HP1 binding type fore section of polymer)
    ! Move amplitude is ignored for this move type
 
@@ -337,7 +513,7 @@ elseif (MCTYPE.EQ.7) then
    IB1=ceiling(urand(2)*NB)
    if (winType.eq.0) then
        IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
-   elseif (winType.eq.1) then 
+   elseif (winType.eq.1) then
        call random_number(urnd,rand_stat)
        IB2=IB1+(2*nint(urand(3))-1)* &
                nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
@@ -374,7 +550,7 @@ elseif (MCTYPE.EQ.7) then
       UP(I,1)=U(I,1)
       UP(I,2)=U(I,2)
       UP(I,3)=U(I,3)
-   ENDDO    
+   ENDDO
 
 ! chain flip move
 elseif (MCTYPE.EQ.8) then
@@ -392,7 +568,7 @@ elseif (MCTYPE.EQ.8) then
       UP(IT1+I,2)=-U(IT2-I,2)
       UP(IT1+I,3)=-U(IT2-I,3)
       ABP(IT1+I)=AB(IT1+I)
-   ENDDO    
+   ENDDO
 ! switch two chains
 elseif(MCTYPE.EQ.9) then
    call random_number(urnd,rand_stat)
@@ -440,7 +616,7 @@ elseif(MCTYPE.EQ.10) then
         forward=.true.
         dR(1)=R(IT1+1,1)-R(IT1,1)
         dR(2)=R(IT1+1,2)-R(IT1,2)
-        dR(3)=R(IT1+1,3)-R(IT1,3)   
+        dR(3)=R(IT1+1,3)-R(IT1,3)
 
         Uvec(1)=U(IT1,1); Uvec(2)=U(IT1,2); Uvec(3)=U(IT1,3)
         ! chose coordinate system
@@ -480,7 +656,7 @@ elseif(MCTYPE.EQ.10) then
         RP(IT2,1)=R(IT2,1)+Uvec(1)*r_relative(1)+pDir(1)*r_relative(2)+tDir(1)*r_relative(3)
         RP(IT2,2)=R(IT2,2)+Uvec(2)*r_relative(1)+pDir(2)*r_relative(2)+tDir(2)*r_relative(3)
         RP(IT2,3)=R(IT2,3)+Uvec(3)*r_relative(1)+pDir(3)*r_relative(2)+tDir(3)*r_relative(3)
-        
+
         DO I=IT1,IT2-1
            RP(I,1)=R(I+1,1)
            RP(I,2)=R(I+1,2)
@@ -554,7 +730,7 @@ elseif(MCTYPE.EQ.10) then
 endif
 
 
-RETURN      
+RETURN
 END
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
 use setPrecision
@@ -645,11 +821,11 @@ subroutine random_perp(u,p,t,rand_stat)
 ! The subroutine generates the second two vectors in a unit triad
 ! The output vectors, p and t, are perpendicular to eachother and u
 ! The triad is randomly left or right handed
-use mersenne_twister      
+use mersenne_twister
 use setPrecision
 IMPLICIT NONE
-DOUBLE PRECISION, PARAMETER :: PI=3.141592654 ! Value of pi 
-type(random_stat) rand_stat  ! status of random number generator      
+DOUBLE PRECISION, PARAMETER :: PI=3.141592654 ! Value of pi
+type(random_stat) rand_stat  ! status of random number generator
 real urnd(1) ! single random number
 
 double precision v(2) ! random 2-vec
@@ -718,4 +894,4 @@ endif
 
 return
 end subroutine
-!---------------------------------------------------------------!      
+!---------------------------------------------------------------!

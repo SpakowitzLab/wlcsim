@@ -19,6 +19,7 @@
       DOUBLE PRECISION DEL
       DOUBLE PRECISION PVEC(679,8)
       INTEGER IND,CRS
+      INTEGER RING
       DOUBLE PRECISION EB,EPAR,EPERP
       DOUBLE PRECISION GAM,ETA
       DOUBLE PRECISION XIR,XIU
@@ -29,7 +30,8 @@
       DOUBLE PRECISION M
       DOUBLE PRECISION DT
       INTEGER I,N
-      DOUBLE PRECISION L,LP
+      DOUBLE PRECISION L,LP,LT
+      INTEGER Lk
       INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
 
 !     Load in the parameters for the simulation
@@ -38,9 +40,15 @@
       read (unit=5, fmt='(4(/))')
       read (unit=5, fmt=*) LP
       read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) LT
+      read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) L
       read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) LK
+      read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) LBOX
+      read (unit=5, fmt='(2(/))')
+      read (unit=5, fmt=*) LHC
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) REND
       read (unit=5, fmt='(2(/))')
@@ -48,14 +56,17 @@
       read (unit=5, fmt='(2(/))')
       read (unit=5, fmt=*) N
       close(5)
-      L=L/LP
-      LP=1.0d0
-      DEL=L/(N-1.0d0)
       if (N.EQ.1.0d0) then
           PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
           STOP 1
       endif
-      REND=REND*L
+      REND=REND*L/LP
+
+      IF (RING.EQ.0) THEN
+         DEL=L/LP/(N-1.0_DP)
+      ELSE
+         DEL=L/LP/(N-1.0_DP)
+      ENDIF
 
 !     Load the tabulated parameters
 
@@ -75,17 +86,17 @@
          stop 1
          EB=LP/DEL
          GAM=DEL
-         XIR=L/N
+         XIR=L/LP/N
          SIMTYPE=1
       endif
 
 !    Setup the parameters for GC simulation
 
       if (DEL.GT.PVEC(679,1)) then
-         EPAR=1.5/(DEL*LP**2.)
-         GAM=0.
+         EPAR=1.5/DEL
+         GAM=0.0_dp
          SIMTYPE=3
-         XIR=L/N
+         XIR=L/N/LP
       endif
 
 !    Setup the parameters for ssWLC simulation
@@ -93,52 +104,50 @@
       if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
          SIMTYPE=2
 
-         CRS=0
-         IND=1
-         do while (CRS.EQ.0)
+        CRS=0
+        IND=1
+        do while (CRS.EQ.0)
             if (DEL.LE.PVEC(IND,1)) then
-               CRS=1
+                CRS=1
             else
-               IND=IND+1
+                IND=IND+1
             endif
-         enddo
+        enddo
 
-         I=2
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EB=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        !     Perform linear interpolations
 
-         I=3
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         GAM=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        I=2
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        EB=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-         I=4
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EPAR=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        I=3
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        GAM=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-         I=5
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         EPERP=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        I=4
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        EPAR=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-         I=6
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         ETA=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        I=5
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        EPERP=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-         I=7
-         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-         XIU=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+        I=6
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        ETA=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-!         I=8
-!         M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-!         DT=XIU*(M*(DEL-PVEC(IND,1))+PVEC(IND,I))
+        I=7
+        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+        XIU=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
 
-         EB=EB/DEL
-         EPAR=EPAR/DEL
-         EPERP=EPERP/DEL
-         GAM=DEL*GAM
-
-         XIU=XIU*L/N
-         XIR=L/N
-         DT=0.5*XIU/(EPERP*GAM**2.)
+        EB=LP*EB/(DEL*LP)
+        EPAR=EPAR/(DEL*LP*LP)
+        EPERP=EPERP/(DEL*LP*LP)
+        GAM=DEL*LP*GAM
+        ETA=ETA/LP
+        XIU=XIU*L/N/LP
+        XIR=L/LP/N
+        DT=0.5*XIU/(EPERP*GAM**2.)
 
       endif
 

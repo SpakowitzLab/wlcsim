@@ -51,6 +51,14 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
 !   Load the input parameters
     Type(MCvar), intent(inout) :: mc      ! system varibles
     Type(MCData), intent(inout) :: md     ! system allocated data
+!     Alexander Polynomial Variables
+    DOUBLE PRECISION, ALLOCATABLE :: CROSS(:,:)   !Matrix of information for crossings in a 2-D projection of the polymer
+    DOUBLE PRECISION, ALLOCATABLE :: CROSSP(:,:)  !Matrix of crossings for the trial configuration
+    INTEGER NCROSS
+    INTEGER NCROSSP
+    INTEGER CrossSize
+    INTEGER DELTA             !Alexander polynomial evaluated at t=-1; used for knot checking
+    INTEGER DELTAP            !Alexandper polynomial of trial configuration
 
 
     EB=   mc%PARA(1)
@@ -191,6 +199,22 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
         enddo
     endif
     close (3)
+  IF (mc%RING .EQ. 1) then
+     ! --- Initial Writhe
+     call WRITHE(md%R,mc%N,md%Wr)
+
+     !     Initialize the Cross matrix
+
+     CrossSize=N**2
+     ALLOCATE(Cross(CrossSize,6))
+     ALLOCATE(CrossP(CrossSize,6))
+
+
+     !     Get initial value of Alexander polynomial and Cross matrix
+     NCross=0
+     CALL ALEXANDERP(md%R,mc%N,DELTA,Cross,CrossSize,NCross)
+     !     Begin Monte Carlo simulation
+  ENDIF
 ! -------------------------------------
 !
 !   Begin Monte Carlo simulation
@@ -243,12 +267,28 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
               mc%DEBind=0.0
           endif
           if (INTERP_BEAD_LENNARD_JONES.EQ.1)
-              call MC_self(DESELF,md%R,md%U,md%RP,md%UP,mc%NT,mc%NB,mc%NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+              !call MC_self(DESELF,md%R,md%U,md%RP,md%UP,mc%NT,mc%NB,mc%NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+           IF (MCTYPE.EQ.1) THEN
+              CALL DE_SELF_CRANK(DESELF,md%R,md%RP,mc%NT,mc%N,mc%NP,mc%PARA,mc%RING,IB1,IB2)
+
+           ELSEIF (MCTYPE.EQ.2) THEN
+              CALL ENERGY_SELF_SLIDE(ESELF,md%R,mc%NT,mc%N,mc%NP,mc%PARA,mc%RING,IB1,IB2)
+              CALL ENERGY_SELF_SLIDE(ESELFP,md%R,mc%NT,mc%N,mc%NP,mc%PARA,mc%RING,IB1,IB2)
+
+              DESELF=ESELFP-ESELF
+           ELSEIF (MCTYPE.EQ.3) THEN
+               CALL DE_SELF_CRANK(DESELF,md%R,md%RP,mc%NT,mc%N,mc%NP,mc%PARA,mc%RING,IB1,IB2)
+           ELSEIF (MCTYPE.EQ.10) THEN
+               PRINT *, 'Nobody has used this branch before. write a DE_SELF_CRANK to calculate change in self-interaction energy from this move, sorry!'
+               STOP 1
+           ELSE
+              DESELF=0.
+           ENDIF
           endif
 
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
-          if (INTON.EQ.1) then
+          if (FIELD_INTERACTIONS.EQ.1) then
              if (MCTYPE.EQ.9) then
                  !skip if doesn't do anything
                  if (abs(mc%CHI_ON).lt.0.00001) CYCLE

@@ -8,22 +8,22 @@
 !     Andrew Spakowitz
 !     Written 9-1-04
 
-      SUBROUTINE force_elas(FELAS,TELAS,R,U,NT,N,NP, &
-           EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
+      SUBROUTINE force_elas(FELAS,TELAS,R,U,NT,N,NP, EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
 
-      DOUBLE PRECISION FELAS(NT,3) ! Elastic force
-      DOUBLE PRECISION TELAS(NT,3) ! Elastic force
-      DOUBLE PRECISION R(NT,3)  ! Bead positions
-      DOUBLE PRECISION U(NT,3)  ! Tangent vectors
+      DOUBLE PRECISION, INTENT(OUT) :: FELAS(NT,3) ! Elastic force
+      DOUBLE PRECISION, INTENT(OUT) :: TELAS(NT,3) ! Elastic force
+      DOUBLE PRECISION, INTENT(IN) ::  R(NT,3)  ! Bead positions
+      DOUBLE PRECISION, INTENT(IN) :: U(NT,3)  ! Tangent vectors
       DOUBLE PRECISION B(NT)    ! Bond lengths
-      INTEGER I,J,IB            ! Index holders
+      INTEGER I,J,IB,IBP1            ! Index holders
+      INTEGER, INTENT(IN) :: N,NT,NP  ! Number of bead
       INTEGER N,NT,NP           ! Number of bead
       INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
 
 !     Polymer properties
 
-      DOUBLE PRECISION EB,EPAR,EPERP
-      DOUBLE PRECISION GAM,ETA
+      DOUBLE PRECISION, INTENT(IN) :: EB,EPAR,EPERP
+      DOUBLE PRECISION, INTENT(IN) :: GAM,ETA
 
 !     Variables for force and torque calculations
 
