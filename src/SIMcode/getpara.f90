@@ -69,6 +69,10 @@
 !     Setup the parameters for WLC simulation
 
       if (DEL.LT.PVEC(1,1)) then
+         PRINT*, 'It has never been known if the WLC code actually works.'
+         PRINT*, 'An entire summer student (Luis Nieves) was thrown at this'
+         PRINT*, 'problem and it is still not solved.'
+         stop 1
          EB=LP/DEL
          GAM=DEL
          XIR=L/N

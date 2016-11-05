@@ -53,18 +53,16 @@ para_in, para_inout = getpara....
 
 mc_init() or load_from_file(para_inout)
 
-if (simtype == 'brad'):
+if (simtype == 'replica couple integer parameters'):
     for i in range(numTimePoints):
         wlcsim(i, para_in, para_inout, output)
         #get_structure_quantities_brad(output, [1, 3, 4, 6])
         save_output(output)
-        save_restart_stuff(i, para_inout)
 
 elseif (simtype == 'bruno'):
     for i in range(numTimePoints):
         other_wlcsim(i, para, output)
         save_output(output)
-        save_restart_stuff(i, para_inout)
 
 OUTPUT:
 r, u
@@ -74,3 +72,16 @@ REORGANIZATION:
 2) SIMcode should just have wlcsim, getpara, initcond
 3) MISCcode purge
 4) move collision code to misccode
+
+
+STACK:
+1. change mt199764123o49pu12r for mersenne_twister
+2. finish contributors scratch information
+3. add input: setType for initcond and verify parameters are passed correctly
+4. change makefile to have FC=mpifort, and scan_wlcsim.py to run with mpirun if
+   necessary
+5. add number of mpi processes per simulation to use into scan_wlcsim.py
+6. combine confinement branch with MC_confine.f95
+6.5. use Brad's MC_self....
+7. change call to MC_eelas
+8. change call to MC_move

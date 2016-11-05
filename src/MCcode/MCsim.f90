@@ -2,45 +2,59 @@
 
 !     This subroutine performs a Monte Carlo simulation on the
 !     polymer chain.
+!
+!    Quinn Made Changes to this file starting on 12/15/15    
+!
 
-      SUBROUTINE MCsim(R,U,NT,N,NP,NSTEP,BROWN, &
-           INTON,IDUM,PARA,MCAMP,SUCCESS,MOVEON,WINDOW,SIMTYPE)
+SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
 
-      use mt19937, only : grnd
+    use mersenne_twister
+    use simMod
 
-      PARAMETER (PI=3.141592654) ! Value of pi
+    IMPLICIT NONE 
 
-      DOUBLE PRECISION R(NT,3)  ! Bead positions
-      DOUBLE PRECISION U(NT,3)  ! Tangent vectors
-      DOUBLE PRECISION RP(NT,3)  ! Bead positions
-      DOUBLE PRECISION UP(NT,3)  ! Tangent vectors
-      INTEGER N,NP,NT           ! Number of beads
-      INTEGER NSTEP             ! Number of MC steps
-      INTEGER BROWN            ! Turn on fluctuations
-      INTEGER INTON             ! Include polymer interactions
+    INTEGER, intent(in) :: NSTEP             ! Number of MC steps
+    INTEGER, intent(in) :: INTON             ! Include polymer interactions
+    
+!   Variables for the simulation
+    
+    INTEGER ISTEP             ! Current MC step index
+    DOUBLE PRECISION PROB     ! Calculated test prob
+    DOUBLE PRECISION TEST     ! Random test variable
+    INTEGER IP                ! Test polymer 
+    INTEGER IB1               ! Test bead position 1
+    INTEGER IT1               ! Index of test bead 1
+    INTEGER IB2               ! Test bead position 2
+    INTEGER IT2               ! Index of test bead 2
+    INTEGER IT3, IT4          ! second polymer for polymer swap
+    logical forward           ! direction of reptation move
 
-!     Variables for the simulation
-
-      INTEGER ISTEP             ! Current MC step index
-      DOUBLE PRECISION PROB     ! Calculated test prob
-      DOUBLE PRECISION TEST     ! Random test variable
-      INTEGER IB                ! Test bead
-      INTEGER IP                ! Test polymer
-      INTEGER IB1               ! Test bead position 1
-      INTEGER IT1               ! Index of test bead 1
-      INTEGER IB2               ! Test bead position 2
-      INTEGER IT2               ! Index of test bead 2
+    INTEGER I,J
+    
+    ! in Quinn's struct
+    ! INTEGER MCTYPE                    ! Type of MC move
+    
 
       INTEGER TEMP
-      REAL ran1                 ! Random number generator
-      INTEGER IDUM              ! Seed for the generator
-      INTEGER NOW(3)            ! Time now (hr,min,sec)
-      INTEGER I
-      DOUBLE PRECISION R0(3)
+      ! REAL ran1                 ! Random number generator
+      ! INTEGER IDUM              ! Seed for the generator
+      ! INTEGER NOW(3)            ! Time now (hr,min,sec)
+      ! DOUBLE PRECISION R0(3)
+
+
+    EB=   mc%PARA(1)
+    EPAR= mc%PARA(2)
+    EPERP=mc%PARA(3)
+    GAM=  mc%PARA(4)
+    ETA=  mc%PARA(5)
+    XIR=  mc%PARA(6)
+    XIU=  mc%PARA(7)
+    LHC=  mc%PARA(9)
+    VHC=  mc%PARA(10)
 
 !     Energy variables
 
-      DOUBLE PRECISION DEELAS   ! Change in bending energy
+      DOUBLE PRECISION DEELAS(3)   ! Change in bending energy
       DOUBLE PRECISION DESELF   ! Change in self energy
       DOUBLE PRECISION DEEX     ! Change in external energy
       DOUBLE PRECISION ENERGY
@@ -71,70 +85,61 @@
       DOUBLE PRECISION PARA(10)
       DOUBLE PRECISION FCOM
 
-!     Load the input parameters
 
-      EB=PARA(1)
-      EPAR=PARA(2)
-      EPERP=PARA(3)
-      GAM=PARA(4)
-      ETA=PARA(5)
-      XIR=PARA(6)
-      XIU=PARA(7)
-      LBOX=PARA(8)
-      FCOM=PARA(9)
-      VHC=PARA(10)
+      ! in mc
+      ! MINAMP(1)=0.0*PI
+      ! MINAMP(2)=0.0
+      ! MINAMP(3)=0.0*PI
+      ! MINAMP(4)=0.0*PI
+      ! MINAMP(5)=0.1*PI
+      ! MINAMP(6)=0.01
 
-      MINAMP(1)=0.0*PI
-      MINAMP(2)=0.0
-      MINAMP(3)=0.0*PI
-      MINAMP(4)=0.0*PI
-      MINAMP(5)=0.1*PI
-      MINAMP(6)=0.01
+      ! MAXAMP(1)=2.*PI
+      ! MAXAMP(2)=LBOX
+      ! MAXAMP(3)=2.*PI
+      ! MAXAMP(4)=2.*PI
+      ! MAXAMP(5)=2.*PI
+      ! MAXAMP(6)=LBOX
 
-      MAXAMP(1)=2.*PI
-      MAXAMP(2)=LBOX
-      MAXAMP(3)=2.*PI
-      MAXAMP(4)=2.*PI
-      MAXAMP(5)=2.*PI
-      MAXAMP(6)=LBOX
+      ! NADAPT(1)=1000
+      ! NADAPT(2)=1000
+      ! NADAPT(3)=1000
+      ! NADAPT(4)=1000
+      ! NADAPT(5)=1000
+      ! NADAPT(6)=1000
+      ! if (NSTEP.LE.NADAPT(1)) then
+      !    NADAPT(1)=NSTEP
+      ! endif
+      ! if (NSTEP.LE.NADAPT(2)) then
+      !    NADAPT(2)=NSTEP
+      ! endif
+      ! if (NSTEP.LE.NADAPT(3)) then
+      !    NADAPT(3)=NSTEP
+      ! endif
+      ! if (NSTEP.LE.NADAPT(4)) then
+      !    NADAPT(4)=NSTEP
+      ! endif
+      ! if (NSTEP.LE.NADAPT(5)) then
+      !    NADAPT(5)=NSTEP
+      ! endif
 
-      NADAPT(1)=1000
-      NADAPT(2)=1000
-      NADAPT(3)=1000
-      NADAPT(4)=1000
-      NADAPT(5)=1000
-      NADAPT(6)=1000
-      if (NSTEP.LE.NADAPT(1)) then
-         NADAPT(1)=NSTEP
-      endif
-      if (NSTEP.LE.NADAPT(2)) then
-         NADAPT(2)=NSTEP
-      endif
-      if (NSTEP.LE.NADAPT(3)) then
-         NADAPT(3)=NSTEP
-      endif
-      if (NSTEP.LE.NADAPT(4)) then
-         NADAPT(4)=NSTEP
-      endif
-      if (NSTEP.LE.NADAPT(5)) then
-         NADAPT(5)=NSTEP
-      endif
+      ! PDESIRE(1)=0.5
+      ! PDESIRE(2)=0.5
+      ! PDESIRE(3)=0.5
+      ! PDESIRE(4)=0.5
+      ! PDESIRE(5)=0.5
+      ! PDESIRE(6)=0.5
 
-      PDESIRE(1)=0.5
-      PDESIRE(2)=0.5
-      PDESIRE(3)=0.5
-      PDESIRE(4)=0.5
-      PDESIRE(5)=0.5
-      PDESIRE(6)=0.5
+      ! SUCCESS(1)=0
+      ! SUCCESS(2)=0
+      ! SUCCESS(3)=0
+      ! SUCCESS(4)=0
+      ! SUCCESS(5)=0
+      ! SUCCESS(6)=0
 
-      SUCCESS(1)=0
-      SUCCESS(2)=0
-      SUCCESS(3)=0
-      SUCCESS(4)=0
-      SUCCESS(5)=0
-      SUCCESS(6)=0
-
-      DEELAS=0.
+      ! DEELAS(1)=0.0_dp
+      ! DEELAS(2)=0.0_dp
+      ! DEELAS(3)=0.0_dp
       DESELF=0.
       DEEX=0.
 
@@ -145,16 +150,16 @@
 
       DO WHILE (ISTEP.LE.NSTEP)
 
-         DO 10 MCTYPE=1,6
+         DO MCTYPE=1,6
 
             if (MOVEON(MCTYPE).EQ.0) then
-               goto 60
+                cycle
             endif
 
             call MC_move(R,U,RP,UP,NT,N,NP,IP,IB1,IB2,IT1,IT2,IDUM,MCTYPE,MCAMP)
 
             if (SIMTYPE.EQ.1.AND.abs(IB2-IB1).LE.1) then
-               goto 60
+                cycle
             endif
 
 !     Calculate the change in polymer elastic energy using
@@ -185,7 +190,7 @@
 
 !     Change the position if appropriate
 
-            ENERGY=DEELAS+DESELF+DECOM
+            ENERGY=sum(DEELAS)+DESELF+DECOM
 
             PROB=exp(-ENERGY)
             if (BROWN.EQ.1) then
@@ -223,22 +228,23 @@
 
                SUCCESS(MCTYPE)=0
 
-               IB=1
-               DO 40 I=1,NP
-                  R0(1)=nint(R(IB,1)/LBOX-0.5)*LBOX
-                  R0(2)=nint(R(IB,2)/LBOX-0.5)*LBOX
-                  R0(3)=nint(R(IB,3)/LBOX-0.5)*LBOX
-                  DO 50 J=1,N
-                     R(IB,1)=R(IB,1)-R0(1)
-                     R(IB,2)=R(IB,2)-R0(2)
-                     R(IB,3)=R(IB,3)-R0(3)
-                     IB=IB+1
- 50              CONTINUE
- 40           CONTINUE
+               ! quinn thinks probs made subroutine for this, period bdry
+               ! IB=1
+               ! DO 40 I=1,NP
+               !    R0(1)=nint(R(IB,1)/LBOX-0.5)*LBOX
+               !    R0(2)=nint(R(IB,2)/LBOX-0.5)*LBOX
+               !    R0(3)=nint(R(IB,3)/LBOX-0.5)*LBOX
+               !    DO 50 J=1,N
+               !       R(IB,1)=R(IB,1)-R0(1)
+               !       R(IB,2)=R(IB,2)-R0(2)
+               !       R(IB,3)=R(IB,3)-R0(3)
+               !       IB=IB+1
+ ! 50              CONTINUE
+ ! 40           CONTINUE
 
             endif
 
- 60         CONTINUE
+         ENDDO
 
 
  10      CONTINUE
