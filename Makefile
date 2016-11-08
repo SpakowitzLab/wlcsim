@@ -64,7 +64,8 @@ clean: dataclean
 dataclean:
 	mkdir -p data trash
 	touch "data/`date`"
-	mv data/* trash/.
+	cp -r data trash/
+	rm data/*
 
 DEATH=rm -rf trash data savedata par-run-dir.*
 distclean: clean
