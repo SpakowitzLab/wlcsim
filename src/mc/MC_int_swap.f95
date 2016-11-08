@@ -81,7 +81,7 @@ do IB=I1,I2
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(mc%confineType,RBIN,mc%LBOX,mc%NBINX,mc%DEL,IX,IY,IZ,WX,WY,WZ)
+   call interp(mc%confineType,RBIN,mc%LBOX,mc%NBINX,mc%dbin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !

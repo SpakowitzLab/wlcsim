@@ -88,8 +88,6 @@ STACK:
 9. check set_type is set to 6 for rings
 10. check set_type matches boundary conditions
 11. inton -> field_interactions, self interactions -> INTERP_BEAD_LENNARD_JONES
-12. ASK ANDY why both sides of IB1/IB2 are used to calculate energy change for
-    WLC code in MC_elas. if IB1==IB2, isn't that double counting....
-13. document that adapt.f90 and adaptCof.f90 are teh "crux" of optimizing the MC
+13. document that adapt.f90 and adaptCof.f90 are the "crux" of optimizing the MC
 
 

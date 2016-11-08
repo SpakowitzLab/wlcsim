@@ -1,9 +1,5 @@
 !! ---------------------------------------------------------------*
-      
-!     
-!     This subroutine sets the initial condition for a chain within
-!     the capsid
-!     
+     
 !     Andrew Spakowitz
 !     Written 4-16-04
 !

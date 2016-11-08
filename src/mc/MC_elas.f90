@@ -169,7 +169,10 @@ DOUBLE PRECISION GI(3)
              IT2P1 = IT2 + 1
          endif
 
-         if (SIMTYPE.EQ.1.AND.IB2.NE.IB1.AND.((IB2.NE.1).OR.(RING.EQ.1))) then
+         ! if we're talking about a WLC, if we crankshaft a single bead, that's a no-op, since the u's are directly
+         ! determined by the r's. Thus we're not worried about double counting the energy change here since the energy change
+         ! should be zero by definition if IB1==IB2.
+         if (SIMTYPE.EQ.1.AND.((IB2.NE.1).OR.(RING.EQ.1))) then
             if (IB2.EQ.1) then
                 IT2M1 = NB
             else
