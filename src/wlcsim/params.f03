@@ -11,49 +11,39 @@
 !   --------------------------------------------------------------
 module params
     use, intrinsic :: iso_fortran_env
+    use, intrinsic :: IEEE_ARITHMETIC
 
     IMPLICIT NONE
 
     private
-    public :: Nmovetypes, dp, pi, wlcsim_params !todo, rename below
+    public :: nMoveTypes, dp, pi, wlcsim_params
 
     ! hardcoded params. will need to change if certain parts of code change
-    integer, parameter :: Nmovetypes = 10 ! number of MC move types
+    integer, parameter :: nMoveTypes = 10 ! number of MC move types
 
     ! precision of simulations
     integer, parameter :: dp = real64 ! preferred over SELECTED_real_Kind(15,307)
 
     ! universal constants
     real(dp) :: pi = 4 * atan(1.0_dp) ! fully accurate, adaptive precision
+    real(dp) :: nan = IEEE_VALUE(IEEE_QUIET_NAN)
 
     ! for all parameters that cannot change during individual simulations
+    ! these are documented more thoroughly where they are read in (see the
+    ! subroutine get_input_from_file), in the docs (TODO), and often the default
+    ! values will help with understanding how the variable is used.
     type wlcsim_params
-    !     Simulation parameters
-        integer NT                ! Total number of beads  NT=NP*N*G
-        integer NB                ! Number of beads in a polymer NB=N*G
-        integer N                 ! Number of monomers in a polymer
-        integer G                 ! Beads per monomer
-        integer NP                ! Number of polymers
-        real(dp) lbox(3)  ! Box length (approximate)
-        real(dp) dbin      ! Discretization size (approximate)
-        real(dp) L0       ! Equilibrium segment length (same as gam)
-        real(dp) V        ! Bead volume
-        real(dp) FA       ! Fraction of A beads
-        real(dp) LAM      ! Chemical correlation parameter
-        real(dp) EPS      ! Elasticity l0/(2lp)
-        real(dp) CHI      ! Chi parameter value (solvent-polymer)
-        real(dp) KAP      ! Incompressibility parameter
-        real(dp) h_A      ! fild strength
-        real(dp) k_field  ! wave vector of template field
-        real(dp) Fpoly    ! Fraction Polymer
-        real(dp) EU       ! Energy of binding for unmethalated
-        real(dp) EM       ! Energy of binding for methalated
-        real(dp) HP1_Bind ! Energy of binding of HP1 to eachother
-        real(dp) F_METH   ! Fraction methalated is using option 2
-        real(dp) LAM_METH ! eigenvalue of methalation setup
-        real(dp) mu       ! chemical potential of HP1
-        integer NBIN     ! Number of bins
-        integer NBINX(3) ! Number of bin on an edge
+    !   Simulation parameters
+        integer nT                ! Total number of beads  NT=NP*N*G
+        integer nB                ! Number of beads in a polymer NB=N*G
+        integer nMpP              ! Number of monomers (NOT BEADS!) in a polymer
+        integer nBpM              ! number beads per monomer
+        integer nP                ! Number of polymers
+        real(dp) l0       ! Equilibrium segment length (same as gam)
+        real(dp) beadVolume        ! Bead volume
+        real(dp) fPoly    ! volume fraction of Polymer in simulation volume
+        real(dp) fA       ! Fraction of A beads
+        real(dp) lam      ! Chemical correlation parameter (eigenvalue of transition matrix that generates A/B's)
         real(dp) eb     ! Energy of bending
         real(dp) epar   ! energy "parallel" i.e. psring energy
         real(dp) eperp  ! energy "perpendicular" i.e. shear energy
@@ -61,23 +51,42 @@ module params
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
         real(dp) xiu    ! rotational drag
-        real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
-        real(dp) del    ! L0/(lp)
+        real(dp) eps      ! number of kuhn lengths between beads
+        real(dp) del      ! number of persistence lengths between beads
+        real(dp) chi      ! Chi parameter value (solvent-polymer) (Flory-Huggins separation constant (how much A/B's hate each))
+        real(dp) kap      ! Incompressibility parameter of the melt
 
+    !   for passing 1st order phase transition in (quinn/shifan's) random copolymer MC sims
+        real(dp) kField   ! wave vector of applied sinusoidal field (used in PT to step around 1st order phase transition)
+        real(dp) hA       ! strength of applied sinusoidal field (used in PT to step around 1st order phase transition)
+        real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
+
+    !   for simulating chromatin methylation
+        real(dp) EU       ! Energy of HP1 binding for unmethalated sites
+        real(dp) EM       ! Energy of HP1 binding for methalated sites
+        real(dp) HP1_Bind ! Energy of binding of HP1 to eachother
+        real(dp) F_METH   ! Fraction methalated is using option 2 ( for initialization )
+        real(dp) LAM_METH ! eigenvalue of transition matrix generating initial methalation
+        real(dp) mu       ! chemical potential of HP1
+
+    !   box size things
+        integer NBIN     ! Number of bins
+        integer NBINX(3) ! Number of bin on an edge
+        real(dp) lbox(3)  ! Box length (approximate)
+        real(dp) dbin      ! Discretization size (approximate)
 
     !   Monte Carlo Variables (for adaptation)
         integer movetypes
-        real(dp) PDesire(Nmovetypes) ! desired hit rate
-        real(dp) MAXWindoW(Nmovetypes)         ! Max Size of window for bead selection
-        real(dp) MINWindoW(Nmovetypes)         ! Min Size of window for bead selection
-        real(dp) MinAMP(Nmovetypes) ! minium amplitude
-        real(dp) MaxAMP(Nmovetypes) ! maximum amplitude
-        integer MOVEON(Nmovetypes)         ! Is the move active
-        real(dp) winTarget(Nmovetypes) ! target for ratio of window to anmplitude
-        integer NADAPT(Nmovetypes) ! Nunber of steps between adapt
+        real(dp) PDesire(nMoveTypes) ! desired hit rate
+        real(dp) MAXWindoW(nMoveTypes)         ! Max Size of window for bead selection
+        real(dp) MINWindoW(nMoveTypes)         ! Min Size of window for bead selection
+        real(dp) MinAMP(nMoveTypes) ! minium amplitude
+        real(dp) MaxAMP(nMoveTypes) ! maximum amplitude
+        integer MOVEON(nMoveTypes)         ! Is the move active
+        real(dp) winTarget(nMoveTypes) ! target for ratio of window to anmplitude
+        integer NADAPT(nMoveTypes) ! Nunber of steps between adapt
         real(dp) min_accept  ! threshold for deciding to usually not use a move
         integer reduce_move  ! whether or not to stop usuing a move when it goes below min_accept success
-
 
     !   Timing variables
         integer NPT                ! number of steps between parallel tempering
@@ -137,20 +146,20 @@ module params
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
-        real(dp), allocatable, dimension(:):: PHIH ! Applied Field
-        real(dp), allocatable, dimension(:):: Vol ! Volume fraction of A
-        integer, allocatable, dimension(:):: AB            ! Chemical identity of beads
-        integer, allocatable, dimension(:):: ABP           ! Test Chemical identity of beads
-        integer, allocatable, dimension(:):: METH          ! Methalation state of beads
+        real(dp), allocatable, dimension(:):: PHIH ! Quinn's sinusoidal field for passing 1st order phase transitions
+        real(dp), allocatable, dimension(:):: Vol  ! Volume fraction of A
+        integer, allocatable, dimension(:):: AB    ! Chemical identity of beads
+        integer, allocatable, dimension(:):: ABP   ! Test Chemical identity of beads
+        integer, allocatable, dimension(:):: METH  ! Methalation state of beads
         real(dp), allocatable, dimension(:):: DPHIA    ! Change in phi A
         real(dp), allocatable, dimension(:):: DPHIB    ! Change in phi A
         integer, allocatable, dimension(:) :: indPHI   ! indices of the phi
 
     !   Monte Carlo Variables (for adaptation)
-        real(dp) MCAMP(Nmovetypes) ! Amplitude of random change
-        real(dp) WindoW(Nmovetypes)         ! Size of window for bead selection
-        integer SUCCESS(Nmovetypes)        ! Number of successes
-        real(dp) PHit(Nmovetypes) ! hit rate
+        real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
+        real(dp) WindoW(nMoveTypes)         ! Size of window for bead selection
+        integer SUCCESS(nMoveTypes)        ! Number of successes
+        real(dp) PHit(nMoveTypes) ! hit rate
 
     !   Energys
         !real(dp) Eint     ! running Eint
@@ -190,113 +199,93 @@ module params
 
 contains
 
-subroutine MCvar_setparams(mc,fileName)
-! Based on Elena's readkeys subroutine
-    use INPUTparaMS, only : readLINE, readA, readF, readI, reado
-    IMPLICIT NONE
-    real(dp), parameter :: PI=3.141592654_dp
-    type(MCvar), intent(out) :: mc
-    character*16, intent(in) :: fileName  ! file with parameters
-    integer :: PF   ! input file unit
-    LOGICAL :: fileend=.FALSE. ! done reading file?
-    CHARACTER*100 :: WORD ! keyword
-    integer :: NITEMS ! number of items on the line in the parameter file
-    real(dp) NAN_dp
-    NAN_dp=0;NAN_dp=NAN_dp/NAN_dp
-
-    ! ----------------------------------------------------------
-    !
-    !  set Default values
-    !
-    ! ----------------------------------------------------------
-
+subroutine set_param_defaults(wlc_p)
+    implicit none
+    type(wlcsim_params), intent(out) :: wlc_p
     ! file IO
-    mc%FRMfile=.FALSE.
-    mc%FRMMETH=.FALSE.
-    mc%FRMFIELD=.false.
-    mc%saveU=.FALSE.
-    mc%savePhi=.FALSE.
-    mc%FRMCHEM=.FALSE.
-    mc%restart=.FALSE.
+    wlc_p%FRMfile=.FALSE.      ! don't load initial bead positions from file
+    wlc_p%FRMMETH=.FALSE.      ! don't load initial "methyl" status from file
+    wlc_p%FRMFIELD=.false.     ! don't load initial field values from file
+    wlc_p%saveU=.true.         ! do save orientation vectors (makes restart of ssWLC possible)
+    wlc_p%savePhi=.FALSE.      ! don't save A/B density per bin (not needed for restart)
+    wlc_p%FRMCHEM=.FALSE.      ! don't load initial a/b states from file
+    wlc_p%restart=.FALSE.      ! don't restart from previously saved simulation
 
     ! geometry options
-    mc%NP  =1
-    mc%N   =2000
-    mc%G   =1
-    mc%NB=mc%G*mc%N
-    mc%lbox(1)=25.0_dp
-    mc%lbox(2)=25.0_dp
-    mc%lbox(3)=25.0_dp
-    mc%dbin =1.0_dp
-    mc%L0  =1.25_dp
-    mc%V   =0.1_dp
-    mc%FA  =0.5_dp
-    mc%LAM =0.0_dp
-    mc%F_METH=0.5_dp
-    mc%LAM_METH=0.9_dp
-    mc%Fpoly=0.025_dp
-    mc%k_field=1.5708_dp !0.3145_dp
+    wlc_p%NP  =1               ! one polymer
+    wlc_p%nB  =200             ! 200 beads per polymer
+    wlc_p%nBpM = 10
+    wlc_p%nMpP = wlc_p%nB / wlc_p%nBpM
+    wlc_p%nT = wlc_p%nP * wlc_p%nB
+    wlc_p%lbox(1)=25.0_dp      ! arbitrary box size
+    wlc_p%lbox(2)=25.0_dp
+    wlc_p%lbox(3)=25.0_dp
+    wlc_p%dbin =1.0_dp         ! unit bin size
+    wlc_p%l0  =1.25_dp         ! TODO: not input
+    wlc_p%beadVolume   =0.1_dp ! much smaller than space between beads
+    wlc_p%fA  =0.5_dp  ! half A, half B by default
+    wlc_p%LAM =0.0_dp  ! perfectly random sequence  (see generating_sequences.rst for details)
+    wlc_p%F_METH=0.5_dp ! half beads methylated by default
+    wlc_p%LAM_METH=0.9_dp ! highly alternating sequence by default
+    wlc_p%fPoly=0.025_dp   ! volume fraction of plymer corresponding to HELA DNA in cytoplasm
+    wlc_p%k_field=0.0_dp ! some previous values: !1.5708_dp !0.3145_dp
 
     ! energy parameters
-    mc%EPS =0.3_dp
-    mc%CHI =0.0_dp
-    mc%h_A =0.0_dp
-    mc%KAP =10.0_dp
-    mc%EU  =-1.52_dp
-    mc%EM  =0.01_dp
-    mc%mu  =0.0_dp
-    mc%HP1_Bind=0.0_dp !-28.0_dp
+    wlc_p%EPS =0.3_dp ! TODO: not input
+    wlc_p%CHI =0.0_dp ! don't use chi by default
+    wlc_p%hA =0.0_dp  ! don't use weird artificial field by default
+    wlc_p%KAP =10.0_dp ! "fairly" incompressible --Quinn
+    wlc_p%EU  =0.0_dp ! a function of coarse graining. This should be set by hand if needed.
+    wlc_p%EM  =0.0_dp ! by default, no hp1 binding energy included
+    wlc_p%mu  =0.0_dp ! by default, no hp1 binding included
+    wlc_p%HP1_Bind=0.0_dp ! by default, no binding of HP1 to each other
 
     ! options
-    mc%movetypes=10
-    mc%settype = 4 ! 4 for shereical
-    mc%confinetype = 3 ! 3 for sherical
-    mc%simtype=1
-    mc%min_accept=0.05
+    wlc_p%movetypes=nMoveTypes
+    wlc_p%initCondType = 4 ! 4 for sphereical
+    wlc_p%confineType = 3 ! 3 for spherical
+    wlc_p%simtype=0    ! you better at least choose what kind of simulation you want
+    wlc_p%min_accept=0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
 
     ! timing options
-    mc%NStep=400000
-    mc%NNoInt=100
-    mc%indMAX=180
-    mc%reduce_move=10
-    mc%useSchedule=.False.
-    mc%KAP_ON=1.0_dp
-    mc%CHI_ON=1.0_dp
-    mc%Couple_ON=1.0_dp
-    mc%N_KAP_ON=1
-    mc%N_CHI_ON=1
-    mc%recenter_on=.TRUE.
-    mc%INITIAL_MAX_S=0.1
+    wlc_p%NStep=400000  ! number of simulation steps to take
+    wlc_p%NNoInt=100    ! number of simulation steps before turning on interactions in Quinn's MC scheduler
+    wlc_p%indMAX=200    ! 2000 steps per save point
+    wlc_p%reduce_move=10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
+    wlc_p%useSchedule=.False. ! use Quinn's scheduler to modify MC params halfway through the simulation
+    wlc_p%KAP_ON=1.0_dp ! use full value of compression energy
+    wlc_p%CHI_ON=1.0_dp ! use full value of chi energy
+    wlc_p%Couple_ON=1.0_dp ! use full value for coupling energy
+    wlc_p%N_KAP_ON=1 ! turn on compression energy immediately
+    wlc_p%N_CHI_ON=1 ! turn on chi energy immediately
+    wlc_p%recenter_on=.TRUE. ! recenter the polymer in the box if it exists the boundary
+    wlc_p%INITIAL_MAX_S=0.0_dp !TODO: for now must be set explicitly, was 0.1, Quinn, what is this value?
 
     ! replica options
-    mc%PTON=.TRUE.
-    mc%NPT=100
-    mc%NRepAdapt=1000
-    mc%lowerRepExe=0.09
-    mc%upperRepExe=0.18
-    mc%lowerCofRail=0.005
-    mc%upperCofRail=0.1
-    mc%indStartRepAdapt=10
-    mc%indendRepAdapt=20
-    mc%repAnnealSpeed=0.01
-    mc%replicaBounds=.TRUE.
-    mc%PT_chi =.False.
-    mc%PT_h =.False.
-    mc%PT_kap =.False.
-    mc%PT_mu =.False.
-    mc%PT_couple =.False.
+    wlc_p%PTON=.TRUE.  ! use parallel if applicable
+    wlc_p%NPT=100      ! 100 steps between parallel tempering is pretty frequent
+    wlc_p%NRepAdapt=1000  ! 1000 exchange attempts between adaptations
+    wlc_p%lowerRepExe=0.09 ! TODO: enter justification for these defaults, if any.
+    wlc_p%upperRepExe=0.18 ! TODO: fine if the only justification is "these just work"
+    wlc_p%lowerCofRail=0.005
+    wlc_p%upperCofRail=0.1
+    wlc_p%indStartRepAdapt=10
+    wlc_p%indendRepAdapt=20
+    wlc_p%repAnnealSpeed=0.01
+    wlc_p%replicaBounds=.TRUE.
+    wlc_p%PT_chi =.False. ! don't parallel temper chi by default
+    wlc_p%PT_h =.False. ! don't parallel temper h by default
+    wlc_p%PT_kap =.False. ! don't parallel temper kap by default
+    wlc_p%PT_mu =.False. ! don't parallel temper mu by default
+    wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
+end subroutine
 
-
-
-    call MCvar_defaultAmp(mc)
-
-
-    ! -----------------------
-    !
-    !  read from file
-    !
-    !-------------------------
-    PF=55
+subroutine read_from_file(infile, wlc_p)
+    use INPUTparaMS, only : readLINE, readA, readF, readI, reado
+    implicit none
+    type(wlcsim_params), intent(inout) :: wlc_p
+    character(fileNameLen), intent(in) :: infile
+    integer pf = infileUnit
     open(unit=PF,file=fileName,status='OLD')
 
     ! read in the keywords one line at a time
@@ -315,7 +304,7 @@ subroutine MCvar_setparams(mc,fileName)
 
        SELECT CASE(WORD) ! pick which keyword
        CASE('SETtype')
-           Call readI(mc%settype)
+           Call readI(wlc_p%settype)
            ! settype      |  Discription
            ! _____________|_________________________________
            !    1         |   straight line in y direction with random starting
@@ -323,7 +312,7 @@ subroutine MCvar_setparams(mc,fileName)
            !    3         |   rerandomize when reaching boundary, cube boundary
            !    4         |   rerandomize when reaching boundary, shpere
        CASE('CONFINEtype')
-           Call readI(mc%confinetype)
+           Call readI(wlc_p%confinetype)
            ! confinetype  |  Discription
            ! _____________|_________________________________
            !    0         |  No confinement, periodic cube
@@ -332,161 +321,161 @@ subroutine MCvar_setparams(mc,fileName)
            !    3         |  Circle of radius lbox, centered at lbox/2
            !    4         |  Periodic, unequal dimensions
        CASE('RECENTER_ON')
-           Call reado(mc%recenter_on) ! recenter in periodic boundary
+           Call reado(wlc_p%recenter_on) ! recenter in periodic boundary
        CASE('SIMtype')
-           Call readI(mc%simtype)
+           Call readI(wlc_p%simtype)
            ! simtype      | Discription
            !______________|_________________________________
            !    0         | Melt density fluctuates around fixed mean
            !    1         | Solution (For DNA)
        CASE('FRMCHEM')
-           Call reado(mc%FRMCHEM) ! Initial chemical sequence from file
+           Call reado(wlc_p%FRMCHEM) ! Initial chemical sequence from file
        CASE('FRMfile')
-           call reado(mc%FRMfile) ! read configuration from file
+           call reado(wlc_p%FRMfile) ! read configuration from file
        CASE('FRMMETH')
-           Call reado(mc%FRMMETH) ! read methalation from file
+           Call reado(wlc_p%FRMMETH) ! read methalation from file
        CASE('PTON')
-           CALL reado(mc%PTON) ! parallel Tempering on
+           CALL reado(wlc_p%PTON) ! parallel Tempering on
        CASE('SAVE_U')
-           Call reado(mc%saveU)  ! save u vectors to file (every savepoint)
+           Call reado(wlc_p%saveU)  ! save u vectors to file (every savepoint)
        CASE('SAVE_PHI')
-           Call reado(mc%savePhi) ! save Phi vectors to file (every savepoint)
+           Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
        CASE('L0')
-           Call readF(mc%L0)  ! Equilibrium segment length
+           Call readF(wlc_p%L0)  ! Equilibrium segment length
        CASE('dbin')
-           Call readF(mc%dbin) ! spaitial descretation length, not tested
+           Call readF(wlc_p%dbin) ! spaitial descretation length, not tested
        CASE('lbox')
-           Call readF(mc%lbox(1)) ! side length of box
-           mc%lbox(2)=mc%lbox(1)
-           mc%lbox(3)=mc%lbox(1)
+           Call readF(wlc_p%lbox(1)) ! side length of box
+           wlc_p%lbox(2)=wlc_p%lbox(1)
+           wlc_p%lbox(3)=wlc_p%lbox(1)
        CASE('lboxX')
-           Call readF(mc%lbox(1)) ! side length of box in x direction
+           Call readF(wlc_p%lbox(1)) ! side length of box in x direction
        CASE('lboxY')
-           Call readF(mc%lbox(2)) ! side length of box in y direction
+           Call readF(wlc_p%lbox(2)) ! side length of box in y direction
        CASE('lboxZ')
-           Call readF(mc%lbox(3)) ! side length of box in z direction
+           Call readF(wlc_p%lbox(3)) ! side length of box in z direction
        CASE('NP')
-           CALL readI(mc%NP)  ! Number of polymers
+           CALL readI(wlc_p%NP)  ! Number of polymers
        CASE('G')
-           Call readI(mc%G) ! Beads per monomer
+           Call readI(wlc_p%G) ! Beads per monomer
        CASE('N')
-           CALL readI(mc%N) ! Number of monomers in a polymer
+           CALL readI(wlc_p%N) ! Number of monomers in a polymer
        CASE('NNOINT')
-           Call readI(mc%NNoInt) ! save points before turning on interaction
+           Call readI(wlc_p%NNoInt) ! save points before turning on interaction
        CASE('N_KAP_ON')
-           call readI(mc%N_KAP_ON) ! when to turn compression energy on
+           call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
        CASE('N_CHI_ON')
-           call readI(mc%N_CHI_ON) ! when to turn CHI energy on
+           call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
        CASE('indMAX')
-           Call readI(mc%indMAX) ! total number of save points
+           Call readI(wlc_p%indMAX) ! total number of save points
        CASE('NSTEP')
-           Call readI(mc%NStep) ! steps per save point
+           Call readI(wlc_p%NStep) ! steps per save point
        CASE('NPT')
-           Call readI(mc%NPT) ! number of steps between parallel tempering
+           Call readI(wlc_p%NPT) ! number of steps between parallel tempering
        CASE('FPOLY')
-           Call readF(mc%Fpoly) ! Fraction Polymer
+           Call readF(wlc_p%Fpoly) ! Fraction Polymer
        CASE('V')
-           Call readF(mc%V) ! Bead volume
+           Call readF(wlc_p%V) ! Bead volume
        CASE('FA')
-           Call readF(mc%FA) ! Fraction of A beads (fraction bound)
+           Call readF(wlc_p%FA) ! Fraction of A beads (fraction bound)
        CASE('LAM')
-           Call readF(mc%LAM) ! Chemical correlation parameter
+           Call readF(wlc_p%LAM) ! Chemical correlation parameter
        CASE('EPS')
-           Call readF(mc%EPS) ! Elasticity l0/(2lp)
+           Call readF(wlc_p%EPS) ! Elasticity l0/(2lp)
        CASE('CHI')
-           Call readF(mc%CHI) ! CHI parameter (definition depends on  hamiltoniaon
+           Call readF(wlc_p%CHI) ! CHI parameter (definition depends on  hamiltoniaon
        CASE('H_A')
-           Call readF(mc%h_A) ! strength of externally applied field
+           Call readF(wlc_p%h_A) ! strength of externally applied field
        CASE('KAP')
-           Call readF(mc%KAP) !  Incompressibility parameter
+           Call readF(wlc_p%KAP) !  Incompressibility parameter
        CASE('EU')
-           Call readF(mc%EU) ! Energy of binding for unmethalated
+           Call readF(wlc_p%EU) ! Energy of binding for unmethalated
        CASE('EM')
-           Call readF(mc%EM) ! Energy of binding for methalated
+           Call readF(wlc_p%EM) ! Energy of binding for methalated
        CASE('MU')
-           Call readF(mc%MU) ! chemical potential of HP1
+           Call readF(wlc_p%MU) ! chemical potential of HP1
        CASE('HP1_Bind')
-           Call readF(mc%HP1_Bind) ! Energy of binding of HP1 to eachother
+           Call readF(wlc_p%HP1_Bind) ! Energy of binding of HP1 to eachother
        CASE('F_METH')
-           Call readF(mc%F_METH) ! Fraction methalated
+           Call readF(wlc_p%F_METH) ! Fraction methalated
        CASE('LAM_METH')
-           Call readF(mc%LAM_METH) ! eigenvalue of methalation setup
+           Call readF(wlc_p%LAM_METH) ! eigenvalue of methalation setup
        CASE('CRANK_SHAFT_ON')
-           Call readI(mc%MOVEON(1)) ! is Crank shaft move on 1/0
+           Call readI(wlc_p%MOVEON(1)) ! is Crank shaft move on 1/0
        CASE('SLIDE_ON')
-           Call readI(mc%MOVEON(2)) ! is Slide move on 1/0
+           Call readI(wlc_p%MOVEON(2)) ! is Slide move on 1/0
        CASE('PIVOT_ON')
-           Call readI(mc%MOVEON(3)) ! is Pivot move on 1/0
+           Call readI(wlc_p%MOVEON(3)) ! is Pivot move on 1/0
        CASE('ROTATE_ON')
-           Call readI(mc%MOVEON(4)) ! is single bead rotate on 1/0
+           Call readI(wlc_p%MOVEON(4)) ! is single bead rotate on 1/0
        CASE('FULL_CHAIN_ROTATION_ON')
-           Call readI(mc%MOVEON(5)) ! is full chain rotate on 1/0
+           Call readI(wlc_p%MOVEON(5)) ! is full chain rotate on 1/0
        CASE('FULL_CHAIN_SLIDE_ON')
-           Call readI(mc%MOVEON(6)) ! is full chain slide on 1/0
+           Call readI(wlc_p%MOVEON(6)) ! is full chain slide on 1/0
        CASE('Bind_MOVE_ON')
-           Call readI(mc%MOVEON(7)) ! is bind/unbind move on 1/0
+           Call readI(wlc_p%MOVEON(7)) ! is bind/unbind move on 1/0
        CASE('CHAIN_FLIP_MOVE_ON')
-           Call readI(mc%MOVEON(8)) ! is flip move move on 1/0
+           Call readI(wlc_p%MOVEON(8)) ! is flip move move on 1/0
        CASE('CHAIN_SWAP_MOVE_ON')
-           Call readI(mc%MOVEON(9)) ! is chain swap move on 1/0
+           Call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
        CASE('REPTATION_MOVE_ON')
-           Call readI(mc%MOVEON(10)) ! is reptation move on 1/0
+           Call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
        CASE('MIN_CRANK_SHAFT_WIN')
-           Call readF(mc%MINWindoW(1)) ! min mean window size
+           Call readF(wlc_p%MINWindoW(1)) ! min mean window size
        CASE('MIN_SLIDE_WIN')
-           Call readF(mc%MINWindoW(2))
+           Call readF(wlc_p%MINWindoW(2))
        CASE('MIN_PIVOT_WIN')
-           Call readF(mc%MINWindoW(3))
+           Call readF(wlc_p%MINWindoW(3))
        CASE('MIN_Bind_WIN')
-           Call readF(mc%MINWindoW(7))
+           Call readF(wlc_p%MINWindoW(7))
        CASE('REDUCE_MOVE')
-           Call readI(mc%reduce_move) !  only exicute unlikely movetypes every ____ cycles
+           Call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
        CASE('MIN_ACCEPT')
-           Call readF(mc%MIN_ACCEPT) ! below which moves are turned off
+           Call readF(wlc_p%MIN_ACCEPT) ! below which moves are turned off
        CASE('CRANK_SHAFT_TARGET')
-           Call readF(mc%winTarget(1)) ! target window size for crank shaft move
+           Call readF(wlc_p%winTarget(1)) ! target window size for crank shaft move
        CASE('SLIDE_TARGET')
-           Call readF(mc%winTarget(2)) ! target window size for slide move
+           Call readF(wlc_p%winTarget(2)) ! target window size for slide move
        CASE('PIVOT_TARGET')
-           Call readF(mc%winTarget(3)) ! target window size for Pivot move
+           Call readF(wlc_p%winTarget(3)) ! target window size for Pivot move
        CASE('STRENGTH_SCHEDULE')
-           Call reado(mc%useSchedule) ! use scheduled ramp in interaction strength(s)
+           Call reado(wlc_p%useSchedule) ! use scheduled ramp in interaction strength(s)
        CASE('N_REP_ADAPT')
-           Call readI(mc%NRepAdapt)  ! number of exchange attemts between adapt
+           Call readI(wlc_p%NRepAdapt)  ! number of exchange attemts between adapt
        CASE('LOWER_REP_EXE')
-           Call readF(mc%lowerRepExe) ! when to decrease cof spacing
+           Call readF(wlc_p%lowerRepExe) ! when to decrease cof spacing
        CASE('UPPER_REP_EXE')
-           Call readF(mc%upperRepExe) ! when to increase cof spacing
+           Call readF(wlc_p%upperRepExe) ! when to increase cof spacing
        CASE('LOWER_COF_RAIL')
-           Call readF(mc%lowerCofRail) ! minumum acceptable Cof
+           Call readF(wlc_p%lowerCofRail) ! minumum acceptable Cof
        CASE('UPPER_COF_RAIL')
-           Call readF(mc%upperCofRail) ! maximum acceptable Cof
+           Call readF(wlc_p%upperCofRail) ! maximum acceptable Cof
        CASE('ind_START_REP_ADAPT')
-           Call readI(mc%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
+           Call readI(wlc_p%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
        CASE('ind_end_REP_ADAPT')
-           Call readI(mc%indendRepAdapt) ! turn off rep adapt
+           Call readI(wlc_p%indendRepAdapt) ! turn off rep adapt
        CASE('REP_ANNEAL_SPEED')
-           Call readF(mc%repAnnealSpeed)  ! max change in cof. every adjust
+           Call readF(wlc_p%repAnnealSpeed)  ! max change in cof. every adjust
        CASE('FRMFIELD')
-           Call reado(mc%FRMFIELD)  ! read field from file
+           Call reado(wlc_p%FRMFIELD)  ! read field from file
        CASE('K_FIELD')
-           Call readF(mc%k_field)  ! wave mode for default field
+           Call readF(wlc_p%k_field)  ! wave mode for default field
        CASE('REPLICA_BOUNDS')
-           Call reado(mc%replicaBounds) ! insure that 0 < s < 1
+           Call reado(wlc_p%replicaBounds) ! insure that 0 < s < 1
        CASE('INITIAL_MAX_S')
-           call readF(mc%INITIAL_MAX_S) ! inital s of rep with highest s
+           call readF(wlc_p%INITIAL_MAX_S) ! inital s of rep with highest s
        CASE('PT_CHI')
-           call reado(mc%PT_chi) ! parallel temper chi
+           call reado(wlc_p%PT_chi) ! parallel temper chi
        CASE('PT_H')
-           call reado(mc%PT_h) ! parallel temper h
+           call reado(wlc_p%PT_h) ! parallel temper h
        CASE('PT_KAP')
-           call reado(mc%PT_kap) ! parallel temper kap
+           call reado(wlc_p%PT_kap) ! parallel temper kap
        CASE('PT_MU')
-           call reado(mc%PT_mu) ! parallel temper mu
+           call reado(wlc_p%PT_mu) ! parallel temper mu
        CASE('PT_COUPLE')
-           call reado(mc%PT_couple) ! parallel temper HP1_bind
+           call reado(wlc_p%PT_couple) ! parallel temper HP1_bind
        CASE('RESTART')
-           call reado(mc%restart) ! Restart from parallel tempering
+           call reado(wlc_p%restart) ! Restart from parallel tempering
        CASE DEFAULT
            print*, "Error in MCvar_setparams.  Unidentified keyword:", &
                    TRIM(WORD)
@@ -494,137 +483,100 @@ subroutine MCvar_setparams(mc,fileName)
        endSELECT
     enddo
     close(PF)
+end subroutine read_from_file
 
-    if ((mc%NBINX(1)-mc%NBINX(2).ne.0).or. &
-        (mc%NBINX(1)-mc%NBINX(3).ne.0)) then
-        if (mc%simtype.eq.1) then
+subroutine idiot_checks(wlc_p)
+    IMPLICIT NONE
+    type(wlcsim_params), intent(out) :: wlc_p
+
+    if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
+        (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
+        if (wlc_p%simtype.eq.1) then
             print*, "Solution not tested with non-cube box, more coding needed"
             stop 1
         endif
-        if (mc%confinetype.ne.4) then
+        if (wlc_p%confinetype.ne.4) then
             print*, "Unequal boundaries require confinetype=4"
             stop 1
         endif
-        if (mc%settype.eq.4) then
+        if (wlc_p%settype.eq.4) then
             print*, "You shouldn't put a shpere in and unequal box!"
             stop 1
         endif
     endif
-    ! --------------------
-    !
-    ! Derived Variables, Reconcile inputs
-    !
-    ! --------------------
-    if (mc%simtype.eq.1) then
-        mc%NT=mc%N*mc%NP*mc%G
-        mc%NB=mc%N*mc%G
-        if (mc%confinetype.eq.3) then
-            mc%lbox(1)=(mc%V*mc%NT*6/(mc%Fpoly*PI))**(1.0_dp/3.0_dp)
-            mc%lbox(2)=mc%lbox(1)
-            mc%lbox(3)=mc%lbox(1)
-        else
-            mc%lbox(1)=(mc%V*mc%NT/mc%Fpoly)**(1.0_dp/3.0_dp)
-            mc%lbox(2)=mc%lbox(1)
-            mc%lbox(3)=mc%lbox(1)
-        endif
-        mc%NBINX(1)=nint(mc%lbox(1)/mc%dbin)
-        mc%NBINX(2)=nint(mc%lbox(2)/mc%dbin)
-        mc%NBINX(3)=nint(mc%lbox(3)/mc%dbin)
-        mc%NBIN=mc%NBINX(1)*mc%NBINX(2)*mc%NBINX(3)
-        mc%lbox(1) = mc%NBINX(1)*mc%dbin! used to be: dbin=lbox/NBINX
-        mc%lbox(2) = mc%NBINX(2)*mc%dbin! used to be: dbin=lbox/NBINX
-        mc%lbox(3) = mc%NBINX(3)*mc%dbin! used to be: dbin=lbox/NBINX
-    elseif (mc%simtype.eq.0) then
-        if (mc%confinetype.eq.0) then
-            mc%NP=nint(mc%lbox(1)*mc%lbox(2)*mc%lbox(3)/(mc%N*mc%G*mc%V))
-            mc%lbox=(mc%V*mc%N*mc%G*mc%NP)**(1.0_dp/3.0_dp)
-            mc%NBINX(1)=nint(mc%lbox(1)/mc%dbin)
-            mc%NBINX(2)=nint(mc%lbox(2)/mc%dbin)
-            mc%NBINX(3)=nint(mc%lbox(3)/mc%dbin)
-            mc%dbin=mc%lbox(1)/mc%NBINX(1)
-        elseif(mc%confinetype.eq.4) then
-            mc%dbin=mc%lbox(1)/nint(mc%lbox(1)/mc%dbin)
-            mc%NBINX(1)=nint(mc%lbox(1)/mc%dbin)
-            mc%NBINX(2)=nint(mc%lbox(2)/mc%dbin)
-            mc%NBINX(3)=nint(mc%lbox(3)/mc%dbin)
-            mc%lbox(2)=mc%dbin*mc%NBINX(2)
-            mc%lbox(3)=mc%dbin*mc%NBINX(3)
-            mc%NP=nint(mc%lbox(1)*mc%lbox(2)*mc%lbox(3)/(mc%N*mc%G*mc%V))
-            print*, "Density =", &
-                  mc%N*mc%G*mc%V*mc%NP/(mc%lbox(1)*mc%lbox(2)*mc%lbox(3))
-        endif
-        mc%NB=mc%N*mc%G
-        mc%NBIN=mc%NBINX(1)*mc%NBINX(2)*mc%NBINX(3)
-        mc%NT=mc%N*mc%NP*mc%G
-        mc%WindoW(5)=mc%NB
-        mc%WindoW(6)=mc%NB
-        mc%WindoW(8)=mc%NB
-        mc%WindoW(9)=mc%NB
-        mc%MCAMP(2)=0.3_dp*mc%L0
-        mc%MCAMP(6)=5.0_dp*mc%L0
-        mc%MINAMP(2)=0.2_dp*mc%L0
-        mc%MINAMP(6)=0.2_dp*mc%L0
-        mc%MAXWindoW(1)=min(150,mc%NB)
-        mc%MAXWindoW(2)=min(150,mc%NB)
-        mc%MAXWindoW(3)=min(150,mc%NB)
-        mc%MAXWindoW(7)=min(150,mc%NB)
-        mc%MAXAMP(2)=1.0_dp*mc%L0
-        mc%MAXAMP(6)=0.1*mc%lbox(1)
-    else
-       print*, "Error in simMod: symtype",mc%simtype," not found"
-    endif
-    call getpara(mc%para,mc%EPS,mc%L0,NAN_dp)
-
-    ! -----------------------
-    !
-    ! Set initial values
-    !
-    ! ----------------------
-    mc%EElas(1)=0.0_dp
-    mc%EElas(2)=0.0_dp
-    mc%EElas(3)=0.0_dp
-    mc%ECouple=0.0_dp
-    mc%ebind=0.0_dp
-    mc%EKap=0.0_dp
-    mc%ECHI=0.0_dp
-    mc%EField=0.0_dp
-    mc%x_mu=0.0_dp
-    mc%x_Field=0.0_dp
-    mc%x_couple=0.0_dp
-    mc%x_Kap=0.0_dp
-    mc%x_Chi=0.0_dp
-
-    !-----------------------------
-    !
-    !  Idiot checks
-    !
-    !-----------------------------
-    if (mc%NBINX(1)*mc%NBINX(2)*mc%NBINX(3).ne.mc%NBIN) then
+    if (wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN) then
         print*, "error in MCsim. Wrong number of bins"
         stop 1
     endif
-    if (mc%NT.ne.mc%N*mc%NP*mc%G) then
-        print*, "error in MCsim.  NT=",mc%NT," N=",mc%N," NP=",mc%NP," G=",mc%G
+    if (wlc_p%NT.ne.wlc_p%N*wlc_p%NP*wlc_p%G) then
+        print*, "error in MCsim.  NT=",wlc_p%NT," N=",wlc_p%N," NP=",wlc_p%NP," G=",wlc_p%G
         stop 1
     endif
-    if (mc%NB.ne.mc%N*mc%G) then
-        print*, "error in MCsim.  NB=",mc%NB," N=",mc%N," G=",mc%G
+    if (wlc_p%NB.ne.wlc_p%N*wlc_p%G) then
+        print*, "error in MCsim.  NB=",wlc_p%NB," N=",wlc_p%N," G=",wlc_p%G
         stop 1
     endif
-    if (mc%NNoInt.gt.mc%indStartRepAdapt) then
+    if (wlc_p%NNoInt.gt.wlc_p%indStartRepAdapt) then
         print*, "error in MCsim. don't run adapt without int on"
         stop 1
     endif
-    if (mc%NNoInt.gt.mc%N_CHI_ON) then
+    if (wlc_p%NNoInt.gt.wlc_p%N_CHI_ON) then
         print*, "error in MCsim. Can't have chi without int on"
         stop 1
     endif
-    if (mc%NNoInt.gt.mc%N_KAP_ON) then
+    if (wlc_p%NNoInt.gt.wlc_p%N_KAP_ON) then
         print*, "error in MCsim. Can't have kap without int on"
         stop 1
     endif
+end subroutine
+
+
+subroutine get_input_from_file(infile, wlc_p)
+! Based on Elena's readkeys subroutine
+    IMPLICIT NONE
+    type(wlcsim_params), intent(out) :: wlc_p
+    character(1024), intent(in) :: infile  ! file with parameters
+    integer :: PF   ! input file unit
+    LOGICAL :: fileend = .FALSE. ! done reading file?
+    CHARACTER*100 :: WORD ! parameter name currently being read in
+    integer :: NITEMS ! number of items on the line in the parameter file
+
+    call set_param_defaults(wlc_p)
+
+    call tweak_mc_defaults(wlc_p)
+
+    call read_from_file(infile, wlc_p)
+
+    ! get derived parameters that aren't directly input from file
+    call getpara(wlc_p)
+
+    call idiot_checks(wlc_p)
 
 end subroutine
+
+
+subroutine initialize_wlcsim_data(wlc_d, wlc_p)
+    implicit none
+    type(wlcsim_params), intent(in)  :: wlc_p
+    type(wlcsim_data), intent(out)   :: wlc_d
+
+    ! initialize energies to zero
+    wlc_d%EElas=0.0_dp
+    wlc_d%ECouple=0.0_dp
+    wlc_d%ebind=0.0_dp
+    wlc_d%EKap=0.0_dp
+    wlc_d%ECHI=0.0_dp
+    wlc_d%EField=0.0_dp
+    wlc_d%x_mu=0.0_dp
+    wlc_d%x_Field=0.0_dp
+    wlc_d%x_couple=0.0_dp
+    wlc_d%x_Kap=0.0_dp
+    wlc_d%x_Chi=0.0_dp
+
+
+end subroutine initialize_wlcsim_data
+
+
 subroutine MCvar_printDescription(mc)
     IMPLICIT NONE
     type(MCvar), intent(in) :: mc
@@ -696,18 +648,12 @@ subroutine MCvar_allocate(mc,md)
     Allocate(md%PhiH(NBIN))
 
 end subroutine
-subroutine MCvar_defaultAmp(mc)
+
+subroutine tweak_mc_defaults(mc)
     IMPLICIT NONE
-    real(dp), parameter :: PI=3.141592654_dp
-    type(MCvar), intent(inout) :: mc
+    type(wlcsim_params), intent(inout) :: mc
     integer MCtype ! type of move
-    integer NANI ! NaN
-    real(dp) NAND !NAND
-    NANI=0;NANI=NANI/NANI
-    NAND=0.0_dp;NAND=NAND/NAND
-!   ~~~~~~~~~~~~~~~~~~~
-!    Edit the following variables for better performance
-!   ~~~~~~~~~~~~~~~~~~~
+!   Edit the following to optimize MC performance
     !  Monte-Carlo simulation parameters
     mc%MCAMP(1)=0.5_dp*PI
     mc%MCAMP(2)=0.3_dp*mc%L0
@@ -798,6 +744,7 @@ subroutine MCvar_defaultAmp(mc)
         mc%PHIT(MCtype)=0.0_dp
     enddo
 end subroutine
+
 subroutine MCvar_recenter(mc,md)
 !  Prevents drift in periodic BC
     IMPLICIT NONE

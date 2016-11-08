@@ -50,7 +50,6 @@ program main
     stop_if_err(err, 'Unable to parse output file base.')
 
     get_input_from_file(wlc_p=wlc_p, infile=infile)
-    get_params_from_input(wlc_p)
     initialize_wlcsim_data(wlc_d=wlc_d, wlc_p=wlc_p)
 
     select case (wlc_p%simType)

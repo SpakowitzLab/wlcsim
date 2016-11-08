@@ -95,9 +95,10 @@ STACK:
     create a single function wlcsim_quinn, that wlcsim.f95 can call.
 17. Brad should probably change wlcsim_brad.f95 so that wlcsim.f95 can call it.
 
-18. Consult with quinn about which variables can change during a simulation
+18. Add hook to makefile to perform a recursive git submodule udpate if third
+    party libraries not present
+
+19. add brad and I's variables to the input file reader
 
 changed variable names:
-NmoveTypes -> num_move_types
-
-
+settype -> initCondType
