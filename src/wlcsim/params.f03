@@ -39,6 +39,8 @@ module params
         integer nMpP              ! Number of monomers (NOT BEADS!) in a polymer
         integer nBpM              ! number beads per monomer
         integer nP                ! Number of polymers
+        real(dp) lp       ! persistence length
+        real(dp) lt       ! twist persistence length
         real(dp) l0       ! Equilibrium segment length (same as gam)
         real(dp) beadVolume        ! Bead volume
         real(dp) fPoly    ! volume fraction of Polymer in simulation volume
@@ -97,6 +99,9 @@ module params
         integer N_CHI_ON           ! when to turn CHI energy on
 
     !   Switches
+        integer ring              ! whether the polymer is a ring
+        integer twist             ! whether to include twist (MC only for now)
+        integer LK                ! Linking number
         integer confinetype       ! type of Boundary Conditions
         integer settype           ! initial condition type
         logical field_interactions ! field-based self interactions on
@@ -215,6 +220,8 @@ subroutine set_param_defaults(wlc_p)
     wlc_p%NP  =1               ! one polymer
     wlc_p%nB  =200             ! 200 beads per polymer
     wlc_p%nBpM = 10
+    wlc_p%lp = 1                ! units of lp by default
+    wlc_p%lt = 1                ! twist persistence length equals persistence length by default
     wlc_p%nMpP = wlc_p%nB / wlc_p%nBpM
     wlc_p%nT = wlc_p%nP * wlc_p%nB
     wlc_p%lbox(1)=25.0_dp      ! arbitrary box size
@@ -245,6 +252,9 @@ subroutine set_param_defaults(wlc_p)
     wlc_p%initCondType = 4 ! 4 for sphereical
     wlc_p%confineType = 3 ! 3 for spherical
     wlc_p%simtype=0    ! you better at least choose what kind of simulation you want
+    wlc_p%ring=0    ! not a ring by default
+    wlc_p%twist=0    ! don't include twist by default
+    wlc_p%lk=0    ! no linking number (lays flat) by default
     wlc_p%min_accept=0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
 
     ! timing options
@@ -334,14 +344,26 @@ subroutine read_from_file(infile, wlc_p)
            call reado(wlc_p%FRMfile) ! read configuration from file
        CASE('FRMMETH')
            Call reado(wlc_p%FRMMETH) ! read methalation from file
+       CASE('TWIST')
+           CALL reado(wlc_p%twist) ! whether to include twist energies in MC
+       CASE('RING')
+           CALL reado(wlc_p%ring) ! whether polymer is a ring or not
+       CASE('LK')
+           CALL reado(wlc_p%lk) ! linking number
        CASE('PTON')
            CALL reado(wlc_p%PTON) ! parallel Tempering on
        CASE('SAVE_U')
            Call reado(wlc_p%saveU)  ! save u vectors to file (every savepoint)
        CASE('SAVE_PHI')
            Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
-       CASE('L0')
-           Call readF(wlc_p%L0)  ! Equilibrium segment length
+       CASE('nb')
+           Call readF(wlc_p%nb)  ! actual length in AU of polymer we want to simulate
+       CASE('l')
+           Call readF(wlc_p%l)  ! actual length in AU of polymer we want to simulate
+       CASE('lt')
+           Call readF(wlc_p%lt)  ! persistence length
+       CASE('lp')
+           Call readF(wlc_p%lp)  ! twist persistence length
        CASE('dbin')
            Call readF(wlc_p%dbin) ! spaitial descretation length, not tested
        CASE('lbox')
