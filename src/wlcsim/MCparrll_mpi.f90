@@ -3,7 +3,7 @@ program main
 !*****************************************************************************
 !
 !  This program is a MTMC with parallel tempering.
-!  The MC code is in wlcsim 
+!  The MC code is in wlcsim
 !
 !
 !  Modified:   5/6/2016
@@ -40,7 +40,7 @@ program main
       print*, "MPI_Comm_rank", error
   endif
 !
-!  Print a message.
+!  print a message.
 !
   if ( id == 0 ) then
     write ( *, '(a)' ) ' '
@@ -48,8 +48,8 @@ program main
     write ( *, '(a)' ) ' '
     write ( *, '(a,i8)' ) '  The number of threads being used is ', p
     write ( *, '(a,i8)' ) '  The number of replicas is ', p-1
-    
-    
+
+
   end if
   if (p.gt.1) then
       call paraTemp ( p, id )
@@ -112,7 +112,7 @@ subroutine paraTemp ( p, id)
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ), intent(in) :: id     ! which processor I am
     integer ( kind = 4 ), intent(in) :: p ! number of threads
-    integer ( kind = 4 ) status(MPI_STATUS_SIZE) ! MPI stuff
+    integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     integer nPTReplicas     ! number of replicas.
 
 !   variable for random number generator seeding
@@ -125,31 +125,31 @@ subroutine paraTemp ( p, id)
     real urand(1)
 
 !   worker node only variables
-    double precision nan_dp !chemical potential
+    real(dp) nan_dp !chemical potential
 
 !   for head node use only variables
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
     integer, allocatable :: nodeNumber(:)  ! list of which nodes are which
-    double precision, allocatable :: xMtrx(:,:)  ! sum of bound states 
-    double precision, allocatable :: cofMtrx(:,:) ! mu or chi or whatever
-    double precision, allocatable :: s_vals(:) ! path parameter
-    integer, parameter :: nTerms=8  ! number of energy terms 
-    double precision x(nTerms) ! slice of xMtrx
-    double precision cof(nTerms) ! slice of cofMtrx
+    real(dp), allocatable :: xMtrx(:,:)  ! sum of bound states
+    real(dp), allocatable :: cofMtrx(:,:) ! mu or chi or whatever
+    real(dp), allocatable :: s_vals(:) ! path parameter
+    integer, parameter :: nTerms=8  ! number of energy terms
+    real(dp) x(nTerms) ! slice of xMtrx
+    real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
     integer upSuccess(p-1)  ! number of successes since last average
     integer downSuccess(p-1) ! number of successes since last average
     integer nExchange ! total number of exchanges attemted
     type(MCvar) mc ! genaral symulation parameters
     character*16 fileName ! ouput filename
-    double precision energy ! for deciding to accept exchange
+    real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    double precision h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
 
     nExchange=0
-    nPTReplicas=p-1 
+    nPTReplicas=p-1
     fileName='input/params'
 !  -----------------------------------------------------------------
 !
@@ -173,17 +173,17 @@ subroutine paraTemp ( p, id)
         endif
         call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
         do dest=1,nPTReplicas ! send out the others
-            call MPI_Send (Irand,1, MPI_INTEGER, dest,   0, &
+            call MPI_Send (Irand,1, MPI_integer, dest,   0, &
                             MPI_COMM_WORLD,error )
-        enddo  
-        ! ------------------------- 
+        enddo
+        ! -------------------------
         !
         !   innitialize
         !
         ! --------------------------
         nPTReplicas = p-1;
 
-        call MCvar_setParams(mc,fileName) ! so that the head thread knows the  parameters
+        call MCvar_setparams(mc,fileName) ! so that the head thread knows the  parameters
 
         allocate( xMtrx(nPTReplicas,nTerms))
         allocate( cofMtrx(nPTReplicas,nTerms))
@@ -198,12 +198,12 @@ subroutine paraTemp ( p, id)
 
         do rep=1,nPTReplicas
             if (mc%PT_chi) then
-                cofMtrx(rep,1)=chi_path(s_vals(rep))      
+                cofMtrx(rep,1)=chi_path(s_vals(rep))
             else
                 cofMtrx(rep,1)=mc%chi
             endif
             if (mc%PT_mu) then
-                cofMtrx(rep,2)=mu_path(s_vals(rep))      
+                cofMtrx(rep,2)=mu_path(s_vals(rep))
             else
                 cofMtrx(rep,2)=mc%mu
             endif
@@ -222,9 +222,9 @@ subroutine paraTemp ( p, id)
             else
                 cofMtrx(rep,5)=mc%KAP
             endif
-            cofMtrx(rep,6)=mc%Para(1)
-            cofMtrx(rep,7)=mc%Para(2)
-            cofMtrx(rep,8)=mc%Para(3) 
+            cofMtrx(rep,6)=mc%para(1)
+            cofMtrx(rep,7)=mc%para(2)
+            cofMtrx(rep,8)=mc%para(3)
         enddo
 
         N_average=0
@@ -238,30 +238,30 @@ subroutine paraTemp ( p, id)
         !    Begin Main loop
         !
         !------------------------------------------------------
-        mc%IND=0
+        mc%ind=0
         keepGoing=.True.
         do while(keepGoing)
             ! give workers thier jobs
             do rep=1,nPTReplicas
                 dest=nodeNumber(rep)
-                call MPI_Send (rep,1, MPI_INTEGER, dest,   0, &
+                call MPI_Send (rep,1, MPI_integer, dest,   0, &
                                 MPI_COMM_WORLD,error )
-                if (mc%restart.and.mc%IND.eq.0) then
+                if (mc%restart.and.mc%ind.eq.0) then
                     source=dest
-                    call MPI_Recv (cof, nTerms, MPI_DOUBLE_PRECISION, source, 0, &
-                                   MPI_COMM_WORLD, status, error ) 
+                    call MPI_Recv (cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
+                                   MPI_COMM_WORLD, status, error )
                     cofMtrx(rep,:)=cof
                 else
                     cof=cofMtrx(rep,:)
-                    call MPI_Send (cof,nTerms, MPI_DOUBLE_PRECISION, dest,   0, &
+                    call MPI_Send (cof,nTerms, MPI_doUBLE_PRECISION, dest,   0, &
                                     MPI_COMM_WORLD,error )
                 endif
             enddo
             ! get results from workers
-            
+
             do rep=1,nPTReplicas
                 source=nodeNumber(rep)
-                call MPI_Recv ( x, nTerms, MPI_DOUBLE_PRECISION, source, 0, &
+                call MPI_Recv ( x, nTerms, MPI_doUBLE_PRECISION, source, 0, &
                                MPI_COMM_WORLD, status, error )
                 xMtrx(rep,:)=x
                 if(isnan(x(1))) then ! endo of program
@@ -269,9 +269,9 @@ subroutine paraTemp ( p, id)
                     return
                 endif
             enddo
-            
-            source=1 
-            call MPI_Recv (mc%Ind, 1, MPI_INTEGER, source, 0, &
+
+            source=1
+            call MPI_Recv (mc%ind, 1, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
 
             ! do replica exchange
@@ -282,7 +282,7 @@ subroutine paraTemp ( p, id)
                                   (cofMtrx(rep+1,term)-cofMtrx(rep,term))
                 enddo
                 call random_number(urand,rand_stat)
-                if (exp(-1.0_dp*energy).gt.urand(1)) then 
+                if (exp(-1.0_dp*energy).gt.urand(1)) then
                     if (mc%PTON) then
                         temp=nodeNumber(rep)
                         nodeNumber(rep)=nodeNumber(rep+1)
@@ -296,26 +296,26 @@ subroutine paraTemp ( p, id)
                 endif
             enddo
 
-            
+
             ! track/adapt acceptance rates
             N_average=N_average+1
             if (N_average.ge.mc%NRepAdapt) then
                 call save_repHistory(upSuccess,downSuccess,nPTReplicas, &
                                      cofMtrx,xMtrx,nodeNumber,N_average,&
-                                     nExchange,mc%IND,nTerms,s_vals)
+                                     nExchange,mc%ind,nTerms,s_vals)
 
-                if ((mc%IND.ge.mc%indStartRepAdapt).and. &
-                    (mc%IND.lt.mc%indEndRepAdapt)) then ! insert input defined location here
+                if ((mc%ind.ge.mc%indStartRepAdapt).and. &
+                    (mc%ind.lt.mc%indendRepAdapt)) then ! insert input defined location here
                     call adaptCof(downSuccess,nPTReplicas,s_vals,N_average,&
-                                   mc%lowerRepExe,mc%upperRepExe,& 
+                                   mc%lowerRepExe,mc%upperRepExe,&
                                    mc%lowerCofRail,mc%upperCofRail,&
                                    mc%RepAnnealSpeed,mc%replicaBounds)
                     do rep=1,nPTReplicas
                         if (mc%PT_chi) then
-                            cofMtrx(rep,1)=chi_path(s_vals(rep))      
+                            cofMtrx(rep,1)=chi_path(s_vals(rep))
                         endif
                         if (mc%PT_mu) then
-                            cofMtrx(rep,2)=mu_path(s_vals(rep))      
+                            cofMtrx(rep,2)=mu_path(s_vals(rep))
                         endif
                         if (mc%PT_h) then
                             cofMtrx(rep,3)=h_path(s_vals(rep))
@@ -355,8 +355,8 @@ subroutine paraTemp ( p, id)
         !   Generate thread safe random number chain: rand_stat
         !
         !--------------------------------------------
-        
-        call MPI_Recv ( Irand, 1, MPI_INTEGER, source, 0, &
+
+        call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
                         MPI_COMM_WORLD, status, error )
         call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
         ! ------------------------------
@@ -369,7 +369,7 @@ subroutine paraTemp ( p, id)
         nan_dp=0; nan_dp=nan_dp/nan_dp !NaN
         x(1)=nan_dp
         print*, "Node ",id," sending normal exit code."
-        call MPI_Send(x,nTerms,MPI_DOUBLE_PRECISION,0,0,MPI_COMM_WORLD,error)
+        call MPI_Send(x,nTerms,MPI_doUBLE_PRECISION,0,0,MPI_COMM_WORLD,error)
     end if
 
 
@@ -379,9 +379,9 @@ end
 function chi_path(s) result(chi)
     use setPrecision
     implicit none
-    double precision, intent(in) :: s
-    double precision chi
-    double precision chi_max
+    real(dp), intent(in) :: s
+    real(dp) chi
+    real(dp) chi_max
     if (.false.) then
         chi_max=2.00_dp
         if (s.lt.0.5_dp) then
@@ -396,9 +396,9 @@ end function chi_path
 function h_path(s) result(h)
     use setPrecision
     implicit none
-    double precision, intent(in) :: s
-    double precision h
-    double precision h_max
+    real(dp), intent(in) :: s
+    real(dp) h
+    real(dp) h_max
     if (.false.) then
         h_max=10.0_dp
         if (s.lt.0.5_dp) then
@@ -413,40 +413,40 @@ end function h_path
 function mu_path(s) result(mu)
     use setPrecision
     implicit none
-    double precision, intent(in) :: s
-    double precision mu
+    real(dp), intent(in) :: s
+    real(dp) mu
     mu=s
 end function mu_path
 function kap_path(s) result(kap)
     use setPrecision
     implicit none
-    double precision, intent(in) :: s
-    double precision kap
+    real(dp), intent(in) :: s
+    real(dp) kap
     kap=s*10.0_dp
 end function kap_path
 function hp1_bind_path(s) result(hp1_bind)
     use setPrecision
     implicit none
-    double precision, intent(in) :: s
-    double precision hp1_bind
+    real(dp), intent(in) :: s
+    real(dp) hp1_bind
     hp1_bind=s
 end function hp1_bind_path
-Subroutine PT_override(mc,md)
+subroutine PT_override(mc,md)
 ! Override initialization with parallel setup parameters
 !  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSufix
     use mpi
     use simMod
     Implicit none
-    TYPE(MCvar), intent(inout) :: mc
-    TYPE(MCData), intent(inout) :: md
+    type(MCvar), intent(inout) :: mc
+    type(MCData), intent(inout) :: md
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror
     integer (kind=4) error  ! error id for MIP functions
     character*16 iostrg    ! for file naming
-    integer ( kind = 4 ) status(MPI_STATUS_SIZE) ! MPI stuff
-    integer, parameter :: nTerms=8  ! number of energy terms 
-    double precision cof(nTerms)
+    integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
+    integer, parameter :: nTerms=8  ! number of energy terms
+    real(dp) cof(nTerms)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
@@ -457,7 +457,7 @@ Subroutine PT_override(mc,md)
         print*, "No PT_override. Input values used."
         return
     endif
-    
+
     !---------------------------------------------
     !
     !     Quenched Disorder must be same!
@@ -466,27 +466,27 @@ Subroutine PT_override(mc,md)
     !----------------------------------------------
     if (id.eq.1) then
         do dest=2,nThreads-1
-            if(mc%simType.eq.1) then
-                call MPI_Send (md%METH,mc%NT, MPI_INTEGER, dest,   0, &
+            if(mc%simtype.eq.1) then
+                call MPI_Send (md%METH,mc%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
-            elseif(mc%simType.eq.0) then
-                call MPI_Send (md%AB,mc%NT, MPI_INTEGER, dest,   0, &
+            elseif(mc%simtype.eq.0) then
+                call MPI_Send (md%AB,mc%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
             else
-                print*, "Error in PT_override. simType doesn't exist."
+                print*, "Error in PT_override. simtype doesn't exist."
                 stop 1
             endif
         enddo
     else
         source=1
-        if(mc%simType.eq.1) then
-            call MPI_Recv (md%METH, mc%NT, MPI_INTEGER, source, 0, &
+        if(mc%simtype.eq.1) then
+            call MPI_Recv (md%METH, mc%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
-        elseif(mc%simType.eq.0) then
-            call MPI_Recv (md%AB, mc%NT, MPI_INTEGER, source, 0, &
+        elseif(mc%simtype.eq.0) then
+            call MPI_Recv (md%AB, mc%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
         else
-            print*, "Error in PT_override. simType doesn't exist."
+            print*, "Error in PT_override. simtype doesn't exist."
             stop 1
         endif
     endif
@@ -498,20 +498,20 @@ Subroutine PT_override(mc,md)
     !----------------------------------------------------
     source=0
     dest=0
-    call MPI_Recv ( mc%rep, 1, MPI_INTEGER, source, 0, &
+    call MPI_Recv ( mc%rep, 1, MPI_integer, source, 0, &
       MPI_COMM_WORLD, status, error )
-    
-    call MPI_Recv ( cof, nTerms, MPI_DOUBLE_PRECISION, source, 0, &
-      MPI_COMM_WORLD, status, error ) 
-   
+
+    call MPI_Recv ( cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
+      MPI_COMM_WORLD, status, error )
+
     mc%chi      =cof(1)
     mc%mu       =cof(2)
     mc%h_A      =cof(3)
     mc%HP1_Bind =cof(4)
     mc%Kap      =cof(5)
-    !mc%Para(1)  =cof(6)
-    !mc%Para(2)  =cof(7)
-    !mc%Para(3)  =cof(8)
+    !mc%para(1)  =cof(6)
+    !mc%para(2)  =cof(7)
+    !mc%para(3)  =cof(8)
 
     write(iostrg,"(I4)"), mc%rep
     iostrg=adjustL(iostrg)
@@ -522,9 +522,9 @@ Subroutine PT_override(mc,md)
 
     ! keep track of which thread you are
     mc%id=int(id)
-end Subroutine
-Subroutine replicaExchange(mc)
-! This checks in with the mpi head node to 
+end subroutine
+subroutine replicaExchange(mc)
+! This checks in with the mpi head node to
 ! For parallel tempering of the form:  E=cof*x
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
@@ -533,19 +533,19 @@ Subroutine replicaExchange(mc)
     use mpi
     use simMod
     IMPLICIT NONE
-    integer, parameter :: nTerms=8  ! number of energy terms 
+    integer, parameter :: nTerms=8  ! number of energy terms
     integer (kind=4) id, ierror
-    TYPE(MCvar), intent(inout) :: mc
+    type(MCvar), intent(inout) :: mc
     integer i  ! working intiger
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) nThreads
     character*16 iostr ! for handling sufix string
-    integer status(MPI_STATUS_SIZE)  ! MPI status
-    double precision cof(nTerms)
-    double precision cofOld(nTerms)
-    double precision x(nTerms)
-    double precision test(5)
+    integer status(MPI_status_SIZE)  ! MPI status
+    real(dp) cof(nTerms)
+    real(dp) cofOld(nTerms)
+    real(dp) x(nTerms)
+    real(dp) test(5)
     logical isfile
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
@@ -556,23 +556,23 @@ Subroutine replicaExchange(mc)
     x(3)=mc%x_Field
     x(4)=mc%x_couple
     x(5)=mc%x_kap
-    x(6)=0.0_dp !x(6)=mc%EElas(1)/mc%Para(1)
-    x(7)=0.0_dp !x(7)=mc%EElas(2)/mc%Para(2)
-    x(8)=0.0_dp !x(8)=mc%EElas(3)/mc%Para(3)
+    x(6)=0.0_dp !x(6)=mc%EElas(1)/mc%para(1)
+    x(7)=0.0_dp !x(7)=mc%EElas(2)/mc%para(2)
+    x(8)=0.0_dp !x(8)=mc%EElas(3)/mc%para(3)
 
     test(1)=mc%EChi/mc%Chi
     test(3)=mc%EField/mc%h_A
     test(4)=mc%ECouple/mc%HP1_Bind
     test(5)=mc%EKap/mc%Kap
 
-    cofOld(1)=mc%chi      
-    cofOld(2)=mc%mu     
-    cofOld(3)=mc%h_A     
+    cofOld(1)=mc%chi
+    cofOld(2)=mc%mu
+    cofOld(3)=mc%h_A
     cofOld(4)=mc%HP1_Bind
-    cofOld(5)=mc%Kap    
-    cofOld(6)=mc%Para(1)
-    cofOld(7)=mc%Para(2)
-    cofOld(8)=mc%Para(3) 
+    cofOld(5)=mc%Kap
+    cofOld(6)=mc%para(1)
+    cofOld(7)=mc%para(2)
+    cofOld(8)=mc%para(3)
 
     do i=1,5
         if (i.eq.2) cycle ! doesn't work for mu
@@ -580,12 +580,12 @@ Subroutine replicaExchange(mc)
         if (abs(cofOld(I)).lt.0.00000001) cycle
         inquire(file = "data/error", exist=isfile)
         if (isfile) then
-            OPEN (UNIT = 1, FILE = "data/error", STATUS ='OLD', POSITION="append")
-        else 
-            OPEN (UNIT = 1, FILE = "data/error", STATUS = 'new')
+            open (unit = 1, file = "data/error", status ='OLD', POSITION="append")
+        else
+            open (unit = 1, file = "data/error", status = 'new')
         endif
         write(1,*), "Error in replicaExchange"
-        write(1,*), "I",I," test",test(I)," x",x(I)," cof",cofOld(I)    
+        write(1,*), "I",I," test",test(I)," x",x(I)," cof",cofOld(I)
         print*, "Error in replicaExchange"
         print*, "I",I," test",test(I)," x",x(I)," cof",cofOld(I)
         close (1)
@@ -593,19 +593,19 @@ Subroutine replicaExchange(mc)
 
     ! send number bound to head node
     dest=0
-    call MPI_Send(x,nTerms,MPI_DOUBLE_PRECISION,dest,0,MPI_COMM_WORLD,mc%error)
+    call MPI_Send(x,nTerms,MPI_doUBLE_PRECISION,dest,0,MPI_COMM_WORLD,mc%error)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
-    ! send IND to head node
-    if (id.eq.1) then 
-        call MPI_Send(mc%IND,1,MPI_INTEGER,dest,0,MPI_COMM_WORLD,mc%error)
+    ! send ind to head node
+    if (id.eq.1) then
+        call MPI_Send(mc%ind,1,MPI_integer,dest,0,MPI_COMM_WORLD,mc%error)
     endif
     ! hear back on which replica and it's mu value
     source=0
     ! get new replica number
-    call MPI_Recv(mc%rep,1,MPI_INTEGER,source,0, & 
+    call MPI_Recv(mc%rep,1,MPI_integer,source,0, &
                   MPI_COMM_WORLD,status,mc%error)
     ! get new mu value
-    call MPI_Recv(cof,nTerms,MPI_DOUBLE_PRECISION,source,0,&
+    call MPI_Recv(cof,nTerms,MPI_doUBLE_PRECISION,source,0,&
                   MPI_COMM_WORLD,status,mc%error)
 
     mc%chi      =cof(1)
@@ -613,9 +613,9 @@ Subroutine replicaExchange(mc)
     mc%h_A      =cof(3)
     mc%HP1_Bind =cof(4)
     mc%Kap      =cof(5)
-    !mc%Para(1)  =cof(6)
-    !mc%Para(2)  =cof(7)
-    !mc%Para(3)  =cof(8)
+    !mc%para(1)  =cof(6)
+    !mc%para(2)  =cof(7)
+    !mc%para(3)  =cof(8)
 
     if (abs(mc%EChi-x(1)*CofOld(1)).gt.0.0000001_dp) then
         print*, "Error in replicaExchange"
@@ -623,14 +623,14 @@ Subroutine replicaExchange(mc)
         stop 1
     endif
 
-    mc%EChi    =mc%EChi    +x(1)*(Cof(1)-CofOld(1)) 
-    mc%EBind   =mc%EBind   +x(2)*(Cof(2)-CofOld(2))  
-    mc%EField  =mc%EField  +x(3)*(Cof(3)-CofOld(3)) 
-    mc%ECouple =mc%ECouple +x(4)*(Cof(4)-CofOld(4)) 
-    mc%EKap    =mc%EKap    +x(5)*(Cof(5)-CofOld(5)) 
-   ! mc%EElas(1)=mc%EElas(1)+x(6)*(Cof(6)-CofOld(6)) 
-   ! mc%EElas(2)=mc%EElas(2)+x(7)*(Cof(7)-CofOld(7)) 
-   ! mc%EElas(3)=mc%EElas(3)+x(8)*(Cof(8)-CofOld(8)) 
+    mc%EChi    =mc%EChi    +x(1)*(Cof(1)-CofOld(1))
+    mc%ebind   =mc%ebind   +x(2)*(Cof(2)-CofOld(2))
+    mc%EField  =mc%EField  +x(3)*(Cof(3)-CofOld(3))
+    mc%ECouple =mc%ECouple +x(4)*(Cof(4)-CofOld(4))
+    mc%EKap    =mc%EKap    +x(5)*(Cof(5)-CofOld(5))
+   ! mc%EElas(1)=mc%EElas(1)+x(6)*(Cof(6)-CofOld(6))
+   ! mc%EElas(2)=mc%EElas(2)+x(7)*(Cof(7)-CofOld(7))
+   ! mc%EElas(3)=mc%EElas(3)+x(8)*(Cof(8)-CofOld(8))
 
     if (abs(mc%EChi-x(1)*Cof(1)).gt.0.000001_dp) then
         print*, "Error in replicaExchange"
@@ -649,4 +649,4 @@ Subroutine replicaExchange(mc)
 
     ! keep track of which thread you are
     mc%id=int(id)
-end Subroutine
+end subroutine

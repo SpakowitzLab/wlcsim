@@ -1,4 +1,7 @@
-Subroutine pt_restart(mc,md)
+subroutine pt_restart(mc,md)
+! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
+! parallel-tempered MC simulations.
+!
 ! This function takes the place of PT_override in the case of restart
 ! This will read from a output directory and restart multiple replicas
 ! Override initialization with parallel setup parameters
@@ -6,8 +9,8 @@ Subroutine pt_restart(mc,md)
     use mpi
     use simMod
     Implicit none
-    TYPE(MCvar), intent(inout) :: mc
-    TYPE(MCData), intent(inout) :: md
+    type(MCvar), intent(inout) :: mc
+    type(MCData), intent(inout) :: md
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror
@@ -15,27 +18,27 @@ Subroutine pt_restart(mc,md)
     character*64 iostrg    ! for file naming
     character*16 vNum    ! for file naming
     character*64 dir
-    integer ( kind = 4 ) status(MPI_STATUS_SIZE) ! MPI stuff
+    integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     integer, parameter :: nTerms=8  ! number of energy terms
-    double precision mag ! magnitude for renormalizing U 
-    double precision cof(nTerms)
+    real(dp) mag ! magnitude for renormalizing U
+    real(dp) cof(nTerms)
     integer I ! bead index
 
-    ! File parsing
+    ! file parsing
     integer ios ! read status (detect end of file)
-    double precision temp(28)  ! values
+    real(dp) temp(28)  ! values
 
-    ! Which replica am I? 
+    ! Which replica am I?
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
     source=0;
-    call MPI_Recv ( mc%rep, 1, MPI_INTEGER, source, 0, &
+    call MPI_Recv ( mc%rep, 1, MPI_integer, source, 0, &
                    MPI_COMM_WORLD, status, error )
     if (mc%rep.ne.id) then
         print*, "That's not what I expected! see restart"
     endif
     if (nThreads.lt.3) then
-        print*, "Don't use pt_restart for fewer than 3 treads"
+        print*, "don't use pt_restart for fewer than 3 treads"
         stop 1
     endif
     write(vNum,'(I4)') mc%rep
@@ -45,15 +48,15 @@ Subroutine pt_restart(mc,md)
     ! Where to read from
     dir="data/"
 
-    ! Read Some operation variables
+    ! read Some operation variables
     ! Many of these aren't necessary but a few are
     iostrg=trim(dir)//"out1"
     iostrg=trim(iostrg)//trim(vNum)
     print*, "reading", iostrg
-    OPEN(Unit=1, FILE=iostrg, STATUS ='OLD')
-    READ(1,*)
-    Do WHILE (.TRUE.)
-        READ(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
+    open(unit=1, file=iostrg, status ='OLD')
+    read(1,*)
+    do WHILE (.TRUE.)
+        read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
                               temp(6), temp(7), temp(8), temp(9), temp(10), &
                               temp(11), temp(12), temp(13), temp(14), &
                               temp(15), temp(16)
@@ -66,7 +69,7 @@ Subroutine pt_restart(mc,md)
             mc%EKap=temp(7)
             mc%EChi=temp(8)
             mc%EField=temp(9)
-            mc%EBind=temp(10)
+            mc%ebind=temp(10)
             mc%M=temp(11)
             mc%HP1_Bind=temp(12)
             mc%chi=temp(13)
@@ -77,7 +80,7 @@ Subroutine pt_restart(mc,md)
             Exit
         endif
     enddo
-    CLOSE(1)
+    close(1)
     print*, "first set from file", iostrg
     print*, temp
     ! not sure if the following if statments are necessary
@@ -94,17 +97,17 @@ Subroutine pt_restart(mc,md)
         mc%x_Field=mc%EField/mc%h_A
     endif
     if (mc%Mu.ne.0.0) then
-        mc%x_Mu=mc%EBind/mc%Mu
+        mc%x_Mu=mc%ebind/mc%Mu
     endif
 
-    ! Read back in addaptation stuff, May make slight difference
+    ! read back in addaptation stuff, May make slight difference
     iostrg=trim(dir)//"out3"
     iostrg=trim(iostrg)//trim(vNum)
     print*, iostrg
-    OPEN(Unit=1, FILE=iostrg, STATUS ='OLD')
-    READ(1,*)
-    Do WHILE (.TRUE.)
-        READ(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
+    open(unit=1, file=iostrg, status ='OLD')
+    read(1,*)
+    do WHILE (.TRUE.)
+        read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
                               temp(6), temp(7), temp(8), temp(9), temp(10), &
                               temp(11), temp(12), temp(13), temp(14), &
                               temp(15), temp(16), temp(17), temp(18), &
@@ -112,9 +115,9 @@ Subroutine pt_restart(mc,md)
                               temp(23), temp(24), temp(25), temp(26), &
                               temp(27), temp(28)
         if (ios.eq.0) then
-            mc%WINDOW(1)=temp(3); mc%MCAMP(1)=temp(4); mc%PHIT(1)=temp(5);
-            mc%WINDOW(2)=temp(6); mc%MCAMP(2)=temp(7); mc%PHIT(2)=temp(8);
-            mc%WINDOW(3)=temp(9); mc%MCAMP(3)=temp(10); mc%PHIT(3)=temp(11);
+            mc%WindoW(1)=temp(3); mc%MCAMP(1)=temp(4); mc%PHIT(1)=temp(5);
+            mc%WindoW(2)=temp(6); mc%MCAMP(2)=temp(7); mc%PHIT(2)=temp(8);
+            mc%WindoW(3)=temp(9); mc%MCAMP(3)=temp(10); mc%PHIT(3)=temp(11);
             mc%MOVEON(4)=nint(temp(12)); mc%MCAMP(4)=temp(13); mc%PHIT(4)=temp(14);
             mc%MOVEON(5)=nint(temp(15)); mc%MCAMP(5)=temp(16); mc%PHIT(5)=temp(17);
             mc%MOVEON(6)=nint(temp(18)); mc%MCAMP(6)=temp(19); mc%PHIT(6)=temp(20);
@@ -126,47 +129,47 @@ Subroutine pt_restart(mc,md)
             Exit
         endif
     enddo
-    CLOSE(1)
+    close(1)
     print*, "second set from file", iostrg
     print*, temp
-    
 
-    
-    ! Read R and AB from file
+
+
+    ! read R and AB from file
     write(iostrg,"(I8)"), mc%ind
     iostrg=adjustL(iostrg)
     iostrg="r"//trim(iostrg)
     iostrg=trim(dir)//trim(iostrg)
     iostrg=trim(iostrg)//trim(vNum)
-    print*, "Reading", iostrg
-    OPEN (UNIT = 5, FILE = iostrg, STATUS = 'OLD')
+    print*, "reading", iostrg
+    open (unit = 5, file = iostrg, status = 'OLD')
     print*, "NT=",mc%NT
     ios=0;
-    Do I=1,mc%NT
+    do I=1,mc%NT
        if (ios.ne.0) then
            print*, "Problem while reading R, Possible incomplete file"
            stop 1
        endif
-       READ(5,*) md%R(I,1),md%R(I,2),md%R(I,3),md%AB(I)
+       read(5,*) md%R(I,1),md%R(I,2),md%R(I,3),md%AB(I)
     enddo
-    CLOSE(5)
-  
-    ! Read U
+    close(5)
+
+    ! read U
     write(iostrg,"(I8)"), mc%ind
     iostrg=adjustL(iostrg)
     iostrg="u"//trim(iostrg)
     iostrg=trim(dir)//trim(iostrg)
     iostrg=trim(iostrg)//trim(vNum)
-    ! Read U from file
-    OPEN (UNIT = 5, FILE = iostrg, STATUS = 'OLD')
-    Do I=1,mc%NT
-       READ(5,*) md%U(I,1),md%U(I,2),md%U(I,3)
+    ! read U from file
+    open (unit = 5, file = iostrg, status = 'OLD')
+    do I=1,mc%NT
+       read(5,*) md%U(I,1),md%U(I,2),md%U(I,3)
        mag=sqrt(md%U(I,1)**2+md%U(I,2)**2+md%U(I,3)**2)
        md%U(I,1)=md%U(I,1)/mag
        md%U(I,2)=md%U(I,2)/mag
        md%U(I,3)=md%U(I,3)/mag
-    enddo 
-    CLOSE(5)
+    enddo
+    close(5)
 
     ! Let head node know what cof values you read
     cof(1)=mc%chi
@@ -174,11 +177,11 @@ Subroutine pt_restart(mc,md)
     cof(3)=mc%h_A
     cof(4)=mc%HP1_Bind
     cof(5)=mc%KAP
-    cof(6)=mc%Para(1)
-    cof(7)=mc%Para(2)
-    cof(8)=mc%Para(3) 
+    cof(6)=mc%para(1)
+    cof(7)=mc%para(2)
+    cof(8)=mc%para(3)
     dest=0
-    call MPI_Send (cof,nTerms, MPI_DOUBLE_PRECISION, dest,   0, &
+    call MPI_Send (cof,nTerms, MPI_doUBLE_PRECISION, dest,   0, &
                     MPI_COMM_WORLD,error )
 
     ! Make repsufix
@@ -191,4 +194,4 @@ Subroutine pt_restart(mc,md)
 
     ! keep track of which thread you are
     mc%id=int(id)
-end Subroutine
+end subroutine

@@ -1,7 +1,7 @@
-Subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
-                           cofMtrx,xMtrx,nodeNumber,N_average,nExchange,IND,nTerms,s)
+subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
+                           cofMtrx,xMtrx,nodeNumber,N_average,nExchange,ind,nTerms,s)
     use setPrecision
-! Print Energy data
+! print Energy data
     IMPLICIT NONE
     integer, intent(in) :: nTerms
     integer, intent(in) :: nPTReplicas
@@ -10,22 +10,22 @@ Subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
     integer, intent(in) :: nodeNumber(nPTReplicas)
     integer, intent(in) :: N_average
     integer, intent(in) :: nExchange
-    integer, intent(in) :: IND
-    double precision, intent(in) :: cofMtrx(nPTReplicas,nTerms)
-    double precision, intent(in) :: xMtrx(nPTReplicas,nTerms)
-    double precision, intent(in) :: s(nPTReplicas)
+    integer, intent(in) :: ind
+    real(dp), intent(in) :: cofMtrx(nPTReplicas,nTerms)
+    real(dp), intent(in) :: xMtrx(nPTReplicas,nTerms)
+    real(dp), intent(in) :: s(nPTReplicas)
     integer rep
-    LOGICAL isfile
+    logical isfile
     character*32 fullName
     fullName=  'data/repHistory'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
 
-    write(1,*) "~~~~~~~~~~~exchange: ",nExchange,", IND:",IND,"~~~~~~~~~~~~~~~~~~~~"
+    write(1,*) "~~~~~~~~~~~exchange: ",nExchange,", ind:",ind,"~~~~~~~~~~~~~~~~~~~~"
     write(1,*) " rep | node|  up  | down |",&
                " chi  |  x_chi |",&
                " h_A  |  x_h_A |",&
@@ -39,65 +39,65 @@ Subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
                  cofMtrx(rep,3), xMtrx(rep,3),&
                  cofMtrx(rep,2), xMtrx(rep,2),s(rep)
     enddo  
-    Close(1)
+    close(1)
     ! save which node each replica is running on
     fullName=  'data/nodeNumber'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, nodeNumber
-    Close(1)
+    write(1,*), ind, nodeNumber
+    close(1)
     ! save chi values
     fullName=  'data/chi'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, cofMtrx(:,1)
-    Close(1)
+    write(1,*), ind, cofMtrx(:,1)
+    close(1)
     ! save field strength
     fullName=  'data/h_A'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, cofMtrx(:,3)
-    Close(1)
+    write(1,*), ind, cofMtrx(:,3)
+    close(1)
     ! save kap
     fullName=  'data/kap'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, cofMtrx(:,5)
-    Close(1)
+    write(1,*), ind, cofMtrx(:,5)
+    close(1)
     ! save mu
     fullName=  'data/mu'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, cofMtrx(:,2)
-    Close(1)
+    write(1,*), ind, cofMtrx(:,2)
+    close(1)
     ! save s
     fullName=  'data/s'
     inquire(file = fullName, exist=isfile)
     if (isfile) then
-        OPEN (UNIT = 1, FILE = fullName, STATUS ='OLD', POSITION="append")
+        open (unit = 1, file = fullName, status ='OLD', POSITION="append")
     else 
-        OPEN (UNIT = 1, FILE = fullName, STATUS = 'new')
+        open (unit = 1, file = fullName, status = 'new')
     endif
-    write(1,*), IND, s
-    Close(1)
+    write(1,*), ind, s
+    close(1)
 end subroutine

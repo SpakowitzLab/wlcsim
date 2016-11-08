@@ -1,12 +1,15 @@
+!
+! This file is where quinn hardcodes certain parameters of the MC that he wants
+! to change depending on what step he's on.
 !---------------------------------------------------------------*
-Subroutine strength_schedule(mc,inton)
+subroutine strength_schedule(mc,inton)
     use setPrecision
     use simMod
     implicit none
-    TYPE(MCvar), intent(inout) :: mc
+    type(MCvar), intent(inout) :: mc
     integer, intent(out) :: inton
 
-    if (mc%IND.LE.mc%NNOINT) then
+    if (mc%ind.LE.mc%NNOINT) then
         INTON=0
     else
         INTON=1
@@ -117,7 +120,7 @@ Subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.120) then 
+    elseif (mc%ind.lt.120) then
         mc%moveon(1) = 0;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -135,7 +138,7 @@ Subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    endif 
+    endif
 
 
 

@@ -307,42 +307,34 @@ elseif (MCTYPE.EQ.2) then
 
 elseif (MCTYPE.EQ.3) then
 
-   call random_number(urnd,rand_stat)
-   IP=ceiling(urnd(1)*NP)
-   if (wintype.eq.0) then
-       print*, "Error, wintype 0 out of service"
-       stop 1
-   elseif(winType.eq.1) then
-       call random_number(urnd,rand_stat)
-       if (urnd(1).gt.0.5_dp) then
-          call random_number(urnd,rand_stat)
-          IB2=nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))+1
-          if (IB2.GT.NB) then
-              IB2=NB
-          endif
-          IB1=1
-          IT1=NB*(IP-1)+IB1
-          IT2=NB*(IP-1)+IB2
-          P1(1)=R(IT2,1)
-          P1(2)=R(IT2,2)
-          P1(3)=R(IT2,3)
-       else
-          call random_number(urnd,rand_stat)
-          IB1=NB-nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))
-          if (IB1.LT.1) then
-             IB1=1
-          endif
-          IB2=NB
-          IT1=NB*(IP-1)+IB1
-          IT2=NB*(IP-1)+IB2
-          P1(1)=R(IT1,1)
-          P1(2)=R(IT1,2)
-          P1(3)=R(IT1,3)
-       endif
-   else
-       print*, "Error, no other option"
-       stop 1
-   endif
+    call random_number(urnd,rand_stat)
+    IP=ceiling(urnd(1)*NP)
+    call random_number(urnd,rand_stat)
+    if (urnd(1).gt.0.5_dp) then
+        call random_number(urnd,rand_stat)
+        IB2=nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))+1
+        if (IB2.GT.NB) then
+            IB2=NB
+        endif
+        IB1=1
+        IT1=NB*(IP-1)+IB1
+        IT2=NB*(IP-1)+IB2
+        P1(1)=R(IT2,1)
+        P1(2)=R(IT2,2)
+        P1(3)=R(IT2,3)
+    else
+        call random_number(urnd,rand_stat)
+        IB1=NB-nint(-1.0_dp*log(urnd(1))*WINDOW(MCTYPE))
+        if (IB1.LT.1) then
+            IB1=1
+        endif
+        IB2=NB
+        IT1=NB*(IP-1)+IB1
+        IT2=NB*(IP-1)+IB2
+        P1(1)=R(IT1,1)
+        P1(2)=R(IT1,2)
+        P1(3)=R(IT1,3)
+    endif
 
    call random_number(urand,rand_stat)
    ALPHA=2.*PI*urand(1)
@@ -511,13 +503,9 @@ elseif (MCTYPE.EQ.7) then
    call random_number(urand,rand_stat)
    IP=ceiling(urand(1)*NP)
    IB1=ceiling(urand(2)*NB)
-   if (winType.eq.0) then
-       IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
-   elseif (winType.eq.1) then
-       call random_number(urnd,rand_stat)
-       IB2=IB1+(2*nint(urand(3))-1)* &
-               nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
-   endif
+   call random_number(urnd,rand_stat)
+   IB2=IB1+(2*nint(urand(3))-1)* &
+           nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
 
    if (IB2.LT.1) then
       IB2=1

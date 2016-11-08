@@ -1,31 +1,29 @@
-!! ---------------------------------------------------------------*
-     
-!     Andrew Spakowitz
-!     Written 4-16-04
+!   Generates the initial distribution of "A"'s and "B"'s for simulations of
+!   copolymers.
 !
-!     Quinn updated on 5/22/16 to use thread save randum number generator
+!   Quinn updated on 5/22/16 to use thread safe randum number generator
 !
-      
-SUBROUTINE initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
+
+subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 
 !  use mt19937, only : grnd, init_genrand, rnorm, mt, mti
     use mersenne_twister
     use setPrecision
 
-  INTEGER, intent(out) :: AB(NT)     ! Chemical identity of beads
-  INTEGER, intent(in) :: N           ! Number of monomers per polymer
-  INTEGER, intent(in) :: G           ! Number of beads per monomer
-  INTEGER, intent(in) :: NP          ! Number of polymer chains
-  INTEGER, intent(in) :: NT          ! Total number of beads
-  
-  INTEGER I,J,K,IB
+  integer, intent(out) :: AB(NT)     ! Chemical identity of beads
+  integer, intent(in) :: N           ! Number of monomers per polymer
+  integer, intent(in) :: G           ! Number of beads per monomer
+  integer, intent(in) :: NP          ! Number of polymer chains
+  integer, intent(in) :: NT          ! Total number of beads
+
+  integer I,J,K,IB
   real TEST(1)   ! changed to real by Quinn
   type(random_stat), intent(inout) ::rand_stat    ! status of random number generator
-  !INTEGER ABVAL
+  !integer ABVAL
 
-  DOUBLE PRECISION, intent(in) :: FA   ! Fraction of A beads
-  DOUBLE PRECISION, intent(in) :: LAM  ! Chemical correlation parameter
-  DOUBLE PRECISION PAA,PBB,PAB,PBA ! Chemical identity statistics
+  real(dp), intent(in) :: FA   ! Fraction of A beads
+  real(dp), intent(in) :: LAM  ! Chemical correlation parameter
+  real(dp) PAA,PBB,PAB,PBA ! Chemical identity statistics
 
 
   !		Translate LAM and FA to probabilities
@@ -36,9 +34,9 @@ SUBROUTINE initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
   PAB=1.0_dp-PBB
 
   !		Determine the bead identities
-  
+
   IB=1
-  DO 10 I=1,NP
+  do 10 I=1,NP
      !TEST=grnd()
      call random_number(TEST,rand_stat)
      if (dble(TEST(1)).lt.FA) then
@@ -47,13 +45,13 @@ SUBROUTINE initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
         AB(IB)=0
      endif
      IB=IB+1
-     DO 15 K=2,G
+     do 15 K=2,G
         AB(IB)=AB(IB-1)
         IB=IB+1
-15   CONTINUE
-        
-     DO 20 J=2,N
-        !TEST=grnd() 
+15   continue
+
+     do 20 J=2,N
+        !TEST=grnd()
         call random_number(TEST,rand_stat)
         if (AB(IB-1).EQ.1) then
            if (TEST(1).LE.PAA) then
@@ -69,15 +67,15 @@ SUBROUTINE initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
            endif
         endif
         IB=IB+1
-           
-     DO 30 K=2,G
+
+     do 30 K=2,G
         AB(IB)=AB(IB-1)
         IB=IB+1
-30      CONTINUE
-20      CONTINUE
-10      CONTINUE
-      
-RETURN     
-END
-      
+30      continue
+20      continue
+10      continue
+
+RETURN
+end
+
 !---------------------------------------------------------------*

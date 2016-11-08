@@ -87,7 +87,17 @@ STACK:
 8. change call to MC_move
 9. check set_type is set to 6 for rings
 10. check set_type matches boundary conditions
-11. inton -> field_interactions, self interactions -> INTERP_BEAD_LENNARD_JONES
+11. inton -> field_interactions, self interactions -> intrapolymer_stick_crossing_enforced
 13. document that adapt.f90 and adaptCof.f90 are the "crux" of optimizing the MC
+
+15. Quinn should probably move shedule.f95 into wlcsim_quinn.f95, or similar
+16. Quinn should probably combine MCparrll_mpi.f90 and wlcsim_quinn.f95, to
+    create a single function wlcsim_quinn, that wlcsim.f95 can call.
+17. Brad should probably change wlcsim_brad.f95 so that wlcsim.f95 can call it.
+
+18. Consult with quinn about which variables can change during a simulation
+
+changed variable names:
+NmoveTypes -> num_move_types
 
 

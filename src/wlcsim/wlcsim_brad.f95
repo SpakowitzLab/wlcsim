@@ -26,62 +26,62 @@ PROGRAM wlcsim
   use mersenne_twister 
   IMPLICIT NONE
 
-  double precision, PARAMETER :: PI=3.141592654d0 ! Value of pi
+  real(dp), paraMETER :: PI=3.141592654d0 ! Value of pi
 
   !Variables used in simulation 
 
-  DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R	 ! Conformation of polymer chains
-  DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U	 ! Conformation of polymer chains
-  DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: R0	 ! Conformation of polymer chains
-  DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:,:):: U0	 ! Conformation of polymer chains
+  real(dp), allocatable, dimension(:,:):: R	 ! Conformation of polymer chains
+  real(dp), allocatable, dimension(:,:):: U	 ! Conformation of polymer chains
+  real(dp), allocatable, dimension(:,:):: R0	 ! Conformation of polymer chains
+  real(dp), allocatable, dimension(:,:):: U0	 ! Conformation of polymer chains
 
 
-  DOUBLE PRECISION L0       ! Equilibrium segment length
-  DOUBLE PRECISION DEL      ! Segment contour length
-  DOUBLE PRECISION ENERGY   ! Total energy
-  DOUBLE PRECISION TIME     ! Current time
-  DOUBLE PRECISION TSAVE     ! Time of save point
-  DOUBLE PRECISION T0,TF    ! Initial/final times
-  DOUBLE PRECISION DT       ! Time step size
-  INTEGER I,J,IB            ! Index
-  INTEGER INDMAX            ! Maximum index in series
-  INTEGER IND               ! Ind in series
-  INTEGER TENS              ! Decimal of index
-  character*5 fileind       ! Index of output
-  character*16 snapnm       ! File for output
+  real(dp) L0       ! Equilibrium segment length
+  real(dp) del      ! Segment contour length
+  real(dp) ENERGY   ! Total energy
+  real(dp) TIME     ! Current time
+  real(dp) TSAVE     ! Time of save point
+  real(dp) T0,TF    ! Initial/final times
+  real(dp) DT       ! Time step size
+  integer I,J,IB            ! index
+  integer indMAX            ! Maximum index in series
+  integer ind               ! ind in series
+  integer TENS              ! Decimal of index
+  character*5 fileind       ! index of output
+  character*16 snapnm       ! file for output
 
 
   !     Simulation input variables
 
-  INTEGER NT                 ! Number of beads in simulation
-  INTEGER N                 ! Number of beads in simulation
-  INTEGER NP                ! Number of polymers in simulation
-  DOUBLE PRECISION L        ! Total contour length
-  DOUBLE PRECISION LP       ! Bending persistencce length
-  DOUBLE PRECISION LT       ! Twist persistence length
-  INTEGER LK                ! Linking number
-  INTEGER FRMFILE           ! Initial condition
-  INTEGER BROWN             ! Include Brownian forces
-  INTEGER INTON             ! Include polymer interactions
-  INTEGER LOGTIME           ! Is data recorded in log time?
-  INTEGER RING              ! Is polymer a ring?
-  INTEGER TWIST             ! Include twist?
-  DOUBLE PRECISION DT0      ! Initial time step size
-  INTEGER NSTEP,NINIT
+  integer NT                 ! Number of beads in simulation
+  integer N                 ! Number of beads in simulation
+  integer NP                ! Number of polymers in simulation
+  real(dp) L        ! Total contour length
+  real(dp) LP       ! Bending persistencce length
+  real(dp) LT       ! Twist persistence length
+  integer LK                ! Linking number
+  integer FRMfile           ! Initial condition
+  integer BROWN             ! Include Brownian forces
+  integer INTON             ! Include polymer interactions
+  integer LOGTIME           ! Is data recorded in log time?
+  integer ring              ! Is polymer a ring?
+  integer TWIST             ! Include twist?
+  real(dp) DT0      ! Initial time step size
+  integer NSTEP,NINIT
 
   !     Monte Carlo variables
 
-  DOUBLE PRECISION MCAMP(6) ! Amplitude of random change
-  INTEGER MOVEON(6)			! Is the move active
-  INTEGER WINDOW(6)			! Size of window for bead selection
-  INTEGER SUCCESS(6),SUCCESS_TOTAL(6)        ! Number of successes
+  real(dp) MCAMP(6) ! Amplitude of random change
+  integer MOVEON(6)			! Is the move active
+  integer WindoW(6)			! Size of window for bead selection
+  integer SUCCESS(6),SUCCESS_TOTAL(6)        ! Number of successes
 
   !MPI variables
-  integer IOStatus
+  integer IOstatus
   integer (kind = 4) error
   integer (kind = 4) p
   integer (kind = 4) id
-  integer (kind = 4) status(MPI_STATUS_SIZE)
+  integer (kind = 4) status(MPI_status_SIZE)
   integer rep
   integer dest
   integer source
@@ -100,127 +100,127 @@ PROGRAM wlcsim
 
 !x  type(random_stat), allocatable:: stat(:) !for random numer generator
 
-  !     Parallel tempering variables
+  !     parallel tempering variables
 
-  INTEGER ParTempOn         !Use parallel tempering?
-  INTEGER, allocatable :: Lks(:)               !Vector of Lks for difference replicas
-  DOUBLE PRECISION, allocatable :: Es(:)       !Vector of total energies for different replicas
-  DOUBLE PRECISION, allocatable :: EElasRep(:,:) !Matrix of elastic energies for replicas
-  DOUBLE PRECISION, allocatable :: Wrs(:)        !Vector of writhes for different replicas
-  DOUBLE PRECISION, allocatable :: ETwists(:)    !Vector of twist energies for different replicas
-  DOUBLE PRECISION ETwist
-  DOUBLE PRECISION dE_exchange                 !Change in energy for replica exchange
-  INTEGER TempLk                               !Temporary Lk value for performing exchange of Lk
-  INTEGER NLks              !Number of LKs for replica parallel tempering
-  INTEGER LkMin             !Minimum LK for parallel tempering
-  INTEGER LkMax             !Maximum LK for parallel tempering
-  INTEGER LkStep            !Step size between LK values
+  integer ParTempOn         !use parallel tempering?
+  integer, allocatable :: Lks(:)               !Vector of Lks for difference replicas
+  real(dp), allocatable :: Es(:)       !Vector of total energies for different replicas
+  real(dp), allocatable :: EElasRep(:,:) !Matrix of elastic energies for replicas
+  real(dp), allocatable :: Wrs(:)        !Vector of writhes for different replicas
+  real(dp), allocatable :: ETwists(:)    !Vector of twist energies for different replicas
+  real(dp) ETwist
+  real(dp) dE_exchange                 !Change in energy for replica exchange
+  integer TempLk                               !Temporary Lk value for performing exchange of Lk
+  integer NLks              !Number of LKs for replica parallel tempering
+  integer LkMin             !Minimum LK for parallel tempering
+  integer LkMax             !Maximum LK for parallel tempering
+  integer LkStep            !Step size between LK values
   CHARACTER*4 LkStr         !String variable for Lk
   CHARACTER*4 LkPlusStr     !String variable for Lk replica one Lk step above current replica
   CHARACTER*4 LkMinusStr      !String variable for Lk replica one LK step below current replica
   CHARACTER*4 LkSwapStr     !String variable for Lk replica to test for exchange
-  DOUBLE PRECISION Prob     !Probability of swapping current replica with test replica 
-  DOUBLE PRECISION Test     !Test number for determining whether to swap (random number between 0. and 1.)
-  INTEGER, allocatable :: NSwapPlus(:)         !Number of times replica with Lk one step above is swapped
-  INTEGER, allocatable :: NSwapMinus(:)        !Number of times replica with Lk one step below is swapped
-  INTEGER, allocatable :: NTrialPlus(:)        !Number of trials for exchanging with the replica on Lk step above 
-  INTEGER, allocatable :: NTrialMinus(:)       !Number of trials for exchanging with the replica on Lk step below
-  INTEGER Restart              !Is simulation restarting from a previously interrupted run (1 or 0)?
-  DOUBLE PRECISION, ALLOCATABLE ::  Swap(:,:)     !Matrix of swaps with other replicas (+1,-1,or 0). Each column corresponds to a replica
-  DOUBLE PRECISION, ALLOCATABLE ::  PSwapPlus(:)  !Vector of swap probabilities of replicas with Lk above
-  DOUBLE PRECISION, ALLOCATABLE :: PSwapMinus(:)  !Vector of swap probabilities of replicas with Lk below
+  real(dp) Prob     !Probability of swapping current replica with test replica 
+  real(dp) Test     !Test number for determining whether to swap (random number between 0. and 1.)
+  integer, allocatable :: NSwapPlus(:)         !Number of times replica with Lk one step above is swapped
+  integer, allocatable :: NSwapMinus(:)        !Number of times replica with Lk one step below is swapped
+  integer, allocatable :: NTrialPlus(:)        !Number of trials for exchanging with the replica on Lk step above 
+  integer, allocatable :: NTrialMinus(:)       !Number of trials for exchanging with the replica on Lk step below
+  integer Restart              !Is simulation restarting from a previously interrupted run (1 or 0)?
+  real(dp), allocatable ::  Swap(:,:)     !Matrix of swaps with other replicas (+1,-1,or 0). Each column corresponds to a replica
+  real(dp), allocatable ::  PSwapPlus(:)  !Vector of swap probabilities of replicas with Lk above
+  real(dp), allocatable :: PSwapMinus(:)  !Vector of swap probabilities of replicas with Lk below
 
   !     Energy variables
 
-  DOUBLE PRECISION EELAS(4) ! Elastic energy
-  DOUBLE PRECISION EPONP    ! Poly-poly energy
-  DOUBLE PRECISION ETOT     ! Total chain energy
-  DOUBLE PRECISION, ALLOCATABLE :: EELASALL(:,:,:)
-  DOUBLE PRECISION, ALLOCATABLE :: EPONPALL(:,:)
-  DOUBLE PRECISION, ALLOCATABLE :: ETotAll(:,:)
-  DOUBLE PRECISION  ETotAvg
-  DOUBLE PRECISION  ETotStdev
-  DOUBLE PRECISION  EtotStderr
+  real(dp) EELAS(4) ! Elastic energy
+  real(dp) EPONP    ! Poly-poly energy
+  real(dp) ETOT     ! Total chain energy
+  real(dp), allocatable :: EELASALL(:,:,:)
+  real(dp), allocatable :: EPONPALL(:,:)
+  real(dp), allocatable :: ETotAll(:,:)
+  real(dp)  ETotAvg
+  real(dp)  ETotStdev
+  real(dp)  EtotStderr
 
   !     Structure analysis
 
-  DOUBLE PRECISION, ALLOCATABLE :: RCOM(:,:) ! Center of mass
-  DOUBLE PRECISION, ALLOCATABLE :: RGYR(:)
-  DOUBLE PRECISION, ALLOCATABLE :: R2(:)  !Second moment of end-to-end displacement 
-  DOUBLE PRECISION, ALLOCATABLE :: R4(:)  !Fourth moment of end-to-end displacement 
-  DOUBLE PRECISION, ALLOCATABLE :: R6(:)  !Sixth moment of end-to-end displacement 
-  DOUBLE PRECISION, ALLOCATABLE :: DR(:)  !End-to-end displacement 
+  real(dp), allocatable :: RCOM(:,:) ! Center of mass
+  real(dp), allocatable :: RGYR(:)
+  real(dp), allocatable :: R2(:)  !Second moment of end-to-end displacement 
+  real(dp), allocatable :: R4(:)  !Fourth moment of end-to-end displacement 
+  real(dp), allocatable :: R6(:)  !Sixth moment of end-to-end displacement 
+  real(dp), allocatable :: DR(:)  !end-to-end displacement 
 
-  DOUBLE PRECISION, ALLOCATABLE :: RGYRALL(:,:) !Trajectory of the radius of gyrationover the simulation for all replicas
-  DOUBLE PRECISION, ALLOCATABLE :: WrAll(:,:) !Trajectory of writhe over the simulation for all replicas
-  DOUBLE PRECISION, ALLOCATABLE ::  RGYRSQALL(:,:) ! Trajectory of the Radius of gyration squared over the simulation for all replicas
-  DOUBLE PRECISION, ALLOCATABLE ::  RCOMSQ(:)  ! Center of mass squared
-  DOUBLE PRECISION, ALLOCATABLE ::  RGYRSQ(:)  ! Radius of gyration squared
+  real(dp), allocatable :: RGYRALL(:,:) !Trajectory of the radius of gyrationover the simulation for all replicas
+  real(dp), allocatable :: WrAll(:,:) !Trajectory of writhe over the simulation for all replicas
+  real(dp), allocatable ::  RGYRSQALL(:,:) ! Trajectory of the Radius of gyration squared over the simulation for all replicas
+  real(dp), allocatable ::  RCOMSQ(:)  ! Center of mass squared
+  real(dp), allocatable ::  RGYRSQ(:)  ! Radius of gyration squared
 
 
-  DOUBLE PRECISION RGYRSQ_AVG
-  DOUBLE PRECISION RGYRSQ_STDEV
-  DOUBLE PRECISION RGYRSQ_STDER
-  DOUBLE PRECISION RGYR_AVG
-  DOUBLE PRECISION RGYR_STDEV
-  DOUBLE PRECISION RGYR_STDER
-  DOUBLE PRECISION R2_AVG
-  DOUBLE PRECISION R2_STDEV
-  DOUBLE PRECISION R2_STDER
-  DOUBLE PRECISION R4_AVG
-  DOUBLE PRECISION R4_STDEV
-  DOUBLE PRECISION R4_STDER
-  DOUBLE PRECISION R6_AVG
-  DOUBLE PRECISION R6_STDEV
-  DOUBLE PRECISION R6_STDER
-  DOUBLE PRECISION DR_AVG
-  DOUBLE PRECISION DR_STDEV
-  DOUBLE PRECISION DR_STDER
-  DOUBLE PRECISION WR_AVG
-  DOUBLE PRECISION WR_STDEV
-  DOUBLE PRECISION WR_STDER
-  DOUBLE PRECISION Etot_avg
-  DOUBLE PRECISION EPonp_avg
-  DOUBLE PRECISION Etot_stdev
-  DOUBLE PRECISION EPonp_stdev
-  DOUBLE PRECISION Etot_stder
-  DOUBLE PRECISION EPonp_Stder
-  DOUBLE PRECISION EElas_avg(4)
-  DOUBLE PRECISION EElas_stdev(4)
-  DOUBLE PRECISION EElas_stder(4)
+  real(dp) RGYRSQ_AVG
+  real(dp) RGYRSQ_STDEV
+  real(dp) RGYRSQ_STDER
+  real(dp) RGYR_AVG
+  real(dp) RGYR_STDEV
+  real(dp) RGYR_STDER
+  real(dp) R2_AVG
+  real(dp) R2_STDEV
+  real(dp) R2_STDER
+  real(dp) R4_AVG
+  real(dp) R4_STDEV
+  real(dp) R4_STDER
+  real(dp) R6_AVG
+  real(dp) R6_STDEV
+  real(dp) R6_STDER
+  real(dp) DR_AVG
+  real(dp) DR_STDEV
+  real(dp) DR_STDER
+  real(dp) WR_AVG
+  real(dp) WR_STDEV
+  real(dp) WR_STDER
+  real(dp) Etot_avg
+  real(dp) EPonp_avg
+  real(dp) Etot_stdev
+  real(dp) EPonp_stdev
+  real(dp) Etot_stder
+  real(dp) EPonp_Stder
+  real(dp) EElas_avg(4)
+  real(dp) EElas_stdev(4)
+  real(dp) EElas_stder(4)
 
-  DOUBLE PRECISION Wr       ! Writhe
-  DOUBLE PRECISION Tw       ! Twist
-  DOUBLE PRECISION DELR(3)  ! Mag of gyration tensor
-  DOUBLE PRECISION RCOM0(3) ! Init val RCOM
-  DOUBLE PRECISION DELR0(3) ! Init val DELR
-  DOUBLE PRECISION DRCOM    ! Change in RCOM
-  DOUBLE PRECISION SIG(3,3)
-  DOUBLE PRECISION COR
+  real(dp) Wr       ! Writhe
+  real(dp) Tw       ! Twist
+  real(dp) delR(3)  ! Mag of gyration tensor
+  real(dp) RCOM0(3) ! Init val RCOM
+  real(dp) delR0(3) ! Init val delR
+  real(dp) DRCOM    ! Change in RCOM
+  real(dp) SIG(3,3)
+  real(dp) COR
 
   !     Algorithm analysis variables
-  DOUBLE PRECISION, ALLOCATABLE ::  MCAMP1ALL(:)
-  DOUBLE PRECISION, ALLOCATABLE :: MCAMP2ALL(:)
-  DOUBLE PRECISION, ALLOCATABLE :: WINDOW1ALL(:)
-  DOUBLE PRECISION, ALLOCATABLE :: WINDOW2ALL(:)
-  DOUBLE PRECISION, ALLOCATABLE :: MCSTEPCUM(:)
-  DOUBLE PRECISION, ALLOCATABLE :: SUCCESSALL(:,:)
-  DOUBLE PRECISION, ALLOCATABLE :: PHITALL(:,:)
-  DOUBLE PRECISION, ALLOCATABLE ::  RGYRSQ_AUTO(:)  !auto-correlation of radius of gyration
-  DOUBLE PRECISION, ALLOCATABLE :: RSQ_AUTO(:)     !auto-correlation of RSQ
-  DOUBLE PRECISION, ALLOCATABLE :: Wr_AUTO(:)                      !auto-correlation of Wr
-  DOUBLE PRECISION, ALLOCATABLE :: Energy_AUTO(:)                      !auto-correlation of Wr
+  real(dp), allocatable ::  MCAMP1ALL(:)
+  real(dp), allocatable :: MCAMP2ALL(:)
+  real(dp), allocatable :: WindoW1ALL(:)
+  real(dp), allocatable :: WindoW2ALL(:)
+  real(dp), allocatable :: MCSTEPCUM(:)
+  real(dp), allocatable :: SUCCESSALL(:,:)
+  real(dp), allocatable :: PHITALL(:,:)
+  real(dp), allocatable ::  RGYRSQ_AUTO(:)  !auto-correlation of radius of gyration
+  real(dp), allocatable :: RSQ_AUTO(:)     !auto-correlation of RSQ
+  real(dp), allocatable :: Wr_AUTO(:)                      !auto-correlation of Wr
+  real(dp), allocatable :: Energy_AUTO(:)                      !auto-correlation of Wr
 
-  INTEGER N_auto !maximum difference in indices between elements on which auto-correlation is computed
+  integer N_auto !maximum difference in indices between elements on which auto-correlation is computed
 
   !     Variables in the simulation
 
-  DOUBLE PRECISION PARA(10)
+  real(dp) para(10)
 
   !     Variables for the random number generators
 
-  INTEGER IDUM              ! Seed for the generator
-  DOUBLE PRECISION MOM(6)
+  integer IDUM              ! Seed for the generator
+  real(dp) MOM(6)
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !Initialize MPI
@@ -243,7 +243,7 @@ PROGRAM wlcsim
      print*, "MPI_Comm_rank", error
   endif
 
-  !  Print a message.
+  !  print a message.
   if ( id == 0 ) then
      write ( *, '(a)' ) ' '
      write ( *, '(a)' ) ' basicPT_mpi:'
@@ -270,17 +270,17 @@ PROGRAM wlcsim
   read (unit=5, fmt='(2(/))')
   read (unit=5, fmt=*) TF
   read (unit=5, fmt='(2(/))')
-  read (unit=5, fmt=*) INDMAX
+  read (unit=5, fmt=*) indMAX
   read (unit=5, fmt='(2(/))')
   read (unit=5, fmt=*) DT
   read (unit=5, fmt='(2(/))')
-  read (unit=5, fmt=*) FRMFILE
+  read (unit=5, fmt=*) FRMfile
   read (unit=5, fmt='(2(/))')
   read (unit=5, fmt=*) BROWN
   read (unit=5, fmt='(2(/))')
   read (unit=5, fmt=*) INTON
   read (unit=5, fmt='(2(/))')
-  read (unit=5, fmt=*) RING
+  read (unit=5, fmt=*) ring
   read (unit=5, fmt='(2(/))')
   read (unit=5, fmt=*) TWIST
   read (unit=5, fmt='(2(/))')
@@ -291,7 +291,7 @@ PROGRAM wlcsim
   read (unit=5, fmt=*) NSTEP
   close(5)
 
-  !Read from the parallel tempering input file to 
+  !read from the parallel tempering input file to 
   !get the Lks for the simulation
 
   NLKs = 0
@@ -325,7 +325,7 @@ PROGRAM wlcsim
   endif
   !     Get elastic parameters and allocate vectors
 
-  call getpara(PARA,DT,DEL,L,LP,LT,Lk,RING)
+  call getpara(para,DT,del,L,LP,LT,Lk,ring)
   DT0=DT
   NT=N*NP
   ALLOCATE(R(NT,3))
@@ -336,15 +336,15 @@ PROGRAM wlcsim
   ALLOCATE(RCOMSQ(NP))
   ALLOCATE(RGYRSQ(NP))
   ALLOCATE(RGYR(NP))
-  ALLOCATE(RGYRALL(INDMAX,NP))
+  ALLOCATE(RGYRALL(indMAX,NP))
   ALLOCATE(R2(NP))
   ALLOCATE(R4(NP))
   ALLOCATE(R6(NP))
   ALLOCATE(DR(NP))
 
-  ALLOCATE(Swap(NLks,INDMAX))
+  ALLOCATE(Swap(NLks,indMAX))
 
-  N_auto=INDMAX/10
+  N_auto=indMAX/10
 
   ALLOCATE(RGYRSQ_AUTO(N_auto))
   ALLOCATE(RSQ_AUTO(N_auto))
@@ -361,7 +361,7 @@ PROGRAM wlcsim
   MOVEON(3)=1
   MOVEON(4)=1
 
-  if (RING.EQ.1) then
+  if (ring.EQ.1) then
      MOVEON(3)=0
   endif
 
@@ -385,18 +385,18 @@ PROGRAM wlcsim
   ALLOCATE(NTrialPlus(NLks))
   ALLOCATE(NTrialMinus(NLks))
 
-  ALLOCATE(WrAll(INDMAX,NLks))
-  ALLOCATE(MCAMP1ALL(INDMAX))
-  ALLOCATE(MCAMP2ALL(INDMAX))
-  ALLOCATE(WINDOW1ALL(INDMAX))
-  ALLOCATE(WINDOW2ALL(INDMAX))
-  ALLOCATE(MCSTEPCUM(INDMAX))
-  ALLOCATE(SUCCESSALL(INDMAX,6))
-  ALLOCATE(PHITALL(INDMAX,6))
-  ALLOCATE(EELASALL(INDMAX,4,NLks))
-  ALLOCATE(EPONPALL(INDMAX,NLks))
-  ALLOCATE(ETotAll(INDMAX,NLks))
-  ALLOCATE(RGYRSQALL(INDMAX,NLks))
+  ALLOCATE(WrAll(indMAX,NLks))
+  ALLOCATE(MCAMP1ALL(indMAX))
+  ALLOCATE(MCAMP2ALL(indMAX))
+  ALLOCATE(WindoW1ALL(indMAX))
+  ALLOCATE(WindoW2ALL(indMAX))
+  ALLOCATE(MCSTEPCUM(indMAX))
+  ALLOCATE(SUCCESSALL(indMAX,6))
+  ALLOCATE(PHITALL(indMAX,6))
+  ALLOCATE(EELASALL(indMAX,4,NLks))
+  ALLOCATE(EPONPALL(indMAX,NLks))
+  ALLOCATE(ETotAll(indMAX,NLks))
+  ALLOCATE(RGYRSQALL(indMAX,NLks))
 
   ! Initially replica numbers are same as nodes
   do rep=1,NLks
@@ -404,7 +404,7 @@ PROGRAM wlcsim
   enddo
 
   ! Initialize values 
-  WINDOW = N
+  WindoW = N
   NSwapPlus = 0
   NSwapMinus = 0
   NTrialPlus = 0
@@ -434,12 +434,12 @@ PROGRAM wlcsim
         dest=nodeNumber(rep)
 
         !Send out the random seed to the worker nodes
-        call MPI_Send (Irand,1, MPI_INTEGER, dest,   0, &
+        call MPI_Send (Irand,1, MPI_integer, dest,   0, &
              MPI_COMM_WORLD,error )
 
         !Send out the Lk to the worker nodes
         Lk = Lks(rep)
-        call MPI_Send (Lk,1, MPI_INTEGER, dest,   0, &
+        call MPI_Send (Lk,1, MPI_integer, dest,   0, &
              MPI_COMM_WORLD,error )
     
      enddo
@@ -447,7 +447,7 @@ PROGRAM wlcsim
      !and initialization complete
      do rep = 1,NLks
         source=nodeNumber(rep)
-        call MPI_Recv(Lk,1, MPI_INTEGER, source,   0, &
+        call MPI_Recv(Lk,1, MPI_integer, source,   0, &
              MPI_COMM_WORLD,status,error )
      enddo
 
@@ -464,7 +464,7 @@ PROGRAM wlcsim
         do rep = 1,NLks
            dest = nodeNumber(rep)
            Lk = Lks(rep)
-           call MPI_Send (Lk,1, MPI_INTEGER, dest,   0, &
+           call MPI_Send (Lk,1, MPI_integer, dest,   0, &
                 MPI_COMM_WORLD,error )
         enddo
 
@@ -480,15 +480,15 @@ PROGRAM wlcsim
            !Determine which node this Lk is running on
            source = nodeNumber(rep)
            !Get the energy and writhe from this Lk
-           call MPI_RECV(Wr,1, MPI_DOUBLE_PRECISION, source, 0, &
+           call MPI_RECV(Wr,1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,status,error )
-           call MPI_RECV(RGYRSQ(1),1, MPI_DOUBLE_PRECISION, source, 0, &
+           call MPI_RECV(RGYRSQ(1),1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,status,error )
-           call MPI_RECV(Etot,1, MPI_DOUBLE_PRECISION, source, 0, &
+           call MPI_RECV(Etot,1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,status,error )
-           call MPI_RECV(EPonp,1, MPI_DOUBLE_PRECISION, source, 0, &
+           call MPI_RECV(EPonp,1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,status,error )
-           call MPI_RECV(EELAS,4, MPI_DOUBLE_PRECISION, source, 0, &
+           call MPI_RECV(EELAS,4, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,status,error )
 
            Wrs(rep) = Wr
@@ -690,9 +690,9 @@ PROGRAM wlcsim
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       source = 0
       !Genderate a random seed for this thread
-      call MPI_Recv(Irand,1, MPI_INTEGER, source,   0, &
+      call MPI_Recv(Irand,1, MPI_integer, source,   0, &
            MPI_COMM_WORLD,status,error )
-      call MPI_Recv(Lk,1, MPI_INTEGER, source,   0, &
+      call MPI_Recv(Lk,1, MPI_integer, source,   0, &
            MPI_COMM_WORLD,status,error )
 
       call random_setseed(Irand*(id+1),rand_stat)
@@ -701,12 +701,12 @@ PROGRAM wlcsim
       !Perform initialization Monte Carlo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !Initialize configuration
-      call initcond(R,U,NT,N,NP,FRMFILE,PARA,RING,rand_stat)
+      call initcond(R,U,NT,N,NP,FRMfile,para,ring,rand_stat)
       !Initialize window size
-      WINDOW = N
+      WindoW = N
       !Perform initalization Monte Carlo simulation
-      call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,PARA, &
-           MCAMP,SUCCESS,SUCCESS_TOTAL,MOVEON,WINDOW,RING,TWIST,Lk,LT,LP,L,rand_stat)
+      call MCsim(R,U,NT,N,NP,NINIT,BROWN,INTON,IDUM,para, &
+           MCAMP,SUCCESS,SUCCESS_TOTAL,MOVEON,WindoW,ring,TWIST,Lk,LT,LP,L,rand_stat)
 
       !Save configuration to HD
       write(LkStr, '(I4)') Lk
@@ -724,7 +724,7 @@ PROGRAM wlcsim
       close(unit = 1)
       
       !Communicate with head node after seed set and initialization complete
-      call MPI_SEND(Lk,1, MPI_INTEGER, source, 0, &
+      call MPI_Send(Lk,1, MPI_integer, source, 0, &
              MPI_COMM_WORLD,error )
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -735,11 +735,11 @@ PROGRAM wlcsim
 
          !Wait for head node to send out Lk value
          source = 0
-         call MPI_Recv(Lk,1, MPI_INTEGER, source,   0, &
+         call MPI_Recv(Lk,1, MPI_integer, source,   0, &
               MPI_COMM_WORLD,status,error )
          !Perform a Monte Carlo simulation
-         call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,PARA, &
-           MCAMP,SUCCESS,SUCCESS_TOTAL,MOVEON,WINDOW,RING,TWIST,Lk,LT,LP,L,rand_stat)
+         call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,para, &
+           MCAMP,SUCCESS,SUCCESS_TOTAL,MOVEON,WindoW,ring,TWIST,Lk,LT,LP,L,rand_stat)
          
          !Calculate dimensions of polymer, energy, and writhe
          CALL getdim(N,NP,NT,R,RCOM,RCOMSQ,RGYRSQ,R2,R4,R6,DR)
@@ -751,11 +751,11 @@ PROGRAM wlcsim
     !     RGyrSqAll(ind,:) = RGYRSQ
     !     R2All(ind,:) = R2
                  
-         CALL energy_elas(EELAS,R,U,NT,N,NP,PARA,RING,TWIST,Lk,lt,LP,L)
+         CALL energy_elas(EELAS,R,U,NT,N,NP,para,ring,TWIST,Lk,lt,LP,L)
                         
          EPONP=0.
          if (INTON.EQ.1) then
-            call  ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
+            call  ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,para,ring)
          endif
 
          !Update energy trajectory vectors
@@ -763,16 +763,16 @@ PROGRAM wlcsim
          ETOT=EPONP +SUM(EELAS)
 
          !Save the polymer configuration
-         write(fileInd,'(I5)') ind
+         write(fileind,'(I5)') ind
          open(unit = 1, file = 'data/LK_'//TRIM(ADJUSTL(LKStr))//'/r'&
-              //TRIM(ADJUSTL(fileInd)),status = 'replace')
+              //TRIM(ADJUSTL(fileind)),status = 'replace')
          do i = 1,N
             write(1,*) R(i,:)
          enddo
          close(unit = 1)
 
          open(unit = 1, file = 'data/LK_'//TRIM(ADJUSTL(LKStr))//'/u'&
-              //TRIM(ADJUSTL(fileInd)),status = 'replace')
+              //TRIM(ADJUSTL(fileind)),status = 'replace')
          do i = 1,N
             write(1,*) U(i,:)
          enddo
@@ -784,15 +784,15 @@ PROGRAM wlcsim
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
          !Send back Writhe to the head node
-         call MPI_SEND(Wr,1, MPI_DOUBLE_PRECISION, source, 0, &
+         call MPI_Send(Wr,1, MPI_doUBLE_PRECISION, source, 0, &
              MPI_COMM_WORLD,error )
-         call MPI_SEND(RGYRSQ(1),1, MPI_DOUBLE_PRECISION, source, 0, &
+         call MPI_Send(RGYRSQ(1),1, MPI_doUBLE_PRECISION, source, 0, &
              MPI_COMM_WORLD,error )
-         call MPI_SEND(Etot,1, MPI_DOUBLE_PRECISION, source, 0, &
+         call MPI_Send(Etot,1, MPI_doUBLE_PRECISION, source, 0, &
              MPI_COMM_WORLD,error )
-         call MPI_SEND(EPonp,1, MPI_DOUBLE_PRECISION, source, 0, &
+         call MPI_Send(EPonp,1, MPI_doUBLE_PRECISION, source, 0, &
              MPI_COMM_WORLD,error )
-         call MPI_SEND(EELAS,4, MPI_DOUBLE_PRECISION, source, 0, &
+         call MPI_Send(EELAS,4, MPI_doUBLE_PRECISION, source, 0, &
              MPI_COMM_WORLD,error )
 
       enddo
@@ -801,7 +801,7 @@ PROGRAM wlcsim
 
   call MPI_finalize(error)
 
-END PROGRAM wlcsim
+end PROGRAM wlcsim
       
     
 
