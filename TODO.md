@@ -102,3 +102,18 @@ STACK:
 
 changed variable names:
 settype -> initCondType
+repSufix -> repSuffix
+G -> nBpM ??Quinn
+N -> nMpP
+V -> beadVolume
+? -> tweak_param_defaults(wlcsim_p, wlcsim_d)
+    => but instead, seems like MCAMP and SUCCESS and PHIT and WINDOW should
+    be in wlcsim_p instead of _d, because they're being tweaked as parameters,
+    but later on their used as proxy for current simulation state, so which
+    are they?
+
+notes to Quinn:
+in places where you write out simulation state, writing out paramters as
+well seems unecessary, but no need to fix: 
+e.g. wlcsim_params_appendAdaptData
+

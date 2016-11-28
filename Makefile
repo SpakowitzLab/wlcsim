@@ -23,7 +23,7 @@ FC = gfortran
 # compile flags
 DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp
 FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
+PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics
 FCFLAGS = ${FASTFLAGS}
 
 # link flags
