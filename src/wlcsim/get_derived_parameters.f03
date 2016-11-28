@@ -11,9 +11,11 @@
 !     8/17/15
 !
 
-      SUBROUTINE getpara(PARA,DT,SIMTYPE)
+      SUBROUTINE get_derived_parameters(PARA,DT,SIMTYPE)
 
-      PARAMETER (PI=3.141593)
+      use params
+
+      implicit none
 
       DOUBLE PRECISION PARA(10)
       DOUBLE PRECISION DEL
@@ -63,9 +65,9 @@
       REND=REND*L/LP
 
       IF (RING.EQ.0) THEN
-         DEL=L/LP/(N-1.0_DP)
+         DEL=L/LP/(N-1.0_dp)
       ELSE
-         DEL=L/LP/(N-1.0_DP)
+         DEL=L/LP/(N-1.0_dp)
       ENDIF
 
 !     Load the tabulated parameters

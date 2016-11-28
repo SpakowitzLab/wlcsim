@@ -21,9 +21,10 @@ DEP_FILE = wlcsim.dep
 FC = gfortran
 
 # compile flags
-DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp
-FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics
+INCLUDE_DIRS = -Isrc -Isrc/third_party/FLAP/exe/mod
+DEBUGFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp
+FASTFLAGS = -O3 -Jsrc ${INCLUDE_DIRS} -cpp
+PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof, Wno-surprising to enforce Werror even though gfortran has a bug https://gcc.gnu.org/ml/fortran/2013-08/msg00050.html
 FCFLAGS = ${FASTFLAGS}
 
 # link flags
@@ -47,8 +48,15 @@ run: $(PROGRAM) dataclean
 
 # target to build main program, depends on all object files, and on the
 # constructed makefile output
-$(PROGRAM): $(OBJ) depend
+$(PROGRAM): flap $(OBJ) depend
 	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
+
+# build third party dependencies that require "make" by hand
+FLAP_DIR = src/third_party/FLAP
+flap: ${FLAP_DIR}
+	pushd ${FLAP_DIR}
+	make
+	popd
 
 # Make dependencies, easier to type
 depend: $(DEP_FILE)

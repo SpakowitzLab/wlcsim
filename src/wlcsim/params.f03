@@ -47,7 +47,9 @@ module params
     !
     ! many of these variables are used only in certain kinds of simulations
     type wlcsim_params
+        character(MAXPARAMLEN) codeName ! which simulation code to run
     !   Simulation parameters
+        integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
         integer nT                ! Total number of beads  NT=NP*N*G
         integer nB                ! Number of beads in a polymer NB=N*G
         integer nMpP              ! Number of monomers (NOT BEADS!) in a polymer
@@ -107,7 +109,7 @@ module params
 
     !   Timing variables
         integer NPT                ! number of steps between parallel tempering
-        integer indMAX             ! total number of save points
+        integer numSavePoints             ! total number of save points
         integer NSTEP              ! steps per save point
         integer NNoInt             ! save points before turning on NNoInt
         integer N_KAP_ON           ! when to turn KAP energy on
@@ -127,7 +129,7 @@ module params
         logical FRMField          ! read initial field from file
         logical saveU             ! save U vectors to file
         logical savePhi           ! save Phi vectors to file
-        integer simtype           ! Melt vs. Solution, Choose hamiltonian
+        integer solType           ! Melt vs. Solution, Choose hamiltonian
         logical recenter_on       ! recenter in "quasi"-periodic boundary, should be off in BD
         logical useSchedule       ! use scheduled change in interactions strength(s)
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
@@ -217,13 +219,21 @@ module params
         integer ind                ! current save point
     end type
 
-    public :: nMoveTypes, dp, pi, wlcsim_params, wlcsim_data
+    public :: nMoveTypes, dp, pi, wlcsim_params, wlcsim_data, MAXFILENAMELEN
 
 contains
 
     subroutine set_param_defaults(wlc_p)
         implicit none
-        type(wlcsim_params), intent(out) :: wlc_p
+        ! WARNING: changing this to intent(out) means that unassigned values
+        ! here will become undefined upon return, due to Fortran's weird
+        ! intent(out) semantics for records, this would require that a default
+        ! value always be given to new parameters in wlc_p, else we would get a
+        ! compile time catchable runtime error that is not caught by gcc as of v5.0
+        !
+        ! this is almost definitely undesireable in our use case, where we are
+        ! only inputting a few arguments, and deriving the rest therefrom
+        type(wlcsim_params), intent(inout) :: wlc_p
         ! file IO
         wlc_p%FRMfile=.FALSE.      ! don't load initial bead positions from file
         wlc_p%FRMCHEM=.FALSE.      ! don't load initial "chem" status from file
@@ -265,10 +275,11 @@ contains
         wlc_p%HP1_Bind=0.0_dp ! by default, no binding of HP1 to each other
 
         ! options
+        wlc_p%codeName= "" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%movetypes=nMoveTypes
         wlc_p%initCondType = 4 ! 4 for sphereical
         wlc_p%confineType = 3 ! 3 for spherical
-        wlc_p%simtype=0    ! you better at least choose what kind of simulation you want
+        wlc_p%solType=0    ! you better at least know whether you want a melt or solution
         wlc_p%ring=.false.    ! not a ring by default
         wlc_p%twist=.false.    ! don't include twist by default
         wlc_p%lk=0    ! no linking number (lays flat) by default
@@ -277,7 +288,7 @@ contains
         ! timing options
         wlc_p%NStep=400000  ! number of simulation steps to take
         wlc_p%NNoInt=100    ! number of simulation steps before turning on interactions in Quinn's wlcsim_p scheduler
-        wlc_p%indMAX=200    ! 2000 steps per save point
+        wlc_p%numSavePoints=200    ! 200 total save points, i.e. 2000 steps per save point
         wlc_p%reduce_move=10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
         wlc_p%useSchedule=.False. ! use Quinn's scheduler to modify wlcsim_p params halfway through the simulation
         wlc_p%KAP_ON=1.0_dp ! use full value of compression energy
@@ -354,9 +365,9 @@ contains
             !    4         |  Periodic, unequal dimensions
         CASE('RECENTER_ON')
             Call reado(wlc_p%recenter_on) ! recenter in periodic boundary
-        CASE('SIMtype')
-            Call readI(wlc_p%simtype)
-            ! simtype      | Discription
+        CASE('solType')
+            Call readI(wlc_p%solType)
+            ! solType      | Discription
             !______________|_________________________________
             !    0         | Melt density fluctuates around fixed mean
             !    1         | Solution (For DNA)
@@ -408,8 +419,8 @@ contains
             call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
         CASE('N_CHI_ON')
             call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
-        CASE('indMAX')
-            Call readI(wlc_p%indMAX) ! total number of save points
+        CASE('numSavePoints')
+            Call readI(wlc_p%numSavePoints) ! total number of save points
         CASE('NSTEP')
             Call readI(wlc_p%NStep) ! steps per save point
         CASE('NPT')
@@ -530,46 +541,41 @@ contains
     subroutine idiot_checks(wlc_p)
         IMPLICIT NONE
         type(wlcsim_params), intent(out) :: wlc_p
+        logical err
 
         if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
             (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
-            if (wlc_p%simtype.eq.1) then
-                print*, "Solution not tested with non-cube box, more coding needed"
-                stop 1
-            endif
-            if (wlc_p%confinetype.ne.4) then
-                print*, "Unequal boundaries require confinetype=4"
-                stop 1
-            endif
-            if (wlc_p%initCondType.eq.4) then
-                print*, "You shouldn't put a shpere in and unequal box!"
-                stop 1
-            endif
+            err = wlc_p%solType.eq.1
+            call stop_if_err(err, "Solution not tested with non-cube box, more coding needed")
+            err = wlc_p%confinetype.ne.4
+            call stop_if_err(err, "Unequal boundaries require confinetype=4")
+            err = wlc_p%initCondType.eq.4
+            call stop_if_err(err, "You shouldn't put a shpere in and unequal box!")
         endif
-        if (wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN) then
-            print*, "error in mcsim. Wrong number of bins"
-            stop 1
-        endif
+
+        err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
+        call stop_if_err(err, "error in mcsim. Wrong number of bins")
+
+        !TODO: replace with semantic descriptions of error encountered, instead
+        ! of simply outputting the input that the user put in
         if (wlc_p%NT.ne.wlc_p%nMpP*wlc_p%NP*wlc_p%nBpM) then
             print*, "error in mcsim.  NT=",wlc_p%NT," nMpP=",wlc_p%nMpP," NP=",wlc_p%NP," nBpM=",wlc_p%nBpM
             stop 1
         endif
+
         if (wlc_p%NB.ne.wlc_p%nMpP*wlc_p%nBpM) then
             print*, "error in mcsim.  NB=",wlc_p%NB," nMpP=",wlc_p%nMpP," nBpM=",wlc_p%nBpM
             stop 1
         endif
-        if (wlc_p%NNoInt.gt.wlc_p%indStartRepAdapt) then
-            print*, "error in mcsim. don't run adapt without int on"
-            stop 1
-        endif
-        if (wlc_p%NNoInt.gt.wlc_p%N_CHI_ON) then
-            print*, "error in mcsim. Can't have chi without int on"
-            stop 1
-        endif
-        if (wlc_p%NNoInt.gt.wlc_p%N_KAP_ON) then
-            print*, "error in mcsim. Can't have kap without int on"
-            stop 1
-        endif
+
+        err = wlc_p%NNoInt.gt.wlc_p%indStartRepAdapt
+        call stop_if_err(err, "error in mcsim. don't run adapt without int on")
+
+        err = wlc_p%NNoInt.gt.wlc_p%N_CHI_ON
+        call stop_if_err(err, "error in mcsim. Can't have chi without int on")
+
+        err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
+        call stop_if_err(err, "error in mcsim. Can't have kap without int on")
     end subroutine
 
 
@@ -578,7 +584,7 @@ contains
         IMPLICIT NONE
         type(wlcsim_params), intent(out) :: wlc_p
         type(wlcsim_data), intent(out) :: wlc_d
-        character(1024), intent(in) :: infile  ! file with parameters
+        character(MAXFILENAMELEN), intent(in) :: infile  ! file with parameters
 
         call set_param_defaults(wlc_p)
 
@@ -587,7 +593,7 @@ contains
         call read_from_file(infile, wlc_p)
 
         ! get derived parameters that aren't directly input from file
-        call getpara(wlc_p)
+        call get_derived_parameters(wlc_p)
 
         call idiot_checks(wlc_p)
 
@@ -941,7 +947,7 @@ contains
         else
             do I=1,wlcsim_p%NP
                 do J=1,wlcsim_p%NB
-                    if (wlcsim_p%simtype.eq.0) then
+                    if (wlcsim_p%solType.eq.0) then
                         WRITE(1,"(3f10.3,I2)") wlcsim_d%R(IB,1),wlcsim_d%R(IB,2),wlcsim_d%R(IB,3),wlcsim_d%AB(IB)
                     else
                         WRITE(1,"(3f10.3,I2)") wlcsim_d%R(IB,1),wlcsim_d%R(IB,2),wlcsim_d%R(IB,3),wlcsim_d%AB(IB), wlcsim_d%METH(IB)

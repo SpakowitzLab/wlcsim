@@ -30,7 +30,7 @@ mc%Dx_Couple=0.0_dp
 mc%Dx_Kap=0.0_dp
 mc%Dx_Field=0.0_dp
 if (initialize) then  ! calculate absolute energy
-    if (mc%simType.eq.0) then ! Melt Hamiltonian
+    if (mc%solType.eq.0) then ! Melt Hamiltonian
         do I=1,mc%NBIN
             VV=md%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -38,7 +38,7 @@ if (initialize) then  ! calculate absolute energy
             mc%Dx_Kap=mc%dx_Kap+(VV/mc%V)*((md%PHIA(I)+md%PHIB(I)-1.0_dp)**2)
             mc%Dx_Field=mc%dx_Field-md%PHIH(I)*md%PHIA(I)
         enddo        
-    elseif(mc%simType.eq.1) then ! Chromatin Hamiltonian
+    elseif(mc%solType.eq.1) then ! Chromatin Hamiltonian
         do I=1,mc%NBIN
             VV=md%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -50,11 +50,11 @@ if (initialize) then  ! calculate absolute energy
             endif
         enddo        
     else
-        print*, "Error in MC_int, simType",mc%simType, &
+        print*, "Error in MC_int, solType",mc%solType, &
                 " notdefined"
     endif
 else ! Calculate change in energy
-    if (mc%simType.eq.0) then ! Melt Hamiltonian
+    if (mc%solType.eq.0) then ! Melt Hamiltonian
         do I=1,mc%NPHI
             J=md%INDPHI(I)
             VV=md%Vol(J)
@@ -71,7 +71,7 @@ else ! Calculate change in energy
             mc%Dx_Kap=mc%Dx_Kap-(VV/mc%V)*((md%PHIA(J)+md%PHIB(J)-1.0_dp)**2)
             mc%Dx_Field=mc%Dx_Field+phi_h*md%PHIA(J)
         enddo
-    elseif(mc%simType.eq.1) then ! Chromatin Hamiltonian
+    elseif(mc%solType.eq.1) then ! Chromatin Hamiltonian
         do I=1,mc%NPHI
             J=md%INDPHI(I)
             VV=md%Vol(J)
