@@ -29,31 +29,39 @@ FCFLAGS = ${FASTFLAGS}
 # link flags
 FLFLAGS =
 
-# modules first, since they're heavily depended on
-# when doing it this way, a module must be listed after other modules it
-# depends on
-MOD_SRC := src/third_party/mt19937.f90 src/third_party/kdtree2.f90 src/BDcode/colsort.f90
-MOD_MOD := $(addprefix src/,$(notdir $(MOD_SRC:.f90=.mod)))
-SRC := src/DATAcode/MINV.f90 src/DATAcode/find_struc.f90 src/BDcode/force_elas.f90 src/BDcode/force_ponp.f90 src/BDcode/RKstep.f90 src/BDcode/concalc.f90 src/SIMcode/debugging.f90 src/third_party/dgtsv.f src/BDcode/BDsim.f90 src/MCcode/MC_move.f90 src/MCcode/MCsim.f90 src/MCcode/MC_elas.f90 src/MCcode/MC_capsid_ex.f90 src/MCcode/MC_self.f90 src/SIMcode/globals.f90 src/SIMcode/stressp.f90 src/MCcode/energy_ponp.f90 src/SIMcode/gasdev.f90 src/SIMcode/r_to_erg.f90 src/SIMcode/ran2.f90 src/SIMcode/decim.f90 src/SIMcode/wlcsim.f90 src/SIMcode/stress.f90 src/SIMcode/ran1.f90 src/MCcode/energy_elas.f90 src/SIMcode/initcond.f90 src/SIMcode/getpara.f90 src/BDcode/colchecker.f90
-OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))
-TEST := src/CCcode/test_sort.f90
+# all non-legacy and non-test files should be compiled into wlcsim
+SRC := $(shell find "src" -type f -name '*.f*' -not -path "src/legacy" -not -path "src/tests" -print)
+# takes each *.f* -> *.o
+OBJ := $(addsuffix .o,$(basename $(SRC)))
+TEST := $(shell find "src/tests" -type f -name '*.f*')
 
 # program name
 PROGRAM = wlcsim.exe
 
-# test:
-# 	@echo $(value MOD_MOD)
-
 # by default, compile only
-all: $(PROGRAM) Makefile $(DEP_FILE)
+all: $(PROGRAM)
 
 # a target to just run the main program
 run: $(PROGRAM) dataclean
 	./$(PROGRAM)
 
-# target to build main program
-$(PROGRAM): $(OBJ)
+# target to build main program, depends on all object files, and on the
+# constructed makefile output
+$(PROGRAM): $(OBJ) depend
 	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
+
+# Make dependencies, easier to type
+depend: $(DEP_FILE)
+
+# this forces the "included" part of makefile itself to be rebuilt whenever the
+# corresponding src files change, or when the Makefile itself changes
+# While this is useful, it will force the dependency checker to run even if we
+# only want to do e.g. make clean.
+$(DEP_FILE): $(SRC) Makefile
+	@echo "Making dependencies!"
+	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) -c "$(FC) -c $(FCFLAGS) "
+
+include $(DEP_FILE)
 
 .PHONY: depend clean destroy dataclean
 
@@ -78,11 +86,3 @@ distclean: clean
 		echo 'Canceling data deletion!'; \
 	fi
 
-# Make dependencies
-depend: $(DEP_FILE)
-
-$(DEP_FILE): $(MOD_SRC) $(SRC)
-	@echo "Making dependencies!"
-	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) $(MOD_SRC) -c "$(FC) -c $(FCFLAGS) "
-
-include $(DEP_FILE)
