@@ -55,6 +55,7 @@ module params
         integer nMpP              ! Number of monomers (NOT BEADS!) in a polymer
         integer nBpM              ! number beads per monomer
         integer nP                ! Number of polymers
+        real(dp) dt ! sets time scale of simulation
         real(dp) l  ! length of each polymer in simulation
         real(dp) lp       ! persistence length
         real(dp) lt       ! twist persistence length
@@ -243,6 +244,8 @@ contains
         wlc_p%FRwlcsim_pHEM=.FALSE.      ! don't load initial a/b states from file
         wlc_p%restart=.FALSE.      ! don't restart from previously saved simulation
 
+        ! time scale
+        wlc_p%dt  = 1              ! set time scale to unit
         ! geometry options
         wlc_p%NP  =1               ! one polymer
         wlc_p%nB  =200             ! 200 beads per polymer
@@ -388,7 +391,9 @@ contains
         CASE('SAVE_PHI')
             Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
         CASE('nb')
-            Call readi(wlc_p%nb)  ! actual length in AU of polymer we want to simulate
+            Call readi(wlc_p%nb)  ! number of beads in the polymer
+        CASE('dt')
+            Call readF(wlc_p%dt)  ! time step of simulation. scaled non-dimensionalized time
         CASE('l')
             Call readF(wlc_p%l)  ! actual length in AU of polymer we want to simulate
         CASE('lt')

@@ -25,7 +25,8 @@ Stack of things to do:
         settype -> initCondType
         repSufix -> repSuffix
         G -> nBpM ??Quinn
-        N -> nMpP
+        N -> nMpP (in quinn's code)
+        N -> nB (in Andy's code)
         V -> beadVolume
         ? -> tweak_param_defaults(wlcsim_p, wlcsim_d)
             => but instead, seems like MCAMP and SUCCESS and PHIT and WINDOW should

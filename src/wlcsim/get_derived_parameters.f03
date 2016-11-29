@@ -11,160 +11,107 @@
 !     8/17/15
 !
 
-      SUBROUTINE get_derived_parameters(PARA,DT,SIMTYPE)
+subroutine get_derived_parameters(wlc_p)
 
-      use params
+    use params
 
-      implicit none
+    implicit none
 
-      DOUBLE PRECISION PARA(10)
-      DOUBLE PRECISION DEL
-      DOUBLE PRECISION PVEC(679,8)
-      INTEGER IND,CRS
-      INTEGER RING
-      DOUBLE PRECISION EB,EPAR,EPERP
-      DOUBLE PRECISION GAM,ETA
-      DOUBLE PRECISION XIR,XIU
-      DOUBLE PRECISION LBOX     ! Box edge length
-      DOUBLE PRECISION LHC      ! Length of HC int
-      DOUBLE PRECISION REND     ! Fixed end-to-end distance (dimensionless)
-      DOUBLE PRECISION VHC      ! HC strength
-      DOUBLE PRECISION M
-      DOUBLE PRECISION DT
-      INTEGER I,N
-      DOUBLE PRECISION L,LP,LT
-      INTEGER Lk
-      INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
+    integer i,ind
+    real(dp) m
 
-!     Load in the parameters for the simulation
+    type(wlcsim_params), intent(inout) :: wlc_p
+    REAL(dp) :: pvec(679, 8) ! array holding dssWLC params calculated by Elena
 
-      open (unit=5, file='input/input')
-      read (unit=5, fmt='(4(/))')
-      read (unit=5, fmt=*) LP
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) LT
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) L
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) LK
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) LBOX
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) LHC
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) REND
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) VHC
-      read (unit=5, fmt='(2(/))')
-      read (unit=5, fmt=*) N
-      close(5)
-      if (N.EQ.1.0d0) then
-          PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
-          STOP 1
-      endif
-      REND=REND*L/LP
+    if (wlc_p%NB.EQ.1.0d0) then
+        PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
+        STOP 1
+    endif
+    wlc_p%REND=wlc_p%REND*wlc_p%L/wlc_p%LP
 
-      IF (RING.EQ.0) THEN
-         DEL=L/LP/(N-1.0_dp)
-      ELSE
-         DEL=L/LP/(N-1.0_dp)
-      ENDIF
+    IF (wlc_p%RING) THEN
+        wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
+    ELSE
+        wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
+    ENDIF
 
 !     Load the tabulated parameters
 
-      OPEN (UNIT=5,FILE='input/dssWLCparams',STATUS='OLD')
-      DO 10 I=1,679
-         READ(5,*) PVEC(I,1),PVEC(I,2),PVEC(I,3),PVEC(I,4),PVEC(I,5),PVEC(I,6),PVEC(I,7),PVEC(I,8)
- 10   CONTINUE
-      CLOSE(5)
+    OPEN (UNIT=5,FILE='input/dssWLCparams',STATUS='OLD')
+    DO I=1,679
+        READ(5,*) PVEC(I,1),PVEC(I,2),PVEC(I,3),PVEC(I,4),PVEC(I,5),PVEC(I,6),PVEC(I,7),PVEC(I,8)
+    ENDDO
+    CLOSE(5)
 
 
 !     Setup the parameters for WLC simulation
 
-      if (DEL.LT.PVEC(1,1)) then
-         PRINT*, 'It has never been known if the WLC code actually works.'
-         PRINT*, 'An entire summer student (Luis Nieves) was thrown at this'
-         PRINT*, 'problem and it is still not solved.'
-         stop 1
-         EB=LP/DEL
-         GAM=DEL
-         XIR=L/LP/N
-         SIMTYPE=1
-      endif
+    if (wlc_p%DEL.LT.PVEC(1,1)) then
+        PRINT*, 'It has never been known if the WLC code actually works.'
+        PRINT*, 'An entire summer student (Luis Nieves) was thrown at this'
+        PRINT*, 'problem and it is still not solved.'
+        stop 1
+        wlc_p%EB=wlc_p%LP/wlc_p%DEL
+        wlc_p%GAM=wlc_p%DEL
+        wlc_p%XIR=wlc_p%L/wlc_p%LP/wlc_p%NB
+        wlc_p%SIMTYPE=1
 
 !    Setup the parameters for GC simulation
 
-      if (DEL.GT.PVEC(679,1)) then
-         EPAR=1.5/DEL
-         GAM=0.0_dp
-         SIMTYPE=3
-         XIR=L/N/LP
-      endif
+    elseif (wlc_p%DEL.GT.PVEC(679,1)) then
+        wlc_p%EPAR=1.5/wlc_p%DEL
+        wlc_p%GAM=0.0_dp
+        wlc_p%SIMTYPE=3
+        wlc_p%XIR=wlc_p%L/wlc_p%NB/wlc_p%LP
 
 !    Setup the parameters for ssWLC simulation
 
-      if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
-         SIMTYPE=2
+    else !  if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
+        wlc_p%SIMTYPE=2
 
-        CRS=0
-        IND=1
-        do while (CRS.EQ.0)
-            if (DEL.LE.PVEC(IND,1)) then
-                CRS=1
-            else
-                IND=IND+1
-            endif
-        enddo
+    ! find(del < pvec, 1, 'first')
+    IND=1
+    do while (wlc_p%DEL.GT.PVEC(IND,1))
+        IND=IND+1
+    enddo
 
-        !     Perform linear interpolations
+    !     Perform linear interpolations
+    I=2
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%EB=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=2
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        EB=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    I=3
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%GAM=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=3
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        GAM=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    I=4
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%EPAR=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=4
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        EPAR=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    I=5
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%EPERP=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=5
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        EPERP=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    I=6
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%ETA=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=6
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        ETA=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    I=7
+    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
+    wlc_p%XIU=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
 
-        I=7
-        M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-        XIU=M*(DEL-PVEC(IND,1))+PVEC(IND,I)
+    wlc_p%EB=wlc_p%LP*wlc_p%EB/(wlc_p%DEL*wlc_p%LP)
+    wlc_p%EPAR=wlc_p%EPAR/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+    wlc_p%EPERP=wlc_p%EPERP/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+    wlc_p%GAM=wlc_p%DEL*wlc_p%LP*wlc_p%GAM
+    wlc_p%ETA=wlc_p%ETA/wlc_p%LP
+    wlc_p%XIU=wlc_p%XIU*wlc_p%L/wlc_p%NB/wlc_p%LP
+    wlc_p%XIR=wlc_p%L/wlc_p%LP/wlc_p%NB
+    wlc_p%DT=0.5*wlc_p%XIU/(wlc_p%EPERP*wlc_p%GAM**2.)
 
-        EB=LP*EB/(DEL*LP)
-        EPAR=EPAR/(DEL*LP*LP)
-        EPERP=EPERP/(DEL*LP*LP)
-        GAM=DEL*LP*GAM
-        ETA=ETA/LP
-        XIU=XIU*L/N/LP
-        XIR=L/LP/N
-        DT=0.5*XIU/(EPERP*GAM**2.)
+    endif
 
-      endif
-
-      PARA(1)=EB
-      PARA(2)=EPAR
-      PARA(3)=EPERP
-      PARA(4)=GAM
-      PARA(5)=ETA
-      PARA(6)=XIR
-      PARA(7)=XIU
-      PARA(8)=LBOX
-      PARA(9)=REND
-      PARA(10)=DEL
-
-      RETURN
-      END
+    return
+end subroutine get_derived_parameters
 
 !---------------------------------------------------------------*
