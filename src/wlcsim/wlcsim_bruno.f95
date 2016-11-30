@@ -6,7 +6,8 @@ subroutine wlcsim_bruno(save_ind, wlc_p, wlc_d)
 !     Simulation Package for Brownian dynamics and
 !     Monte Carlo Simulation
 
-use params, only: dp, wlcsim_params, wlcsim_data, pack_as_para
+use params, only: dp, wlcsim_params, wlcsim_data, pack_as_para, &
+    printEnergies, printSimInfo
 
 implicit none
 
@@ -78,8 +79,8 @@ if (wlc_p%INTON) then
 endif
 
 print*, '________________________________________'
-call wlcsim_params_printSimInfo(save_ind, wlc_p, wlc_d)
-call wlcsim_params_printEnergies(wlc_d)
+call printSimInfo(save_ind, wlc_p, wlc_d)
+call printEnergies(wlc_d)
 
 end
 

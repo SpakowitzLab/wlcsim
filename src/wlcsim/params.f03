@@ -17,7 +17,7 @@ module params
 
     IMPLICIT NONE
 
-    private
+    public
 
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
@@ -242,7 +242,6 @@ module params
         real(dp) time
     end type
 
-    public :: nMoveTypes, dp, pi, wlcsim_params, wlcsim_data, MAXFILENAMELEN, outFileUnit, pack_as_para
 
 contains
 
@@ -949,7 +948,7 @@ contains
         enddo
     end subroutine
 
-    subroutine wlcsim_params_printSimInfo(i, wlc_p, wlc_d)
+    subroutine printSimInfo(i, wlc_p, wlc_d)
     ! print out current simulation metainformation
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
@@ -960,7 +959,7 @@ contains
         print*, 'Save point ', i, ' out of ', wlc_p%numSavePoints
     end subroutine
 
-    subroutine wlcsim_params_printEnergies(wlc_d)
+    subroutine printEnergies(wlc_d)
     ! For realtime feedback on wlc_p simulation
         implicit none
         type(wlcsim_data), intent(in) :: wlc_d
@@ -1150,7 +1149,7 @@ contains
         close(outFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveparameters(wlc_p,fileName)
+    subroutine save_parameters(wlc_p,fileName)
     ! Write a number of parameters ASCII variables to file for reccords
         IMPLICIT NONE
         type(wlcsim_params), intent(in) :: wlc_p

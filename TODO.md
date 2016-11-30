@@ -40,6 +40,8 @@ Stack of things to do:
         self interactions -> intrapolymer_stick_crossing_enforced
         col_type -> fptColType
         ind -> now passed from wlcsim
+        wlcsim_params_saveparameters -> save_parameters
+        wlcsim_params_printEnergies -> printEnergies
         time_ind now refers to what time step you're on
         step_ind now refers to what mc step you're on
 
@@ -53,8 +55,7 @@ Stack of things to do:
     2. attempt to compile, see if any bugs
     3. fix miscellaneous discrepancies that might turn into bugs
         0. for MC, brad uses energy self chain instead of energy ponp
-        1. change all uses of mt19973 to mersenne_twister
-        1. change mt199764123o49pu12r for mersenne_twister
+        1. change all uses of mt19937 to mersenne_twister
         2. finish contributors scratch information
         3. add input: setType for initcond and verify parameters are passed correctly
         4. change makefile to have FC=mpifort, and scan_wlcsim.py to run with mpirun if
@@ -97,3 +98,15 @@ Stack of things to do:
         2. remove "dependent variables check" from quinn's params code in
            favor of always specifyign the same paramters and usign
            get_derived_parameters by default
+
+sitting in the src/wlcsim directory, the following now succeeds if you remove
+references to mcsim from wlcsim_bruno:
+gfortran wlcsim.f03 -I .. -I ../third_party/FLAP/exe/mod
+../third_party/FLAP/exe/obj/flap* ../third_party/FLAP/exe/obj/penf*
+../util/stop_if_err.o params.o ../util/inputparams.o wlcsim_bruno.o
+../third_party/mersenne_twister.o initcond.o get_derived_parameters.o
+../bd/BDsim.o ../bd/concalc.o ../bd/force_ponp.o ../bd/force_elas.o
+../util/colchecker.o ../util/colsort.o ../third_party/kdtree2.o ../bd/stress.o
+../bd/stressp.o ../third_party/mt19937.o ../bd/RKstep.o ../third_party/dgtsv.o
+
+

@@ -1,4 +1,4 @@
-subroutine stop_if_error(err, msg)
+subroutine stop_if_err(err, msg)
     use params, only: MAXFILENAMELEN
     implicit none
     integer err
@@ -9,4 +9,4 @@ subroutine stop_if_error(err, msg)
         stop
     endif
 
-end subroutine stop_if_error
+end subroutine stop_if_err
