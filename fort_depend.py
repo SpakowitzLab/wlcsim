@@ -137,7 +137,7 @@ def get_depends(fob=[],m2f=[]):
             try:
                 tmp.append(m2f[j.lower()])
             except:
-                print "\033[031mWarning:\033[039m module \033[032m"+j+"\033[039m not defined in any files. Skipping..."
+                print "\033[031mWarning:\033[039m module \033[032m"+j+"\033[039m used in "+i.file_name+" not defined in any files. Skipping..."
 
         deps[i.file_name]=tmp
 
