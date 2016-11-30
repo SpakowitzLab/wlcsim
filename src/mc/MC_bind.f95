@@ -9,7 +9,7 @@
 !  Typical Values: EU=-1.52 and EM=0.01  
 
 SUBROUTINE MC_bind(NT,BPM,IT1,IT2,AB,ABP,METH,EU,EM,DEBind,mu,dx_mu)
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 INTEGER, intent(in) :: NT     ! Total number of beads in simulation
 INTEGER, intent(in) :: BPM    ! Number of beads per monomer

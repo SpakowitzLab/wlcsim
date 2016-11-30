@@ -5,7 +5,7 @@
 !            Started by Quinn 3/17/15
 !
 !
-!  
+!
 ! confineType  |  Discription
 ! _____________|_________________________________
 !    0         |  No confinement
@@ -19,28 +19,28 @@ SUBROUTINE MC_caclVolume(confineType,NBINX,dbin, LBox, &
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 
 INTEGER confineType  ! Specifier for type of confinement
 DOUBLE PRECISION LBox ! Side length of box
 INTEGER I      ! for loops
 INTEGER ix,iy,iz      ! location of conder
-DOUBLE PRECISION x,y,z  
+DOUBLE PRECISION x,y,z
 INTEGER :: STATUS = 0
 INTEGER NBINX  ! length of side of box as an integer number of bins
-DOUBLE PRECISION Rsqrd 
+DOUBLE PRECISION Rsqrd
 DOUBLE PRECISION Vol(NBINX**3)  ! output: volume of bins
-DOUBLE PRECISION V      
+DOUBLE PRECISION V
 DOUBLE PRECISION corner(8,3)
 INTEGER nc
-INTEGER, PARAMETER:: npts = 10000 
+INTEGER, PARAMETER:: npts = 10000
 DOUBLE PRECISION dbin           ! side length of bins
 DOUBLE PRECISION rsq, minr
 type(random_stat) rand_stat !for random numer generator
 real urand(3)
 
-if (abs(dbin*NBINX-LBOX).gt.0.000001_dp) then 
+if (abs(dbin*NBINX-LBOX).gt.0.000001_dp) then
     print*, "dbin=", DEL
     print*, "NBINX=",NBINX
     print*, "LBOX=",LBOX
@@ -64,7 +64,7 @@ elseif(confineType.EQ.3) then
     Rsqrd=(LBox/2.0_dp)**2
     Do ix=1,NBINX
         Do iy=1,NBINX
-            do iz=1,NBINX  
+            do iz=1,NBINX
                 x=dbin*ix
                 y=dbin*iy
                 z=dbin*iz
@@ -76,17 +76,17 @@ elseif(confineType.EQ.3) then
                 corner(6,1)=x;    corner(6,2)=y-dbin;corner(6,3)=z
                 corner(7,1)=x-dbin;corner(7,2)=y;    corner(7,3)=z
                 corner(8,1)=x-dbin;corner(8,2)=y-dbin;corner(8,3)=z
-                
+
                 nc=0
                 minr=Rsqrd+2*dbin ! just big
                 do I=1,8
-                    rsq=((corner(I,1)-LBox/2.0_dp)**2+ & 
+                    rsq=((corner(I,1)-LBox/2.0_dp)**2+ &
                         (corner(I,2)-LBox/2.0_dp)**2+ &
                         (corner(I,3)-LBox/2.0_dp)**2)
                     minr=min(minr,rsq)
                     if (rsq.gt.Rsqrd) then
                         nc=nc+1
-                    endif   
+                    endif
                 enddo
                 if (nc.eq.0) then
                     ! inside
@@ -108,9 +108,9 @@ elseif(confineType.EQ.3) then
                 endif
                 Vol(ix+(iy-1)*NBINX+(iz-1)*NBINX**2)=V
             enddo
-        enddo              
-    enddo 
-else 
+        enddo
+    enddo
+else
    print*, "Undefined confine Type"
    stop 1
 endif

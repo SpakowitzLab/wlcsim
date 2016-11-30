@@ -8,7 +8,7 @@
 !
 !---------------------------------------------------------------
 subroutine interp(confineType,RBIN,LBOX,NBINX,dbin,IX,IY,IZ,WX,WY,WZ)
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 integer, intent (in) :: confineType
 DOUBLE PRECISION, intent(inout) :: RBIN(3) ! position or posiion within bin

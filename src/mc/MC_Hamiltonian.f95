@@ -2,7 +2,7 @@
 !
 !
 ! This subroutine calculates the field Hamiltonian from the phi values.
-!      
+!
 !      by Quinn MacPherson based on code from Shifan Mao
 !       Made a separate function on 7/8/16
 !
@@ -11,11 +11,10 @@
 !-------------------------------------------------------------------
 
 subroutine hamiltonian(mc,md,initialize)
-use simMod
-use setPrecision
+use params
 implicit none
-TYPE(MCvar), intent(inout) :: mc   ! <---- Contains output
-TYPE(MCData), intent(in) :: md  
+TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
+TYPE(wlcsim_data), intent(in) :: md
 logical, intent(in) :: initialize ! Need to do all beads
 double precision PHIPoly ! fraction polymer
 double precision phi_A ! demsotu of A
@@ -37,7 +36,7 @@ if (initialize) then  ! calculate absolute energy
             mc%Dx_Chi=mc%Dx_Chi+(VV/mc%V)*(md%PHIA(I)*md%PHIB(I))
             mc%Dx_Kap=mc%dx_Kap+(VV/mc%V)*((md%PHIA(I)+md%PHIB(I)-1.0_dp)**2)
             mc%Dx_Field=mc%dx_Field-md%PHIH(I)*md%PHIA(I)
-        enddo        
+        enddo
     elseif(mc%solType.eq.1) then ! Chromatin Hamiltonian
         do I=1,mc%NBIN
             VV=md%Vol(I)
@@ -48,7 +47,7 @@ if (initialize) then  ! calculate absolute energy
             if(PHIPoly.GT.1.0_dp) then
                mc%Dx_Kap=mc%Dx_Kap+(VV/mc%V)*(PHIPoly-1.0_dp)**2
             endif
-        enddo        
+        enddo
     else
         print*, "Error in MC_int, solType",mc%solType, &
                 " notdefined"
@@ -89,7 +88,7 @@ else ! Calculate change in energy
             mc%Dx_Couple=mc%Dx_Couple-VV*(md%PHIA(J))**2
             if(PHIPoly.GT.1.0_dp) then
                mc%Dx_Kap=mc%Dx_Kap-(VV/mc%V)*(PHIPoly-1.0_dp)**2
-            endif 
+            endif
         enddo
     endif
 endif

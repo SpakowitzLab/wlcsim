@@ -15,7 +15,7 @@
 !    4         |  Periodic, non-equal lengths
 
 SUBROUTINE MC_confine(confineType, LBox, RP, NT, IT1, IT2, ECon)
-use setPrecision
+use params, only: dp
 
 
 IMPLICIT NONE

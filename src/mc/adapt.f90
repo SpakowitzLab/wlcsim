@@ -1,5 +1,5 @@
 !
-!       Code for MC move addaptations when you need to 
+!       Code for MC move addaptations when you need to
 !       adapt both move size and number of beads.
 !
 !           Quinn MacPherson
@@ -8,7 +8,7 @@
 Subroutine MCvar_adapt(mc,MCTYPE)
 ! Run this after say 1000 move in order to improve performance
     !use mt19937, only : grnd
-    use simMod
+    use params
     IMPLICIT NONE
     TYPE(MCvar), intent(inout) :: mc
     INTEGER, intent(in) :: MCTYPE   ! Type of move
@@ -44,7 +44,7 @@ Subroutine MCvar_adapt(mc,MCTYPE)
     endif
 
     ! If move has no window it doesn't need to be ajusted
-    if ((MCTYPE.eq.4) .or. & 
+    if ((MCTYPE.eq.4) .or. &
         (MCTYPE.eq.5) .or. &
         (MCTYPE.eq.6)) then
         ! Adjust Amplidtude
@@ -74,7 +74,7 @@ Subroutine MCvar_adapt(mc,MCTYPE)
     ! Drift to target window
     mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*0.98_dp+&
                       0.02_dp*mc%winTarget(MCTYPE)
-    
+
 
     ! amplitude limits
     if (mc%MCAMP(MCTYPE).GT.mc%MAXAMP(MCTYPE)) then
@@ -82,7 +82,7 @@ Subroutine MCvar_adapt(mc,MCTYPE)
     elseif (mc%MCAMP(MCTYPE).LT.mc%MINAMP(MCTYPE)) then
        mc%MCAMP(MCTYPE)=mc%MINAMP(MCTYPE)
     endif
-    
+
     !window limits
     if (mc%WINDOW(MCTYPE).LT.mc%MINWINDOW(MCTYPE)) then
        mc%WINDOW(MCTYPE)=mc%MINWINDOW(MCTYPE)

@@ -2,7 +2,7 @@ Subroutine adaptCof(downSuccess,nPTReplicas,cof,N_average,&
                      lowerRepExe,upperRepExe,&
                      lowerCofRail,upperCofRail,&
                      repAnnealSpeed,replicaBounds)
-use setPrecision
+use params, only: dp
 implicit none
 
 ! inputs

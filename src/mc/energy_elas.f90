@@ -9,7 +9,7 @@
 !     Written 9-1-04
 
       SUBROUTINE energy_elas(EELAS,R,U,NT,NB,NP,PARA,RING,TWIST,Lk,tl,LP,L)
-      use setPrecision
+      use params, only: dp
       IMPLICIT NONE
       INTEGER, intent(in) :: NB           ! Number of beads in a polymer
       INTEGER, intent(in) :: NT           ! Number of beads total

@@ -8,16 +8,16 @@
 !    Quinn Made Changes to this file starting on 12/15/15
 !
 
-SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
+SUBROUTINE MCsim(mc,md,NSTEP)
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
-    use simMod
+    use params
 
     IMPLICIT NONE
 
     INTEGER, intent(in) :: NSTEP             ! Number of MC steps
-    INTEGER, intent(in) :: INTON             ! Include polymer interactions
+    LOGICAL :: INTON             ! Include polymer interactions
 
 !   Variables for the simulation
 
@@ -47,10 +47,10 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
     logical isfile
 ! Things for random number generator
     real urnd(1) ! single random number
-    type(random_stat), intent(inout) :: rand_stat
+    type(random_stat) :: rand_stat
 !   Load the input parameters
-    Type(MCvar), intent(inout) :: mc      ! system varibles
-    Type(MCData), intent(inout) :: md     ! system allocated data
+    Type(wlcsim_params), intent(inout) :: mc      ! system varibles
+    Type(wlcsim_data), intent(inout) :: md     ! system allocated data
 !     Alexander Polynomial Variables
     DOUBLE PRECISION, ALLOCATABLE :: CROSS(:,:)   !Matrix of information for crossings in a 2-D projection of the polymer
     DOUBLE PRECISION, ALLOCATABLE :: CROSSP(:,:)  !Matrix of crossings for the trial configuration
@@ -59,6 +59,9 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
     INTEGER CrossSize
     INTEGER DELTA             !Alexander polynomial evaluated at t=-1; used for knot checking
     INTEGER DELTAP            !Alexandper polynomial of trial configuration
+
+    inton = mc%inton
+    rand_stat = md%rand_stat
 
 
     EB=   mc%PARA(1)
@@ -117,7 +120,7 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
     mc%EElas=mc%DEElas ! copy array
 
     ! --- Interaction Energy ---
-    if (INTON.EQ.1) then
+    if (INTON) then
         ! initialize phi
         IT1=1
         IT2=mc%NT ! need to set up all beads
@@ -365,7 +368,7 @@ SUBROUTINE MCsim(mc,md,NSTEP,INTON,rand_stat)
              mc%EELAS(1)=mc%EELAS(1)+mc%DEELAS(1)
              mc%EELAS(2)=mc%EELAS(2)+mc%DEELAS(2)
              mc%EELAS(3)=mc%EELAS(3)+mc%DEELAS(3)
-             if (INTON.EQ.1) then
+             if (INTON) then
                 DO I=1,mc%NPHI
                    J=md%INDPHI(I)
                    md%PHIA(J)=md%PHIA(J)+md%DPHIA(I)

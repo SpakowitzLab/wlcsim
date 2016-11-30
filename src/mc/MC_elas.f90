@@ -9,14 +9,14 @@ SUBROUTINE MC_eelas(DEELAS,R,U,RP,UP,&
                     IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
                     RING,TWIST,Lk,lt,LP,L,MCTYPE,WR,WRP)
 
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
+INTEGER, intent(in) :: NT                ! Total number of beads
 DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
 DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
 DOUBLE PRECISION, intent(in) :: RP(NT,3)  ! Bead positions
 DOUBLE PRECISION, intent(in) :: UP(NT,3)  ! Tangent vectors
 INTEGER, intent(in) :: NB                ! Number of beads in a polymer
-INTEGER, intent(in) :: NT                ! Total number of beads
 INTEGER, intent(in) :: IB1               ! Test bead position 1
 INTEGER, intent(in) :: IT1               ! Index of test bead 1
 INTEGER, intent(in) :: IB2               ! Test bead position 2

@@ -14,8 +14,7 @@
 !     Edited by Quinn in 2016
 
 SUBROUTINE MC_int(mc,md,I1,I2,initialize)
-use simMod
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 
 TYPE(MCvar), intent(inout) :: mc   ! <---- Contains output

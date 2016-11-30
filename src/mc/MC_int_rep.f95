@@ -12,8 +12,7 @@
 !     Edited by Quinn in 2016
       
 SUBROUTINE MC_int_rep(mc,md,I1,I2,forward)
-use simMod
-use setPrecision
+use params
 IMPLICIT NONE
 
 !   iputs

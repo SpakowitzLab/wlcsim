@@ -1,23 +1,22 @@
 !---------------------------------------------------------------!
-      
-!     
+
+!
 !     This subroutine calculates the change in the self energy for
 !     a small Monte Carlo move in the position.
-!     
+!
 !     Andrew Spakowitz
 !     Written 6-29-04
 !
 !     Edited by Shifan
 !
 !     Edited by Quinn in 2016
-      
+
 SUBROUTINE MC_int_swap(mc,md,I1,I2,I3,I4)
-use simMod
-use setPrecision
+use params
 IMPLICIT NONE
 
-TYPE(MCvar), intent(inout) :: mc   ! <---- Contains output
-TYPE(MCData), intent(inout) :: md
+TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
+TYPE(wlcsim_data), intent(inout) :: md
 INTEGER, intent(in) :: I1      ! Test bead position 1
 INTEGER, intent(in) :: I2      ! Test bead position 2
 INTEGER, intent(in) :: I3      ! Test bead, first bead of second section
@@ -28,12 +27,12 @@ INTEGER I                 ! For looping over bins
 INTEGER IB                ! Bead index
 INTEGER IB2               ! Index you are swapping with
 INTEGER rrdr ! -1 if r, 1 if r+dr
-INTEGER IX(2),IY(2),IZ(2)      
+INTEGER IX(2),IY(2),IZ(2)
 DOUBLE PRECISION WX(2),WY(2),WZ(2)
 DOUBLE PRECISION WTOT       ! total weight ascribed to bin
 DOUBLE PRECISION RBIN(3)    ! bead position
 INTEGER INDBIN              ! index of bin
-INTEGER ISX,ISY,ISZ 
+INTEGER ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
 
 ! Copy so I don't have to type mc% everywhere
@@ -42,14 +41,14 @@ DOUBLE PRECISION temp    !for speeding up code
 NBINX=mC%NBINX
 
 
-if (I2-I1+1.ne.mc%NB) then 
+if (I2-I1+1.ne.mc%NB) then
     print*, "Error in MC_int_swap. I2-I1+1.ne.NB"
     stop 1
-endif 
-if (I4-I3+1.ne.mc%NB) then 
+endif
+if (I4-I3+1.ne.mc%NB) then
     print*, "Error in MC_int_swap. I2-I1+1.ne.NB"
     stop 1
-endif 
+endif
 
 ! -------------------------------------------------------------
 !
@@ -70,7 +69,7 @@ do IB=I1,I2
        RBIN(2)=md%R(IB,2)
        RBIN(3)=md%R(IB,3)
        isA=md%AB(IB).eq.1
-   else     
+   else
        RBIN(1)=md%RP(IB,1)
        RBIN(2)=md%RP(IB,2)
        RBIN(3)=md%RP(IB,3)
@@ -102,7 +101,7 @@ do IB=I1,I2
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
                 I=mc%NPHI
-                do 
+                do
                    if (I.eq.0) then
                       mc%NPHI=mc%NPHI+1
                       md%INDPHI(mc%NPHI)=INDBIN
@@ -117,7 +116,7 @@ do IB=I1,I2
                       exit
                    else
                       I=I-1
-                   endif                     
+                   endif
                 enddo
              enddo
           enddo
@@ -133,7 +132,7 @@ do IB=I1,I2
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
                 I=mc%NPHI
-                do 
+                do
                    if (I.eq.0) then
                       mc%NPHI=mc%NPHI+1
                       md%INDPHI(mc%NPHI)=INDBIN
@@ -148,11 +147,11 @@ do IB=I1,I2
                       exit
                    else
                       I=I-1
-                   endif                     
+                   endif
                 enddo
              enddo !ISZ
           enddo !ISY
-       enddo !ISX 
+       enddo !ISX
    endif
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads

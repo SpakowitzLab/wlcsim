@@ -10,7 +10,7 @@ SUBROUTINE MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
                   ,IT3,IT4,forward)
 
 use mersenne_twister
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 DOUBLE PRECISION, PARAMETER :: PI=3.141592653589793_dp ! Value of pi
 
@@ -721,7 +721,7 @@ endif
 RETURN
 END
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 ! inputs
 INTEGER NT,IT1,IT2
@@ -810,7 +810,7 @@ subroutine random_perp(u,p,t,rand_stat)
 ! The output vectors, p and t, are perpendicular to eachother and u
 ! The triad is randomly left or right handed
 use mersenne_twister
-use setPrecision
+use params, only: dp
 IMPLICIT NONE
 DOUBLE PRECISION, PARAMETER :: PI=3.141592654 ! Value of pi
 type(random_stat) rand_stat  ! status of random number generator
