@@ -38,10 +38,15 @@ Stack of things to do:
         NULL -> codeAuth ! whose code to run
         inton -> field_interactions
         self interactions -> intrapolymer_stick_crossing_enforced
+        col_type -> fptColType
+        ind -> now passed from wlcsim
+        time_ind now refers to what time step you're on
+        step_ind now refers to what mc step you're on
+
 
         notes to Quinn:
         in places where you write out simulation state, writing out paramters as
-        well seems unecessary, but no need to 'fix': 
+        well seems unecessary, but no need to 'fix':
         e.g. wlcsim_params_appendAdaptData
     1. Make suite of tests, with contributions from Andy's personal
        codebase (ask when you get here)
@@ -69,11 +74,26 @@ Stack of things to do:
         18. Add hook to makefile to perform a recursive git submodule udpate if third
             party libraries not present, using ifeq directive, maybe checking
             if some $(wildcard ...) expression evaluates to the empty string?
+        19. merge quinn and andy's move settings in params.f03
+        20. guard writing via appendAdaptData and appendEnergyData to
+            when the relevant variables will exist in
+            save_simulation_state
+        21. fix *_saveparameters functions to write out structures
+            correctly
+        22. when should repeatingBC be on?
+        23. quinn, where did you get that seeding code?
+        24. shouldn't use wlc_d%ind anymore
+        25. we no longer have decom, from MCsim, should it be there? if so,
+            make sure lhc (== fcom) has correct magnitude. seems unlikely that
+            it's needed since it comes from an outdated input file type.
+            appears to be used in force_ponp, and mc_self, maybe it has a new
+            name now?
+        26. same as lhc but for vhc
+        27. add brad's temporary file things to .gitignore. looks like *~, ._*,
+            #*# would do it
+        28. make sure time_ind is incremented in bdsim
     4. merge input styles of all code
         1. modify wlcsim_bruno.f03 to use new calling convention
         2. remove "dependent variables check" from quinn's params code in
            favor of always specifyign the same paramters and usign
            get_derived_parameters by default
-        2. modify get_derived_parameters to take wlc_p
-
-
