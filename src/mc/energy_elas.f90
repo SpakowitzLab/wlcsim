@@ -9,15 +9,19 @@
 !     Written 9-1-04
 
       SUBROUTINE energy_elas(EELAS,R,U,NT,NB,NP,PARA,RING,TWIST,Lk,tl,LP,L)
-      use params, only: dp
+      use params, only: dp, pi
       IMPLICIT NONE
       INTEGER, intent(in) :: NB           ! Number of beads in a polymer
       INTEGER, intent(in) :: NT           ! Number of beads total
       INTEGER, intent(in) :: NP           ! Number of polymers
+      INTEGER, intent(in) :: lk, tl
+      real(dp), intent(in) :: lp, l
       DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
       DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
-      DOUBLE PRECISION, intent(out):: EELAS(3) ! Elastic force
-      INTEGER I,J,IB            ! Index holders
+      DOUBLE PRECISION, intent(out):: EELAS(6) ! Elastic force
+      INTEGER WR,TW ! writhe, twist
+      INTEGER I,J,IB,ibp1            ! Index holders
+      LOGICAL, intent(in) :: RING, TWIST
 
 !     Polymer properties
 
@@ -42,14 +46,14 @@
       DO I=1,NP
          DO J=1,(NB-1)
             !TODO loop to N-1, then do N separately
-            IF (RING.EQ.1) THEN
-            IF (J.EQ.N) THEN
-                IBP1=1+(I-1)*N
+            IF (RING) THEN
+            IF (J.EQ.NB) THEN
+                IBP1=1+(I-1)*NB
             ELSE
                 IBP1=IB+1
             ENDIF
-            ELSEIF (RING.EQ.0.AND.J.EQ.N) THEN
-            GOTO 40
+            ELSEIF (.NOT.RING.AND.J.EQ.NB) THEN
+            CYCLE !TODO check with Brad
             ELSE
             IBP1=IB+1
             ENDIF
@@ -79,9 +83,10 @@
       ENDDO
 
       ! Get Twist Energy
-      IF (TWIST.EQ.1) THEN
-          call WRITHE(R,N,Wr)
+      IF (TWIST) THEN
+          call WRITHE(R,NB,Wr)
           Tw=Lk-Wr
+          !TODO where does LT come from?
           EELAS(4)=((2*PI*Tw)**2)*LT/(2*L)
       ENDIF
 

@@ -54,6 +54,7 @@ Stack of things to do:
        codebase (ask when you get here)
     2. attempt to compile, see if any bugs
     3. fix miscellaneous discrepancies that might turn into bugs
+        00. check for TODOs in code
         0. for MC, brad uses energy self chain instead of energy ponp
         1. change all uses of mt19937 to mersenne_twister
         2. finish contributors scratch information
@@ -93,11 +94,7 @@ Stack of things to do:
         27. add brad's temporary file things to .gitignore. looks like *~, ._*,
             #*# would do it
         28. make sure time_ind is incremented in bdsim
-    4. merge input styles of all code
-        1. modify wlcsim_bruno.f03 to use new calling convention
-        2. remove "dependent variables check" from quinn's params code in
-           favor of always specifyign the same paramters and usign
-           get_derived_parameters by default
+        29. figure out why energy_elas/energy_ponp won't compile
 
 sitting in the src/wlcsim directory, the following now succeeds if you remove
 references to mcsim from wlcsim_bruno:

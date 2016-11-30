@@ -96,7 +96,7 @@ subroutine singleCall()
     call wlcsim(rand_stat)
    !call simpleSim(rand_stat)
 end subroutine
-subroutine paraTemp ( p, id)
+subroutine parallelTemp ( p, id)
 
 !*****************************************************************************
 !

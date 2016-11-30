@@ -1,4 +1,78 @@
-!---------------------------------------------------------------*
+! use mpi
+
+subroutine wlcsim_quinn(save_ind, wlc_p, wlc_d)
+    use params
+    implicit none
+    integer, intent(in) :: save_ind ! 1, 2, ...
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
+    integer, save :: id, num_processes
+    integer (kind=4) error
+
+    if (save_ind == 1) then
+        call MPI_Init(error)
+        call stop_if_err(error, "Failed to MPI_Init.")
+        call MPI_Comm_size(MPI_COMM_WORLD, num_processes, error)
+        call stop_if_err(error, "Failed to get num_processes.")
+        call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
+        call stop_if_err(error, "Failed to get num_processes.")
+        if (num_processes > 1) then
+            call setup_mpi_stuff()
+        endif
+    endif
+
+
+
+end subroutine wlcsim_quinn
+
+subroutine setup_mpi()
+  ! use mpi
+  use params, only: dp
+
+  implicit none
+  integer ( kind = 4 ) error
+  integer ( kind = 4 ) id
+  integer ( kind = 4 ) p
+!
+!  Initialize MPI.
+!
+  call MPI_Init ( error )
+  if (error.ne.0) then
+      print*, "MPI_Init", error
+  endif
+!
+!  Get the number of processes.
+!
+  call MPI_Comm_size ( MPI_COMM_WORLD, p, error )
+  if (error.ne.0) then
+      print*, "MPI_Comm_size", error
+  endif
+!
+!  Get the individual process ID.
+!
+  call MPI_Comm_rank ( MPI_COMM_WORLD, id, error )
+  if (error.ne.0) then
+      print*, "MPI_Comm_rank", error
+  endif
+!
+!  print a message.
+!
+  if ( id == 0 ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) '  WLC MC sim with tempering using MPI'
+    write ( *, '(a)' ) ' '
+    write ( *, '(a,i8)' ) '  The number of threads being used is ', p
+    write ( *, '(a,i8)' ) '  The number of replicas is ', p-1
+
+
+  end if
+  if (p.gt.1) then
+      call paraTemp ( p, id )
+  else
+      call singleCall()
+  endif
+end subroutine
+
 
 subroutine wlcsim(rand_stat)
 
@@ -15,17 +89,16 @@ subroutine wlcsim(rand_stat)
 !
 !     Variables within the simulation
 
-  use params
-  use simMod
   use mersenne_twister  ! so that we know the size of rand_stat
+  use params
 
   IMPLICIT NONE
   type(random_stat), intent(inout) :: rand_stat ! state of random number generator
 
   ! miscellaneous
   integer I
-  character*4 fileind       ! index of output
-  character*16 iostr       ! file for output
+  character(4) fileind       ! index of output
+  character(16) iostr       ! file for output
 
 !     Simulation input variables
 
@@ -33,7 +106,7 @@ subroutine wlcsim(rand_stat)
 
 ! simulation data strucutres
   type(wlcsim_params) mc
-  type(MCData) md
+  type(wlcsim_data) md
 
 !-------------------------------------------------------
 !
@@ -78,7 +151,7 @@ subroutine wlcsim(rand_stat)
           iostr='input/ab'
           call wlcsim_params_loadAB(mc,md,iostr)
       else
-          call initchem(md%AB,mc%NT,mc%N,mc%G,mc%NP,mc%FA,mc%LAM,rand_stat)
+          call initchem(md%AB,mc%NT,mc%NB,mc%G,mc%NP,mc%FA,mc%LAM,rand_stat)
       endif
 
 
@@ -172,4 +245,3 @@ subroutine wlcsim(rand_stat)
   enddo
 
 end
-!---------------------------------------------------------------*
