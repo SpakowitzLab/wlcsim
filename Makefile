@@ -18,7 +18,8 @@ MAKEDEPEND=./fort_depend.py
 DEP_FILE = wlcsim.dep
 
 # compiler
-FC = gfortran
+FC = mpifort
+#TODO: fallback to gfortran gracefully, maybe with a dummy mpi.mod file?
 
 # compile flags
 INCLUDE_DIRS = -Isrc -Isrc/third_party/FLAP/exe/mod
@@ -31,7 +32,7 @@ FCFLAGS = ${FASTFLAGS}
 FLFLAGS =
 
 # all non-legacy and non-test files should be compiled into wlcsim
-SRC := $(shell find "src" -type f -name '*.f*' -not -path "src/legacy" -not -path "src/tests" -print)
+SRC := $(shell find "src" -type f -name '*.f*' -not -path "src/legacy/*" -not -path "src/tests/*" -not -path "src/third_party/FLAP/*" -not -path '*/\.*')
 # takes each *.f* -> *.o
 OBJ := $(addsuffix .o,$(basename $(SRC)))
 TEST := $(shell find "src/tests" -type f -name '*.f*')
@@ -40,7 +41,7 @@ TEST := $(shell find "src/tests" -type f -name '*.f*')
 PROGRAM = wlcsim.exe
 
 # by default, compile only
-all: $(PROGRAM)
+all: $(PROGRAM) flap depend
 
 # a target to just run the main program
 run: $(PROGRAM) dataclean
@@ -48,15 +49,15 @@ run: $(PROGRAM) dataclean
 
 # target to build main program, depends on all object files, and on the
 # constructed makefile output
-$(PROGRAM): flap $(OBJ) depend
+$(PROGRAM): flap depend dummy_prog
+
+dummy_prog: $(OBJ)
 	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
 
 # build third party dependencies that require "make" by hand
 FLAP_DIR = src/third_party/FLAP
-flap: ${FLAP_DIR}
-	pushd ${FLAP_DIR}
-	make
-	popd
+flap: $(shell find ${FLAP_DIR} -type f -name '*.f*')
+	make -C ${FLAP_DIR}
 
 # Make dependencies, easier to type
 depend: $(DEP_FILE)
