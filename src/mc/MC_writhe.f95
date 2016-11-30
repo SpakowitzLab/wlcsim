@@ -62,7 +62,7 @@ SUBROUTINE WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
         IIP1=II+1
      ELSEIF (II.EQ.N) THEN
         IIP1=1
-     ELSE 
+     ELSE
         IIP1=II+1
      ENDIF
 
@@ -74,7 +74,7 @@ SUBROUTINE WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
            IOP1=IO+1
         ELSEIF (IO.EQ.N) THEN
            IOP1=1
-        ELSE 
+        ELSE
            IOP1=IO+1
         ENDIF
 

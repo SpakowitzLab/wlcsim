@@ -116,7 +116,7 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
            trint=tint/cos(thetaj)
 
            !Determine whether this is an undercrossing or an overcrossing.
-           !Save the indices appropriately (the index of the undercrossing segment 
+           !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
            IF (R(i,3)+uri(3)*srint<r(j,3)+urj(3)*trint) THEN
@@ -186,7 +186,7 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
         !If J lies between cross K and cross K+1, then it is segment K+1
         IF (J.GT.nint(Cross(K,1)).AND.J.LT.nint(Cross(K+1,1))) THEN
            over_ind(I)=K+1
-           GOTO 20 
+           GOTO 20
            !If J=K, then segment j contains undercrossings
            ! then need to determine where overpass lies relative to undercrossing
         ELSEIF (J.EQ.nint(CROSS(K,1))) THEN
@@ -196,10 +196,10 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
            !of segment j
            IF (t.LE.Cross(K,3)) THEN
               over_ind(I)=K
-              GOTO 20 
+              GOTO 20
            ELSEIF (t.GE.Cross(K+Ndegen-1,3)) THEN
               OVER_IND(I)=K+Ndegen
-              GOTO 20 
+              GOTO 20
               !Otherwise, determine which under-crossings t lies between
            ELSE
               IND=1
@@ -207,10 +207,10 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
               DO WHILE (IND.LT.Ndegen)
                  !if t lies between the s of undercrossing k+ind-1 and the next,
                  !then this over_pass has a new index of k+ind in the re-indexing
-                 !scheme 
+                 !scheme
                  IF (t.GT.Cross(K+IND-1,3).AND.t.LT.CROSS(k+IND,3)) THEN
                     over_ind(I)=K+IND
-                    GOTO 20 
+                    GOTO 20
                  ENDIF
                  IND=IND+1
               ENDDO
@@ -224,8 +224,8 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
 
 
   !Calculate the Alexander matrix evaluated at t=-1
-  ! Note that the Alexander matrix is correct only up to 
-  ! a factor of +-1. Since the alexander polynomial evaluated 
+  ! Note that the Alexander matrix is correct only up to
+  ! a factor of +-1. Since the alexander polynomial evaluated
   ! at t=-1 is always positive, take the absolute value of the
   ! determinant
 
@@ -249,7 +249,7 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
      IF (I.EQ.K.OR.I.EQ.KP1) THEN
         A(K,K)=-1.
         A(K,KP1)=1.
-     ELSE 
+     ELSE
         A(K,K)=1.
         A(K,KP1)=1.
         A(K,I)=-2.
@@ -257,14 +257,14 @@ SUBROUTINE ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
 
   ENDDO
 
-  !Calculate the determinant of the matrix with one row and one column removed 
+  !Calculate the determinant of the matrix with one row and one column removed
 
 
   !If A has one crossing or less, it is the trivial knot
 
   IF (Ncross.LE.1) THEN
      delta_double=1.
-  ELSE 
+  ELSE
      CALL abs_determinant(A(1:Ncross-1,1:Ncross-1),NCross-1,delta_double)
   ENDIF
 

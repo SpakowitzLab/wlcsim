@@ -1,11 +1,10 @@
 Subroutine simpleSim(rand_stat)
 
-use setPrecision
 use mersenne_twister
-use simMod
+use params
 implicit none
 type(random_stat), intent(inout) :: rand_stat ! state of random number generator
-Type(MCvar) mc 
+Type(wlcsim_params) mc
 TYPE(MCData) md
 double precision r(8)
 double precision rp(8)
@@ -19,8 +18,8 @@ integer istep
 double precision chiOld, xchiOld, EchiOld
 
 fileName='input/params'
-call MCvar_setParams(mc,fileName)
-call MCvar_allocate(mc,md)
+call wlcsim_params_setParams(mc,fileName)
+call wlcsim_params_allocate(mc,md)
 call PT_override(mc,md)
 
 do term=1,8
@@ -40,7 +39,7 @@ do ISTEP=1,mc%NSTEP
         print*, "r1", r(1), " rp(1)", rp(1)
         print*, "chiOld", chiOld, " CHI", mc%CHI
         print*, "xchiOld", xchiOld, " mc%x_chi",mc%x_chi
-        print*, "EChiOld",EchiOld," Echi", mc%Echi 
+        print*, "EChiOld",EchiOld," Echi", mc%Echi
         stop 1
     endif
     if (mc%ECHI.lt.-0.00000001_dp) then
@@ -54,7 +53,7 @@ do ISTEP=1,mc%NSTEP
     mc%ECHI=mc%CHI*(r(1)**2)
     ! Make Move
     do term=1,8
-        if (mod(istep,8)+1.eq.term) then 
+        if (mod(istep,8)+1.eq.term) then
             call random_number(urnd,rand_stat)
             rp(term)=r(term)+urnd(1)-0.5_dp
         else
@@ -63,19 +62,19 @@ do ISTEP=1,mc%NSTEP
     enddo
 
     ! Calculate change in energy
-    
+
     mc%dx_chi=   (rp(1)**2-r(1)**2)
     mc%dx_mu=    (rp(2)**2-r(2)**2)
     mc%dx_Field= (rp(3)**2-r(3)**2)
     mc%dx_couple=-(rp(4)**2-r(4)**2)
     mc%dx_kap=   (rp(5)**2-r(5)**2)
-    
+
     mc%DEBind=mc%mu*(rp(2)**2-r(2)**2) + (rp(2)-r(2))
-    
+
     mc%dx_chi=mc%dx_chi*mc%CHI_ON
     mc%dx_couple=mc%dx_couple*mc%Couple_ON
     mc%dx_Kap=mc%dx_Kap*mc%KAP_ON
-    
+
     mc%DEChi=mc%Chi*        mc%dx_chi
     mc%DECouple=mc%HP1_Bind*mc%dx_couple
     mc%DEKap=mc%Kap*        mc%dx_Kap
@@ -124,7 +123,7 @@ do ISTEP=1,mc%NSTEP
     ! output
     if ((mod(istep+mc%NSTEP*(mc%IND-1),1000).eq.0).and.(mc%IND.gt.mc%indEndRepAdapt)) then
         ! Record position
-        fullName='data/r' // (mc%repSufix) 
+        fullName='data/r' // (mc%repSufix)
         fullName=trim(fullName)
         inquire(file = fullName, exist=isfile)
         if (isfile) then
@@ -132,7 +131,7 @@ do ISTEP=1,mc%NSTEP
         else
             OPEN (UNIT = 1, FILE = fullName, STATUS = 'NEW')
 
-            fullName='data/cof' // (mc%repSufix) 
+            fullName='data/cof' // (mc%repSufix)
             inquire(file = fullName, exist=isfile)
             if (.not.isfile) then
                 OPEN (UNIT = 2, FILE = fullName, STATUS = 'NEW')

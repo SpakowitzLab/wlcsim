@@ -2,25 +2,25 @@
 ! This file is where quinn hardcodes certain parameters of the MC that he wants
 ! to change depending on what step he's on.
 !---------------------------------------------------------------*
-subroutine strength_schedule(mc,inton)
-    use setPrecision
-    use simMod
+subroutine strength_schedule(mc,ind,inton)
+    use params
     implicit none
-    type(MCvar), intent(inout) :: mc
+    integer, intent(in) :: ind ! index in terms of #saves
+    type(wlcsim_params), intent(inout) :: mc
     integer, intent(out) :: inton
 
-    if (mc%ind.LE.mc%NNOINT) then
+    if (ind.LE.mc%NNOINT) then
         INTON=0
     else
         INTON=1
     endif
-    if(mc%ind.lt.mc%N_KAP_ON) then
+    if(ind.lt.mc%N_KAP_ON) then
         mc%KAP_ON=0.0_dp
     else
         mc%KAP_ON=1.0_dp
     endif
 
-    if(mc%ind.lt.mc%N_CHI_ON) then
+    if(ind.lt.mc%N_CHI_ON) then
 !        PTON=.False.
         mc%CHI_ON=0.0_dp
     else
@@ -39,7 +39,7 @@ subroutine strength_schedule(mc,inton)
         return
     endif
 
-    if (mc%ind.lt.30) then
+    if (ind.lt.30) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -48,7 +48,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.40) then
+    elseif (ind.lt.40) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -57,7 +57,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 0;
         mc%moveon(10) = 0;
-    elseif (mc%ind.lt.50) then
+    elseif (ind.lt.50) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -66,7 +66,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 0;
-    elseif (mc%ind.lt.60) then
+    elseif (ind.lt.60) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -75,7 +75,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 0;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.70) then
+    elseif (ind.lt.70) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -84,7 +84,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 0;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.80) then
+    elseif (ind.lt.80) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -93,7 +93,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.90) then
+    elseif (ind.lt.90) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;
@@ -102,7 +102,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.100) then
+    elseif (ind.lt.100) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 1;
         mc%moveon(3) = 0;
@@ -111,7 +111,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.110) then
+    elseif (ind.lt.110) then
         mc%moveon(1) = 1;
         mc%moveon(2) = 0;
         mc%moveon(3) = 1;
@@ -120,7 +120,7 @@ subroutine strength_schedule(mc,inton)
         mc%moveon(6) = 1;
         mc%moveon(9) = 1;
         mc%moveon(10) = 1;
-    elseif (mc%ind.lt.120) then
+    elseif (ind.lt.120) then
         mc%moveon(1) = 0;
         mc%moveon(2) = 1;
         mc%moveon(3) = 1;

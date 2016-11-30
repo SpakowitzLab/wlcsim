@@ -1,7 +1,7 @@
 !---------------------------------------------------------------*
-      
+
 PROGRAM wlcsim
-      
+
 !     This simulation models the equilibrium conformation statistics of DNA molecules modeled
 !     as a discrete,stretchable, shearable worm-like chain (see Koslover, 2013) using a Metropolis
 !     Monte Carlo procedure. Brownian dynamics simulations are also included.
@@ -18,17 +18,17 @@ PROGRAM wlcsim
 !     by their linking number. This allows the properties of supercoiled DNA molecules to be studied.
 
 !     Brad Krajina, Andrew J. Spakowitz.
-!     Last modified: 10/2/2014     
+!     Last modified: 10/2/2014
 
 
 
   use mpi
-  use mersenne_twister 
+  use mersenne_twister
   IMPLICIT NONE
 
   real(dp), paraMETER :: PI=3.141592654d0 ! Value of pi
 
-  !Variables used in simulation 
+  !Variables used in simulation
 
   real(dp), allocatable, dimension(:,:):: R	 ! Conformation of polymer chains
   real(dp), allocatable, dimension(:,:):: U	 ! Conformation of polymer chains
@@ -86,7 +86,7 @@ PROGRAM wlcsim
   integer dest
   integer source
   integer, allocatable :: nodeNumber(:)
-  !   variable for random number generator 
+  !   variable for random number generator
   type(random_stat) rand_stat  ! state of random number chain
   integer Irand     ! Seed
   character*8 datedum  ! trash
@@ -119,11 +119,11 @@ PROGRAM wlcsim
   CHARACTER*4 LkPlusStr     !String variable for Lk replica one Lk step above current replica
   CHARACTER*4 LkMinusStr      !String variable for Lk replica one LK step below current replica
   CHARACTER*4 LkSwapStr     !String variable for Lk replica to test for exchange
-  real(dp) Prob     !Probability of swapping current replica with test replica 
+  real(dp) Prob     !Probability of swapping current replica with test replica
   real(dp) Test     !Test number for determining whether to swap (random number between 0. and 1.)
   integer, allocatable :: NSwapPlus(:)         !Number of times replica with Lk one step above is swapped
   integer, allocatable :: NSwapMinus(:)        !Number of times replica with Lk one step below is swapped
-  integer, allocatable :: NTrialPlus(:)        !Number of trials for exchanging with the replica on Lk step above 
+  integer, allocatable :: NTrialPlus(:)        !Number of trials for exchanging with the replica on Lk step above
   integer, allocatable :: NTrialMinus(:)       !Number of trials for exchanging with the replica on Lk step below
   integer Restart              !Is simulation restarting from a previously interrupted run (1 or 0)?
   real(dp), allocatable ::  Swap(:,:)     !Matrix of swaps with other replicas (+1,-1,or 0). Each column corresponds to a replica
@@ -146,10 +146,10 @@ PROGRAM wlcsim
 
   real(dp), allocatable :: RCOM(:,:) ! Center of mass
   real(dp), allocatable :: RGYR(:)
-  real(dp), allocatable :: R2(:)  !Second moment of end-to-end displacement 
-  real(dp), allocatable :: R4(:)  !Fourth moment of end-to-end displacement 
-  real(dp), allocatable :: R6(:)  !Sixth moment of end-to-end displacement 
-  real(dp), allocatable :: DR(:)  !end-to-end displacement 
+  real(dp), allocatable :: R2(:)  !Second moment of end-to-end displacement
+  real(dp), allocatable :: R4(:)  !Fourth moment of end-to-end displacement
+  real(dp), allocatable :: R6(:)  !Sixth moment of end-to-end displacement
+  real(dp), allocatable :: DR(:)  !end-to-end displacement
 
   real(dp), allocatable :: RGYRALL(:,:) !Trajectory of the radius of gyrationover the simulation for all replicas
   real(dp), allocatable :: WrAll(:,:) !Trajectory of writhe over the simulation for all replicas
@@ -291,7 +291,7 @@ PROGRAM wlcsim
   read (unit=5, fmt=*) NSTEP
   close(5)
 
-  !read from the parallel tempering input file to 
+  !read from the parallel tempering input file to
   !get the Lks for the simulation
 
   NLKs = 0
@@ -403,7 +403,7 @@ PROGRAM wlcsim
      nodeNumber(rep)=rep
   enddo
 
-  ! Initialize values 
+  ! Initialize values
   WindoW = N
   NSwapPlus = 0
   NSwapMinus = 0
@@ -415,7 +415,7 @@ PROGRAM wlcsim
   !Begin Simulation
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !Check process id number to see if you are a worker or 
+  !Check process id number to see if you are a worker or
   !a head node
 
   if (id == 0) then
@@ -441,7 +441,7 @@ PROGRAM wlcsim
         Lk = Lks(rep)
         call MPI_Send (Lk,1, MPI_integer, dest,   0, &
              MPI_COMM_WORLD,error )
-    
+
      enddo
      !Wait for worker nodes to send back Lk to indicate seed set
      !and initialization complete
@@ -468,7 +468,7 @@ PROGRAM wlcsim
                 MPI_COMM_WORLD,error )
         enddo
 
-        
+
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Hear back from workers
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -492,7 +492,7 @@ PROGRAM wlcsim
                 MPI_COMM_WORLD,status,error )
 
            Wrs(rep) = Wr
-           
+
            !Update the trajectory matrices
            WrAll(ind,rep) = Wr
            RGyrSqAll(ind,rep) = RGYRSQ(1)
@@ -507,7 +507,7 @@ PROGRAM wlcsim
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         !Loop over Lk replicas. Each replica first looks to the replica below, then the one above
-        
+
         do rep = 1,NLks-1
            !We are asking each polymer configuration to swap its Lk. The only contribution to the change in energy
            !is the change in twist energy. The new twist energy is the twist associated with the current writhe
@@ -518,12 +518,12 @@ PROGRAM wlcsim
            NTrialMinus(rep+1) = NTrialMinus(rep+1) + 1
 
            dE_exchange = 0.0d0
-           
+
            dE_exchange = -ETwists(rep) - Etwists(rep+1)
 
            !Change in twist energy due to rep taking Lk above it
            dE_exchange = dE_exchange +((2*PI*(Lks(rep + 1)-Wrs(rep))**2.d0)*LT/(2.d0*L))
-           
+
            !Change in twist energy due to rep + 1 taking Lk below it
            dE_exchange = dE_exchange +(2*PI*(Lks(rep)-Wrs(rep + 1))**2.d0)*LT/(2.d0*L)
 
@@ -577,7 +577,7 @@ PROGRAM wlcsim
         open(2,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/RGYRSQ_Avg', status = 'replace')
         open(3,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/ETOT_Avg', status = 'replace')
         open(4,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/EELAS_Avg', status = 'replace')
-        
+
         write(1,*) Wr_Avg
         write(2,*) RGYRSQ_Avg
         write(3,*) ETOT_Avg
@@ -587,7 +587,7 @@ PROGRAM wlcsim
         close(2)
         close(3)
         close(4)
-        
+
         Wr_stdev = sqrt(sum((WrAll(:,rep) - Wr_Avg)**2.d0)/real(indmax))
         RGyrSq_stdev = sqrt(sum((RGyrSqAll(:,rep) - RGyrSq_Avg)**2.d0)/real(indmax))
         Etot_stdev = sqrt(sum((EtotAll(:,rep) - Etot_Avg)**2.d0)/real(indmax))
@@ -598,7 +598,7 @@ PROGRAM wlcsim
         open(2,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/RGYRSQ_stdev', status = 'replace')
         open(3,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/ETOT_stdev', status = 'replace')
         open(4,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/EELAS_stdev', status = 'replace')
-        
+
         write(1,*) Wr_stdev
         write(2,*) RGYRSQ_stdev
         write(3,*) ETOT_stdev
@@ -608,7 +608,7 @@ PROGRAM wlcsim
         close(2)
         close(3)
         close(4)
-      
+
         Wr_stder = Wr_stdev/(sqrt(real(indmax)))
         RGyrSq_stder = RGyrSq_stdev/(sqrt(real(indmax)))
         Etot_stder = Etot_stdev/(sqrt(real(indmax)))
@@ -619,7 +619,7 @@ PROGRAM wlcsim
         open(2,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/RGYRSQ_stder', status = 'replace')
         open(3,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/ETOT_stder', status = 'replace')
         open(4,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/EELAS_stder', status = 'replace')
-        
+
         write(1,*) Wr_Avg
         write(2,*) RGYRSQ_Avg
         write(3,*) ETOT_Avg
@@ -636,7 +636,7 @@ PROGRAM wlcsim
 
         open(1,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/Wr_Auto', status = 'replace')
         open(2,file = 'data/LK_' //TRIM(ADJUSTL(LkStr)) //'/RGYRSQ_Auto', status = 'replace')
-        
+
         do i =1,N_auto
            write(1,*) Wr_auto(i)
            write(2,*) RGyrSq_auto(i)
@@ -653,7 +653,7 @@ PROGRAM wlcsim
         open(4,file = 'data/LK_'//TRIM(ADJUSTL(LkStr))//'/ETOT_all', status = 'replace')
         open(5,file = 'data/LK_'//TRIM(ADJUSTL(LkStr))//'/EPONP_all', status = 'replace')
         open(6,file = 'data/LK_'//TRIM(ADJUSTL(LkStr))//'/EELAS_all', status = 'replace')
-        
+
 
         do i = 1,indmax
            write(1,*) WrAll(i,rep)
@@ -722,7 +722,7 @@ PROGRAM wlcsim
          write(1,*) U(i,:)
       enddo
       close(unit = 1)
-      
+
       !Communicate with head node after seed set and initialization complete
       call MPI_Send(Lk,1, MPI_integer, source, 0, &
              MPI_COMM_WORLD,error )
@@ -740,19 +740,19 @@ PROGRAM wlcsim
          !Perform a Monte Carlo simulation
          call MCsim(R,U,NT,N,NP,NSTEP,BROWN,INTON,IDUM,para, &
            MCAMP,SUCCESS,SUCCESS_TOTAL,MOVEON,WindoW,ring,TWIST,Lk,LT,LP,L,rand_stat)
-         
+
          !Calculate dimensions of polymer, energy, and writhe
          CALL getdim(N,NP,NT,R,RCOM,RCOMSQ,RGYRSQ,R2,R4,R6,DR)
-        
+
          call WRITHE(R,N, Wr)
 
          !Update trajectory vectors of structural quantities
     !     WrAll(ind) = Wr
     !     RGyrSqAll(ind,:) = RGYRSQ
     !     R2All(ind,:) = R2
-                 
+
          CALL energy_elas(EELAS,R,U,NT,N,NP,para,ring,TWIST,Lk,lt,LP,L)
-                        
+
          EPONP=0.
          if (INTON.EQ.1) then
             call  ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,para,ring)
@@ -777,7 +777,7 @@ PROGRAM wlcsim
             write(1,*) U(i,:)
          enddo
          close(unit = 1)
-         
+
 
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          !Communicate with the head node
@@ -796,17 +796,17 @@ PROGRAM wlcsim
              MPI_COMM_WORLD,error )
 
       enddo
-      
+
    endif
 
   call MPI_finalize(error)
 
 end PROGRAM wlcsim
-      
-    
 
-     
 
-      
+
+
+
+
 !---------------------------------------------------------------*
-      
+

@@ -1,5 +1,5 @@
 logical function isanynan(arr)
-    use globals, only : dp
+    use params, only : dp
 
     implicit none
 

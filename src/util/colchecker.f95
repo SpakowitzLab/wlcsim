@@ -84,7 +84,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
 ! at all time points
 !
 ! acf means "after collision found" with ith bead in dimension d
-    use globals, only : dp
+    use params, only : dp
 
     implicit none
 

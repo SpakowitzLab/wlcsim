@@ -18,12 +18,12 @@ SUBROUTINE WRITHECRANK(R,IT1,IT2,N,Wr)
   DOUBLE PRECISION  e1(3)                  ! Tangent of first segment
   DOUBLE PRECISION  e2(3)                  ! Tangent of second segment
   DOUBLE PRECISION  e3(3)
-  INTEGER  DIB,DIO                         !Number of segments inside section rotated,outside 
+  INTEGER  DIB,DIO                         !Number of segments inside section rotated,outside
 
 
   !Counter variables
   INTEGER IT1,IT2                         !Indices of endpoints in segment rotated
-  INTEGER II,IO                           !Index of bead inside segment rotated,outside  
+  INTEGER II,IO                           !Index of bead inside segment rotated,outside
   INTEGER  I,IP1
   INTEGER  J,JP1
 

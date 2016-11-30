@@ -9,8 +9,8 @@ implicit none
 integer, intent(in) :: nPTReplicas
 integer, intent(in) :: downSuccess(nPTReplicas)
 integer, intent(in) :: N_average
-double precision, intent(in) :: lowerRepExe 
-double precision, intent(in) :: upperRepExe 
+double precision, intent(in) :: lowerRepExe
+double precision, intent(in) :: upperRepExe
 double precision, intent(in) :: lowerCofRail
 double precision, intent(in) :: upperCofRail
 double precision, intent(in) :: repAnnealSpeed
@@ -35,7 +35,7 @@ else
     newCof(1)=Cof(1)
 endif
 do rep=2,nPTReplicas
-    successRate=dble(downSuccess(rep))/dble(N_average) 
+    successRate=dble(downSuccess(rep))/dble(N_average)
     if (Cof(rep).lt.Cof(rep-1)) then
         print*, "Error in adaptCof!"
         stop 1

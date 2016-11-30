@@ -9,22 +9,20 @@
 !
 !     Updated by Quinn in 2016
 !
-SUBROUTINE initcond(R,U,AB,NT,N,NP,FRMFILE,PARA,LBOX, &
-                    setType,rand_stat)
+SUBROUTINE initcond(R,U,AB,NT,NB,NP,FRMFILE,PARA,LBOX, &
+                    setType,rand_stat,ring)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use setPrecision
+use params, only: dp, pi
 
 IMPLICIT NONE
 
-DOUBLE PRECISION PI
-PARAMETER (PI=3.141593_dp)
-
+logical ring
+INTEGER NB,NP,NT           ! Number of beads
 DOUBLE PRECISION R(NT,3)  ! Bead positions
 DOUBLE PRECISION U(NT,3)  ! Tangent vectors
 INTEGER AB(NT)            ! Chemical identity of beads
-INTEGER N,NP,NT           ! Number of beads
 DOUBLE PRECISION GAM      ! Equil bead separation
 DOUBLE PRECISION LBOX(3)  ! Box edge length
 INTEGER I,J,IB            ! Index Holders
@@ -86,9 +84,9 @@ if(setType.eq.1) then
        R0(1)=urand(1)*LBOX(1)
        R0(2)=urand(2)*LBOX(2)
        R0(3)=urand(3)*LBOX(3)
-       DO J=1,N
+       DO J=1,NB
           R(IB,1)=R0(1)
-          R(IB,2)=R0(2)+GAM*(J-N/2.0_dp-0.5_dp) ! center on box
+          R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp) ! center on box
           R(IB,3)=R0(3)
           U(IB,1)=0.
           U(IB,2)=1.
@@ -115,7 +113,7 @@ else if(setType.eq.2) then
         Uold(2)=sqrt(1-z*z)*sin(theta)
         Uold(3)=z
 
-        DO J=1,N
+        DO J=1,NB
            search=.TRUE.
            ii=0
            do while(search)
@@ -177,7 +175,7 @@ else if(setType.eq.3) then
        Uold(2)=sqrt(1-z*z)*sin(theta)
        Uold(3)=z
 
-       DO J=1,N
+       DO J=1,NB
           search=.TRUE.
           ii=0
           do while(search)
@@ -255,7 +253,7 @@ else if(setType.eq.4) then
        Uold(1)=sqrt(1-z*z)*cos(theta)
        Uold(2)=sqrt(1-z*z)*sin(theta)
        Uold(3)=z
-       DO J=1,N
+       DO J=1,NB
            search=.TRUE.
            do while(search)
                test(1)=Rold(1)+Uold(1)*GAM
@@ -320,20 +318,20 @@ else if (setType == 6) then
         call random_number(urand,rand_stat)
         R0(3)=urand(1)*LBOX(1)
         DO  J=1,NB
-            IF (RING.EQ.0) THEN
-                R(IB,1)=R0(1)
-                R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp)
-                R(IB,3)=R0(3)
-                U(IB,1)=0.0_dp
-                U(IB,2)=1.0_dp
-                U(IB,3)=0.0_dp
-            ELSE
+            IF (RING) THEN
                 R(IB,1)=R0(1)+((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
                 R(IB,2)=R0(2)+((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
                 R(IB,3)=0.0_dp
                 U(IB,1)=-Sin(J*2.0_dp*PI/NB)
                 U(IB,2)=Cos(J*2.0_dp*PI/NB)
                 U(IB,3)=0.0_dp;
+            ELSE
+                R(IB,1)=R0(1)
+                R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp)
+                R(IB,3)=R0(3)
+                U(IB,1)=0.0_dp
+                U(IB,2)=1.0_dp
+                U(IB,3)=0.0_dp
             ENDIF
         IB=IB+1
         ENDDO

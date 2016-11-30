@@ -39,7 +39,7 @@ SUBROUTINE GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
   cosB=DOT_PRODUCT(e1,e2)
   B=ACOS(cosB)
 
-  sin2B=sin(B)**2.      
+  sin2B=sin(B)**2.
   e3(1)=e1(2)*e2(3)-e1(3)*e2(2)
   e3(2)=e1(3)*e2(1)-e1(1)*e2(3)
   e3(3)=e1(1)*e2(2)-e1(2)*e2(1)

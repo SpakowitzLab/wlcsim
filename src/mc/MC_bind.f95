@@ -6,7 +6,7 @@
 !
 !
 !  sign convention: EM and EU are more positive for favorable binding
-!  Typical Values: EU=-1.52 and EM=0.01  
+!  Typical Values: EU=-1.52 and EM=0.01
 
 SUBROUTINE MC_bind(NT,BPM,IT1,IT2,AB,ABP,METH,EU,EM,DEBind,mu,dx_mu)
 use params, only: dp
@@ -38,7 +38,7 @@ DO I=IT1,IT2,BPM
 ENDDO
 
 if (abs(DEBind).gt.100000) then
-    
+
     DO I=IT1,IT2,BPM
         print*, ABP(I), AB(I)
     ENDDO
@@ -48,7 +48,7 @@ if (abs(DEBind).gt.100000) then
     print*, "mu", mu
     print*, "EM",EM,"   EU",EU
     stop 1
-endif      
+endif
 
 
 END

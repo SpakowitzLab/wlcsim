@@ -17,7 +17,7 @@ SUBROUTINE MC_int(mc,md,I1,I2,initialize)
 use params, only: dp
 IMPLICIT NONE
 
-TYPE(MCvar), intent(inout) :: mc   ! <---- Contains output
+TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
 TYPE(MCData), intent(inout) :: md
 LOGICAL, intent(in) :: initialize   ! if true, calculate absolute energy
 INTEGER, intent(in) :: I1           ! Test bead position 1

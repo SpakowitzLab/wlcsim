@@ -10,7 +10,7 @@
 !     during a segment slide move of the Monte Carlo simulation.
 !
 !     The interaction energy is determined used the distance of closest
-!     approach between line segments. Energy of segments adjacent along the 
+!     approach between line segments. Energy of segments adjacent along the
 !     chain is not calculated.
 
 !     This routine currently only works when there is only one polymer
@@ -20,7 +20,7 @@
 
 
 SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
-  
+
   IMPLICIT NONE
   INTEGER N,NT,NP            ! Current number of beads
   DOUBLE PRECISION R(NT,3)   ! Bead positions
@@ -45,7 +45,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)      
+  DOUBLE PRECISION PARA(10)
   DOUBLE PRECISION LHC      ! HC length
   DOUBLE PRECISION SIGP     ! HC diameter
   DOUBLE PRECISION VHC 	! Potential strengths
@@ -60,7 +60,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
   DOUBLE PRECISION EPERP
   DOUBLE PRECISION EB
   INTEGER RING              ! Is polymer a ring?
-  INTEGER NMAX     
+  INTEGER NMAX
 
   DOUBLE PRECISION D12MIN,FMAGMIN
 
@@ -80,7 +80,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !Setup. Determine the number of segments that lie 
+  !Setup. Determine the number of segments that lie
   !betwen the two terminal points of the segment slid.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -108,7 +108,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
   IF (IS1P1.EQ.1) THEN
      IS1=N
-  ELSE 
+  ELSE
      IS1=IS1P1-1
   ENDIF
 
@@ -149,7 +149,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
               IOP1=1
            ELSEIF (IO.EQ.N.AND.RING.EQ.0)THEN
               IO=0
-              GOTO 110 
+              GOTO 110
            ELSEIF (IO.EQ.N+1) THEN
               IO=1
               IOP1=IO+1
@@ -163,7 +163,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
            ENDIF
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
            !Calculate the interaction energy between the inner segment
            !and outer segment.
@@ -250,7 +250,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 70         CONTINUE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-           !Calculate the interaction between this outer segment and the 
+           !Calculate the interaction between this outer segment and the
            !two stretched segments. Only do this once.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -458,7 +458,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Calculate the interaction between the inner segment and the first stretched
-        !segment. 
+        !segment.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         !Skip this pair if the segments are adjacent
@@ -553,7 +553,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Calculate interaction between inner segment and second stretched segment
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -655,7 +655,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !Calculate the interaction between the two stretched segments 
+  !Calculate the interaction between the two stretched segments
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

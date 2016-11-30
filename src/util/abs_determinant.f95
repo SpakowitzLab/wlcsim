@@ -1,6 +1,6 @@
-! This subroutine calculates the absolute value of the determinant of a matrix 
+! This subroutine calculates the absolute value of the determinant of a matrix
 ! using a LAPACK Q-R factorization. The absolute value of the determinant is
-! the sum of the absolute values of the elements on the diagonal of the R 
+! the sum of the absolute values of the elements on the diagonal of the R
 ! matrix
 ! Calculate the absolute value of the determinant of a square NXN
 ! matrix using an LU factorization by LAPACK
@@ -9,7 +9,7 @@
 SUBROUTINE abs_determinant(A,N,det)
   INTEGER N       !Size of the matrix A
   DOUBLE PRECISION A(N,N)
-  DOUBLE PRECISION det 
+  DOUBLE PRECISION det
   INTEGER LDA
   INTEGER INFO
   INTEGER I

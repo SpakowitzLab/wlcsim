@@ -12,7 +12,7 @@ program main
 !
 !*****************************************************************************
   use mpi
-  use setPrecision
+  use params, only: dp
 
   implicit none
   integer ( kind = 4 ) error
@@ -101,10 +101,7 @@ subroutine paraTemp ( p, id)
 !*****************************************************************************
 !
 !
-  use mpi
   use mersenne_twister
-  use simMod
-  use setPrecision
     implicit none
 !   MPI variables
     integer ( kind = 4 ) dest   !destination id for messages
@@ -142,7 +139,7 @@ subroutine paraTemp ( p, id)
     integer upSuccess(p-1)  ! number of successes since last average
     integer downSuccess(p-1) ! number of successes since last average
     integer nExchange ! total number of exchanges attemted
-    type(MCvar) mc ! genaral symulation parameters
+    type(wlcsim_params) mc ! genaral symulation parameters
     character*16 fileName ! ouput filename
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
@@ -183,7 +180,7 @@ subroutine paraTemp ( p, id)
         ! --------------------------
         nPTReplicas = p-1;
 
-        call MCvar_setparams(mc,fileName) ! so that the head thread knows the  parameters
+        call wlcsim_params_setparams(mc,fileName) ! so that the head thread knows the  parameters
 
         allocate( xMtrx(nPTReplicas,nTerms))
         allocate( cofMtrx(nPTReplicas,nTerms))
@@ -377,7 +374,6 @@ subroutine paraTemp ( p, id)
     return
 end
 function chi_path(s) result(chi)
-    use setPrecision
     implicit none
     real(dp), intent(in) :: s
     real(dp) chi
@@ -394,7 +390,6 @@ function chi_path(s) result(chi)
     endif
 end function chi_path
 function h_path(s) result(h)
-    use setPrecision
     implicit none
     real(dp), intent(in) :: s
     real(dp) h
@@ -411,21 +406,18 @@ function h_path(s) result(h)
     endif
 end function h_path
 function mu_path(s) result(mu)
-    use setPrecision
     implicit none
     real(dp), intent(in) :: s
     real(dp) mu
     mu=s
 end function mu_path
 function kap_path(s) result(kap)
-    use setPrecision
     implicit none
     real(dp), intent(in) :: s
     real(dp) kap
     kap=s*10.0_dp
 end function kap_path
 function hp1_bind_path(s) result(hp1_bind)
-    use setPrecision
     implicit none
     real(dp), intent(in) :: s
     real(dp) hp1_bind
@@ -434,11 +426,9 @@ end function hp1_bind_path
 subroutine PT_override(mc,md)
 ! Override initialization with parallel setup parameters
 !  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSufix
-    use mpi
-    use simMod
     Implicit none
-    type(MCvar), intent(inout) :: mc
-    type(MCData), intent(inout) :: md
+    type(wlcsim_params), intent(inout) :: mc
+    type(wlcsim_data), intent(inout) :: md
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror
@@ -529,13 +519,10 @@ subroutine replicaExchange(mc)
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
 ! 3: Recive assigned cof value
-    use setPrecision
-    use mpi
-    use simMod
     IMPLICIT NONE
     integer, parameter :: nTerms=8  ! number of energy terms
     integer (kind=4) id, ierror
-    type(MCvar), intent(inout) :: mc
+    type(wlcsim_params), intent(inout) :: mc
     integer i  ! working intiger
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source

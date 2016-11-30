@@ -5,7 +5,7 @@
 !            Started by Quinn 2/17/15
 !
 !
-!  
+!
 ! confineType  |  Discription
 ! _____________|_________________________________
 !    0         |  No confinement
@@ -66,10 +66,10 @@ elseif(confineType.EQ.3) then
            (RP(I,3)-LBox(1)/2)**2).GT.dble(LBox(1)*LBox(1)*0.25_dp)) then
             ECon=9990000.0
         endif
-    Enddo    
+    Enddo
 elseif(confineType.EQ.4) then
     return
-else 
+else
    print*, "Undefined comfone Type"
    stop 1
 endif

@@ -8,7 +8,7 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 
 !  use mt19937, only : grnd, init_genrand, rnorm, mt, mti
     use mersenne_twister
-    use setPrecision
+    use params, only: dp
 
   integer, intent(out) :: AB(NT)     ! Chemical identity of beads
   integer, intent(in) :: N           ! Number of monomers per polymer

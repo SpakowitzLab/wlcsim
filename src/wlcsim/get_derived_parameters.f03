@@ -29,6 +29,7 @@ subroutine get_derived_parameters(wlc_p)
     endif
     wlc_p%REND=wlc_p%REND*wlc_p%L/wlc_p%LP
 
+    !TODO code smell, ask brad what he needs here
     IF (wlc_p%RING) THEN
         wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
     ELSE

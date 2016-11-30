@@ -359,7 +359,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
              endif
              if (mc%ECon.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
-                 call MCvar_printEnergies(mc)
+                 call wlcsim_params_printEnergies(mc)
                  print*, "error in MCsim, out of bounds "
                  stop 1
              endif
@@ -394,11 +394,11 @@ SUBROUTINE MCsim(mc,md,NSTEP)
 
           !amplitude and window adaptations
           if (mod(ISTEP,mc%NADAPT(MCTYPE)).EQ.0) then  ! Addapt ever NADAPT moves
-             call MCvar_adapt(mc,MCTYPE)
+             call wlcsim_params_adapt(mc,MCTYPE)
 
              ! move each chain back if drifted though repeated BC
              if (mc%recenter_on) then
-                 call MCvar_recenter(mc,md)  ! You don't need to do this if there is confinement
+                 call wlcsim_params_recenter(mc,md)  ! You don't need to do this if there is confinement
             endif
           endif
 

@@ -11,7 +11,7 @@ SUBROUTINE auto_correlation_vector(v,N,delta_min,delta_max,auto_vector)
   INTEGER N
   INTEGER delta_min
   INTEGER delta_max
-  
+
 
   !Intermediate variables
 
@@ -20,11 +20,11 @@ SUBROUTINE auto_correlation_vector(v,N,delta_min,delta_max,auto_vector)
   DOUBLE PRECISION auto
 
   !output variables
-  
+
   DOUBLE PRECISION auto_vector(delta_max-delta_min+1)
 
   Ndelta=delta_max-delta_min+1
-  
+
   DO I=0,Ndelta-1
      delta=delta_min+I
      CALL auto_correlation(v,N,delta,auto)

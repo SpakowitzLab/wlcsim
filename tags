@@ -23,9 +23,7 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 10	src/third_party/dgtsv.f	/^   10    CONTINUE$/;"	l	subroutine:DGTSV	file:
 10	src/util/alexanderp_opt.f95	/^10      CONTINUE$/;"	l	subroutine:ALEXANDERP	file:
 10	src/util/colchecker.f95	/^10      j=j-1$/;"	l	subroutine:insertion_sort	file:
-10	src/wlcsim/getpara.f90	/^ 10   continue$/;"	l	subroutine:getpara	file:
 10	src/wlcsim/initchem.f95	/^10      continue$/;"	l	subroutine:initchem	file:
-10	src/wlcsim/wlcsim_bruno.f95	/^ 10   continue$/;"	l	program:wlcsim	file:
 100	src/bd/BDsim.f95	/^ 100               CONTINUE$/;"	l	subroutine:BDsim	file:
 100	src/mc/MC_self.f90	/^ 100     CONTINUE$/;"	l	subroutine:MC_self	file:
 100	src/mc/energy_self_slide.f95	/^100           if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
@@ -61,7 +59,6 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 20	src/util/alexanderp_opt.f95	/^20   CONTINUE$/;"	l	subroutine:ALEXANDERP	file:
 20	src/util/colchecker.f95	/^20      a(j+1)=x$/;"	l	subroutine:insertion_sort	file:
 20	src/wlcsim/initchem.f95	/^20      continue$/;"	l	subroutine:initchem	file:
-20	src/wlcsim/wlcsim_bruno.f95	/^ 20      continue$/;"	l	program:wlcsim	file:
 200	src/mc/energy_self_slide.f95	/^200     if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 210	src/mc/energy_self_slide.f95	/^210     CONTINUE$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 30	src/bd/BDsim.f95	/^ 30            CONTINUE$/;"	l	subroutine:BDsim	file:
@@ -80,21 +77,19 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 30	src/third_party/dgtsv.f	/^   30          CONTINUE$/;"	l	subroutine:DGTSV	file:
 30	src/util/colchecker.f95	/^30  continue$/;"	l	subroutine:insertion_sort	file:
 30	src/wlcsim/initchem.f95	/^30      continue$/;"	l	subroutine:initchem	file:
-30	src/wlcsim/wlcsim_bruno.f95	/^ 30   continue$/;"	l	program:wlcsim	file:
 35	src/bd/concalc.f95	/^ 35         CONTINUE$/;"	l	subroutine:concalc	file:
 40	src/bd/BDsim.f95	/^ 40               CONTINUE$/;"	l	subroutine:BDsim	file:
 40	src/bd/concalc.f95	/^ 40      CONTINUE$/;"	l	subroutine:concalc	file:
 40	src/bd/force_elas.f95	/^ 40      CONTINUE$/;"	l	subroutine:force_elas	file:
 40	src/bd/force_ponp.f95	/^ 40      CONTINUE$/;"	l	subroutine:force_ponp	file:
 40	src/bd/stressp.f95	/^ 40      CONTINUE$/;"	l	subroutine:stressp	file:
-40	src/legacy/decim.f95	/^ 40   CONTINUE $/;"	l	subroutine:decim	file:
+40	src/legacy/decim.f95	/^ 40   CONTINUE$/;"	l	subroutine:decim	file:
 40	src/legacy/r_to_erg.f90	/^ 40   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 40	src/mc/MC_self.f90	/^ 40      CONTINUE$/;"	l	subroutine:MC_self	file:
 40	src/mc/alexanderp_slide.f95	/^40   CONTINUE$/;"	l	subroutine:alexanderp_slide	file:
 40	src/mc/energy_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:energy_ponp	file:
 40	src/third_party/DGTSL.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSL	file:
 40	src/third_party/dgtsv.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSV	file:
-40	src/wlcsim/wlcsim_bruno.f95	/^ 40      continue$/;"	l	program:wlcsim	file:
 5	src/bd/concalc.f95	/^ 5    CONTINUE$/;"	l	subroutine:concalc	file:
 50	src/bd/concalc.f95	/^ 50      CONTINUE$/;"	l	subroutine:concalc	file:
 50	src/bd/force_ponp.f95	/^ 50         CONTINUE$/;"	l	subroutine:force_ponp	file:
@@ -104,7 +99,6 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 50	src/mc/energy_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:energy_ponp	file:
 50	src/third_party/DGTSL.f	/^   50    CONTINUE$/;"	l	subroutine:DGTSL	file:
 50	src/third_party/dgtsv.f	/^   50             CONTINUE$/;"	l	subroutine:DGTSV	file:
-50	src/wlcsim/wlcsim_bruno.f95	/^50              continue$/;"	l	program:wlcsim	file:
 60	src/bd/BDsim.f95	/^ 60               CONTINUE$/;"	l	subroutine:BDsim	file:
 60	src/bd/force_ponp.f95	/^ 60            CONTINUE$/;"	l	subroutine:force_ponp	file:
 60	src/mc/DE_self_crank.f95	/^60      if (D12.GT.LHC) then$/;"	l	subroutine:DE_SELF_CRANK	file:
@@ -113,7 +107,6 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 60	src/mc/energy_self_slide.f95	/^60         if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 60	src/third_party/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
 60	src/third_party/dgtsv.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSV	file:
-60	src/wlcsim/wlcsim_bruno.f95	/^60                  continue$/;"	l	program:wlcsim	file:
 65	src/bd/BDsim.f95	/^ 65                  CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/bd/BDsim.f95	/^ 70         CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/bd/force_ponp.f95	/^ 70               CONTINUE$/;"	l	subroutine:force_ponp	file:
@@ -124,14 +117,12 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 70	src/mc/energy_self_slide.f95	/^70         CONTINUE$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 70	src/third_party/DGTSL.f	/^   70          CONTINUE$/;"	l	subroutine:DGTSL	file:
 70	src/third_party/dgtsv.f	/^   70    CONTINUE$/;"	l	subroutine:DGTSV	file:
-70	src/wlcsim/wlcsim_bruno.f95	/^70              continue$/;"	l	program:wlcsim	file:
 80	src/bd/BDsim.f95	/^ 80            CONTINUE$/;"	l	subroutine:BDsim	file:
 80	src/mc/DE_self_crank.f95	/^80      if (D12.GT.LHC) then$/;"	l	subroutine:DE_SELF_CRANK	file:
 80	src/mc/MC_self.f90	/^ 80         CONTINUE$/;"	l	subroutine:MC_self	file:
 80	src/mc/energy_self_slide.f95	/^80            if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 80	src/third_party/DGTSL.f	/^   80       CONTINUE$/;"	l	subroutine:DGTSL	file:
 80	src/third_party/dgtsv.f	/^   80    CONTINUE$/;"	l	subroutine:DGTSV	file:
-80	src/wlcsim/wlcsim_bruno.f95	/^80                  continue$/;"	l	program:wlcsim	file:
 90	src/bd/BDsim.f95	/^ 90            CONTINUE$/;"	l	subroutine:BDsim	file:
 90	src/mc/DE_self_crank.f95	/^90      CONTINUE$/;"	l	subroutine:DE_SELF_CRANK	file:
 90	src/mc/MC_self.f90	/^ 90            CONTINUE$/;"	l	subroutine:MC_self	file:
@@ -171,15 +162,13 @@ BDPRINTLOG	src/legacy/keys.f90	/^  LOGICAL :: BDPRINTLOG,/;"	v	module:KEYS
 BDSTEPS	src/legacy/keys.f90	/^  INTEGER :: BDSTEPS,/;"	v	module:KEYS
 BDsim	src/bd/BDsim.f95	/^      SUBROUTINE BDsim(/;"	s
 BRCRELAX	src/legacy/keys.f90	/^  DOUBLE PRECISION :: BRCRELAX$/;"	v	module:KEYS
-BROWN	src/wlcsim/wlcsim_brad.f95	/^  integer BROWN /;"	v	program:wlcsim
-BROWN	src/wlcsim/wlcsim_bruno.f95	/^      integer BROWN /;"	v	program:wlcsim
 BUILDDIR	doc/Makefile	/^BUILDDIR      = _build$/;"	m
 BUILDDIR	doc/make.bat	/^set BUILDDIR=_build$/;"	v
 CHI	tests/mc/test_int.f95	/^      DOUBLE PRECISION CHI /;"	v	program:scratch
-COL_type	src/wlcsim/wlcsim_bruno.f95	/^      integer COL_type /;"	v	program:wlcsim
 COMMENT	src/legacy/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
 COMMENT	src/util/inputparams.f90	/^  CHARACTER, PARAMETER :: SPACE = ' ', COMMENT /;"	v	module:INPUTPARAMS
 COMPILER	src/third_party/FLAP/makefile	/^COMPILER = gnu$/;"	m
+COMPILER	src/third_party/FLAP/src/third_party/PENF/makefile	/^COMPILER = gnu$/;"	m
 CONNECTIONS	src/legacy/keys.f90	/^  INTEGER :: CONNECTIONS(/;"	v	module:KEYS
 CONNECTPOS	src/legacy/keys.f90	/^  LOGICAL :: CONNECTPOS,/;"	v	module:KEYS
 CONNECTUVEC	src/legacy/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC,/;"	v	module:KEYS
@@ -188,9 +177,8 @@ CONSTMOD	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GA
 CONUVECMOD	src/legacy/keys.f90	/^  DOUBLE PRECISION :: CONPOSMOD, CONUVECMOD$/;"	v	module:KEYS
 COORDS2QUAT	src/legacy/quatutil.f90	/^  SUBROUTINE COORDS2QUAT(/;"	s	module:QUATUTIL
 COORDS2ROTMAT	src/legacy/quatutil.f90	/^  SUBROUTINE COORDS2ROTMAT(/;"	s	module:QUATUTIL
-COR	src/wlcsim/wlcsim_brad.f95	/^  real(dp) COR$/;"	v	program:wlcsim
-COR	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) COR$/;"	v	program:wlcsim
 COTEXT	src/third_party/FLAP/makefile	/^COTEXT = "Compile $(<F)"$/;"	m
+COTEXT	src/third_party/FLAP/src/third_party/PENF/makefile	/^COTEXT = "Compile $(<F)"$/;"	m
 COUPLED	src/legacy/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED,/;"	v	module:KEYS
 CROSS_PRODUCT	src/legacy/genutil.f90	/^  SUBROUTINE CROSS_PRODUCT(/;"	s	module:GENUTIL
 CURLINE	src/legacy/inputparams.f90	/^  CHARACTER(LEN=MAXLINELEN) :: CURLINE$/;"	v	module:INPUTPARAMS
@@ -198,7 +186,7 @@ CURLINE	src/util/inputparams.f90	/^  CHARACTER(LEN=MAXLINELEN) :: CURLINE$/;"	v	
 CURPOS	src/legacy/inputparams.f90	/^  INTEGER :: CURPOS /;"	v	module:INPUTPARAMS
 CURPOS	src/util/inputparams.f90	/^  INTEGER :: CURPOS /;"	v	module:INPUTPARAMS
 DEATH	Makefile	/^DEATH=rm -rf trash data savedata par-run-dir.*$/;"	m
-DEBUGFLAGS	Makefile	/^DEBUGFLAGS = -ggdb -Jsrc -Isrc -Isrc\/third_party -cpp$/;"	m
+DEBUGFLAGS	Makefile	/^DEBUGFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp$/;"	m
 DEINT	tests/mc/test_int.f95	/^      DOUBLE PRECISION DEINT /;"	v	program:scratch
 DEL	tests/mc/test_calcVolume.f95	/^    double precision DEL,/;"	v	program:test_calcVolume
 DEL	tests/mc/test_int.f95	/^      DOUBLE PRECISION DEL /;"	v	program:scratch
@@ -207,30 +195,36 @@ DELTSCL	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL$/;"	
 DEP_FILE	Makefile	/^DEP_FILE = wlcsim.dep$/;"	m
 DEXE	src/third_party/FLAP/makefile	/^  DEXE    = static\/$/;"	m
 DEXE	src/third_party/FLAP/makefile	/^  DEXE = exe\/$/;"	m
+DEXE	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DEXE = exe\/$/;"	m
+DEXE	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DEXE = lib\/$/;"	m
 DE_SELF_CRANK	src/mc/DE_self_crank.f95	/^SUBROUTINE DE_SELF_CRANK(/;"	s
 DGTSL	src/third_party/DGTSL.f	/^      SUBROUTINE DGTSL /;"	s
 DGTSV	src/third_party/dgtsv.f	/^      SUBROUTINE DGTSV(/;"	s
+DI1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DI1P /;"	v	module:penf_global_parameters_variables
+DI2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DI2P /;"	v	module:penf_global_parameters_variables
+DI4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DI4P /;"	v	module:penf_global_parameters_variables
+DI8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DI8P /;"	v	module:penf_global_parameters_variables
 DIAMONDLATTICE	src/legacy/keys.f90	/^  LOGICAL :: DIAMONDLATTICE /;"	v	module:KEYS
+DI_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DI_P /;"	v	module:penf_global_parameters_variables
 DMOD	src/third_party/FLAP/makefile	/^  DMOD    = static\/mod\/$/;"	m
 DMOD	src/third_party/FLAP/makefile	/^  DMOD = exe\/mod\/$/;"	m
+DMOD	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DMOD = exe\/mod\/$/;"	m
+DMOD	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DMOD = lib\/mod\/$/;"	m
 DOBJ	src/third_party/FLAP/makefile	/^  DOBJ    = static\/obj\/$/;"	m
 DOBJ	src/third_party/FLAP/makefile	/^  DOBJ = exe\/obj\/$/;"	m
+DOBJ	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DOBJ = exe\/obj\/$/;"	m
+DOBJ	src/third_party/FLAP/src/third_party/PENF/makefile	/^  DOBJ = lib\/obj\/$/;"	m
 DOBROWN	src/legacy/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN,/;"	v	module:KEYS
 DOLOCALMOVES	src/legacy/keys.f90	/^  LOGICAL :: DOLOCALMOVES$/;"	v	module:KEYS
 DOREDISC	src/legacy/keys.f90	/^  LOGICAL :: DOREDISC,/;"	v	module:KEYS
 DPHIA	tests/mc/test_int.f95	/^      DOUBLE PRECISION DPHIA(/;"	v	program:scratch
 DPHIB	tests/mc/test_int.f95	/^      DOUBLE PRECISION DPHIB(/;"	v	program:scratch
-DR	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: DR(/;"	v	program:wlcsim
-DRCOM	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DRCOM /;"	v	program:wlcsim
-DRCOM	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) DRCOM /;"	v	program:wlcsim
-DR_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DR_AVG$/;"	v	program:wlcsim
-DR_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DR_STDER$/;"	v	program:wlcsim
-DR_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DR_STDEV$/;"	v	program:wlcsim
+DR16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DR16P /;"	v	module:penf_global_parameters_variables
+DR4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DR4P /;"	v	module:penf_global_parameters_variables
+DR8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DR8P /;"	v	module:penf_global_parameters_variables
+DR_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: DR_P /;"	v	module:penf_global_parameters_variables
 DSRC	src/third_party/FLAP/makefile	/^DSRC = src\/$/;"	m
-DT	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DT /;"	v	program:wlcsim
-DT	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) DT /;"	v	program:wlcsim
-DT0	src/wlcsim/wlcsim_brad.f95	/^  real(dp) DT0 /;"	v	program:wlcsim
-DT0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) DT0 /;"	v	program:wlcsim
+DSRC	src/third_party/FLAP/src/third_party/PENF/makefile	/^DSRC = src$/;"	m
 DUMPSNAPSHOTS	src/legacy/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS,/;"	v	module:KEYS
 EC	src/legacy/keys.f90	/^  DOUBLE PRECI/;"	v	module:KEYS
 EDGEEC	src/legacy/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC$/;"	v	module:KEYS
@@ -239,25 +233,10 @@ EDGEEPERP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, E
 EDGEGAM	src/legacy/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM,/;"	v	module:KEYS
 EDGELP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: EDGELS, EDGELP,/;"	v	module:KEYS
 EDGELS	src/legacy/keys.f90	/^  DOUBLE PRECISION :: EDGELS,/;"	v	module:KEYS
-EELAS	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EELAS(/;"	v	program:wlcsim
-EELAS	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) EELAS(/;"	v	program:wlcsim
-EELASALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: EELASALL(/;"	v	program:wlcsim
-EElasRep	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: EElasRep(/;"	v	program:wlcsim
-EElas_avg	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EElas_avg(/;"	v	program:wlcsim
-EElas_stder	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EElas_stder(/;"	v	program:wlcsim
-EElas_stdev	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EElas_stdev(/;"	v	program:wlcsim
-ENERGY	src/wlcsim/wlcsim_brad.f95	/^  real(dp) ENERGY /;"	v	program:wlcsim
-ENERGY	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) ENERGY /;"	v	program:wlcsim
 ENERGY_SELF_CHAIN	src/mc/energy_self_chain.f95	/^SUBROUTINE ENERGY_SELF_CHAIN(/;"	s
 ENERGY_SELF_SLIDE	src/mc/energy_self_slide.f95	/^SUBROUTINE ENERGY_SELF_SLIDE(/;"	s
 EPAR	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR,/;"	v	module:KEYS
 EPERP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP,/;"	v	module:KEYS
-EPONP	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EPONP /;"	v	program:wlcsim
-EPONP	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) EPONP /;"	v	program:wlcsim
-EPONPALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: EPONPALL(/;"	v	program:wlcsim
-EPonp_Stder	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EPonp_Stder$/;"	v	program:wlcsim
-EPonp_avg	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EPonp_avg$/;"	v	program:wlcsim
-EPonp_stdev	src/wlcsim/wlcsim_brad.f95	/^  real(dp) EPonp_stdev$/;"	v	program:wlcsim
 EQUILBEADROD	src/legacy/keys.f90	/^  LOGICAL :: EQUILBEADROD,/;"	v	module:KEYS
 EQUILSAMPLETYPE	src/legacy/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE$/;"	v	module:KEYS
 ERROR_ACTION_UNKNOWN	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^integer(I4P), parameter :: ERROR_ACTION_UNKNOWN /;"	v	module:flap_command_line_argument_t
@@ -288,12 +267,6 @@ ERROR_STORE_STAR_POSITIONAL	src/third_party/FLAP/src/lib/flap_command_line_argum
 ERROR_TOO_FEW_CLAS	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^integer(I4P), parameter, public :: ERROR_TOO_FEW_CLAS /;"	v	module:flap_command_line_interface_t
 ERROR_UNKNOWN	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^integer(I4P), parameter :: ERROR_UNKNOWN /;"	v	module:flap_command_line_argument_t
 ERROR_VALUE_MISSING	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^integer(I4P), parameter :: ERROR_VALUE_MISSING /;"	v	module:flap_command_line_argument_t
-ETOT	src/wlcsim/wlcsim_brad.f95	/^  real(dp) ETOT /;"	v	program:wlcsim
-ETotAll	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: ETotAll(/;"	v	program:wlcsim
-ETotAvg	src/wlcsim/wlcsim_brad.f95	/^  real(dp)  ETotAvg$/;"	v	program:wlcsim
-ETotStdev	src/wlcsim/wlcsim_brad.f95	/^  real(dp)  ETotStdev$/;"	v	program:wlcsim
-ETwist	src/wlcsim/wlcsim_brad.f95	/^  real(dp) ETwist$/;"	v	program:wlcsim
-ETwists	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: ETwists(/;"	v	program:wlcsim
 EUL2ROTMAT	src/legacy/quatutil.f90	/^  SUBROUTINE EUL2ROTMAT(/;"	s	module:QUATUTIL
 EULER2QUAT	src/legacy/quatutil.f90	/^  SUBROUTINE EULER2QUAT(/;"	s	module:QUATUTIL
 EXES	src/third_party/FLAP/makefile	/^EXES := $(EXES) test_basic$/;"	m
@@ -302,23 +275,30 @@ EXES	src/third_party/FLAP/makefile	/^EXES := $(EXES) test_hidden$/;"	m
 EXES	src/third_party/FLAP/makefile	/^EXES := $(EXES) test_minimal$/;"	m
 EXES	src/third_party/FLAP/makefile	/^EXES := $(EXES) test_nested$/;"	m
 EXES	src/third_party/FLAP/makefile	/^EXES := $(EXES) test_string$/;"	m
+EXES	src/third_party/FLAP/src/third_party/PENF/makefile	/^EXES := $(EXES) COMPACT_REAL$/;"	m
+EXES	src/third_party/FLAP/src/third_party/PENF/makefile	/^EXES := $(EXES) TEST_ALL$/;"	m
 EXESOBJ	src/third_party/FLAP/makefile	/^EXESOBJ = $(addprefix $(DOBJ),$(EXESPO))$/;"	m
+EXESOBJ	src/third_party/FLAP/src/third_party/PENF/makefile	/^EXESOBJ = $(addprefix $(DOBJ),$(EXESPO))$/;"	m
 EXESPO	src/third_party/FLAP/makefile	/^EXESPO  = $(addsuffix .o,$(LCEXES))$/;"	m
-EXIT_WHEN_COLLIDED	src/wlcsim/wlcsim_bruno.f95	/^      integer EXIT_WHEN_COLLIDED$/;"	v	program:wlcsim
-Energy_AUTO	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: Energy_AUTO(/;"	v	program:wlcsim
-Es	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: Es(/;"	v	program:wlcsim
-EtotStderr	src/wlcsim/wlcsim_brad.f95	/^  real(dp)  EtotStderr$/;"	v	program:wlcsim
-Etot_avg	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Etot_avg$/;"	v	program:wlcsim
-Etot_stder	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Etot_stder$/;"	v	program:wlcsim
-Etot_stdev	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Etot_stdev$/;"	v	program:wlcsim
+EXESPO	src/third_party/FLAP/src/third_party/PENF/makefile	/^EXESPO  = $(addsuffix .o,$(LCEXES))$/;"	m
 F	doc/_build/html/_static/underscore.js	/^var F=function(){};b.bind=function(a,c){var d,e;if(a.bind===s&&s)return s.apply(a,i.call(arguments,1));if(!b.isFunction(a))throw new TypeError;e=i.call(arguments,2);return d=function(){if(!(this instanceof d))return a.apply(c,e.concat(i.call(arguments)));F.prototype=a.prototype;var b=new F,g=a.apply(b,e.concat(i.call(arguments)));return Object(g)===g?g:b}};b.bindAll=function(a){var c=i.call(arguments,1);c.length==0&&(c=b.functions(a));j(c,function(c){a[c]=b.bind(a[c],a)});return a};b.memoize=function(a,$/;"	f	function:b.last
 FACCTARGET	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET,/;"	v	module:KEYS
 FACCTOL	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL,/;"	v	module:KEYS
-FASTFLAGS	Makefile	/^FASTFLAGS = -O3 -Jsrc -Isrc -Isrc\/third_party -cpp$/;"	m
-FC	Makefile	/^FC = gfortran$/;"	m
+FASTFLAGS	Makefile	/^FASTFLAGS = -O3 -Jsrc ${INCLUDE_DIRS} -cpp$/;"	m
+FC	Makefile	/^FC = mpifort$/;"	m
 FC	src/third_party/FLAP/makefile	/^  FC    = bgxlf2008_r$/;"	m
 FC	src/third_party/FLAP/makefile	/^  FC    = gfortran$/;"	m
+FC	src/third_party/FLAP/src/third_party/PENF/makefile	/^  FC    = gfortran$/;"	m
+FC	src/third_party/FLAP/src/third_party/PENF/makefile	/^  FC    = ifort$/;"	m
 FCFLAGS	Makefile	/^FCFLAGS = ${FASTFLAGS}$/;"	m
+FI1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI1P /;"	v	module:penf_global_parameters_variables
+FI1PZP	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI1PZP /;"	v	module:penf_global_parameters_variables
+FI2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI2P /;"	v	module:penf_global_parameters_variables
+FI2PZP	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI2PZP /;"	v	module:penf_global_parameters_variables
+FI4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI4P /;"	v	module:penf_global_parameters_variables
+FI4PZP	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI4PZP /;"	v	module:penf_global_parameters_variables
+FI8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI8P /;"	v	module:penf_global_parameters_variables
+FI8PZP	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI8PZP /;"	v	module:penf_global_parameters_variables
 FINITEXT	src/legacy/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT,/;"	v	module:KEYS
 FINITSHEAR	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR,/;"	v	module:KEYS
 FIXBEAD	src/legacy/keys.f90	/^  INTEGER :: FIXBEAD(/;"	v	module:KEYS
@@ -326,17 +306,21 @@ FIXBEAD1	src/legacy/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,/;"	v	module:KEYS
 FIXBEADMID	src/legacy/keys.f90	/^  LOGICAL :: LOGRTERM,FIXBEAD1,FIXBEADMID$/;"	v	module:KEYS
 FIXBOUNDARY	src/legacy/keys.f90	/^  LOGICAL :: FIXBOUNDARY(/;"	v	module:KEYS
 FIXCONNECT	src/legacy/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE, FIXCONNECT$/;"	v	module:KEYS
+FI_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI_P /;"	v	module:penf_global_parameters_variables
+FI_PZP	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FI_PZP /;"	v	module:penf_global_parameters_variables
+FLAP_DIR	Makefile	/^FLAP_DIR = src\/third_party\/FLAP$/;"	m
 FLFLAGS	Makefile	/^FLFLAGS =$/;"	m
 FMT	doc/_build/latex/Makefile	/^FMT = pdf$/;"	m
 FORCE	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FORCE(/;"	v	module:KEYS
 FORCEBEAD	src/legacy/keys.f90	/^  INTEGER :: FORCEBEAD(/;"	v	module:KEYS
-FPT_DIST	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) FPT_DIST /;"	v	program:wlcsim
+FR16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FR16P /;"	v	module:penf_global_parameters_variables
+FR4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FR4P /;"	v	module:penf_global_parameters_variables
+FR8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FR8P /;"	v	module:penf_global_parameters_variables
 FRICTOB	src/legacy/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB$/;"	v	module:KEYS
 FRICTPERLEN	src/legacy/keys.f90	/^  LOGICAL :: FRICTPERLEN$/;"	v	module:KEYS
 FRICTR	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FRICTR,/;"	v	module:KEYS
 FRICTU	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FRICTR, FRICTU,/;"	v	module:KEYS
-FRMfile	src/wlcsim/wlcsim_brad.f95	/^  integer FRMfile /;"	v	program:wlcsim
-FRMfile	src/wlcsim/wlcsim_bruno.f95	/^      integer FRMfile /;"	v	program:wlcsim
+FR_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^character(*), parameter :: FR_P /;"	v	module:penf_global_parameters_variables
 GAM	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM,/;"	v	module:KEYS
 GAUSSIANCHAIN	src/legacy/keys.f90	/^  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN,/;"	v	module:KEYS
 GAUSSPAIR	src/mc/gauss_pair.f95	/^SUBROUTINE GAUSSPAIR(/;"	s
@@ -346,62 +330,52 @@ GETDIHEDRAL	src/legacy/quatutil.f90	/^  SUBROUTINE GETDIHEDRAL(/;"	s	module:QUAT
 GETPERP	src/legacy/genutil.f90	/^  SUBROUTINE GETPERP(/;"	s	module:GENUTIL
 HANDLERS	versioneer.py	/^HANDLERS = {}$/;"	v
 HANDLERS	wlcsim/_version.py	/^HANDLERS = {}$/;"	v
-HAS_COLLIDED	src/wlcsim/wlcsim_bruno.f95	/^      real(dp), allocatable, dimension(:,:):: HAS_COLLIDED$/;"	v	program:wlcsim
 HP1_Bind	tests/mc/test_int.f95	/^      DOUBLE PRECISION HP1_Bind /;"	v	program:scratch
-I	src/wlcsim/wlcsim_brad.f95	/^  integer I,/;"	v	program:wlcsim
-I	src/wlcsim/wlcsim_bruno.f95	/^      integer I,/;"	v	program:wlcsim
 I	tests/mc/test_calcVolume.f95	/^    integer I /;"	v	program:test_calcVolume
 I1	tests/mc/test_int.f95	/^      INTEGER I1 /;"	v	program:scratch
 I18NSPHINXOPTS	doc/Makefile	/^I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .$/;"	m
 I18NSPHINXOPTS	doc/make.bat	/^	set I18NSPHINXOPTS=-D latex_paper_size=%PAPER% %I18NSPHINXOPTS%$/;"	v
 I18NSPHINXOPTS	doc/make.bat	/^set I18NSPHINXOPTS=%SPHINXOPTS% .$/;"	v
+I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I1P /;"	v	module:penf_global_parameters_variables
 I2	tests/mc/test_int.f95	/^      INTEGER I2 /;"	v	program:scratch
-IB	src/wlcsim/wlcsim_brad.f95	/^  integer I,J,IB /;"	v	program:wlcsim
-IB	src/wlcsim/wlcsim_bruno.f95	/^      integer I,J,IB /;"	v	program:wlcsim
-IDUM	src/wlcsim/wlcsim_brad.f95	/^  integer IDUM /;"	v	program:wlcsim
-IDUM	src/wlcsim/wlcsim_bruno.f95	/^      integer IDUM /;"	v	program:wlcsim
+I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I2P /;"	v	module:penf_global_parameters_variables
+I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I4P /;"	v	module:penf_global_parameters_variables
+I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I8P /;"	v	module:penf_global_parameters_variables
 IDUM	tests/mc/test_calcVolume.f95	/^    integer IDUM$/;"	v	program:test_calcVolume
 IDUM	tests/mc/test_int.f95	/^    integer IDUM$/;"	v	program:scratch
+INCLUDE_DIRS	Makefile	/^INCLUDE_DIRS = -Isrc -Isrc\/third_party\/FLAP\/exe\/mod$/;"	m
 INDPHI	tests/mc/test_int.f95	/^      INTEGER INDPHI(/;"	v	program:scratch
 INITRANGE	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL, INITRANGE(/;"	v	module:KEYS
 INPUTPARAMS	src/legacy/inputparams.f90	/^MODULE INPUTPARAMS$/;"	m
 INPUTPARAMS	src/util/inputparams.f90	/^MODULE INPUTPARAMS$/;"	m
 INTERP1	src/legacy/genutil.f90	/^  SUBROUTINE INTERP1(/;"	s	module:GENUTIL
 INTERPARRAY	src/legacy/genutil.f90	/^  SUBROUTINE INTERPARRAY(/;"	s	module:GENUTIL
-INTON	src/wlcsim/wlcsim_brad.f95	/^  integer INTON /;"	v	program:wlcsim
-INTON	src/wlcsim/wlcsim_bruno.f95	/^      integer INTON /;"	v	program:wlcsim
 INTRWEIGHTNPT	src/legacy/keys.f90	/^  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT$/;"	v	module:KEYS
 INTUWEIGHTNPT	src/legacy/keys.f90	/^  INTEGER :: INTUWEIGHTNPT,/;"	v	module:KEYS
 INVQUAT	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION INVQUAT(/;"	f	module:QUATUTIL
-IOstatus	src/wlcsim/wlcsim_brad.f95	/^  integer IOstatus$/;"	v	program:wlcsim
 IX	tests/mc/test_int.f95	/^      INTEGER IX,/;"	v	program:scratch
 IX	tests/mc/test_interp.f95	/^INTEGER IX(/;"	v	program:test_interp
 IY	tests/mc/test_int.f95	/^      INTEGER IX,IY,/;"	v	program:scratch
 IY	tests/mc/test_interp.f95	/^INTEGER IX(2), IY(/;"	v	program:test_interp
 IZ	tests/mc/test_int.f95	/^      INTEGER IX,IY,IZ$/;"	v	program:scratch
 IZ	tests/mc/test_interp.f95	/^INTEGER IX(2), IY(2), IZ(/;"	v	program:test_interp
+I_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I_P /;"	v	module:penf_global_parameters_variables
 Indices and tables	doc/_build/latex/wlcsim.tex	/^\\end{fulllineitems}$/;"	c
-Irand	src/wlcsim/wlcsim_brad.f95	/^  integer Irand /;"	v	program:wlcsim
-J	src/wlcsim/wlcsim_brad.f95	/^  integer I,J,/;"	v	program:wlcsim
-J	src/wlcsim/wlcsim_bruno.f95	/^      integer I,J,/;"	v	program:wlcsim
 JointParameterListSizeError	pscan.py	/^class JointParameterListSizeError(Exception):$/;"	c
 KAP	tests/mc/test_int.f95	/^      DOUBLE PRECISION KAP /;"	v	program:scratch
 KEYS	src/legacy/keys.f90	/^MODULE KEYS$/;"	m
-L	src/wlcsim/wlcsim_brad.f95	/^  real(dp) L /;"	v	program:wlcsim
-L0	src/wlcsim/wlcsim_brad.f95	/^  real(dp) L0 /;"	v	program:wlcsim
-L0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) L0 /;"	v	program:wlcsim
 LATEX	doc/_build/latex/Makefile	/^LATEX = latex$/;"	m
 LATEXOPTS	doc/_build/latex/Makefile	/^LATEXOPTS =$/;"	m
 LBOX	tests/mc/test_int.f95	/^      DOUBLE PRECISION LBOX /;"	v	program:scratch
 LBox	tests/mc/test_interp.f95	/^Double PRECISION LBox$/;"	v	program:test_interp
 LCEXES	src/third_party/FLAP/makefile	/^LCEXES  = $(shell echo $(EXES) | tr '[:upper:]' '[:lower:]')$/;"	m
+LCEXES	src/third_party/FLAP/src/third_party/PENF/makefile	/^LCEXES  = $(shell echo $(EXES) | tr '[:upper:]' '[:lower:]')$/;"	m
 LENDIAMOND	src/legacy/keys.f90	/^  INTEGER :: LENDIAMOND /;"	v	module:KEYS
 LIBS	src/third_party/FLAP/makefile	/^LIBS =$/;"	m
+LIBS	src/third_party/FLAP/src/third_party/PENF/makefile	/^LIBS    =$/;"	m
 LITEXT	src/third_party/FLAP/makefile	/^LITEXT = "Assemble $@"$/;"	m
-LK	src/wlcsim/wlcsim_brad.f95	/^  integer LK /;"	v	program:wlcsim
+LITEXT	src/third_party/FLAP/src/third_party/PENF/makefile	/^LITEXT = "Assemble $@"$/;"	m
 LOGRTERM	src/legacy/keys.f90	/^  LOGICAL :: LOGRTERM,/;"	v	module:KEYS
-LOGTIME	src/wlcsim/wlcsim_brad.f95	/^  integer LOGTIME /;"	v	program:wlcsim
-LOGTIME	src/wlcsim/wlcsim_bruno.f95	/^      integer LOGTIME /;"	v	program:wlcsim
 LONG_VERSION_PY	versioneer.py	/^LONG_VERSION_PY = {}$/;"	v
 LONG_VERSION_PY	wlcsim/_version.py	/^LONG_VERSION_PY = {}$/;"	v
 LOOPFILE	src/legacy/keys.f90	/^  CHARACTER*100 :: LOOPFILE$/;"	v	module:KEYS
@@ -411,37 +385,25 @@ LOWERCASE	src/util/inputparams.f90	/^  SUBROUTINE LOWERCASE(/;"	s	module:INPUTPA
 LOWLETTERS	src/legacy/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: LOWLETTERS /;"	v	module:INPUTPARAMS
 LOWLETTERS	src/util/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: LOWLETTERS /;"	v	module:INPUTPARAMS
 LP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP,/;"	v	module:KEYS
-LP	src/wlcsim/wlcsim_brad.f95	/^  real(dp) LP /;"	v	program:wlcsim
 LS	src/legacy/keys.f90	/^  DOUBLE PRECISION :: LP, LS,/;"	v	module:KEYS
-LT	src/wlcsim/wlcsim_brad.f95	/^  real(dp) LT /;"	v	program:wlcsim
-LkMax	src/wlcsim/wlcsim_brad.f95	/^  integer LkMax /;"	v	program:wlcsim
-LkMin	src/wlcsim/wlcsim_brad.f95	/^  integer LkMin /;"	v	program:wlcsim
-LkMinusStr	src/wlcsim/wlcsim_brad.f95	/^  CHARACTER*4 LkMinusStr /;"	v	program:wlcsim
-LkPlusStr	src/wlcsim/wlcsim_brad.f95	/^  CHARACTER*4 LkPlusStr /;"	v	program:wlcsim
-LkStep	src/wlcsim/wlcsim_brad.f95	/^  integer LkStep /;"	v	program:wlcsim
-LkStr	src/wlcsim/wlcsim_brad.f95	/^  CHARACTER*4 LkStr /;"	v	program:wlcsim
-LkSwapStr	src/wlcsim/wlcsim_brad.f95	/^  CHARACTER*4 LkSwapStr /;"	v	program:wlcsim
-Lks	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: Lks(/;"	v	program:wlcsim
 MAKEDEPEND	Makefile	/^MAKEDEPEND=.\/fort_depend.py$/;"	m
+MAKEFLAGS	src/third_party/FLAP/src/third_party/PENF/makefile	/^MAKEFLAGS = -j 1$/;"	m
 MAKEINDEX	doc/_build/latex/Makefile	/^MAKEINDEX = makeindex$/;"	m
 MAKELIB	src/third_party/FLAP/makefile	/^  MAKELIB = ar -rcs $(DEXE)libflap.a $(DOBJ)*.o ; ranlib $(DEXE)libflap.a$/;"	m
+MAKELIB	src/third_party/FLAP/src/third_party/PENF/makefile	/^MAKELIB = ar -rcs $(DEXE)libpenf.a $(DOBJ)*.o ; ranlib $(DEXE)libpenf.a$/;"	m
 MAXFIXBEAD	src/legacy/keys.f90	/^  INTEGER, PARAMETER :: MAXFIXBEAD /;"	v	module:KEYS
 MAXLINELEN	src/legacy/inputparams.f90	/^  INTEGER, PARAMETER :: MAXLINELEN /;"	v	module:INPUTPARAMS
 MAXLINELEN	src/util/inputparams.f90	/^  INTEGER, PARAMETER :: MAXLINELEN /;"	v	module:INPUTPARAMS
 MAXNCONNECT	src/legacy/keys.f90	/^  INTEGER, PARAMETER :: MAXNCONNECT /;"	v	module:KEYS
 MAXNFORCE	src/legacy/keys.f90	/^  INTEGER, PARAMETER :: MAXNFORCE=/;"	v	module:KEYS
 MAXNPT	src/legacy/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,/;"	v	module:KEYS
+MAXPARAMLEN	src/util/inputparams.f90	/^  INTEGER, PARAMETER :: MAXPARAMLEN /;"	v	module:INPUTPARAMS
 MAXSEGLEN	src/legacy/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN$/;"	v	module:KEYS
 MAX_VAL_LEN	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^integer(I4P), parameter, public :: MAX_VAL_LEN /;"	v	module:flap_command_line_interface_t
-MCAMP	src/wlcsim/wlcsim_brad.f95	/^  real(dp) MCAMP(/;"	v	program:wlcsim
-MCAMP	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) MCAMP(/;"	v	program:wlcsim
-MCAMP1ALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  MCAMP1ALL(/;"	v	program:wlcsim
-MCAMP2ALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: MCAMP2ALL(/;"	v	program:wlcsim
 MCINITSTEPS	src/legacy/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS,/;"	v	module:KEYS
 MCOUTPUTFREQ	src/legacy/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ,/;"	v	module:KEYS
 MCPRINTFREQ	src/legacy/keys.f90	/^  INTEGER :: MCPRINTFREQ,/;"	v	module:KEYS
 MCSTATSTEPS	src/legacy/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,/;"	v	module:KEYS
-MCSTEPCUM	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: MCSTEPCUM(/;"	v	program:wlcsim
 MCTOTSTEPS	src/legacy/keys.f90	/^  INTEGER :: MCPRINTFREQ, MCTOTSTEPS,/;"	v	module:KEYS
 MC_bind	src/mc/MC_bind.f95	/^SUBROUTINE MC_bind(/;"	s
 MC_caclVolume	src/mc/MC_calcVolume.f95	/^SUBROUTINE MC_caclVolume(/;"	s
@@ -455,20 +417,12 @@ MC_interp	tests/mc/MC_interp.f95	/^Subroutine MC_interp(/;"	s
 MC_move	src/mc/MC_move.f90	/^SUBROUTINE MC_move(/;"	s
 MC_self	src/mc/MC_self.f90	/^      SUBROUTINE MC_self(/;"	s
 MCsim	src/mc/MCsim.f95	/^SUBROUTINE MCsim(/;"	s
-MCvar_adapt	src/mc/adapt.f90	/^Subroutine MCvar_adapt(/;"	s
 MINSEGLEN	src/legacy/keys.f90	/^  DOUBLE PRECISION :: MINSEGLEN,/;"	v	module:KEYS
 MINV	src/legacy/MINV.f90	/^      SUBROUTINE MINV(/;"	s
 MKDIRS	src/third_party/FLAP/makefile	/^MKDIRS  = $(DOBJ) $(DMOD) $(DEXE)$/;"	m
+MKDIRS	src/third_party/FLAP/src/third_party/PENF/makefile	/^MKDIRS  = $(DOBJ) $(DMOD) $(DEXE)$/;"	m
 MODOB	src/legacy/keys.f90	/^  DOUBLE PRECISION :: RADOB, MODOB,/;"	v	module:KEYS
-MOD_MOD	Makefile	/^MOD_MOD := $(addprefix src\/,$(notdir $(MOD_SRC:.f90=.mod)))$/;"	m
-MOD_SRC	Makefile	/^MOD_SRC := src\/third_party\/mt19937.f90 src\/third_party\/kdtree2.f90 src\/BDcode\/colsort.f90$/;"	m
-MOM	src/wlcsim/wlcsim_brad.f95	/^  real(dp) MOM(/;"	v	program:wlcsim
-MOM	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) MOM(/;"	v	program:wlcsim
-MOVEON	src/wlcsim/wlcsim_brad.f95	/^  integer MOVEON(/;"	v	program:wlcsim
-MOVEON	src/wlcsim/wlcsim_bruno.f95	/^      integer MOVEON(/;"	v	program:wlcsim
 MapMeanColtimes	wlcsim/analyze.py	/^class MapMeanColtimes:$/;"	c
-N	src/wlcsim/wlcsim_brad.f95	/^  integer N /;"	v	program:wlcsim
-N	src/wlcsim/wlcsim_bruno.f95	/^      integer N /;"	v	program:wlcsim
 NBIN	tests/mc/test_int.f95	/^      INTEGER, PARAMETER :: NBIN=/;"	v	program:scratch
 NBINX	tests/mc/test_calcVolume.f95	/^    integer, parameter :: NBINX=/;"	v	program:test_calcVolume
 NBINX	tests/mc/test_int.f95	/^      INTEGER, PARAMETER :: NBINX=/;"	v	program:scratch
@@ -479,36 +433,25 @@ NDIAMOND	src/legacy/keys.f90	/^  INTEGER :: NDIAMOND(/;"	v	module:KEYS
 NEDGESEG	src/legacy/keys.f90	/^  INTEGER :: NEDGESEG$/;"	v	module:KEYS
 NFIXBEAD	src/legacy/keys.f90	/^  INTEGER :: NFIXBEAD$/;"	v	module:KEYS
 NFORCE	src/legacy/keys.f90	/^  INTEGER :: NFORCE,/;"	v	module:KEYS
-NINIT	src/wlcsim/wlcsim_brad.f95	/^  integer NSTEP,NINIT$/;"	v	program:wlcsim
-NINIT	src/wlcsim/wlcsim_bruno.f95	/^      integer NSTEP,NINIT$/;"	v	program:wlcsim
-NLks	src/wlcsim/wlcsim_brad.f95	/^  integer NLks /;"	v	program:wlcsim
 NORM	src/legacy/genutil.f90	/^  DOUBLE PRECISION FUNCTION NORM(/;"	f	module:GENUTIL
 NORMALIZE	src/legacy/genutil.f90	/^  SUBROUTINE NORMALIZE(/;"	s	module:GENUTIL
-NP	src/wlcsim/wlcsim_brad.f95	/^  integer NP /;"	v	program:wlcsim
-NP	src/wlcsim/wlcsim_bruno.f95	/^      integer NP /;"	v	program:wlcsim
 NPHI	tests/mc/test_int.f95	/^      INTEGER NPHI /;"	v	program:scratch
-NSTEP	src/wlcsim/wlcsim_brad.f95	/^  integer NSTEP,/;"	v	program:wlcsim
-NSTEP	src/wlcsim/wlcsim_bruno.f95	/^      integer NSTEP,/;"	v	program:wlcsim
-NSwapMinus	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: NSwapMinus(/;"	v	program:wlcsim
-NSwapPlus	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: NSwapPlus(/;"	v	program:wlcsim
-NT	src/wlcsim/wlcsim_brad.f95	/^  integer NT /;"	v	program:wlcsim
-NT	src/wlcsim/wlcsim_bruno.f95	/^      integer NT /;"	v	program:wlcsim
 NT	tests/mc/test_int.f95	/^      INTE/;"	v	program:scratch
-NTrialMinus	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: NTrialMinus(/;"	v	program:wlcsim
-NTrialPlus	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: NTrialPlus(/;"	v	program:wlcsim
-NUM_POSSIBLE_COLLISIONS	src/wlcsim/wlcsim_bruno.f95	/^      integer NUM_POSSIBLE_COLLISIONS$/;"	v	program:wlcsim
 NZTINY	src/legacy/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: NZTINY=/;"	v	module:QUATUTIL
-N_auto	src/wlcsim/wlcsim_brad.f95	/^  integer N_auto /;"	v	program:wlcsim
 Na	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  integer(I4P),                             public :: Na=/;"	v	module:flap_command_line_arguments_group_t
 Na_optional	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  integer(I4P)                                     :: Na_optional=/;"	v	module:flap_command_line_arguments_group_t
 Na_required	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  integer(I4P)                                     :: Na_required=/;"	v	module:flap_command_line_arguments_group_t
 NotThisMethod	versioneer.py	/^class NotThisMethod(Exception):$/;"	c
 NotThisMethod	wlcsim/_version.py	/^class NotThisMethod(Exception):$/;"	c
-OBJ	Makefile	/^OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))$/;"	m
+OBJ	Makefile	/^OBJ := $(addsuffix .o,$(basename $(SRC)))$/;"	m
 OPTSC	src/third_party/FLAP/makefile	/^  OPTSC = -c -O2 -qmoddir=$(DMOD) -I$(DMOD)$/;"	m
 OPTSC	src/third_party/FLAP/makefile	/^  OPTSC = -cpp -c -frealloc-lhs -O2  -J $(DMOD)$/;"	m
+OPTSC	src/third_party/FLAP/src/third_party/PENF/makefile	/^  OPTSC = -c -assume realloc_lhs -standard-semantics -std08 -O2 -Dr16p -module $(DMOD)$/;"	m
+OPTSC	src/third_party/FLAP/src/third_party/PENF/makefile	/^  OPTSC = -c -frealloc-lhs -std=f2008 -fall-intrinsics -O2 -Dr16p -J $(DMOD)$/;"	m
 OPTSL	src/third_party/FLAP/makefile	/^  OPTSL = -J $(DMOD)$/;"	m
 OPTSL	src/third_party/FLAP/makefile	/^  OPTSL = -qmoddir=$(DMOD) -I$(DMOD)$/;"	m
+OPTSL	src/third_party/FLAP/src/third_party/PENF/makefile	/^  OPTSL = -O2 -J $(DMOD)$/;"	m
+OPTSL	src/third_party/FLAP/src/third_party/PENF/makefile	/^  OPTSL = -O2 -module $(DMOD)$/;"	m
 OUTFILE	src/legacy/keys.f90	/^  CHARACTER*100 :: OUTFILE,/;"	v	module:KEYS
 OUTPUTBEADWEIGHT	src/legacy/keys.f90	/^  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT$/;"	v	module:KEYS
 PAPER	doc/Makefile	/^PAPER         =$/;"	m
@@ -517,21 +460,15 @@ PAPEROPT_a4	doc/Makefile	/^PAPEROPT_a4     = -D latex_paper_size=a4$/;"	m
 PAPEROPT_letter	doc/Makefile	/^PAPEROPT_letter = -D latex_paper_size=letter$/;"	m
 PARAMFROMSNAPSHOT	src/legacy/keys.f90	/^  LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT$/;"	v	module:KEYS
 PDFLATEX	doc/_build/latex/Makefile	/^PDFLATEX = pdflatex$/;"	m
-PEDANTICFLAGS	Makefile	/^PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc\/third_party -cpp -fcheck=all -Wall -pedantic$/;"	m
+PEDANTICFLAGS	Makefile	/^PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof, Wno-surprising to enforce Werror even though gfortran has a bug https:\/\/gcc.gnu.org\/ml\/fortran\/2013-08\/msg00050.html$/;"	m
 PHIA	tests/mc/test_int.f95	/^      DOUBLE PRECISION PHIA(/;"	v	program:scratch
 PHIB	tests/mc/test_int.f95	/^      DOUBLE PRECISION PHIB(/;"	v	program:scratch
-PHITALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: PHITALL(/;"	v	program:wlcsim
 PI	src/legacy/quatutil.f90	/^  DOUBLE PRECISION, PARAMETER :: PI /;"	v	module:QUATUTIL
-PI	src/wlcsim/wlcsim_brad.f95	/^  real(dp), paraMETER :: PI=/;"	v	program:wlcsim
 PLURAL_EXPR	doc/_build/html/_static/doctools.js	/^    this.PLURAL_EXPR = new Function('n', 'return +(' + catalog.plural_expr + ')');$/;"	f
 POLY	tests/mc/test_int.f95	/^      INTEGER POLY /;"	v	program:scratch
 PROGRAM	Makefile	/^PROGRAM = wlcsim.exe$/;"	m
-PSwapMinus	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: PSwapMinus(/;"	v	program:wlcsim
-PSwapPlus	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  PSwapPlus(/;"	v	program:wlcsim
 PTQUAT	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION PTQUAT(/;"	f	module:QUATUTIL
 PT_override	src/wlcsim/MCparrll_mpi.f90	/^subroutine PT_override(/;"	s
-ParTempOn	src/wlcsim/wlcsim_brad.f95	/^  integer ParTempOn /;"	v	program:wlcsim
-Prob	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Prob /;"	v	program:wlcsim
 QDIVIDE	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QDIVIDE(/;"	f	module:QUATUTIL
 QPRODUCT	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QPRODUCT(/;"	f	module:QUATUTIL
 QSLERP	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION QSLERP(/;"	f	module:QUATUTIL
@@ -543,32 +480,16 @@ QUAT2SCREW	src/legacy/quatutil.f90	/^  SUBROUTINE QUAT2SCREW(/;"	s	module:QUATUT
 QUATERNION	src/legacy/quatutil.f90	/^  TYPE QUATERNION$/;"	t	module:QUATUTIL
 QUATUTIL	src/legacy/quatutil.f90	/^MODULE QUATUTIL$/;"	m
 QVPTMULT	src/legacy/quatutil.f90	/^  SUBROUTINE QVPTMULT(/;"	s	module:QUATUTIL
-R	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable, dimension(:,:):: R	/;"	v	program:wlcsim
-R	src/wlcsim/wlcsim_bruno.f95	/^      real(dp), allocatable, dimension(:,:):: R /;"	v	program:wlcsim
 R	tests/mc/test_int.f95	/^      DOUBLE PRE/;"	v	program:scratch
-R0	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable, dimension(:,:):: R0	/;"	v	program:wlcsim
-R0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp), allocatable, dimension(:,:):: R0 /;"	v	program:wlcsim
-R2	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: R2(/;"	v	program:wlcsim
-R2_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R2_AVG$/;"	v	program:wlcsim
-R2_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R2_STDER$/;"	v	program:wlcsim
-R2_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R2_STDEV$/;"	v	program:wlcsim
-R4	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: R4(/;"	v	program:wlcsim
-R4_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R4_AVG$/;"	v	program:wlcsim
-R4_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R4_STDER$/;"	v	program:wlcsim
-R4_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R4_STDEV$/;"	v	program:wlcsim
-R6	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: R6(/;"	v	program:wlcsim
-R6_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R6_AVG$/;"	v	program:wlcsim
-R6_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R6_STDER$/;"	v	program:wlcsim
-R6_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) R6_STDEV$/;"	v	program:wlcsim
+R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: R16P /;"	v	module:penf_global_parameters_variables
+R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer,      parameter :: REAL_KINDS_LIST(1:4)      = [R16P, R8P, R4P,/;"	v	module:penf_global_parameters_variables
+R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: R4P /;"	v	module:penf_global_parameters_variables
+R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer,      parameter :: REAL_KINDS_LIST(1:4)      = [R16P, R8P,/;"	v	module:penf_global_parameters_variables
+R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: R8P /;"	v	module:penf_global_parameters_variables
 RADOB	src/legacy/keys.f90	/^  DOUBLE PRECISION :: RADOB,/;"	v	module:KEYS
 RAN2	src/legacy/ran2.f90	/^FUNCTION RAN2(/;"	f
 RANDOMAXIS	src/legacy/genutil.f90	/^  SUBROUTINE RANDOMAXIS(/;"	s	module:GENUTIL
 RBIN	tests/mc/test_interp.f95	/^DOUBLE PRECISION RBIN(/;"	v	program:test_interp
-RCOM	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: RCOM(/;"	v	program:wlcsim
-RCOM	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) RCOM(/;"	v	program:wlcsim
-RCOM0	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RCOM0(/;"	v	program:wlcsim
-RCOM0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) RCOM0(/;"	v	program:wlcsim
-RCOMSQ	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  RCOMSQ(/;"	v	program:wlcsim
 READA	src/legacy/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
 READA	src/util/inputparams.f90	/^  SUBROUTINE READA(/;"	s	module:INPUTPARAMS
 READF	src/legacy/inputparams.f90	/^  SUBROUTINE READF(/;"	s	module:INPUTPARAMS
@@ -584,20 +505,10 @@ READO	src/legacy/inputparams.f90	/^  SUBROUTINE READO(/;"	s	module:INPUTPARAMS
 READO	src/util/inputparams.f90	/^  SUBROUTINE READO(/;"	s	module:INPUTPARAMS
 READU	src/legacy/inputparams.f90	/^  SUBROUTINE READU(/;"	s	module:INPUTPARAMS
 READU	src/util/inputparams.f90	/^  SUBROUTINE READU(/;"	s	module:INPUTPARAMS
+REAL_KINDS_LIST	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer,      parameter :: REAL_KINDS_LIST(/;"	v	module:penf_global_parameters_variables
 REPLACESUBSTR	src/legacy/genutil.f90	/^  SUBROUTINE REPLACESUBSTR(/;"	s	module:GENUTIL
 RESTART	src/legacy/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART,/;"	v	module:KEYS
 RESTARTFILE	src/legacy/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE,/;"	v	module:KEYS
-RGYR	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: RGYR(/;"	v	program:wlcsim
-RGYRALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: RGYRALL(/;"	v	program:wlcsim
-RGYRSQ	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  RGYRSQ(/;"	v	program:wlcsim
-RGYRSQALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  RGYRSQALL(/;"	v	program:wlcsim
-RGYRSQ_AUTO	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  RGYRSQ_AUTO(/;"	v	program:wlcsim
-RGYRSQ_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYRSQ_AVG$/;"	v	program:wlcsim
-RGYRSQ_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYRSQ_STDER$/;"	v	program:wlcsim
-RGYRSQ_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYRSQ_STDEV$/;"	v	program:wlcsim
-RGYR_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYR_AVG$/;"	v	program:wlcsim
-RGYR_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYR_STDER$/;"	v	program:wlcsim
-RGYR_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) RGYR_STDEV$/;"	v	program:wlcsim
 RHQINTERP	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION RHQINTERP(/;"	f	module:QUATUTIL
 RKstep	src/bd/RKstep.f95	/^      SUBROUTINE RKstep(/;"	s
 RNGSEED	src/legacy/keys.f90	/^  INTEGER :: RNGSEED$/;"	v	module:KEYS
@@ -609,20 +520,18 @@ ROTMAT2QUAT	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTMAT2QUAT(/;
 ROTQUAT	src/legacy/quatutil.f90	/^  TYPE(QUATERNION) FUNCTION ROTQUAT(/;"	f	module:QUATUTIL
 ROTQV	src/legacy/quatutil.f90	/^  SUBROUTINE ROTQV(/;"	s	module:QUATUTIL
 RP	tests/mc/test_int.f95	/^      DOUBLE PRECISION RP(/;"	v	program:scratch
-RSQ_AUTO	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: RSQ_AUTO(/;"	v	program:wlcsim
 RULE	src/third_party/FLAP/makefile	/^  RULE    = FLAP$/;"	m
 RULE	src/third_party/FLAP/makefile	/^  RULE = $(DEXE)test_basic $(DEXE)test_choices_logical $(DEXE)test_nested $(DEXE)test_string $(DEXE)test_hidden $(DEXE)test_minimal$/;"	m
+RULE	src/third_party/FLAP/src/third_party/PENF/makefile	/^  RULE = .NOTPARALLEL$/;"	m
+RULE	src/third_party/FLAP/src/third_party/PENF/makefile	/^  RULE = PENF$/;"	m
 RUNGEKUTTA	src/legacy/keys.f90	/^  INTEGER :: BDSTEPS, RUNGEKUTTA$/;"	v	module:KEYS
 RUTEXT	src/third_party/FLAP/makefile	/^RUTEXT = "Executed rule $@"$/;"	m
-Restart	src/wlcsim/wlcsim_brad.f95	/^  integer Restart /;"	v	program:wlcsim
-SAVE_RU	src/wlcsim/wlcsim_bruno.f95	/^      integer SAVE_RU$/;"	v	program:wlcsim
+R_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer,      parameter :: REAL_KINDS_LIST(1:4)      = [R16P, R8P, R4P, R_P]/;"	v	module:penf_global_parameters_variables
+R_P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: R_P /;"	v	module:penf_global_parameters_variables
 SETSHEAR	src/legacy/keys.f90	/^  LOGICAL :: SETSHEAR$/;"	v	module:KEYS
 SHEARABLE	src/legacy/keys.f90	/^  LOGICAL :: SHEARABLE,/;"	v	module:KEYS
 SHEARGAMMA	src/legacy/keys.f90	/^  DOUBLE PRECISION :: SHEARGAMMA$/;"	v	module:KEYS
 SHELL	Makefile	/^SHELL:=\/bin\/bash$/;"	m
-SIG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) SIG(/;"	v	program:wlcsim
-SIG	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) SIG(/;"	v	program:wlcsim
-SIMtype	src/wlcsim/wlcsim_bruno.f95	/^      integer SIMtype /;"	v	program:wlcsim
 SKIPREAD	src/legacy/keys.f90	/^  INTEGER :: SNAPSHOTEVERY, SKIPREAD,/;"	v	module:KEYS
 SNAPSHOTEVERY	src/legacy/keys.f90	/^  INTEGER :: SNAPSHOTEVERY,/;"	v	module:KEYS
 SNAPSHOTFILE	src/legacy/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE,/;"	v	module:KEYS
@@ -633,7 +542,7 @@ SPHINXBUILD	doc/make.bat	/^	set SPHINXBUILD=sphinx-build$/;"	v
 SPHINXBUILD	doc/make.bat	/^set SPHINXBUILD=python -m sphinx.__init__$/;"	v
 SPHINXOPTS	doc/Makefile	/^SPHINXOPTS    =$/;"	m
 SQUARELATTICE	src/legacy/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
-SRC	Makefile	/^SRC := src\/DATAcode\/MINV.f90 src\/DATAcode\/find_struc.f90 src\/BDcode\/force_elas.f90 src\/BDcode\/force_ponp.f90 src\/BDcode\/RKstep.f90 src\/BDcode\/concalc.f90 src\/SIMcode\/debugging.f90 src\/third_party\/dgtsv.f src\/BDcode\/BDsim.f90 src\/MCcode\/MC_move.f90 src\/MCcode\/MCsim.f90 src\/MCcode\/MC_elas.f90 src\/MCcode\/MC_capsid_ex.f90 src\/MCcode\/MC_self.f90 src\/SIMcode\/globals.f90 src\/SIMcode\/stressp.f90 src\/MCcode\/energy_ponp.f90 src\/SIMcode\/gasdev.f90 src\/SIMcode\/r_to_erg.f90 src\/SIMcode\/ran2.f90 src\/SIMcode\/decim.f90 src\/SIMcode\/wlcsim.f90 src\/SIMcode\/stress.f90 src\/SIMcode\/ran1.f90 src\/MCcode\/energy_elas.f90 src\/SIMcode\/initcond.f90 src\/SIMcode\/getpara.f90 src\/BDcode\/colchecker.f90$/;"	m
+SRC	Makefile	/^SRC := $(shell find "src" -type f -name '*.f*' -not -path "src\/legacy\/*" -not -path "src\/tests\/*" -not -path "src\/third_party\/FLAP\/*" -not -path '*\/\\.*')$/;"	m
 STARTCOLLAPSE	src/legacy/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTEQUIL	src/legacy/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
 STARTEQUILLP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: STARTEQUILLP$/;"	v	module:KEYS
@@ -647,10 +556,6 @@ STERSKIP	src/legacy/keys.f90	/^  INTEGER :: STARTNPT, MAXNPT,STERSKIP$/;"	v	modu
 STRESSFILE	src/legacy/keys.f90	/^  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE$/;"	v	module:KEYS
 STRETCHABLE	src/legacy/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE,/;"	v	module:KEYS
 STRING2NUM	src/legacy/genutil.f90	/^  INTEGER FUNCTION STRING2NUM(/;"	f	module:GENUTIL
-SUCCESS	src/wlcsim/wlcsim_brad.f95	/^  integer SUCCESS(/;"	v	program:wlcsim
-SUCCESS	src/wlcsim/wlcsim_bruno.f95	/^      integer SUCCESS(/;"	v	program:wlcsim
-SUCCESSALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: SUCCESSALL(/;"	v	program:wlcsim
-SUCCESS_TOTAL	src/wlcsim/wlcsim_brad.f95	/^  integer SUCCESS(6),SUCCESS_TOTAL(/;"	v	program:wlcsim
 Scan	pscan.py	/^class Scan:$/;"	c
 Scan	wlcsim/data.py	/^class Scan:$/;"	c
 Scan	wlcsim/olddata.py	/^class Scan:$/;"	c
@@ -658,33 +563,15 @@ Sim	wlcsim/data.py	/^class Sim:$/;"	c
 Sim	wlcsim/olddata.py	/^class Sim:$/;"	c
 SimpleMapReduce	wlcsim/utils/multiprocessing_mapreduce.py	/^class SimpleMapReduce(object):$/;"	c
 Stemmer	doc/_build/html/_static/searchtools.js	/^var Stemmer = function() {$/;"	c
-Swap	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable ::  Swap(/;"	v	program:wlcsim
-T0	src/wlcsim/wlcsim_brad.f95	/^  real(dp) T0,/;"	v	program:wlcsim
-T0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) T0,/;"	v	program:wlcsim
-TENS	src/wlcsim/wlcsim_brad.f95	/^  integer TENS /;"	v	program:wlcsim
-TENS	src/wlcsim/wlcsim_bruno.f95	/^      integer TENS /;"	v	program:wlcsim
-TEST	Makefile	/^TEST := src\/CCcode\/test_sort.f90$/;"	m
+TEST	Makefile	/^TEST := $(shell find "src\/tests" -type f -name '*.f*')$/;"	m
 TESTQUAT	src/legacy/quatutil.f90	/^  LOGICAL :: TESTQUAT /;"	v	module:QUATUTIL
-TF	src/wlcsim/wlcsim_brad.f95	/^  real(dp) T0,TF /;"	v	program:wlcsim
-TF	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) T0,TF /;"	v	program:wlcsim
-TIME	src/wlcsim/wlcsim_brad.f95	/^  real(dp) TIME /;"	v	program:wlcsim
-TIME	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) TIME /;"	v	program:wlcsim
+TESTS	src/third_party/FLAP/src/third_party/PENF/makefile	/^TESTS = no$/;"	m
 TRACKDIST	src/legacy/keys.f90	/^  INTEGER :: TRACKDIST(/;"	v	module:KEYS
 TRACKLOOPING	src/legacy/keys.f90	/^  LOGICAL :: TRACKLOOPING$/;"	v	module:KEYS
 TRANSLATIONS	doc/_build/html/_static/doctools.js	/^  },$/;"	p	class:Documentation
-TSAVE	src/wlcsim/wlcsim_brad.f95	/^  real(dp) TSAVE /;"	v	program:wlcsim
-TSAVE	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) TSAVE /;"	v	program:wlcsim
-TWIST	src/wlcsim/wlcsim_brad.f95	/^  integer TWIST /;"	v	program:wlcsim
-TempLk	src/wlcsim/wlcsim_brad.f95	/^  integer TempLk /;"	v	program:wlcsim
-Test	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Test /;"	v	program:wlcsim
 TestScan	pscan.py	/^class TestScan:$/;"	c
-Tw	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Tw /;"	v	program:wlcsim
 Tween	doc/_build/html/_static/jquery-1.11.1.js	/^function Tween( elem, options, prop, end, easing ) {$/;"	f
 Tween	doc/_build/html/_static/jquery-1.11.1.js	/^jQuery.Tween = Tween;$/;"	c
-U	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable, dimension(:,:):: U	/;"	v	program:wlcsim
-U	src/wlcsim/wlcsim_bruno.f95	/^      real(dp), allocatable, dimension(:,:):: U /;"	v	program:wlcsim
-U0	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable, dimension(:,:):: U0	/;"	v	program:wlcsim
-U0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp), allocatable, dimension(:,:):: U0 /;"	v	program:wlcsim
 UPLETTERS	src/legacy/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
 UPLETTERS	src/util/inputparams.f90	/^  CHARACTER(LEN=26), PARAMETER :: UPLETTERS /;"	v	module:INPUTPARAMS
 UPPERCASE	src/legacy/inputparams.f90	/^  SUBROUTINE UPPERCASE(/;"	s	module:INPUTPARAMS
@@ -695,6 +582,7 @@ USESTERICS	src/legacy/keys.f90	/^  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, F
 V	tests/mc/test_int.f95	/^      DOUBLE PRECISION V /;"	v	program:scratch
 VERBOSE	src/legacy/keys.f90	/^  LOGICAL :: VERBOSE$/;"	v	module:KEYS
 VPATH	src/third_party/FLAP/makefile	/^VPATH   = $(DSRC) $(DOBJ) $(DMOD)$/;"	m
+VPATH	src/third_party/FLAP/src/third_party/PENF/makefile	/^VPATH   = $(DSRC) $(DOBJ) $(DMOD)$/;"	m
 VersioneerBadRootError	versioneer.py	/^class VersioneerBadRootError(Exception):$/;"	c
 VersioneerConfig	versioneer.py	/^class VersioneerConfig:$/;"	c
 VersioneerConfig	wlcsim/_version.py	/^class VersioneerConfig:$/;"	c
@@ -707,20 +595,9 @@ WRITHE	src/util/writhe.f95	/^SUBROUTINE WRITHE(/;"	s
 WRITHECRANK	src/mc/writhe_crank.f95	/^SUBROUTINE WRITHECRANK(/;"	s
 WRITHESLIDE	src/mc/writhe_slide.f95	/^SUBROUTINE WRITHESLIDE(/;"	s
 WRITHE_MOVE	src/mc/MC_writhe.f95	/^SUBROUTINE WRITHE_MOVE(/;"	s
-WR_AVG	src/wlcsim/wlcsim_brad.f95	/^  real(dp) WR_AVG$/;"	v	program:wlcsim
-WR_STDER	src/wlcsim/wlcsim_brad.f95	/^  real(dp) WR_STDER$/;"	v	program:wlcsim
-WR_STDEV	src/wlcsim/wlcsim_brad.f95	/^  real(dp) WR_STDEV$/;"	v	program:wlcsim
 WX	tests/mc/test_interp.f95	/^DOUBLE PRECISION WX(/;"	v	program:test_interp
 WY	tests/mc/test_interp.f95	/^DOUBLE PRECISION WX(2), WY(/;"	v	program:test_interp
 WZ	tests/mc/test_interp.f95	/^DOUBLE PRECISION WX(2), WY(2), WZ(/;"	v	program:test_interp
-WindoW	src/wlcsim/wlcsim_brad.f95	/^  integer WindoW(/;"	v	program:wlcsim
-WindoW	src/wlcsim/wlcsim_bruno.f95	/^      integer WindoW(/;"	v	program:wlcsim
-WindoW1ALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: WindoW1ALL(/;"	v	program:wlcsim
-WindoW2ALL	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: WindoW2ALL(/;"	v	program:wlcsim
-Wr	src/wlcsim/wlcsim_brad.f95	/^  real(dp) Wr /;"	v	program:wlcsim
-WrAll	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: WrAll(/;"	v	program:wlcsim
-Wr_AUTO	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: Wr_AUTO(/;"	v	program:wlcsim
-Wrs	src/wlcsim/wlcsim_brad.f95	/^  real(dp), allocatable :: Wrs(/;"	v	program:wlcsim
 X	src/legacy/quatutil.f90	/^     DOUBLE PRECISION :: W, X,/;"	k	type:QUATERNION
 Y	src/legacy/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y,/;"	k	type:QUATERNION
 Z	src/legacy/quatutil.f90	/^     DOUBLE PRECISION :: W, X, Y, Z$/;"	k	type:QUATERNION
@@ -834,6 +711,7 @@ alism	doc/_build/html/_static/searchtools.js	/^    ator: 'ate',$/;"	p	class:Stem
 aliti	doc/_build/html/_static/searchtools.js	/^    ousness: 'ous',$/;"	p	class:Stemmer.step2list
 alize	doc/_build/html/_static/searchtools.js	/^    ative: '',$/;"	p	class:Stemmer.step3list
 all_param_values	wlcsim/data.py	/^    def all_param_values(self):$/;"	m	class:Scan
+all_passed	src/third_party/FLAP/src/third_party/PENF/scripts/run_tests.sh	/^all_passed () {$/;"	f
 alli	doc/_build/html/_static/searchtools.js	/^    bli: 'ble',$/;"	p	class:Stemmer.step2list
 anci	doc/_build/html/_static/searchtools.js	/^    enci: 'ence',$/;"	p	class:Stemmer.step2list
 appendComments	doc/_build/html/_static/websupport.js	/^  function appendComments(comments, ul) {$/;"	f
@@ -841,6 +719,36 @@ arccos	vizualization/mkpdbpoly.pl	/^sub arccos$/;"	s
 args	fort_depend.py	/^    args = parser.parse_args()$/;"	v
 args	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  character(512  ), allocatable                   :: args(/;"	v	module:flap_command_line_interface_t
 args	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  character(len=:), allocatable                   :: args(/;"	v	module:flap_command_line_interface_t
+assert_close_r32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_close_r32(/;"	s	module:tester
+assert_close_r32_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_close_r32_1(/;"	s	module:tester
+assert_close_r64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_close_r64(/;"	s	module:tester
+assert_close_r64_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_close_r64_1(/;"	s	module:tester
+assert_equal_i16	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i16(/;"	s	module:tester
+assert_equal_i16_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i16_1(/;"	s	module:tester
+assert_equal_i32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i32(/;"	s	module:tester
+assert_equal_i32_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i32_1(/;"	s	module:tester
+assert_equal_i64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i64(/;"	s	module:tester
+assert_equal_i64_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i64_1(/;"	s	module:tester
+assert_equal_i8	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i8(/;"	s	module:tester
+assert_equal_i8_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_i8_1(/;"	s	module:tester
+assert_equal_l	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^ subroutine assert_equal_l(/;"	s	module:tester
+assert_equal_l_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_l_1(/;"	s	module:tester
+assert_equal_r32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_r32(/;"	s	module:tester
+assert_equal_r32_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_r32_1(/;"	s	module:tester
+assert_equal_r64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_r64(/;"	s	module:tester
+assert_equal_r64_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_equal_r64_1(/;"	s	module:tester
+assert_positive_i16	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i16(/;"	s	module:tester
+assert_positive_i16_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i16_1(/;"	s	module:tester
+assert_positive_i32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i32(/;"	s	module:tester
+assert_positive_i32_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i32_1(/;"	s	module:tester
+assert_positive_i64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i64(/;"	s	module:tester
+assert_positive_i64_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i64_1(/;"	s	module:tester
+assert_positive_i8	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i8(/;"	s	module:tester
+assert_positive_i8_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_i8_1(/;"	s	module:tester
+assert_positive_r32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_r32(/;"	s	module:tester
+assert_positive_r32_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_r32_1(/;"	s	module:tester
+assert_positive_r64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_r64(/;"	s	module:tester
+assert_positive_r64_1	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine assert_positive_r64_1(/;"	s	module:tester
 assign_object	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  elemental subroutine assign_object(/;"	s	module:flap_object_t
 ation	doc/_build/html/_static/searchtools.js	/^    ization: 'ize',$/;"	p	class:Stemmer.step2list
 ational	doc/_build/html/_static/searchtools.js	/^  var step2list = {$/;"	p	class:Stemmer.step2list
@@ -904,14 +812,32 @@ b.wrap	doc/_build/html/_static/underscore.js	/^a.apply(d,e);i();g=true}};b.debou
 b.zip	doc/_build/html/_static/underscore.js	/^return e};b.union=function(){return b.uniq(b.flatten(arguments,true))};b.intersection=b.intersect=function(a){var c=i.call(arguments,1);return b.filter(b.uniq(a),function(a){return b.every(c,function(c){return b.indexOf(c,a)>=0})})};b.difference=function(a){var c=b.flatten(i.call(arguments,1));return b.filter(a,function(a){return!b.include(c,a)})};b.zip=function(){for(var a=i.call(arguments),c=b.max(b.pluck(a,"length")),d=Array(c),e=0;e<c;e++)d[e]=b.pluck(a,""+e);return d};b.indexOf=function(a,c,$/;"	f
 b_any	src/util/debugging.f90	/^logical function b_any(/;"	f
 ballsize	src/third_party/kdtree2.f90	/^      real(kdkind)      :: ballsize$/;"	k	type:tree_search_record
+bctoi_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctoi_I1P(/;"	f	module:penf_stringify
+bctoi_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctoi_I2P(/;"	f	module:penf_stringify
+bctoi_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctoi_I4P(/;"	f	module:penf_stringify
+bctoi_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctoi_I8P(/;"	f	module:penf_stringify
+bctor_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctor_R16P(/;"	f	module:penf_stringify
+bctor_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctor_R4P(/;"	f	module:penf_stringify
+bctor_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bctor_R8P(/;"	f	module:penf_stringify
 biliti	doc/_build/html/_static/searchtools.js	/^    iviti: 'ive',$/;"	p	class:Stemmer.step2list
 bind	doc/_build/html/_static/underscore-1.3.1.js	/^  _.bind = function bind(func, context) {$/;"	f
+bit_size_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function bit_size_R16P(/;"	f	module:penf_b_size
+bit_size_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function bit_size_R4P(/;"	f	module:penf_b_size
+bit_size_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function bit_size_R8P(/;"	f	module:penf_b_size
+bit_size_chr	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function bit_size_chr(/;"	f	module:penf_b_size
 bli	doc/_build/html/_static/searchtools.js	/^    izer: 'ize',$/;"	p	class:Stemmer.step2list
 boolean_options	versioneer.py	/^        boolean_options = []$/;"	v	class:get_cmdclass.cmd_version
 box	src/third_party/kdtree2.f90	/^      type(interval), pointer :: box(/;"	k	type:tree_node
 box_in_search_range	src/third_party/kdtree2.f90	/^  logical function box_in_search_range(/;"	f
 breaker	doc/_build/html/_static/underscore-1.3.1.js	/^  var breaker = {};$/;"	v
 bsave	wlcsim/pysim.py	/^bsave = []$/;"	v
+bstr_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_I1P(/;"	f	module:penf_stringify
+bstr_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_I2P(/;"	f	module:penf_stringify
+bstr_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_I4P(/;"	f	module:penf_stringify
+bstr_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_I8P(/;"	f	module:penf_stringify
+bstr_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_R16P(/;"	f	module:penf_stringify
+bstr_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_R4P(/;"	f	module:penf_stringify
+bstr_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function bstr_R8P(/;"	f	module:penf_stringify
 bubble_sort	src/util/bubble_sort.f95	/^SUBROUTINE bubble_sort(/;"	s
 bucket_size	src/third_party/kdtree2.f90	/^  integer, parameter :: bucket_size /;"	v	module:kdtree2_module
 build	fort_depend.py	/^    build = args.build[0] if args.build else ''$/;"	v
@@ -920,6 +846,14 @@ build_tree	src/third_party/kdtree2.f90	/^    subroutine build_tree(/;"	s	module:
 build_tree_for_range	src/third_party/kdtree2.f90	/^    recursive function build_tree_for_range(/;"	f
 bval	src/third_party/FLAP/src/tests/test_basic.f90	/^logical                      :: bval /;"	v	program:test_basic
 bval	src/third_party/FLAP/src/tests/test_string.f90	/^logical                      :: bval /;"	v	program:test_string
+byte_size_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_I1P(/;"	f	module:penf_b_size
+byte_size_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_I2P(/;"	f	module:penf_b_size
+byte_size_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_I4P(/;"	f	module:penf_b_size
+byte_size_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_I8P(/;"	f	module:penf_b_size
+byte_size_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_R16P(/;"	f	module:penf_b_size
+byte_size_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_R4P(/;"	f	module:penf_b_size
+byte_size_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_R8P(/;"	f	module:penf_b_size
+byte_size_chr	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^  elemental function byte_size_chr(/;"	f	module:penf_b_size
 cached_property	wlcsim/utils/cached_property.py	/^class cached_property(object):$/;"	c
 calculate_for_each_param	wlcsim/olddata.py	/^    def calculate_for_each_param(self, f):$/;"	m	class:Scan
 calculate_linear_distance	wlcsim/olddata.py	/^    def calculate_linear_distance(self):$/;"	m	class:Scan
@@ -936,6 +870,7 @@ check_collisions_bb	src/util/colchecker.f95	/^subroutine check_collisions_bb(/;"
 check_collisions_bin	src/util/colchecker.f95	/^subroutine check_collisions_bin(/;"	s
 check_collisions_brute	src/util/colchecker.f95	/^subroutine check_collisions_brute(/;"	s
 check_collisions_kd	src/util/colchecker.f95	/^subroutine check_collisions_kd(/;"	s
+check_endian	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  subroutine check_endian(/;"	s	module:penf
 check_envvar_consistency	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine check_envvar_consistency(/;"	s	module:flap_command_line_argument_t
 check_list_size	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  function check_list_size(/;"	f	module:flap_command_line_argument_t
 check_m_exclude_consistency	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine check_m_exclude_consistency(/;"	s	module:flap_command_line_argument_t
@@ -979,6 +914,8 @@ commentImage	doc/_build/html/_static/websupport.js	/^    deleteCommentURL: '\/_d
 commentTemplate	doc/_build/html/_static/websupport.js	/^  var commentTemplate = '\\$/;"	v
 comment_id	doc/_build/html/_static/websupport.js	/^    var d = {$/;"	p	class:handleVote.d
 comp	doc/_build/html/_static/websupport.js	/^      var i = by.substring(3);$/;"	f
+compact_real	src/third_party/FLAP/src/third_party/PENF/src/tests/compact_real.f90	/^program compact_real$/;"	p
+compact_real_string	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure subroutine compact_real_string(/;"	s	module:penf_stringify
 compile_string	fort_depend.py	/^    compile_string = args.compile_string[0] if args.compile_string else ''$/;"	v
 completed	doc/_build/html/_static/jquery-1.11.1.js	/^function completed() {$/;"	f
 computeStyleTests	doc/_build/html/_static/jquery-1.11.1.js	/^	function computeStyleTests() {$/;"	f
@@ -1009,18 +946,23 @@ createStandardXHR	doc/_build/html/_static/jquery-1.11.1.js	/^function createStan
 createTween	doc/_build/html/_static/jquery-1.11.1.js	/^function createTween( value, prop, animation ) {$/;"	f
 create_file_objs	fort_depend.py	/^def create_file_objs(files=None, macros={}):$/;"	f
 cssExpand	doc/_build/html/_static/jquery-1.11.1.js	/^var cssExpand = [ "Top", "Right", "Bottom", "Left" ];$/;"	v
+ctoi_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctoi_I1P(/;"	f	module:penf_stringify
+ctoi_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctoi_I2P(/;"	f	module:penf_stringify
+ctoi_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctoi_I4P(/;"	f	module:penf_stringify
+ctoi_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctoi_I8P(/;"	f	module:penf_stringify
 ctor	doc/_build/html/_static/underscore-1.3.1.js	/^  var ctor = function(){};$/;"	f
+ctor_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctor_R16P(/;"	f	module:penf_stringify
+ctor_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctor_R4P(/;"	f	module:penf_stringify
+ctor_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  function ctor_R8P(/;"	f	module:penf_stringify
 cur	doc/_build/html/_static/jquery-1.11.1.js	/^	},$/;"	m	class:Tween
 curCSS	doc/_build/html/_static/jquery-1.11.1.js	/^	};$/;"	f
 cut_dim	src/third_party/kdtree2.f90	/^      integer :: cut_dim$/;"	k	type:tree_node
 cut_val	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val$/;"	k	type:tree_node
 cut_val_left	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left,/;"	k	type:tree_node
 cut_val_right	src/third_party/kdtree2.f90	/^      real(kdkind) :: cut_val_left, cut_val_right /;"	k	type:tree_node
-dE_exchange	src/wlcsim/wlcsim_brad.f95	/^  real(dp) dE_exchange /;"	v	program:wlcsim
 data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: data(/;"	k	type:tree_search_record
 dataAttr	doc/_build/html/_static/jquery-1.11.1.js	/^function dataAttr( elem, key, data ) {$/;"	f
 dataType	doc/_build/html/_static/jquery-1.11.1.js	/^		var dataType,$/;"	v
-datedum	src/wlcsim/wlcsim_brad.f95	/^  character*8 datedum /;"	v	program:wlcsim
 datedum	tests/mc/test_calcVolume.f95	/^    character*8 datedum$/;"	v	program:test_calcVolume
 datedum	tests/mc/test_int.f95	/^    character*8 datedum$/;"	v	program:scratch
 decim	src/legacy/decim.f95	/^      SUBROUTINE decim(/;"	s
@@ -1031,16 +973,10 @@ defaultDisplay	doc/_build/html/_static/jquery-1.11.1.js	/^function defaultDispla
 defaultPrefilter	doc/_build/html/_static/jquery-1.11.1.js	/^function defaultPrefilter( elem, props, opts ) {$/;"	f
 default_group_params_coltimes	wlcsim/analyze.py	/^default_group_params_coltimes = ['linear_distance']$/;"	v
 default_repeats_per_param	scan_wlcsim.py	/^default_repeats_per_param = 10$/;"	v
-del	src/wlcsim/wlcsim_brad.f95	/^  real(dp) del /;"	v	program:wlcsim
-delR	src/wlcsim/wlcsim_brad.f95	/^  real(dp) delR(/;"	v	program:wlcsim
-delR	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) delR(/;"	v	program:wlcsim
-delR0	src/wlcsim/wlcsim_brad.f95	/^  real(dp) delR0(/;"	v	program:wlcsim
-delR0	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) delR0(/;"	v	program:wlcsim
 deleteComment	doc/_build/html/_static/websupport.js	/^  function deleteComment(id) {$/;"	f
 deleteCommentURL	doc/_build/html/_static/websupport.js	/^    acceptCommentURL: '\/_accept_comment',$/;"	p	class:opts
 description	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  character(len=:), public, allocatable :: description /;"	v	module:flap_object_t
 description	versioneer.py	/^        description = "report generated version string"$/;"	v	class:get_cmdclass.cmd_version
-dest	src/wlcsim/wlcsim_brad.f95	/^  integer dest$/;"	v	program:wlcsim
 destroy_node	src/third_party/kdtree2.f90	/^    recursive subroutine destroy_node(/;"	s	subroutine:kdtree2_destroy
 detach	doc/_build/html/_static/jquery-1.11.1.js	/^function detach() {$/;"	f
 df_from_coltimes	wlcsim/data.py	/^    def df_from_coltimes(self, coltimes, method=3):$/;"	m	class:Sim
@@ -1052,6 +988,10 @@ df_from_coltimes_method2	wlcsim/olddata.py	/^def df_from_coltimes_method2(coltim
 df_from_coltimes_method3	wlcsim/data.py	/^def df_from_coltimes_method3(coltimes):$/;"	f
 df_from_coltimes_method3	wlcsim/olddata.py	/^def df_from_coltimes_method3(coltimes):$/;"	f
 dfsave	wlcsim/pysim.py	/^dfsave = []$/;"	v
+digit_I1	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  elemental function digit_I1(/;"	f	module:penf
+digit_I2	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  elemental function digit_I2(/;"	f	module:penf
+digit_I4	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  elemental function digit_I4(/;"	f	module:penf
+digit_I8	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  elemental function digit_I8(/;"	f	module:penf
 dimen	src/third_party/kdtree2.f90	/^      integer           :: dimen /;"	k	type:tree_search_record
 dimen	src/third_party/kdtree2.f90	/^      integer :: dimen=/;"	k	type:kdtree2
 dis	src/third_party/kdtree2.f90	/^      real(kdkind)    :: dis!/;"	k	type:kdtree2_result
@@ -1073,6 +1013,9 @@ elems	src/third_party/kdtree2.f90	/^      type(kdtree2_result), pointer :: elems
 eli	doc/_build/html/_static/searchtools.js	/^    entli: 'ent',$/;"	p	class:Stemmer.step2list
 enci	doc/_build/html/_static/searchtools.js	/^    tional: 'tion',$/;"	p	class:Stemmer.step2list
 end	doc/make.bat	/^:end$/;"	l
+endian	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer            :: endian /;"	v	module:penf_global_parameters_variables
+endianB	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: endianB /;"	v	module:penf_global_parameters_variables
+endianL	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: endianL /;"	v	module:penf_global_parameters_variables
 energy_elas	src/mc/energy_elas.f90	/^      SUBROUTINE energy_elas(/;"	s
 energy_ponp	src/mc/energy_ponp.f90	/^      SUBROUTINE energy_ponp(/;"	s
 entli	doc/_build/html/_static/searchtools.js	/^    alli: 'al',$/;"	p	class:Stemmer.step2list
@@ -1088,7 +1031,6 @@ error	src/third_party/FLAP/src/tests/test_minimal.f90	/^integer(I4P)            
 error	src/third_party/FLAP/src/tests/test_nested.f90	/^integer(I4P)                 :: error /;"	v	program:test_nested
 error	src/third_party/FLAP/src/tests/test_string.f90	/^integer(I4P)                 :: error /;"	v	program:test_string
 error	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) error$/;"	v	program:main
-error	src/wlcsim/wlcsim_brad.f95	/^  integer (kind = 4) error$/;"	v	program:wlcsim
 error_lun	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  integer(I4P),     public              :: error_lun=/;"	v	module:flap_object_t
 error_message	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  character(len=:), public, allocatable :: error_message /;"	v	module:flap_object_t
 errored	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine errored(/;"	s	module:flap_command_line_argument_t
@@ -1109,8 +1051,6 @@ fileMap	doc/_build/html/_static/searchtools.js	/^    var fileMap = {};$/;"	v
 file_obj	fort_depend.py	/^class file_obj:$/;"	c
 file_objs_to_mod_dict	fort_depend.py	/^def file_objs_to_mod_dict(file_objs=[]):$/;"	f
 file_to_words	wlcsim/utils/exampleSimpleMapReduce.py	/^def file_to_words(filename):$/;"	f
-fileind	src/wlcsim/wlcsim_brad.f95	/^  character*5 fileind /;"	v	program:wlcsim
-fileind	src/wlcsim/wlcsim_bruno.f95	/^      character*4 fileind /;"	v	program:wlcsim
 finalize	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  elemental subroutine finalize(/;"	s	module:flap_command_line_argument_t
 finalize	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  elemental subroutine finalize(/;"	s	module:flap_command_line_arguments_group_t
 finalize	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  elemental subroutine finalize(/;"	s	module:flap_command_line_interface_t
@@ -1199,7 +1139,6 @@ get_version	versioneer.py	/^def get_version():$/;"	f
 get_versions	versioneer.py	/^def get_versions(verbose=False):$/;"	f
 get_versions	wlcsim/_version.py	/^def get_versions():$/;"	f
 getdim	src/util/getdim.f95	/^SUBROUTINE getdim(/;"	s
-getpara	src/wlcsim/getpara.f90	/^      subroutine getpara(/;"	s
 git_get_keywords	versioneer.py	/^def git_get_keywords(versionfile_abs):$/;"	f
 git_get_keywords	wlcsim/_version.py	/^def git_get_keywords(versionfile_abs):$/;"	f
 git_pieces_from_vcs	versioneer.py	/^def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):$/;"	f
@@ -1249,7 +1188,6 @@ icate	doc/_build/html/_static/searchtools.js	/^  var step3list = {$/;"	p	class:S
 iciti	doc/_build/html/_static/searchtools.js	/^    alize: 'al',$/;"	p	class:Stemmer.step3list
 icolsort	src/util/colsort.f95	/^subroutine icolsort(/;"	s
 id	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) id$/;"	v	program:main
-id	src/wlcsim/wlcsim_brad.f95	/^  integer (kind = 4) id$/;"	v	program:wlcsim
 idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
 ieval	src/third_party/FLAP/src/tests/test_basic.f90	/^integer(I4P)                 :: ieval /;"	v	program:test_basic
 ieval	src/third_party/FLAP/src/tests/test_string.f90	/^integer(I4P)                 :: ieval /;"	v	program:test_string
@@ -1260,10 +1198,6 @@ ilist	src/third_party/FLAP/src/tests/test_string.f90	/^integer(I8P)             
 ind	src/tests/test_sort.f90	/^integer :: ind(/;"	v	program:test_sort
 ind	src/third_party/kdtree2.f90	/^      integer, pointer      :: ind(/;"	k	type:tree_search_record
 ind	src/third_party/kdtree2.f90	/^      integer, pointer :: ind(/;"	k	type:kdtree2
-ind	src/wlcsim/wlcsim_brad.f95	/^  integer ind /;"	v	program:wlcsim
-ind	src/wlcsim/wlcsim_bruno.f95	/^      integer ind /;"	v	program:wlcsim
-indMAX	src/wlcsim/wlcsim_brad.f95	/^  integer indMAX /;"	v	program:wlcsim
-indMAX	src/wlcsim/wlcsim_bruno.f95	/^      integer indMAX /;"	v	program:wlcsim
 init	doc/_build/html/_static/doctools.js	/^var Documentation = {$/;"	m	class:Documentation
 init	doc/_build/html/_static/jquery-1.11.1.js	/^	constructor: Tween,$/;"	m	class:Tween
 init	doc/_build/html/_static/jquery-1.11.1.js	/^	return new Tween.prototype.init( elem, options, prop, end, easing );$/;"	m	class:return
@@ -1271,13 +1205,14 @@ init	doc/_build/html/_static/jquery-1.11.1.js	/^	};$/;"	c
 init	doc/_build/html/_static/jquery-1.11.1.js	/^Tween.prototype.init.prototype = Tween.prototype;$/;"	m	class:Tween
 init	doc/_build/html/_static/websupport.js	/^  function init() {$/;"	f
 init	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  subroutine init(/;"	s	module:flap_command_line_interface_t
+init	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine init(/;"	s	module:tester
 init	src/third_party/sort.f90	/^  subroutine init(/;"	s	subroutine:sort_1i
 initComparator	doc/_build/html/_static/websupport.js	/^  function initComparator() {$/;"	f
 initEvents	doc/_build/html/_static/websupport.js	/^  function initEvents() {$/;"	f
 init_gaussian_in_sphere_naive	wlcsim/pysim.py	/^def init_gaussian_in_sphere_naive(N, k, r):$/;"	f
 init_genrand	src/third_party/mt19937.f90	/^SUBROUTINE init_genrand(/;"	s	module:mt19937
 initchem	src/wlcsim/initchem.f95	/^subroutine initchem(/;"	s
-initcond	src/wlcsim/initcond.f95	/^subroutine initcond(/;"	s
+initcond	src/wlcsim/initcond.f95	/^SUBROUTINE initcond(/;"	s
 initialize_options	versioneer.py	/^        def initialize_options(self):$/;"	m	class:get_cmdclass.cmd_version
 input_file	scan_wlcsim.py	/^input_file = os.path.join(script_dir, 'input', 'input')$/;"	v
 inputs	wlcsim/data.py	/^    def inputs(self):$/;"	m	class:Scan
@@ -1301,6 +1236,8 @@ is_defined	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	
 is_defined	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  function is_defined(/;"	f	module:flap_command_line_interface_t
 is_defined_group	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  function is_defined_group(/;"	f	module:flap_command_line_interface_t
 is_hidden	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  logical,                       public :: is_hidden=/;"	v	module:flap_command_line_argument_t
+is_initialized	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^logical            :: is_initialized /;"	v	module:penf_global_parameters_variables
+is_little_endian	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^    pure function is_little_endian(/;"	f	subroutine:check_endian
 is_parsed	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  elemental function is_parsed(/;"	f	module:flap_command_line_interface_t
 is_parsed_	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  logical                                         :: is_parsed_=/;"	v	module:flap_command_line_interface_t
 is_passed	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  logical,                       public :: is_passed=/;"	v	module:flap_command_line_argument_t
@@ -1431,6 +1368,8 @@ n	src/third_party/kdtree2.f90	/^      int/;"	k	type:kdtree2
 n	src/third_party/mersenne_twister.f90	/^        int/;"	v	module:mersenne_twister
 n	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n /;"	v	module:mt19937
 n1	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 /;"	v	module:mt19937
+n_errors	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^     integer(int32) :: n_errors=/;"	k	type:tester_t
+n_tests	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^     integer(int32) :: n_tests=/;"	k	type:tester_t
 nalloc	src/third_party/kdtree2.f90	/^      integer           :: nalloc /;"	k	type:tree_search_record
 nan_fill_coltimes	wlcsim/data.py	/^def nan_fill_coltimes(coltimes):$/;"	f
 nargs	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  character(len=:), allocatable, public :: nargs /;"	v	module:flap_command_line_argument_t
@@ -1442,7 +1381,6 @@ nfound	src/third_party/kdtree2.f90	/^      integer           :: nn, nfound$/;"	k
 nn	src/third_party/kdtree2.f90	/^      integer           :: nn,/;"	k	type:tree_search_record
 nodeHook	doc/_build/html/_static/jquery-1.11.1.js	/^var nodeHook, boolHook,$/;"	v
 nodeNames	doc/_build/html/_static/jquery-1.11.1.js	/^var nodeNames = "abbr|article|aside|audio|bdi|canvas|data|datalist|details|figcaption|figure|footer|" +$/;"	v
-nodeNumber	src/wlcsim/wlcsim_brad.f95	/^  integer, allocatable :: nodeNumber(/;"	v	program:wlcsim
 nonce	doc/_build/html/_static/jquery-1.11.1.js	/^var nonce = jQuery.now();$/;"	v
 nrest	src/third_party/mersenne_twister.f90	/^        integer,parameter:: nrest=/;"	v	module:mersenne_twister
 num_beads	wlcsim/plot.py	/^num_beads = 10$/;"	v
@@ -1465,13 +1403,10 @@ output_base	scan_wlcsim.py	/^output_base = 'par-run-dir'$/;"	v
 overflow	src/third_party/kdtree2.f90	/^      logical           :: overflow$/;"	k	type:tree_search_record
 p	scan_wlcsim.py	/^    p = multiprocessing.Pool(num_cores)$/;"	v
 p	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) p$/;"	v	program:main
-p	src/wlcsim/wlcsim_brad.f95	/^  integer (kind = 4) p$/;"	v	program:wlcsim
 packages	setup.py	/^          packages=find_packages(include=["wlcsim", "wlcsim.*"]),$/;"	v
 pairwise_distances3	wlcsim/data.py	/^def pairwise_distances3(r):$/;"	f
 panel	wlcsim/plot.py	/^panel = QtGui.QWidget()$/;"	v
 panel	wlcsim/plot_wlcsim.py	/^panel = QtGui.QWidget()$/;"	v
-para	src/wlcsim/wlcsim_brad.f95	/^  real(dp) para(/;"	v	program:wlcsim
-para	src/wlcsim/wlcsim_bruno.f95	/^      real(dp) para(/;"	v	program:wlcsim
 paraTemp	src/wlcsim/MCparrll_mpi.f90	/^subroutine paraTemp /;"	s
 param_names	wlcsim/data.py	/^    def param_names(self):$/;"	m	class:Sim
 params	pscan.py	/^    def params(self):$/;"	m	class:Scan
@@ -1482,6 +1417,12 @@ parse	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  subrout
 parser	fort_depend.py	/^    parser = argparse.ArgumentParser(description='Generate Fortran dependencies')$/;"	v
 partition	wlcsim/utils/multiprocessing_mapreduce.py	/^    def partition(self, mapped_values):$/;"	m	class:SimpleMapReduce
 path_parts	wlcsim/utils/path.py	/^def path_parts(path):$/;"	f
+penf	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^module penf$/;"	m
+penf_b_size	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_b_size.F90	/^module penf_b_size$/;"	m
+penf_global_parameters_variables	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^module penf_global_parameters_variables$/;"	m
+penf_init	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  subroutine penf_init(/;"	s	module:penf
+penf_print	src/third_party/FLAP/src/third_party/PENF/src/lib/penf.F90	/^  subroutine penf_print(/;"	s	module:penf
+penf_stringify	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^module penf_stringify$/;"	m
 plus_or_dot	versioneer.py	/^def plus_or_dot(pieces):$/;"	f
 plus_or_dot	wlcsim/_version.py	/^def plus_or_dot(pieces):$/;"	f
 popupTemplate	doc/_build/html/_static/websupport.js	/^  var popupTemplate = '\\$/;"	v
@@ -1499,6 +1440,7 @@ pq_maxpri	src/third_party/kdtree2.f90	/^  real(kdkind) function pq_maxpri(/;"	f	
 pq_replace_max	src/third_party/kdtree2.f90	/^  real(kdkind) function pq_replace_max(/;"	f	module:kdtree2_priority_queue_module
 preventDefault	doc/_build/html/_static/jquery-1.11.1.js	/^	isImmediatePropagationStopped: returnFalse,$/;"	m	class:jQuery.Event
 previousUnderscore	doc/_build/html/_static/underscore-1.3.1.js	/^  var previousUnderscore = root._;$/;"	v
+print	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  subroutine print(/;"	s	module:tester
 print_error_message	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  subroutine print_error_message(/;"	s	module:flap_object_t
 print_usage	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  subroutine print_usage(/;"	s	module:flap_command_line_interface_t
 print_version	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  subroutine print_version(/;"	s	module:flap_object_t
@@ -1508,7 +1450,9 @@ process_terminal_node_fixedball	src/third_party/kdtree2.f90	/^  subroutine proce
 progname	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  character(len=:), public, allocatable :: progname /;"	v	module:flap_object_t
 project	doc/conf.py	/^project = 'wlcsim'$/;"	v
 projectbuild	src/third_party/FLAP/scripts/install.sh	/^function projectbuild () {$/;"	f
+projectbuild	src/third_party/FLAP/src/third_party/PENF/scripts/install.sh	/^function projectbuild () {$/;"	f
 projectdownload	src/third_party/FLAP/scripts/install.sh	/^function projectdownload () {$/;"	f
+projectdownload	src/third_party/FLAP/src/third_party/PENF/scripts/install.sh	/^function projectdownload () {$/;"	f
 propFilter	doc/_build/html/_static/jquery-1.11.1.js	/^function propFilter( props, specialEasing ) {$/;"	f
 prval	src/third_party/FLAP/src/tests/test_basic.f90	/^real(R8P)                    :: prval /;"	v	program:test_basic
 prval	src/third_party/FLAP/src/tests/test_string.f90	/^real(R8P)                    :: prval /;"	v	program:test_string
@@ -1529,7 +1473,6 @@ raise_error_nargs_insufficient	src/third_party/FLAP/src/lib/flap_command_line_ar
 raise_error_switch_unknown	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine raise_error_switch_unknown(/;"	s	module:flap_command_line_argument_t
 raise_error_value_missing	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine raise_error_value_missing(/;"	s	module:flap_command_line_argument_t
 ran1	src/legacy/ran1.f90	/^      function ran1(/;"	f
-rand_stat	src/wlcsim/wlcsim_brad.f95	/^  type(random_stat) rand_stat /;"	v	program:wlcsim
 random_gauss_f	src/third_party/mersenne_twister.f90	/^        function random_gauss_f(/;"	f	module:mersenne_twister
 random_gauss_i	src/third_party/mersenne_twister.f90	/^        subroutine random_gauss_i(/;"	s	module:mersenne_twister
 random_gauss_s	src/third_party/mersenne_twister.f90	/^        subroutine random_gauss_s(/;"	s	module:mersenne_twister
@@ -1574,7 +1517,6 @@ render_pep440_post	versioneer.py	/^def render_pep440_post(pieces):$/;"	f
 render_pep440_post	wlcsim/_version.py	/^def render_pep440_post(pieces):$/;"	f
 render_pep440_pre	versioneer.py	/^def render_pep440_pre(pieces):$/;"	f
 render_pep440_pre	wlcsim/_version.py	/^def render_pep440_pre(pieces):$/;"	f
-rep	src/wlcsim/wlcsim_brad.f95	/^  integer rep$/;"	v	program:wlcsim
 replace	src/third_party/FLAP/src/lib/flap_utils_m.f90	/^  pure function replace(/;"	f	module:flap_utils_m
 replace_all	src/third_party/FLAP/src/lib/flap_utils_m.f90	/^  pure function replace_all(/;"	f	module:flap_utils_m
 replicaExchange	src/wlcsim/MCparrll_mpi.f90	/^subroutine replicaExchange(/;"	s
@@ -1592,7 +1534,6 @@ rfocusable	doc/_build/html/_static/jquery-1.11.1.js	/^var rfocusable = \/^(?:inp
 rformElems	doc/_build/html/_static/jquery-1.11.1.js	/^var rformElems = \/^(?:input|select|textarea)$\/i,$/;"	v
 rgauss	src/third_party/mersenne_twister.f90	/^          subroutine rgauss(/;"	s	subroutine:random_gauss_t
 right	src/third_party/kdtree2.f90	/^      type (tree_node), pointer :: left, right$/;"	k	type:tree_node
-ring	src/wlcsim/wlcsim_brad.f95	/^  integer ring /;"	v	program:wlcsim
 risSimple	doc/_build/html/_static/jquery-1.11.1.js	/^var risSimple = \/^.[^:#\\[\\.,]*$\/;$/;"	v
 rneedsContext	doc/_build/html/_static/jquery-1.11.1.js	/^var rneedsContext = jQuery.expr.match.needsContext;$/;"	v
 rnorm	src/third_party/mt19937.f90	/^FUNCTION rnorm(/;"	f	module:mt19937
@@ -1601,8 +1542,6 @@ root	wlcsim/plot.py	/^root = fig.canvas.manager.window$/;"	v
 root	wlcsim/plot_wlcsim.py	/^root = fig.canvas.manager.window$/;"	v
 rreturn	doc/_build/html/_static/jquery-1.11.1.js	/^var rreturn = \/\\r\/g;$/;"	v
 rshift	src/third_party/sort.f90	/^  subroutine rshift(/;"	s	subroutine:sort_1i
-rstat	src/wlcsim/wlcsim_brad.f95	/^  type(random_stat) rstat /;"	v	program:wlcsim
-rstati	src/wlcsim/wlcsim_brad.f95	/^  type(random_stat) rstati /;"	v	program:wlcsim
 rtime_idxs	wlcsim/data.py	/^    def rtime_idxs(self):$/;"	m	class:Sim
 rtimes	wlcsim/data.py	/^    def rtimes(self):$/;"	m	class:Sim
 run	doc/_build/html/_static/jquery-1.11.1.js	/^	},$/;"	m	class:Tween
@@ -1637,7 +1576,6 @@ script_dir	scan_wlcsim.py	/^script_dir = os.path.dirname(os.path.realpath(__file
 script_name	scan_wlcsim.py	/^    script_name = os.path.basename(__file__)$/;"	v
 search	src/third_party/kdtree2.f90	/^  recursive subroutine search(/;"	s
 searchterms	doc/_build/html/_static/searchtools.js	/^    var searchterms = [];$/;"	v
-seedvalues	src/wlcsim/wlcsim_brad.f95	/^  integer seedvalues(/;"	v	program:wlcsim
 seedvalues	tests/mc/test_calcVolume.f95	/^    integer seedvalues(/;"	v	program:test_calcVolume
 seedvalues	tests/mc/test_int.f95	/^    integer seedvalues(/;"	v	program:scratch
 select_on_coordinate	src/third_party/kdtree2.f90	/^    subroutine select_on_coordinate(/;"	s
@@ -1675,15 +1613,12 @@ slice	doc/_build/html/_static/underscore-1.3.1.js	/^  var slice            = Arr
 slider_t	wlcsim/plot.py	/^slider_t = Slider(ax, 't', 0, 1, valinit=0)$/;"	v
 slider_t	wlcsim/plot_wlcsim.py	/^slider_t = Slider(ax, 't', 0, num_time_points-1, valinit=0)$/;"	v
 slow	doc/_build/html/_static/jquery-1.11.1.js	/^jQuery.fx.speeds = {$/;"	p	class:jQuery.fx.speeds
-snapnm	src/wlcsim/wlcsim_brad.f95	/^  character*16 snapnm /;"	v	program:wlcsim
-snapnm	src/wlcsim/wlcsim_bruno.f95	/^      character*16 snapnm /;"	v	program:wlcsim
 sort	src/third_party/kdtree2.f90	/^      logical       :: sort /;"	k	type:kdtree2
 sortComments	doc/_build/html/_static/websupport.js	/^  function sortComments(comments) {$/;"	f
 sort_1i	src/third_party/sort.f90	/^subroutine sort_1i(/;"	s
 sortp_1r4	src/third_party/sort.f90	/^subroutine sortp_1r4(/;"	s
 sortp_1r8	src/third_party/sort.f90	/^subroutine sortp_1r8(/;"	s
 sortp_string	src/third_party/sort.f90	/^subroutine sortp_string(/;"	s
-source	src/wlcsim/wlcsim_brad.f95	/^  integer source$/;"	v	program:wlcsim
 source_suffix	doc/conf.py	/^source_suffix = '.rst'$/;"	v
 sp	src/tests/test_sort.f90	/^integer, parameter :: sp /;"	v	program:test_sort
 sp	src/third_party/kdtree2.f90	/^  integer, parameter :: sp /;"	v	module:kdtree2_precision_module
@@ -1694,18 +1629,42 @@ square_distance	src/third_party/kdtree2.f90	/^  function square_distance(/;"	f
 sr	src/third_party/kdtree2.f90	/^  type(tree_search_record), save, target :: sr /;"	v	module:kdtree2_module
 sstat	src/third_party/mersenne_twister.f90	/^        type(random_stat),save:: sstat$/;"	v	module:mersenne_twister
 start	doc/_build/html/_static/searchtools.js	/^    var start = 0;$/;"	v
-stat	src/wlcsim/wlcsim_brad.f95	/^  type(random_stat)/;"	v	program:wlcsim
-status	src/wlcsim/wlcsim_brad.f95	/^  integer (kind = 4) status(/;"	v	program:wlcsim
 stemWord	doc/_build/html/_static/searchtools.js	/^  this.stemWord = function (w) {$/;"	m	class:Stemmer
 stopImmediatePropagation	doc/_build/html/_static/jquery-1.11.1.js	/^	},$/;"	m	class:jQuery.Event
 stopPropagation	doc/_build/html/_static/jquery-1.11.1.js	/^	},$/;"	m	class:jQuery.Event
 stopwords	doc/_build/html/_static/searchtools.js	/^    var stopwords = ["a","and","are","as","at","be","but","by","for","if","in","into","is","it","near","no","not","of","on","or","such","that","the","their","then","there","these","they","this","to","was","will","with"];$/;"	v
+str_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_I1P(/;"	f	module:penf_stringify
+str_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_I2P(/;"	f	module:penf_stringify
+str_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_I4P(/;"	f	module:penf_stringify
+str_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_I8P(/;"	f	module:penf_stringify
+str_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_R16P(/;"	f	module:penf_stringify
+str_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_R4P(/;"	f	module:penf_stringify
+str_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_R8P(/;"	f	module:penf_stringify
+str_a_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_I1P(/;"	f	module:penf_stringify
+str_a_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_I2P(/;"	f	module:penf_stringify
+str_a_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_I4P(/;"	f	module:penf_stringify
+str_a_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_I8P(/;"	f	module:penf_stringify
+str_a_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_R16P(/;"	f	module:penf_stringify
+str_a_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_R4P(/;"	f	module:penf_stringify
+str_a_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_R8P(/;"	f	module:penf_stringify
+str_bol	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_bol(/;"	f	module:penf_stringify
 strength_schedule	src/wlcsim/schedule.f95	/^subroutine strength_schedule(/;"	s
 stress	src/bd/stress.f95	/^      SUBROUTINE stress(/;"	s
 stressp	src/bd/stressp.f95	/^      SUBROUTINE stressp(/;"	s
+strf_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_I1P(/;"	f	module:penf_stringify
+strf_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_I2P(/;"	f	module:penf_stringify
+strf_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_I4P(/;"	f	module:penf_stringify
+strf_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_I8P(/;"	f	module:penf_stringify
+strf_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_R16P(/;"	f	module:penf_stringify
+strf_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_R4P(/;"	f	module:penf_stringify
+strf_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_R8P(/;"	f	module:penf_stringify
 striding_map_mean_coltimes	wlcsim/analyze.py	/^def striding_map_mean_coltimes(sim_dir, idx_gap=0,$/;"	f
 string	src/third_party/FLAP/src/tests/test_minimal.f90	/^character(99)                :: string /;"	v	program:test_minimal
 strundefined	doc/_build/html/_static/jquery-1.11.1.js	/^var strundefined = typeof undefined;$/;"	v
+strz_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strz_I1P(/;"	f	module:penf_stringify
+strz_I2P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strz_I2P(/;"	f	module:penf_stringify
+strz_I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strz_I4P(/;"	f	module:penf_stringify
+strz_I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strz_I8P(/;"	f	module:penf_stringify
 support.shrinkWrapBlocks	doc/_build/html/_static/jquery-1.11.1.js	/^	var shrinkWrapBlocksVal;$/;"	f
 sval	src/third_party/FLAP/src/tests/test_basic.f90	/^character(99)                :: sval /;"	v	program:test_basic
 sval	src/third_party/FLAP/src/tests/test_string.f90	/^character(99)                :: sval /;"	v	program:test_string
@@ -1721,6 +1680,11 @@ t	wlcsim/plot_wlcsim.py	/^t = 0$/;"	v
 teardown	doc/_build/html/_static/jquery-1.11.1.js	/^		},$/;"	m	class:jQuery.event.special.change
 teardown	doc/_build/html/_static/jquery-1.11.1.js	/^		},$/;"	m	class:jQuery.event.special.submit
 templates_path	doc/conf.py	/^templates_path = ['_templates']$/;"	v
+test	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_1.f90	/^  type(teste/;"	v	program:test_tester_1
+test	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_2.f90	/^  type(teste/;"	v	program:test_tester_2
+test	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_3.f90	/^  type(teste/;"	v	program:test_tester_3
+test	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_4.f90	/^  type(teste/;"	v	program:test_tester_4
+test_all	src/third_party/FLAP/src/third_party/PENF/src/tests/test_all.F90	/^program test_all$/;"	p
 test_basic	src/third_party/FLAP/src/tests/test_basic.f90	/^program test_basic$/;"	p
 test_calcVolume	tests/mc/test_calcVolume.f95	/^PROGRAM test_calcVolume$/;"	p
 test_choices_logical	src/third_party/FLAP/src/tests/test_choices_logical.f90	/^program test_choices_logical$/;"	p
@@ -1734,14 +1698,20 @@ test_init_end_to_end_distance	wlcsim/tests.py	/^def test_init_end_to_end_distanc
 test_interp	tests/mc/test_interp.f95	/^PROGRAM test_interp$/;"	p
 test_minimal	src/third_party/FLAP/src/tests/test_minimal.f90	/^program test_minimal$/;"	p
 test_nested	src/third_party/FLAP/src/tests/test_nested.f90	/^program test_nested$/;"	p
+test_passed	src/third_party/FLAP/src/third_party/PENF/src/tests/compact_real.f90	/^logical :: test_passed(/;"	v	program:compact_real
 test_sort	src/tests/test_sort.f90	/^program test_sort$/;"	p
 test_string	src/third_party/FLAP/src/tests/test_string.f90	/^program test_string$/;"	p
+test_tester_1	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_1.f90	/^program test_tester_1$/;"	p
+test_tester_2	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_2.f90	/^program test_tester_2$/;"	p
+test_tester_3	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_3.f90	/^program test_tester_3$/;"	p
+test_tester_4	src/third_party/FLAP/src/third_party/fortran_tester/test/test_tester_4.f90	/^program test_tester_4$/;"	p
+tester	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^module tester$/;"	m
+tester_t	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^  type :: tester_t$/;"	t	module:tester
 texinfo_documents	doc/conf.py	/^texinfo_documents = [$/;"	v
 textbox	wlcsim/plot.py	/^textbox = QtGui.QLineEdit(parent = panel)$/;"	v
 textbox	wlcsim/plot_wlcsim.py	/^textbox = QtGui.QLineEdit(parent = panel)$/;"	v
 the_data	src/third_party/kdtree2.f90	/^      real(kdkind), pointer :: the_data(/;"	k	type:kdtree2
 time_idxs	wlcsim/data.py	/^    def time_idxs(self, base, file_names):$/;"	m	class:Sim
-timedum	src/wlcsim/wlcsim_brad.f95	/^  character*10 timedum /;"	v	program:wlcsim
 timedum	tests/mc/test_calcVolume.f95	/^    character*10 timedum$/;"	v	program:test_calcVolume
 timedum	tests/mc/test_int.f95	/^    character*10 timedum$/;"	v	program:scratch
 tional	doc/_build/html/_static/searchtools.js	/^    ational: 'ate',$/;"	p	class:Stemmer.step2list
@@ -1753,6 +1723,8 @@ tmp	doc/_build/html/_static/searchtools.js	/^    var tmp = query.split(\/\\s+\/)
 todo_include_todos	doc/conf.py	/^todo_include_todos = True$/;"	v
 toggleCommentMarkupBox	doc/_build/html/_static/websupport.js	/^  function toggleCommentMarkupBox(id) {$/;"	f
 tokenize	src/third_party/FLAP/src/lib/flap_utils_m.f90	/^  pure subroutine tokenize(/;"	s	module:flap_utils_m
+tolerance32	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^     real(real32)   :: tolerance32=/;"	k	type:tester_t
+tolerance64	src/third_party/FLAP/src/third_party/fortran_tester/src/tester.f90	/^     real(real64)   :: tolerance64=/;"	k	type:tester_t
 tree_node	src/third_party/kdtree2.f90	/^  type :: tree_node$/;"	t	module:kdtree2_module
 tree_search_record	src/third_party/kdtree2.f90	/^  type :: tree_search_record$/;"	t	module:kdtree2_module
 tshftl	src/third_party/mt19937.f90	/^FUNCTION tshftl(/;"	f	module:mt19937
@@ -1779,12 +1751,12 @@ update_t	wlcsim/plot.py	/^def update_t(val):$/;"	f
 update_t	wlcsim/plot_wlcsim.py	/^def update_t(val):$/;"	f
 upper	src/third_party/kdtree2.f90	/^      real(kdkind) :: lower,upper$/;"	k	type:interval
 upper_case	src/third_party/FLAP/src/lib/flap_utils_m.f90	/^  elemental function upper_case(/;"	f	module:flap_utils_m
-urand	src/wlcsim/wlcsim_brad.f95	/^  real urand(/;"	v	program:wlcsim
 url	setup.py	/^          url="https:\/\/github.com\/SpakowitzLab\/BasicWLC",$/;"	v
 usage	src/third_party/FLAP/scripts/install.sh	/^function usage () {$/;"	f
 usage	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  function usage(/;"	f	module:flap_command_line_argument_t
 usage	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  function usage(/;"	f	module:flap_command_line_arguments_group_t
 usage	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  function usage(/;"	f	module:flap_command_line_interface_t
+usage	src/third_party/FLAP/src/third_party/PENF/scripts/install.sh	/^function usage () {$/;"	f
 usage_lun	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  integer(I4P),     public              :: usage_lun=/;"	v	module:flap_object_t
 user_options	versioneer.py	/^        user_options = []$/;"	v	class:get_cmdclass.cmd_version
 utime_idxs	wlcsim/data.py	/^    def utime_idxs(self):$/;"	m	class:Sim
@@ -1812,9 +1784,8 @@ vlistR4P	src/third_party/FLAP/src/tests/test_basic.f90	/^real(R4P),     allocata
 vlistR8P	src/third_party/FLAP/src/tests/test_basic.f90	/^real(R8P),     allocatable   :: vlistR8P(/;"	v	program:test_basic
 voting	doc/_build/html/_static/websupport.js	/^    downArrowPressed: '\/static\/_static\/down-pressed.png',$/;"	p	class:opts
 winnow	doc/_build/html/_static/jquery-1.11.1.js	/^function winnow( elements, qualifier, not ) {$/;"	f
-wlcsim	src/wlcsim/wlcsim_brad.f95	/^PROGRAM wlcsim$/;"	p
-wlcsim	src/wlcsim/wlcsim_bruno.f95	/^      PROGRAM wlcsim$/;"	p
-wlcsim	src/wlcsim/wlcsim_quinn.f95	/^subroutine wlcsim(/;"	s
+wlcsim_bruno	src/wlcsim/wlcsim_bruno.f95	/^subroutine wlcsim_bruno(/;"	s
+wlcsim_params_adapt	src/mc/adapt.f90	/^Subroutine wlcsim_params_adapt(/;"	s
 write_coltimes_csvs	wlcsim/data.py	/^def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):$/;"	f
 write_coltimes_csvs	wlcsim/olddata.py	/^    def write_coltimes_csvs(par_run_dir, overwrite=False, *args, **kwargs):$/;"	m	class:Scan
 write_coltimes_pkls	wlcsim/data.py	/^def write_coltimes_pkls(run_dir, *args, **kwargs):$/;"	f
@@ -1826,6 +1797,5 @@ write_initial_dists_csvs	wlcsim/olddata.py	/^    def write_initial_dists_csvs(pa
 write_to_version_file	versioneer.py	/^def write_to_version_file(filename, versions):$/;"	f
 wstrip	src/third_party/FLAP/src/lib/flap_utils_m.f90	/^  pure function wstrip(/;"	f	module:flap_utils_m
 xsave	wlcsim/pysim.py	/^xsave = []$/;"	v
-zonedum	src/wlcsim/wlcsim_brad.f95	/^  character*5 zonedum /;"	v	program:wlcsim
 zonedum	tests/mc/test_calcVolume.f95	/^    character*5 zonedum$/;"	v	program:test_calcVolume
 zonedum	tests/mc/test_int.f95	/^    character*5 zonedum$/;"	v	program:scratch

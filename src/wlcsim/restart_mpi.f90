@@ -7,10 +7,10 @@ subroutine pt_restart(mc,md)
 ! Override initialization with parallel setup parameters
 !  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSufix
     use mpi
-    use simMod
+    use params
     Implicit none
-    type(MCvar), intent(inout) :: mc
-    type(MCData), intent(inout) :: md
+    type(wlcsim_params), intent(inout) :: mc
+    type(wlcsim_data), intent(inout) :: md
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror

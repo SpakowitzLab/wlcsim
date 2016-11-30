@@ -5,12 +5,12 @@
 !           Quinn MacPherson
 !
 
-Subroutine MCvar_adapt(mc,MCTYPE)
+Subroutine wlcsim_params_adapt(mc,MCTYPE)
 ! Run this after say 1000 move in order to improve performance
     !use mt19937, only : grnd
     use params
     IMPLICIT NONE
-    TYPE(MCvar), intent(inout) :: mc
+    TYPE(wlcsim_params), intent(inout) :: mc
     INTEGER, intent(in) :: MCTYPE   ! Type of move
 
     ! Correct for turned down poor moves

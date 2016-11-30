@@ -1,18 +1,18 @@
 !---------------------------------------------------------------*
 
-!     
+!
 !     This subroutine calcualtes the self-interaction of a single
 !     chain with itself. Chain may be linear or a ring.
 !
 !     The interaction energy is determined used the distance of closest
-!     approach between line segments. Energy of segments adjacent along the 
+!     approach between line segments. Energy of segments adjacent along the
 !     chain is not calculated.
 
 !     Interaction is calculated for a repulsive lennard jones potential.
 !     Arbitrary pair-wise potentials may be substituted
-      
+
 SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
-  
+
   DOUBLE PRECISION R(NT,3)   ! Bead positions
   INTEGER N,NT,NP            ! Current number of beads
   DOUBLE PRECISION EPONP ! Self-interaction force
@@ -35,7 +35,7 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)      
+  DOUBLE PRECISION PARA(10)
   DOUBLE PRECISION LHC      ! HC length
   DOUBLE PRECISION SIGP     ! HC diameter
   DOUBLE PRECISION VHC 	! Potential strengths
@@ -45,7 +45,7 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
   DOUBLE PRECISION DT
   DOUBLE PRECISION XIR
   INTEGER RING              ! Is polymer a ring?
-  INTEGER NMAX     
+  INTEGER NMAX
 
 
   EB=PARA(1)

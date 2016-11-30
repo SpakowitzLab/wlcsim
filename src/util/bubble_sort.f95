@@ -1,4 +1,4 @@
-!Sort an NXM matrix by a given column using a 
+!Sort an NXM matrix by a given column using a
 !Bubble sort algorithm (slow)
 
 SUBROUTINE bubble_sort(A,N,M,isort)
@@ -15,7 +15,7 @@ SUBROUTINE bubble_sort(A,N,M,isort)
            Temp=A(J,:)
            A(J,:)=A(J+1,:)
            A(J+1,:)=Temp
-        ENDIF 
+        ENDIF
      ENDDO
   ENDDO
 

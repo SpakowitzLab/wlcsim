@@ -3,16 +3,16 @@
 !
 !     This subroutine calculates the change in self-interaction of a DNA-like
 !     molecule as a chain that interacts through a repulsive lennard-jones potential
-!     
+!
 !     The change in self-interaction energy associated with a crankshaft move
 !     is calculated.
 !
-!     The program takes the terminal bead indices of the segment that is 
+!     The program takes the terminal bead indices of the segment that is
 !     rotated by the crankshaft move.
 !
 !
 !     The interaction energy is determined used the distance of closest
-!     approach between line segments. Energy of segments adjacent along the 
+!     approach between line segments. Energy of segments adjacent along the
 !     chain is not calculated.
 
 
@@ -45,7 +45,7 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)      
+  DOUBLE PRECISION PARA(10)
   DOUBLE PRECISION LHC      ! HC length
   DOUBLE PRECISION VHC 	! Potential strengths
   DOUBLE PRECISION GAM
@@ -53,7 +53,7 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   DOUBLE PRECISION SUM
   DOUBLE PRECISION DT
   INTEGER RING              ! Is polymer a ring?
-  INTEGER NMAX     
+  INTEGER NMAX
 
   DOUBLE PRECISION D12MIN,FMAGMIN
 
@@ -321,12 +321,12 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
 
 
   !Get the energy difference
- 
+
   DE=EP-E
 
 
   RETURN
 ENDSUBROUTINE DE_SELF_CRANK
-      
+
 !---------------------------------------------------------------*
-      
+

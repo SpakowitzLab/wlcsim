@@ -42,7 +42,7 @@ SUBROUTINE WRITHESLIDE(R,IT1,IT2,N,Wr)
 
   IF (IS1P1.EQ.1) THEN
      IS1=N
-  ELSE 
+  ELSE
      IS1=IS1P1-1
   ENDIF
 
@@ -150,7 +150,7 @@ SUBROUTINE WRITHESLIDE(R,IT1,IT2,N,Wr)
               if (JP1.EQ.IS2.OR.IS2P1.EQ.IO) THEN
                  dWr=0.
               endif
-              Wr=Wr+dWr  
+              Wr=Wr+dWr
            ENDIF
 
 
