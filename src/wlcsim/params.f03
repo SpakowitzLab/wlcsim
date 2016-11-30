@@ -12,6 +12,7 @@
 module params
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: IEEE_ARITHMETIC
+    use mersenne_twister
     use inputparams, only: MAXPARAMLEN
 
     IMPLICIT NONE
@@ -19,7 +20,7 @@ module params
     private
 
     !!!     hardcoded params. will need to change if certain parts of code change
-    ! number of wlcsim_p move types
+    ! number of wlc_p move types
     integer, parameter :: nMoveTypes = 10
 
     !!!     arbitrary technical choices
@@ -30,6 +31,11 @@ module params
     integer, parameter :: MAXFILENAMELEN = 500
     ! unique file "units" to use for each file
     integer, parameter :: inFileUnit = 51
+    integer, parameter :: outFileUnit = 52
+    ! number of digits in max allowed number of save points, also change below
+    integer, parameter :: MAX_LOG10_SAVES = 4
+    ! format string to use for num2str(save_ind)
+    character(4), parameter :: num2strFormatString = '(I4)'
 
     !!!     universal constants
     ! fully accurate, adaptive precision
@@ -67,6 +73,7 @@ module params
         real(dp) eb     ! Energy of bending
         real(dp) epar   ! energy "parallel" i.e. psring energy
         real(dp) eperp  ! energy "perpendicular" i.e. shear energy
+        real(dp) eself  ! energy "polymer on polymer" (self-interaction)
         real(dp) gam    ! average equilibrium interbead spacing
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
@@ -75,8 +82,11 @@ module params
         real(dp) del      ! number of persistence lengths between beads
         real(dp) chi      ! Chi parameter value (solvent-polymer) (Flory-Huggins separation constant (how much A/B's hate each))
         real(dp) kap      ! Incompressibility parameter of the melt
+        real(dp) fpt_dist ! radius triggering collisions to be recorded in "coltimes"
+        real(dp) lhc    !TODO something to do with intrapolymer interaction strength
+        real(dp) vhc    !TODO something to do with intrapolymer interaction strength, fill in defaults, etc
 
-    !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlcsim_p sims
+    !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlc_p sims
         real(dp) k_field   ! wave vector of applied sinusoidal field (used in PT to step around 1st order phase transition)
         real(dp) hA       ! strength of applied sinusoidal field (used in PT to step around 1st order phase transition)
         real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
@@ -110,24 +120,28 @@ module params
 
     !   Timing variables
         integer NPT                ! number of steps between parallel tempering
-        integer numSavePoints             ! total number of save points
-        integer NSTEP              ! steps per save point
+        integer numSavePoints      ! total number of save points
+        integer stepsPerSave       ! steps per save point
         integer NNoInt             ! save points before turning on NNoInt
         integer N_KAP_ON           ! when to turn KAP energy on
         integer N_CHI_ON           ! when to turn CHI energy on
+        integer nInitMCSteps       ! number of mc steps before starting BD
 
     !   Switches
         logical ring              ! whether the polymer is a ring
-        logical twist             ! whether to include twist (wlcsim_p only for now)
+        logical twist             ! whether to include twist (wlc_p only for now)
         integer LK                ! Linking number
         integer confinetype       ! type of Boundary Conditions
         integer initCondType           ! initial condition type
         logical field_interactions ! field-based self interactions on
         logical intrapolymer_stick_crossing_enforced ! field-based self interactions on
-        logical FRwlcsim_pHEM           ! read initial chemical sequence from file
+        logical FRwlc_pHEM           ! read initial chemical sequence from file
         logical FRMchem           ! read initial chemical/methylation state from file
         logical FRMfile           ! read initial condition R from file
         logical FRMField          ! read initial field from file
+        integer fptColType      ! save first passage time vectors to file
+        logical exitWhenCollided  ! stop sim with coltimes is full
+        logical saveR             ! save R vectors to file
         logical saveU             ! save U vectors to file
         logical savePhi           ! save Phi vectors to file
         integer solType           ! Melt vs. Solution, Choose hamiltonian
@@ -136,6 +150,7 @@ module params
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
+        logical inton       ! include intra-polymer interactions
         logical restart     ! whether we are restarting from a previous sim or not
 
     !   parallel Tempering parameters
@@ -177,6 +192,8 @@ module params
         real(dp), allocatable, dimension(:):: DPHIA    ! Change in phi A
         real(dp), allocatable, dimension(:):: DPHIB    ! Change in phi A
         integer, allocatable, dimension(:) :: indPHI   ! indices of the phi
+        ! simulation times at which (i,j)th bead pair first collided
+        real(dp), allocatable, dimension(:,:) :: coltimes
 
     !   Monte Carlo Variables (for adaptation)
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
@@ -192,6 +209,7 @@ module params
         real(dp) ECouple  ! Coupling
         real(dp) ebind    ! binding energy
         real(dp) EField   ! Field energy
+        real(dp) EPONP    ! Self-interaction energy (polymer on polymer)
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
         real(dp) x_Chi,   dx_Chi
@@ -216,11 +234,15 @@ module params
         integer id   ! which thread am I
         integer error  ! MPI error
 
+    !   random number generator state
+        type(random_stat) rand_stat
+
     !   indices
-        integer ind                ! current save point
+        integer time_ind                ! current time point
+        real(dp) time
     end type
 
-    public :: nMoveTypes, dp, pi, wlcsim_params, wlcsim_data, MAXFILENAMELEN
+    public :: nMoveTypes, dp, pi, wlcsim_params, wlcsim_data, MAXFILENAMELEN, outFileUnit, pack_as_para
 
 contains
 
@@ -232,20 +254,20 @@ contains
         ! value always be given to new parameters in wlc_p, else we would get a
         ! compile time catchable runtime error that is not caught by gcc as of v5.0
         !
-        ! this is almost definitely undesireable in our use case, where we are
-        ! only inputting a few arguments, and deriving the rest therefrom
+        ! this is almost definitely undesireable, since "undefined" means the
+        ! behavior will depend on which compiler is used
         type(wlcsim_params), intent(inout) :: wlc_p
         ! file IO
         wlc_p%FRMfile=.FALSE.      ! don't load initial bead positions from file
         wlc_p%FRMCHEM=.FALSE.      ! don't load initial "chem" status from file
-        wlc_p%FRMFIELD=.false.     ! don't load initial field values from file
-        wlc_p%saveU=.true.         ! do save orientation vectors (makes restart of ssWLC possible)
+        wlc_p%FRMFIELD=.FALSE.     ! don't load initial field values from file
+        wlc_p%saveR=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
+        wlc_p%saveU=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
+        wlc_p%fptColType=0         ! don't track first passage time collisions between beads
         wlc_p%savePhi=.FALSE.      ! don't save A/B density per bin (not needed for restart)
-        wlc_p%FRwlcsim_pHEM=.FALSE.      ! don't load initial a/b states from file
+        wlc_p%FRwlc_pHEM=.FALSE.      ! don't load initial a/b states from file
         wlc_p%restart=.FALSE.      ! don't restart from previously saved simulation
 
-        ! time scale
-        wlc_p%dt  = 1              ! set time scale to unit
         ! geometry options
         wlc_p%NP  =1               ! one polymer
         wlc_p%nB  =200             ! 200 beads per polymer
@@ -258,8 +280,8 @@ contains
         wlc_p%lbox(2)=25.0_dp
         wlc_p%lbox(3)=25.0_dp
         wlc_p%dbin =1.0_dp         ! unit bin size
-        wlc_p%l0  =1.25_dp         ! TODO: not input
-        wlc_p%beadVolume   =0.1_dp ! much smaller than space between beads
+        ! wlc_p%l0  =1.25_dp         ! TODO: not input
+        wlc_p%beadVolume  = 0.1_dp ! much smaller than space between beads
         wlc_p%fA  =0.5_dp  ! half A, half B by default
         wlc_p%LAM =0.0_dp  ! perfectly random sequence  (see generating_sequences.rst for details)
         wlc_p%F_METH=0.5_dp ! half beads methylated by default
@@ -287,13 +309,17 @@ contains
         wlc_p%twist=.false.    ! don't include twist by default
         wlc_p%lk=0    ! no linking number (lays flat) by default
         wlc_p%min_accept=0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
+        wlc_p%exitWhenCollided = .FALSE. ! stop sim when coltimes is full
+        wlc_p%inton = .FALSE. ! no intrapolymer interactions by default
 
         ! timing options
-        wlc_p%NStep=400000  ! number of simulation steps to take
-        wlc_p%NNoInt=100    ! number of simulation steps before turning on interactions in Quinn's wlcsim_p scheduler
+        wlc_p%dt  = 1              ! set time scale to unit
+        wlc_p%nInitMCSteps=4000  ! number of initilizing mc steps. 1000s x num polymers is good
+        wlc_p%stepsPerSave=2000  ! number of simulation steps to take
         wlc_p%numSavePoints=200    ! 200 total save points, i.e. 2000 steps per save point
+        wlc_p%NNoInt=100    ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
         wlc_p%reduce_move=10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
-        wlc_p%useSchedule=.False. ! use Quinn's scheduler to modify wlcsim_p params halfway through the simulation
+        wlc_p%useSchedule=.False. ! use Quinn's scheduler to modify wlc_p params halfway through the simulation
         wlc_p%KAP_ON=1.0_dp ! use full value of compression energy
         wlc_p%CHI_ON=1.0_dp ! use full value of chi energy
         wlc_p%Couple_ON=1.0_dp ! use full value for coupling energy
@@ -379,17 +405,29 @@ contains
         CASE('FRMfile')
             call reado(wlc_p%FRMfile) ! read configuration from file
         CASE('TWIST')
-            CALL reado(wlc_p%twist) ! whether to include twist energies in wlcsim_p
+            CALL reado(wlc_p%twist) ! whether to include twist energies in wlc_p
         CASE('RING')
             CALL reado(wlc_p%ring) ! whether polymer is a ring or not
         CASE('LK')
             CALL readi(wlc_p%lk) ! linking number
         CASE('PTON')
             CALL reado(wlc_p%PTON) ! parallel Tempering on
+        CASE('SAVE_R')
+            Call reado(wlc_p%saveR)  ! save u vectors to file (every savepoint)
+        CASE('FPT_COL_TYPE')
+            Call readi(wlc_p%fptColType)  ! save u vectors to file (every savepoint)
+            ! fptColType   |  Description
+            ! _____________|_________________________________
+            !    0         |  No tracking fpt
+            !    1         |  Use naive, O(n^2) algo for collision checking
+            !    2         |  KDtree-based col checking (not implemented)
+            !    3         |  custom, fast col checker written by bruno
         CASE('SAVE_U')
             Call reado(wlc_p%saveU)  ! save u vectors to file (every savepoint)
         CASE('SAVE_PHI')
             Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
+        CASE('EXIT_WHEN_COLLIDED')
+            Call reado(wlc_p%exitWhenCollided)  ! save u vectors to file (every savepoint)
         CASE('nb')
             Call readi(wlc_p%nb)  ! number of beads in the polymer
         CASE('dt')
@@ -426,8 +464,10 @@ contains
             call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
         CASE('numSavePoints')
             Call readI(wlc_p%numSavePoints) ! total number of save points
-        CASE('NSTEP')
-            Call readI(wlc_p%NStep) ! steps per save point
+        CASE('nInitMCSteps')
+            Call readI(wlc_p%nInitMCSteps) ! num initial mc steps
+        CASE('stepsPerSave')
+            Call readI(wlc_p%stepsPerSave) ! steps per save point
         CASE('NPT')
             Call readI(wlc_p%NPT) ! number of steps between parallel tempering
         CASE('FPOLY')
@@ -548,6 +588,21 @@ contains
         type(wlcsim_params), intent(out) :: wlc_p
         logical err
 
+        if ((wlc_p%NT.GT.200000).OR.(wlc_p%NT.lt.1)) then
+            print*, "Requested ", wlc_p%NT," beads."
+            stop 1
+        endif
+        if ((wlc_p%NBIN.GT.20000).or.(wlc_p%NBIN.lt.1)) then
+            print*, "Requested ", wlc_p%NBIN," bins."
+            stop 1
+        endif
+
+        call stop_if_err(wlc_p%fptColType == 2, &
+            'KD-tree based collision detection not yet implemented.')
+
+        call stop_if_err(wlc_p%REND > wlc_p%L, &
+            "Requesting initial end-to-end distance larger than polymer length.")
+
         if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
             (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
             err = wlc_p%solType.eq.1
@@ -585,7 +640,7 @@ contains
 
 
     subroutine get_input_from_file(infile, wlc_p, wlc_d)
-    ! Based on Elena's readkeys subroutine
+        ! Based on Elena's readkeys subroutine
         IMPLICIT NONE
         type(wlcsim_params), intent(out) :: wlc_p
         type(wlcsim_data), intent(out) :: wlc_d
@@ -605,9 +660,15 @@ contains
     end subroutine
 
 
-    subroutine initialize_wlcsim_data(wlc_d)
+    subroutine initialize_wlcsim_data(wlc_d, wlc_p)
         implicit none
-        type(wlcsim_data), intent(out)   :: wlc_d
+        type(wlcsim_data), intent(inout)   :: wlc_d
+        type(wlcsim_params), intent(in)    :: wlc_p
+        integer Irand     ! Seed
+        character(8) datedum  ! trash
+        character(10) timedum ! trash
+        character(5) zonedum  ! trash
+        integer seedvalues(8) ! clock readings
 
         ! initialize energies to zero
         wlc_d%EElas=0.0_dp
@@ -622,327 +683,414 @@ contains
         wlc_d%x_Kap=0.0_dp
         wlc_d%x_Chi=0.0_dp
 
+        if (.false.) then ! set spedific seed
+            Irand=7171
+        else ! seed from clock
+            call date_and_time(datedum,timedum,zonedum,seedvalues)
+            Irand=int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
+                      -seedvalues(7)*1E3-seedvalues(8))
+            Irand=mod(Irand,10000)
+            ! print*, "Random Intiger seed:",Irand
+        endif
+
+        call random_setseed(Irand, wlc_d%rand_stat)
+
+        call initcond(wlc_d%R, wlc_d%U, wlc_d%AB, wlc_p%NT, wlc_p%NB, &
+            wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
+            wlc_p%initCondType, wlc_d%rand_stat)
+
+        wlc_d%time = 0
+        wlc_d%time_ind = 0
 
     end subroutine initialize_wlcsim_data
 
+    function pack_as_para(wlc_p) result(para)
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        real(dp) para(10)
+        PARA(1) = wlc_p%EB
+        PARA(2) = wlc_p%EPAR
+        PARA(3) = wlc_p%EPERP
+        PARA(4) = wlc_p%GAM
+        PARA(5) = wlc_p%ETA
+        PARA(6) = wlc_p%XIR
+        PARA(7) = wlc_p%XIU
+        PARA(8) = wlc_p%LBOX(1)
+        PARA(9) = wlc_p%lhc
+        PARA(10) = wlc_p%VHC
+    end function pack_as_para
 
-    subroutine printDescription(wlcsim_p)
+
+    subroutine printDescription(wlc_p)
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
+        type(wlcsim_params), intent(in) :: wlc_p
         print*, "---------------System Description---------------"
         print*, "Bead variables:"
-        print*, " Total number of beads, NT=", wlcsim_p%NT
-        print*, " Number of beads in a polymer, NB=", wlcsim_p%NB
-        print*, " Number of monomers in a polymer, N=", wlcsim_p%nMpP
-        print*, " Number of polymers, NP=",wlcsim_p%NP
-        print*, " Number of beads in a monomer, nBpM=", wlcsim_p%nBpM
-        print*, " fraction Methalated", wlcsim_p%F_METH
-        print*, " LAM_METH", wlcsim_p%LAM_METH
+        print*, " Total number of beads, NT=", wlc_p%NT
+        print*, " Number of beads in a polymer, NB=", wlc_p%NB
+        print*, " Number of monomers in a polymer, N=", wlc_p%nMpP
+        print*, " Number of polymers, NP=",wlc_p%NP
+        print*, " Number of beads in a monomer, nBpM=", wlc_p%nBpM
+        print*, " fraction Methalated", wlc_p%F_METH
+        print*, " LAM_METH", wlc_p%LAM_METH
         print*, "Length and volume Variables:"
-        print*, " persistance length =",(wlcsim_p%L0/(2.0_dp*wlcsim_p%EPS))
-        print*, " lbox=", wlcsim_p%lbox(1), wlcsim_p%lbox(2), wlcsim_p%lbox(3)
+        print*, " persistance length =",(wlc_p%L0/(2.0_dp*wlc_p%EPS))
+        print*, " lbox=", wlc_p%lbox(1), wlc_p%lbox(2), wlc_p%lbox(3)
         print*, " Number of bins in x direction", &
-                wlcsim_p%NBINX(1), wlcsim_p%NBINX(2),wlcsim_p%NBINX(3)
-        print*, " Number of bins", wlcsim_p%NBIN
-        print*, " spatial descritation dbin=",wlcsim_p%dbin
-        print*, " L0=", wlcsim_p%L0
-        print*, " volume fraction polymer =", wlcsim_p%Fpoly
-        print*, " bead volume V=", wlcsim_p%beadVolume
+                wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
+        print*, " Number of bins", wlc_p%NBIN
+        print*, " spatial descritation dbin=",wlc_p%dbin
+        print*, " L0=", wlc_p%L0
+        print*, " volume fraction polymer =", wlc_p%Fpoly
+        print*, " bead volume V=", wlc_p%beadVolume
         print*, "Energy Variables"
-        print*, " elasticity EPS =", wlcsim_p%EPS
-        print*, " solvent-polymer CHI =",wlcsim_p%CHI
-        print*, " compression cof, KAP =", wlcsim_p%KAP
-        print*, " field strength, hA =", wlcsim_p%hA
+        print*, " elasticity EPS =", wlc_p%EPS
+        print*, " solvent-polymer CHI =",wlc_p%CHI
+        print*, " compression cof, KAP =", wlc_p%KAP
+        print*, " field strength, hA =", wlc_p%hA
 
-        print*, " -energy of binding unmethalated ", wlcsim_p%EU," more positive for favorable binding"
-        print*, " -energy of binding methalated",wlcsim_p%EM
-        print*, " HP1_Binding energy parameter", wlcsim_p%HP1_Bind
-        print*, " chemical potential of HP1", wlcsim_p%mu
+        print*, " -energy of binding unmethalated ", wlc_p%EU," more positive for favorable binding"
+        print*, " -energy of binding methalated",wlc_p%EM
+        print*, " HP1_Binding energy parameter", wlc_p%HP1_Bind
+        print*, " chemical potential of HP1", wlc_p%mu
         print*, "Other:"
-        print*, " confinetype:",wlcsim_p%confinetype
-        print*, " initCondType:",wlcsim_p%initCondType
+        print*, " confinetype:",wlc_p%confinetype
+        print*, " initCondType:",wlc_p%initCondType
         print*, "---------------------------------------------"
 
     end subroutine
-    subroutine wlcsim_params_allocate(wlcsim_p,wlcsim_d)
+    subroutine wlcsim_params_allocate(wlc_p,wlc_d)
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(out) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(out) :: wlc_d
         integer NT  ! total number of beads
         integer NBIN ! total number of bins
-        NT=wlcsim_p%NT
-        NBIN=wlcsim_p%NBIN
-
-        ! Quinn's sanity checks are removed. We should allow user to allocate as much as they want...
-!         if ((NT.GT.200000).OR.(NT.lt.1)) then
-!             print*, "Tried to allocate ", NT," beads in wlcsim_params_allocate"
-!             stop 1
-!         endif
-!         if ((NBIN.GT.20000).or.(NBIN.lt.1)) then
-!             print*, "Tried to allocate ",NBIN," bins in wlcsim_params_allocate"
-!             stop 1
-!         endif
-        ALLOCATE(wlcsim_d%R(NT,3))
-        ALLOCATE(wlcsim_d%U(NT,3))
-        Allocate(wlcsim_d%RP(NT,3))
-        Allocate(wlcsim_d%UP(NT,3))
-        ALLOCATE(wlcsim_d%AB(NT))   !Chemical identity aka binding state
-        ALLOCATE(wlcsim_d%ABP(NT))   !Chemical identity aka binding state
-        ALLOCATE(wlcsim_d%METH(NT)) !Underlying methalation profile
-        ALLOCATE(wlcsim_d%PHIA(NBIN))
-        ALLOCATE(wlcsim_d%PHIB(NBIN))
-        ALLOCATE(wlcsim_d%DPHIA(NBIN))
-        ALLOCATE(wlcsim_d%DPHIB(NBIN))
-        ALLOCATE(wlcsim_d%Vol(NBIN))
-        Allocate(wlcsim_d%indPHI(NBIN))
-        Allocate(wlcsim_d%PhiH(NBIN))
+        ALLOCATE(wlc_d%R(NT,3))
+        ALLOCATE(wlc_d%U(NT,3))
+        Allocate(wlc_d%RP(NT,3))
+        Allocate(wlc_d%UP(NT,3))
+        ALLOCATE(wlc_d%AB(NT))   !Chemical identity aka binding state
+        ALLOCATE(wlc_d%ABP(NT))   !Chemical identity aka binding state
+        ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
+        ALLOCATE(wlc_d%PHIA(NBIN))
+        ALLOCATE(wlc_d%PHIB(NBIN))
+        ALLOCATE(wlc_d%DPHIA(NBIN))
+        ALLOCATE(wlc_d%DPHIB(NBIN))
+        ALLOCATE(wlc_d%Vol(NBIN))
+        Allocate(wlc_d%indPHI(NBIN))
+        Allocate(wlc_d%PhiH(NBIN))
+        if (wlc_p%fptColType /= 0) then
+            allocate(wlc_d%coltimes(NT,NT))
+            wlc_d%coltimes = -1.0_dp
+        endif
 
     end subroutine
 
-    subroutine tweak_param_defaults(wlcsim_p, wlcsim_d)
+    subroutine tweak_param_defaults(wlc_p, wlc_d)
         IMPLICIT NONE
-        type(wlcsim_params), intent(inout) :: wlcsim_p
-        type(wlcsim_data), intent(inout) :: wlcsim_d
+        type(wlcsim_params), intent(inout) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         integer mctype ! type of move
-    !   Edit the following to optimize wlcsim_p performance
+    !   Edit the following to optimize wlc_p performance
+    ! Quinn's custom move-turn-on
         !  Monte-Carlo simulation parameters
-        wlcsim_d%MCAMP(1)=0.5_dp*PI
-        wlcsim_d%MCAMP(2)=0.3_dp*wlcsim_p%L0
-        wlcsim_d%MCAMP(3)=0.5_dp*PI
-        wlcsim_d%MCAMP(4)=0.5_dp*PI
-        wlcsim_d%MCAMP(5)=0.5_dp*PI
-        wlcsim_d%MCAMP(6)=5.0_dp*wlcsim_p%L0
-        wlcsim_d%MCAMP(7)=nan
-        wlcsim_d%MCAMP(8)=nan
-        wlcsim_d%MCAMP(9)=nan
-        wlcsim_d%MCAMP(10)=nan
+        wlc_d%MCAMP(1)=0.5_dp*PI
+        wlc_d%MCAMP(2)=0.3_dp*wlc_p%L0
+        wlc_d%MCAMP(3)=0.5_dp*PI
+        wlc_d%MCAMP(4)=0.5_dp*PI
+        wlc_d%MCAMP(5)=0.5_dp*PI
+        wlc_d%MCAMP(6)=5.0_dp*wlc_p%L0
+        wlc_d%MCAMP(7)=nan
+        wlc_d%MCAMP(8)=nan
+        wlc_d%MCAMP(9)=nan
+        wlc_d%MCAMP(10)=nan
         !switches to turn on various types of moves
-        wlcsim_p%MOVEON(1)=1  ! crank-shaft move
-        wlcsim_p%MOVEON(2)=1  ! slide move
-        wlcsim_p%MOVEON(3)=1  ! pivot move
-        wlcsim_p%MOVEON(4)=1  ! rotate move
-        wlcsim_p%MOVEON(5)=0  ! full chain rotation
-        wlcsim_p%MOVEON(6)=0  ! full chain slide
-        wlcsim_p%MOVEON(7)=1  ! Change in Binding state
-        wlcsim_p%MOVEON(8)=0  ! Chain flip
-        wlcsim_p%MOVEON(9)=0  ! Chain exchange
-        wlcsim_p%MOVEON(10)=0 ! Reptation
+        wlc_p%MOVEON(1)=1  ! crank-shaft move
+        wlc_p%MOVEON(2)=1  ! slide move
+        wlc_p%MOVEON(3)=1  ! pivot move
+        wlc_p%MOVEON(4)=1  ! rotate move
+        wlc_p%MOVEON(5)=0  ! full chain rotation
+        wlc_p%MOVEON(6)=0  ! full chain slide
+        wlc_p%MOVEON(7)=1  ! Change in Binding state
+        wlc_p%MOVEON(8)=0  ! Chain flip
+        wlc_p%MOVEON(9)=0  ! Chain exchange
+        wlc_p%MOVEON(10)=0 ! Reptation
+    ! ANDY's simtype-dependent move turning on
+        if (wlc_p%SIMtype.EQ.1) then
+            wlc_d%MCAMP(1)=1.
+            wlc_d%MCAMP(2)=1.
+            wlc_d%MCAMP(3)=1.
+            wlc_d%MCAMP(4)=1.
+            wlc_d%MCAMP(5)=1.
+            wlc_d%MCAMP(6)=1.
+            wlc_p%MOVEON(1)=1
+            wlc_p%MOVEON(2)=0
+            wlc_p%MOVEON(3)=1
+            wlc_p%MOVEON(4)=0
+        elseif (wlc_p%SIMtype.EQ.2) then
+            wlc_d%MCAMP(1)=1.
+            wlc_d%MCAMP(2)=1.
+            wlc_d%MCAMP(3)=1.
+            wlc_d%MCAMP(4)=1.
+            wlc_d%MCAMP(5)=1.
+            wlc_d%MCAMP(6)=1.
+            wlc_p%MOVEON(1)=1
+            wlc_p%MOVEON(2)=1
+            wlc_p%MOVEON(3)=1
+            wlc_p%MOVEON(4)=1
+        elseif (wlc_p%SIMtype.EQ.3) then
+            wlc_d%MCAMP(1)=1.
+            wlc_d%MCAMP(2)=1.
+            wlc_d%MCAMP(3)=1.
+            wlc_d%MCAMP(4)=1.
+            wlc_d%MCAMP(5)=1.
+            wlc_d%MCAMP(6)=1.
+            wlc_p%MOVEON(1)=1
+            wlc_p%MOVEON(2)=1
+            wlc_p%MOVEON(3)=1
+            wlc_p%MOVEON(4)=0
+        endif
+        if (wlc_p%INTON) then
+            wlc_p%MOVEON(5)=1
+            wlc_p%MOVEON(6)=1
+        else
+            wlc_p%MOVEON(5)=0
+            wlc_p%MOVEON(6)=0
+        endif
 
-        !     Initial segment window for wlcsim_p moves
-        wlcsim_d%WindoW(1)=15.0_dp ! used to be N*G
-        wlcsim_d%WindoW(2)=15.0_dp ! used to be N*G
-        wlcsim_d%WindoW(3)=15.0_dp ! used to be N*G
-        wlcsim_d%WindoW(4)=1.0_dp
-        wlcsim_d%WindoW(5)=dble(wlcsim_p%nMpP*wlcsim_p%nBpM)
-        wlcsim_d%WindoW(6)=dble(wlcsim_p%nMpP*wlcsim_p%nBpM)
-        wlcsim_d%WindoW(7)=15.0_dp ! used to be N*G
-        wlcsim_d%WindoW(8)=dble(wlcsim_p%nMpP*wlcsim_p%nBpM)
-        wlcsim_d%WindoW(9)=dble(wlcsim_p%nMpP*wlcsim_p%nBpM)
-        wlcsim_d%WindoW(9)=1.0_dp
+        !     Initial segment window for wlc_p moves
+        wlc_d%WindoW(1)=15.0_dp ! used to be N*G
+        wlc_d%WindoW(2)=15.0_dp ! used to be N*G
+        wlc_d%WindoW(3)=15.0_dp ! used to be N*G
+        wlc_d%WindoW(4)=1.0_dp
+        wlc_d%WindoW(5)=dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%WindoW(6)=dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%WindoW(7)=15.0_dp ! used to be N*G
+        wlc_d%WindoW(8)=dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%WindoW(9)=dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%WindoW(9)=1.0_dp
 
         !    Maximum window size (large windows are expensive)
-        wlcsim_p%MAXWindoW(1)=dble(min(150,wlcsim_p%NB))
-        wlcsim_p%MAXWindoW(2)=dble(min(150,wlcsim_p%NB))
-        wlcsim_p%MAXWindoW(3)=dble(min(150,wlcsim_p%NB))
-        wlcsim_p%MAXWindoW(4)=nan
-        wlcsim_p%MAXWindoW(5)=nan
-        wlcsim_p%MAXWindoW(6)=nan
-        wlcsim_p%MAXWindoW(7)=dble(min(4,wlcsim_p%NB))
-        wlcsim_p%MAXWindoW(8)=nan
-        wlcsim_p%MAXWindoW(9)=nan
-        wlcsim_p%MAXWindoW(9)=nan ! need to chaige code to allow >1
+        wlc_p%MAXWindoW(1)=dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(2)=dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(3)=dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(4)=nan
+        wlc_p%MAXWindoW(5)=nan
+        wlc_p%MAXWindoW(6)=nan
+        wlc_p%MAXWindoW(7)=dble(min(4,wlc_p%NB))
+        wlc_p%MAXWindoW(8)=nan
+        wlc_p%MAXWindoW(9)=nan
+        wlc_p%MAXWindoW(9)=nan ! need to chaige code to allow >1
 
-        wlcsim_p%MINWindoW(1)=dble(min(4,wlcsim_p%NB))
-        wlcsim_p%MINWindoW(2)=dble(min(4,wlcsim_p%NB))
-        wlcsim_p%MINWindoW(3)=dble(min(4,wlcsim_p%NB))
-        wlcsim_p%MINWindoW(4)=nan
-        wlcsim_p%MINWindoW(5)=nan
-        wlcsim_p%MINWindoW(6)=nan
-        wlcsim_p%MINWindoW(7)=dble(min(4,wlcsim_p%NB))
-        wlcsim_p%MINWindoW(8)=nan
-        wlcsim_p%MINWindoW(9)=nan
-        wlcsim_p%MINWindoW(10)=nan
-        do mctype=1,wlcsim_p%movetypes
-            wlcsim_p%winTarget(mctype)=8.0_dp
+        wlc_p%MINWindoW(1)=dble(min(4,wlc_p%NB))
+        wlc_p%MINWindoW(2)=dble(min(4,wlc_p%NB))
+        wlc_p%MINWindoW(3)=dble(min(4,wlc_p%NB))
+        wlc_p%MINWindoW(4)=nan
+        wlc_p%MINWindoW(5)=nan
+        wlc_p%MINWindoW(6)=nan
+        wlc_p%MINWindoW(7)=dble(min(4,wlc_p%NB))
+        wlc_p%MINWindoW(8)=nan
+        wlc_p%MINWindoW(9)=nan
+        wlc_p%MINWindoW(10)=nan
+        do mctype=1,wlc_p%movetypes
+            wlc_p%winTarget(mctype)=8.0_dp
         enddo
 
-        wlcsim_p%MINAMP(1)=0.1_dp*PI
-        wlcsim_p%MINAMP(2)=0.2_dp*wlcsim_p%L0
-        wlcsim_p%MINAMP(3)=0.2_dp*PI
-        wlcsim_p%MINAMP(4)=0.2_dp*PI
-        wlcsim_p%MINAMP(5)=0.05_dp*PI
-        wlcsim_p%MINAMP(6)=0.2_dp*wlcsim_p%L0
-        wlcsim_p%MINAMP(7)=nan
-        wlcsim_p%MINAMP(8)=nan
-        wlcsim_p%MINAMP(9)=nan
-        wlcsim_p%MINAMP(10)=nan
+        wlc_p%MINAMP(1)=0.1_dp*PI
+        wlc_p%MINAMP(2)=0.2_dp*wlc_p%L0
+        wlc_p%MINAMP(3)=0.2_dp*PI
+        wlc_p%MINAMP(4)=0.2_dp*PI
+        wlc_p%MINAMP(5)=0.05_dp*PI
+        wlc_p%MINAMP(6)=0.2_dp*wlc_p%L0
+        wlc_p%MINAMP(7)=nan
+        wlc_p%MINAMP(8)=nan
+        wlc_p%MINAMP(9)=nan
+        wlc_p%MINAMP(10)=nan
 
-        wlcsim_p%MAXAMP(1)=1.0_dp*PI
-        wlcsim_p%MAXAMP(2)=1.0_dp*wlcsim_p%L0
-        wlcsim_p%MAXAMP(3)=1.0_dp*PI
-        wlcsim_p%MAXAMP(4)=1.0_dp*PI
-        wlcsim_p%MAXAMP(5)=1.0_dp*PI
-        wlcsim_p%MAXAMP(6)=0.1*wlcsim_p%lbox(1)
-        wlcsim_p%MAXAMP(7)=nan
-        wlcsim_p%MAXAMP(8)=nan
-        wlcsim_p%MAXAMP(9)=nan
-        wlcsim_p%MAXAMP(9)=nan
+        wlc_p%MAXAMP(1)=1.0_dp*PI
+        wlc_p%MAXAMP(2)=1.0_dp*wlc_p%L0
+        wlc_p%MAXAMP(3)=1.0_dp*PI
+        wlc_p%MAXAMP(4)=1.0_dp*PI
+        wlc_p%MAXAMP(5)=1.0_dp*PI
+        wlc_p%MAXAMP(6)=0.1*wlc_p%lbox(1)
+        wlc_p%MAXAMP(7)=nan
+        wlc_p%MAXAMP(8)=nan
+        wlc_p%MAXAMP(9)=nan
+        wlc_p%MAXAMP(9)=nan
 
-        do mctype=1,wlcsim_p%movetypes
-            wlcsim_p%NADAPT(mctype)=1000 ! adapt after at most 1000 steps
-            wlcsim_p%PDESIRE(mctype)=0.5_dp ! Target
-            wlcsim_d%SUCCESS(mctype)=0
-            wlcsim_d%PHIT(mctype)=0.0_dp
+        do mctype=1,wlc_p%movetypes
+            wlc_p%NADAPT(mctype)=1000 ! adapt after at most 1000 steps
+            wlc_p%PDESIRE(mctype)=0.5_dp ! Target
+            wlc_d%SUCCESS(mctype)=0
+            wlc_d%PHIT(mctype)=0.0_dp
         enddo
     end subroutine
 
-    subroutine wlcsim_params_recenter(wlcsim_p,wlcsim_d)
+    subroutine wlcsim_params_recenter(wlc_p,wlc_d)
     !  Prevents drift in periodic BC
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(inout) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         integer IB, I, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
         IB=1
-        do I=1,wlcsim_p%NP
-        R0(1)=nint(wlcsim_d%R(IB,1)/wlcsim_p%lbox(1)-0.5_dp)*wlcsim_p%lbox(1)
-        R0(2)=nint(wlcsim_d%R(IB,2)/wlcsim_p%lbox(2)-0.5_dp)*wlcsim_p%lbox(2)
-        R0(3)=nint(wlcsim_d%R(IB,3)/wlcsim_p%lbox(3)-0.5_dp)*wlcsim_p%lbox(3)
+        do I=1,wlc_p%NP
+        R0(1)=nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
+        R0(2)=nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
+        R0(3)=nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
         if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
-            do J=1,wlcsim_p%NB
-                wlcsim_d%R(IB,1)=wlcsim_d%R(IB,1)-R0(1)
-                wlcsim_d%R(IB,2)=wlcsim_d%R(IB,2)-R0(2)
-                wlcsim_d%R(IB,3)=wlcsim_d%R(IB,3)-R0(3)
+            do J=1,wlc_p%NB
+                wlc_d%R(IB,1)=wlc_d%R(IB,1)-R0(1)
+                wlc_d%R(IB,2)=wlc_d%R(IB,2)-R0(2)
+                wlc_d%R(IB,3)=wlc_d%R(IB,3)-R0(3)
                 IB=IB+1
             enddo
         endif
         enddo
     end subroutine
-    subroutine wlcsim_params_printEnergies(wlcsim_d)
-    ! For realtime feedback on wlcsim_p simulation
-        IMPLICIT NONE
-        type(wlcsim_data), intent(in) :: wlcsim_d
-        print*, "ECouple:", wlcsim_d%ECouple
-        print*, "Bending energy", wlcsim_d%EELAS(1)
-        print*, "Par compression energy", wlcsim_d%EELAS(2)
-        print*, "Shear energy", wlcsim_d%EELAS(3)
-        print*, "ECHI", wlcsim_d%ECHI
-        print*, "EField", wlcsim_d%EField
-        print*, "EKAP", wlcsim_d%EKAP
-        print*, "ebind", wlcsim_d%ebind
+
+    subroutine wlcsim_params_printSimInfo(i, wlc_p, wlc_d)
+    ! print out current simulation metainformation
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
+        integer, intent(in) :: i
+        print*, 'Current time ', wlc_d%time
+        print*, 'Time point ', wlc_d%time_ind, ' out of ', wlc_p%stepsPerSave*wlc_p%numSavePoints
+        print*, 'Save point ', i, ' out of ', wlc_p%numSavePoints
     end subroutine
-    subroutine wlcsim_params_printPhi(wlcsim_p,wlcsim_d)
+
+    subroutine wlcsim_params_printEnergies(wlc_d)
+    ! For realtime feedback on wlc_p simulation
+        implicit none
+        type(wlcsim_data), intent(in) :: wlc_d
+        print*, "ECouple:", wlc_d%ECouple
+        print*, "Bending energy", wlc_d%EELAS(1)
+        print*, "Par compression energy", wlc_d%EELAS(2)
+        print*, "Shear energy", wlc_d%EELAS(3)
+        print*, "ECHI", wlc_d%ECHI
+        print*, "EField", wlc_d%EField
+        print*, "EKAP", wlc_d%EKAP
+        print*, "ebind", wlc_d%ebind
+    end subroutine
+
+    subroutine wlcsim_params_printPhi(wlc_p,wlc_d)
     ! prints densities for trouble shooting
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
         integer I
         real(dp) EKap, ECouple, EChi,VV, PHIPOly
         print*,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         print*, " PHIA  | PHIB  | PPoly |  Vol  | EKap  | EChi  |ECouple|"
-        do I=1,wlcsim_p%NBIN
-            VV=wlcsim_d%Vol(I)
+        do I=1,wlc_p%NBIN
+            VV=wlc_d%Vol(I)
             if (VV.le.0.1_dp) cycle
-            PHIPOLY=wlcsim_d%PHIA(I)+wlcsim_d%PHIB(I)
-            EChi=VV*(wlcsim_p%CHI/wlcsim_p%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
-            ECouple=VV*wlcsim_p%HP1_Bind*(wlcsim_d%PHIA(I))**2
+            PHIPOLY=wlc_d%PHIA(I)+wlc_d%PHIB(I)
+            EChi=VV*(wlc_p%CHI/wlc_p%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
+            ECouple=VV*wlc_p%HP1_Bind*(wlc_d%PHIA(I))**2
             if(PHIPoly.GT.1.0_dp) then
-            EKap=VV*(wlcsim_p%KAP/wlcsim_p%beadVolume)*(PHIPoly-1.0_dp)**2
+            EKap=VV*(wlc_p%KAP/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             else
             cycle
             EKap=0.0_dp
             endif
-            write(*,"(4f8.4,3f8.1)") wlcsim_d%PHIA(I), wlcsim_d%PHIB(I), &
-                                wlcsim_d%PHIA(I)+wlcsim_d%PHIB(I),wlcsim_d%Vol(I),&
+            write(*,"(4f8.4,3f8.1)") wlc_d%PHIA(I), wlc_d%PHIB(I), &
+                                wlc_d%PHIA(I)+wlc_d%PHIB(I),wlc_d%Vol(I),&
                                 EKap,EChi,ECouple
         enddo
         print*,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     end subroutine
-    subroutine wlcsim_params_printWindowStats(wlcsim_p, wlcsim_d)
+
+    subroutine wlcsim_params_printWindowStats(wlc_p, wlc_d)
     ! For realtime feedback on adaptation
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
         integer I ! counter
         I=0
         print*, "Succes | MCAMP | WindoW| type "
-        do I=1,wlcsim_p%movetypes
-            if (wlcsim_p%MOVEON(i).eq.1) then
-                write(*,"(f8.5,2f8.2,1I8)") wlcsim_d%phit(i), wlcsim_d%MCAMP(i),  wlcsim_d%WindoW(i), i
+        do I=1,wlc_p%movetypes
+            if (wlc_p%MOVEON(i).eq.1) then
+                write(*,"(f8.5,2f8.2,1I8)") wlc_d%phit(i), wlc_d%MCAMP(i),  wlc_d%WindoW(i), i
             endif
         enddo
         return
     end subroutine
-    subroutine wlcsim_params_LoadField(wlcsim_p,wlcsim_d,fileName)
+
+    subroutine wlcsim_params_LoadField(wlc_p,wlc_d,fileName)
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(inout) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         integer I
         character(MAXFILENAMELEN) fileName ! file name to load from
-        open (unit = 1, file = fileName, status = 'OLD')
-        do I=1,wlcsim_p%NBIN
-            read(1,*) wlcsim_d%PHIH(I)
+        open (unit = inFileUnit, file = fileName, status = 'OLD')
+        do I=1,wlc_p%NBIN
+            read(inFileUnit,*) wlc_d%PHIH(I)
         enddo
         return
     end subroutine
-    subroutine wlcsim_params_MakeField(wlcsim_p,wlcsim_d)
+
+    subroutine wlcsim_params_MakeField(wlc_p,wlc_d)
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(inout) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         integer indBIN  ! index of bin
         integer IX,IY,IZ ! bin corrdinates
 
-        do IX=1,wlcsim_p%NBINX(1)
-            do IY=1,wlcsim_p%NBINX(2)
-                do IZ=1,wlcsim_p%NBINX(3)
+        do IX=1,wlc_p%NBINX(1)
+            do IY=1,wlc_p%NBINX(2)
+                do IZ=1,wlc_p%NBINX(3)
                     indBIN=IX+&
-                        (IY-1)*wlcsim_p%NBINX(1)+&
-                        (IZ-1)*wlcsim_p%NBINX(1)*wlcsim_p%NBINX(2)
-                    wlcsim_d%PHIH(indBIN)=dsin(wlcsim_p%k_field*wlcsim_p%dbin*dble(IX))
+                        (IY-1)*wlc_p%NBINX(1)+&
+                        (IZ-1)*wlc_p%NBINX(1)*wlc_p%NBINX(2)
+                    wlc_d%PHIH(indBIN)=dsin(wlc_p%k_field*wlc_p%dbin*dble(IX))
                 enddo
             enddo
         enddo
         return
     end subroutine
-    subroutine wlcsim_params_loadAB(wlcsim_p,wlcsim_d,fileName)
+
+    subroutine wlcsim_params_loadAB(wlc_p,wlc_d,fileName)
     ! Loads AB for file...has not been tested
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(inout) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
         integer IB, I, J ! counters
-        open (unit = 1, file = fileName, status = 'OLD')
+        open (unit = inFileUnit, file = fileName, status = 'OLD')
         IB=1
-        do I=1,wlcsim_p%NP
-        do J=1,wlcsim_p%NB
-            read(1,"(I2)") wlcsim_d%AB(IB)
+        do I=1,wlc_p%NP
+        do J=1,wlc_p%NB
+            read(inFileUnit,"(I2)") wlc_d%AB(IB)
             IB=IB+1
             enddo
         enddo
-        close(1)
+        close(inFileUnit)
     end subroutine
-    subroutine wlcsim_params_saveR(wlcsim_p,wlcsim_d,fileName,repeatingBC)
+
+    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC)
     ! Writes R and AB to file for analysis
     ! Rx  Ry  Rz AB
         IMPLICIT NONE
-        integer, intent(in) :: repeatingBC  ! 1 for reapeating boundary conditions
+        logical, intent(in) :: repeatingBC  ! 1 for reapeating boundary conditions
         integer I,J,IB  ! counters
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
-        fullName=trim(fullName)
-        open (unit = 1, file = fullName, status = 'NEW')
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName = trim(fullName)
+        open (unit = outFileUnit, file = fullName, status = 'NEW')
         IB=1
-        if (repeatingBC.eq.1) then
-            do I=1,wlcsim_p%NP
-                do J=1,wlcsim_p%NB
-                        WRITE(1,"(3f10.3,I2)") &
-                            wlcsim_d%R(IB,1)-0.*nint(wlcsim_d%R(IB,1)/wlcsim_p%lbox(1)-0.5_dp)*wlcsim_p%lbox(1), &
-                            wlcsim_d%R(IB,2)-0.*nint(wlcsim_d%R(IB,2)/wlcsim_p%lbox(2)-0.5_dp)*wlcsim_p%lbox(2), &
-                            wlcsim_d%R(IB,3)-0.*nint(wlcsim_d%R(IB,3)/wlcsim_p%lbox(3)-0.5_dp)*wlcsim_p%lbox(3), &
-                            wlcsim_d%AB(IB)
+        if (repeatingBC) then
+            do I=1,wlc_p%NP
+                do J=1,wlc_p%NB
+                        WRITE(outFileUnit,"(3f10.3,I2)") &
+                            wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                            wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                            wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
+                            wlc_d%AB(IB)
                     IB=IB+1
                 enddo
             enddo
@@ -950,331 +1098,388 @@ contains
             print*, "Are you sure you want reapeating BC"
             stop 1
         else
-            do I=1,wlcsim_p%NP
-                do J=1,wlcsim_p%NB
-                    if (wlcsim_p%solType.eq.0) then
-                        WRITE(1,"(3f10.3,I2)") wlcsim_d%R(IB,1),wlcsim_d%R(IB,2),wlcsim_d%R(IB,3),wlcsim_d%AB(IB)
+            do I=1,wlc_p%NP
+                do J=1,wlc_p%NB
+                    if (wlc_p%solType.eq.0) then
+                        WRITE(outFileUnit,"(3f10.3,I2)") &
+                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB)
                     else
-                        WRITE(1,"(3f10.3,I2)") wlcsim_d%R(IB,1),wlcsim_d%R(IB,2),wlcsim_d%R(IB,3),wlcsim_d%AB(IB), wlcsim_d%METH(IB)
+                        WRITE(outFileUnit,"(3f10.3,I2)") &
+                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB), wlc_d%METH(IB)
                     endif
                     IB=IB+1
                 enddo
             enddo
         endif
-        close(1)
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_savePHI(wlcsim_p,wlcsim_d,fileName)
+
+    subroutine wlcsim_params_savePHI(wlc_p,wlc_d,fileName)
     ! Saves PHIA and PHIB to file for analysis
         IMPLICIT NONE
         integer I  ! counters
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
-        open (unit = 1, file = fullName, status = 'NEW')
-        do I=1,wlcsim_p%NBIN
-            WRITE(1,"(2f7.2)") wlcsim_d%PHIA(I),wlcsim_d%PHIB(I)
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        open (unit = outFileUnit, file = fullName, status = 'NEW')
+        do I=1,wlc_p%NBIN
+            WRITE(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
         enddo
-        close(1)
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_saveU(wlcsim_p,wlcsim_d,fileName)
+
+    subroutine wlcsim_params_saveU(wlc_p,wlc_d,fileName)
     ! Saves U to ASCII file for analisys
         IMPLICIT NONE
         integer I,J,IB  ! counters
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
-        open (unit = 1, file = fullName, status = 'NEW')
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        open (unit = outFileUnit, file = fullName, status = 'NEW')
         IB=1
-        do I=1,wlcsim_p%NP
-            do J=1,wlcsim_p%NB
-                WRITE(1,"(3f8.3,2I2)") wlcsim_d%U(IB,1),wlcsim_d%U(IB,2),wlcsim_d%U(IB,3)
+        do I=1,wlc_p%NP
+            do J=1,wlc_p%NB
+                WRITE(outFileUnit,"(3f8.3,2I2)") wlc_d%U(IB,1),wlc_d%U(IB,2),wlc_d%U(IB,3)
                 IB=IB+1
             enddo
         enddo
-        close(1)
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_saveparameters(wlcsim_p,fileName)
+
+    subroutine wlcsim_params_saveparameters(wlc_p,fileName)
     ! Write a number of parameters ASCII variables to file for reccords
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
+        type(wlcsim_params), intent(in) :: wlc_p
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
-        open (unit =1, file = fullName, status = 'NEW')
-            WRITE(1,"(I8)") wlcsim_p%NT ! 1 Number of beads in simulation
-            WRITE(1,"(I8)") wlcsim_p%nMpP  ! 2 Number of monomers in a polymer
-            WRITE(1,"(I8)") wlcsim_p%NB ! 3 Number of beads in a polymer
-            WRITE(1,"(I8)") wlcsim_p%NP ! 4 Number of polymers in simulation
-            WRITE(1,"(I8)") wlcsim_p%NT ! 5 Number of beads in simulation
-            WRITE(1,"(I8)") wlcsim_p%nBpM  ! 6 Number of beads per monomer
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        open (unit =outFileUnit, file = fullName, status = 'NEW')
+            WRITE(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
+            WRITE(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
+            WRITE(outFileUnit,"(I8)") wlc_p%NB ! 3 Number of beads in a polymer
+            WRITE(outFileUnit,"(I8)") wlc_p%NP ! 4 Number of polymers in simulation
+            WRITE(outFileUnit,"(I8)") wlc_p%NT ! 5 Number of beads in simulation
+            WRITE(outFileUnit,"(I8)") wlc_p%nBpM  ! 6 Number of beads per monomer
 
-            WRITE(1,"(f10.5)") wlcsim_p%L0    ! Equilibrium segment length
-            WRITE(1,"(f10.5)") wlcsim_p%CHI  ! 8  initail CHI parameter value
-            WRITE(1,"(f10.5)") wlcsim_p%Fpoly ! Fraction polymer
-            WRITE(1,"(f10.5)") wlcsim_p%lbox(1)  ! 10 Lenth of box
-            WRITE(1,"(f10.5)") wlcsim_p%EU    ! Energy unmethalated
-            WRITE(1,"(f10.5)") wlcsim_p%EM    ! 12 Energy methalated
-            WRITE(1,"(f10.5)") wlcsim_p%HP1_Bind ! Energy of HP1 binding
-            WRITE(1,"(f10.5)") (wlcsim_p%L0/wlcsim_p%EPS) ! 14 Khun lenth
-            WRITE(1,"(A)") "-999"  ! for historic reasons
-            WRITE(1,"(f10.5)") wlcsim_p%F_METH  ! methalation fraction
-            WRITE(1,"(f10.5)") wlcsim_p%LAM_METH  ! methalation lambda
-        close(1)
+            WRITE(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
+            WRITE(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
+            WRITE(outFileUnit,"(f10.5)") wlc_p%Fpoly ! Fraction polymer
+            WRITE(outFileUnit,"(f10.5)") wlc_p%lbox(1)  ! 10 Lenth of box
+            WRITE(outFileUnit,"(f10.5)") wlc_p%EU    ! Energy unmethalated
+            WRITE(outFileUnit,"(f10.5)") wlc_p%EM    ! 12 Energy methalated
+            WRITE(outFileUnit,"(f10.5)") wlc_p%HP1_Bind ! Energy of HP1 binding
+            WRITE(outFileUnit,"(f10.5)") (wlc_p%L0/wlc_p%EPS) ! 14 Khun lenth
+            WRITE(outFileUnit,"(A)") "-999"  ! for historic reasons
+            WRITE(outFileUnit,"(f10.5)") wlc_p%F_METH  ! methalation fraction
+            WRITE(outFileUnit,"(f10.5)") wlc_p%LAM_METH  ! methalation lambda
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_appendEnergyData(wlcsim_p, wlcsim_d, fileName)
+
+    subroutine wlcsim_params_appendEnergyData(save_ind, wlc_p, wlc_d, fileName)
     ! print Energy data
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
-        LOGICAL isfile
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
+        integer, intent(in) :: save_ind
         character(MAXFILENAMELEN), intent(in) :: fileName
+        LOGICAL isfile
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
         inquire(file = fullName, exist=isfile)
         if (isfile) then
-            open (unit = 1, file = fullName, status ='OLD', POSITION="append")
+            open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")
         else
-            open (unit = 1, file = fullName, status = 'new')
-            WRITE(1,*) "ind | id |",&
+            open (unit = outFileUnit, file = fullName, status = 'new')
+            WRITE(outFileUnit,*) "ind | id |",&
                        " ebend  | eparll | EShear | ECoupl | E Kap  | E Chi  |",&
                        " EField | ebind  |  x_Mu  | Couple |  Chi   |  mu    |",&
                        "  Kap   | Field  |"
         endif
-        WRITE(1,"(2I5, 9f9.1,5f9.4)") wlcsim_d%ind, wlcsim_d%id, &
-            wlcsim_d%EELAS(1), wlcsim_d%EELAS(2), wlcsim_d%EELAS(3), wlcsim_d%ECouple, &
-            wlcsim_d%EKap, wlcsim_d%ECHI, wlcsim_d%EField, wlcsim_d%ebind, wlcsim_d%x_Mu, &
-            wlcsim_p%HP1_Bind*wlcsim_p%Couple_on, wlcsim_p%CHI*wlcsim_p%CHI_ON, wlcsim_p%mu, wlcsim_p%KAP*wlcsim_p%KAP_ON,&
-            wlcsim_p%hA
-        close(1)
+        WRITE(outFileUnit,"(2I5, 9f9.1,5f9.4)") save_ind, wlc_d%id, &
+            wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
+            wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
+            wlc_p%HP1_Bind*wlc_p%Couple_on, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%mu, wlc_p%KAP*wlc_p%KAP_ON,&
+            wlc_p%hA
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_appendAdaptData(wlcsim_p, wlcsim_d, fileName)
-    ! Appends wlcsim_p move adaptation data to the file
+
+    subroutine wlcsim_params_appendAdaptData(save_ind, wlc_p, wlc_d, fileName)
+    ! Appends wlc_p move adaptation data to the file
         IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlcsim_p
-        type(wlcsim_data), intent(in) :: wlcsim_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
+        integer, intent(in) :: save_ind
         LOGICAL isfile
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlcsim_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
         inquire(file = fullName, exist=isfile)
         if (isfile) then
-            open (unit = 1, file = fullName, status ='OLD', POSITION="append")
+            open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")
         else
-            open (unit = 1, file = fullName, status = 'new')
-            WRITE(1,*) "ind| id|",&
+            open (unit = outFileUnit, file = fullName, status = 'new')
+            WRITE(outFileUnit,*) "ind| id|",&
                        " WIN 1 | AMP 1 | SUC 1 | WIN 2 | AMP 2 | SUC 2 |",&
                        " WIN 3 | AMP 3 | SUC 3 | ON  4 | AMP 4 | SUC 4 |",&
                        " ON  5 | AMP 5 | SUC 5 | ON  6 | AMP 6 | SUC 6 |",&
                        " ON  7 | SUC 7 | ON  8 | SUC 8 |", &
                        " ON  9 | SUC 9 | ON 10 | SUC 10|"
         endif
-        WRITE(1,"(2I4,26f8.3)") wlcsim_d%ind,wlcsim_d%id,&
-            real(wlcsim_d%WindoW(1)),wlcsim_d%MCAMP(1),wlcsim_d%PHIT(1), &
-            real(wlcsim_d%WindoW(2)),wlcsim_d%MCAMP(2),wlcsim_d%PHIT(2), &
-            real(wlcsim_d%WindoW(3)),wlcsim_d%MCAMP(3),wlcsim_d%PHIT(3), &
-            real(wlcsim_p%MOVEON(4)),wlcsim_d%MCAMP(4),wlcsim_d%PHIT(4), &
-            real(wlcsim_p%MOVEON(5)),wlcsim_d%MCAMP(5),wlcsim_d%PHIT(5), &
-            real(wlcsim_p%MOVEON(6)),wlcsim_d%MCAMP(6),wlcsim_d%PHIT(6), &
-            real(wlcsim_p%MOVEON(7)),wlcsim_d%PHIT(7), &
-            real(wlcsim_p%MOVEON(8)),wlcsim_d%PHIT(8), &
-            real(wlcsim_p%MOVEON(9)),wlcsim_d%PHIT(9), &
-            real(wlcsim_p%MOVEON(10)),wlcsim_d%PHIT(10)
-        close(1)
+        WRITE(outFileUnit,"(2I4,26f8.3)") save_ind,wlc_d%id,&
+            real(wlc_d%WindoW(1)),wlc_d%MCAMP(1),wlc_d%PHIT(1), &
+            real(wlc_d%WindoW(2)),wlc_d%MCAMP(2),wlc_d%PHIT(2), &
+            real(wlc_d%WindoW(3)),wlc_d%MCAMP(3),wlc_d%PHIT(3), &
+            real(wlc_p%MOVEON(4)),wlc_d%MCAMP(4),wlc_d%PHIT(4), &
+            real(wlc_p%MOVEON(5)),wlc_d%MCAMP(5),wlc_d%PHIT(5), &
+            real(wlc_p%MOVEON(6)),wlc_d%MCAMP(6),wlc_d%PHIT(6), &
+            real(wlc_p%MOVEON(7)),wlc_d%PHIT(7), &
+            real(wlc_p%MOVEON(8)),wlc_d%PHIT(8), &
+            real(wlc_p%MOVEON(9)),wlc_d%PHIT(9), &
+            real(wlc_p%MOVEON(10)),wlc_d%PHIT(10)
+        close(outFileUnit)
     end subroutine
-    subroutine wlcsim_params_writebinary(wlcsim_p,wlcsim_d,baceName)
-    !    This function writes the contence of the structures wlcsim_p and wlcsim_d
-    !  to a binary file.  if you add more variables to wlcsim_d you need to
+    subroutine wlcsim_params_writebinary(wlc_p,wlc_d,baseName)
+    !    This function writes the contence of the structures wlc_p and wlc_d
+    !  to a binary file.  if you add more variables to wlc_d you need to
     !  a seperate write command for them as it is not possible to write
     !  a structure with allocatables to a binar file.
     !    The contence are stored in
-    !     baceName//'R'
-    !     baceName//'U'
+    !     baseName//'R'
+    !     baseName//'U'
     !     etc.
         IMPLICIT NONE
         integer sizeOftype         ! for binary saving
-        type(wlcsim_params), intent(in) :: wlcsim_p             ! to be save or filled
-        type(wlcsim_data), intent(in) :: wlcsim_d             ! to be save or filled
-        CHARACTER(LEN=16), intent(in) :: baceName ! for example 'record/'
+        type(wlcsim_params), intent(in) :: wlc_p             ! to be save or filled
+        type(wlcsim_data), intent(in) :: wlc_d             ! to be save or filled
+        CHARACTER(LEN=16), intent(in) :: baseName ! for example 'record/'
         CHARACTER(LEN=16) fileName ! fileName
-        CHARACTER(LEN=16) sufix    ! end of file name
+        CHARACTER(LEN=16) suffix    ! end of file name
         LOGICAL exists    ! does file already exist?
 
         !  ------parameters -----
 
-        sizeOftype=int(SIZEOF(wlcsim_p))
-        sufix='parameters'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_p))
+        suffix='parameters'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=outFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
-            open(unit=1,file=fileName, status='new', &
+            open(unit=outFileUnit,file=fileName, status='new', &
                 form='unformatted',access='direct',recl=sizeOftype)
         endif
-        write(1,rec=1) wlcsim_p
-        close(1)
+        write(outFileUnit,rec=1) wlc_p
+        close(outFileUnit)
 
         ! -------- R --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%R))
-        sufix='R'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%R))
+        suffix='R'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=outFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
-            open(unit=1,file=fileName, status='new', &
+            open(unit=outFileUnit,file=fileName, status='new', &
                 form='unformatted',access='direct',recl=sizeOftype)
         endif
-        write(1,rec=1) wlcsim_d%R
-        close(1)
+        write(outFileUnit,rec=1) wlc_d%R
+        close(outFileUnit)
 
         ! -------- U --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%U))
-        sufix='U'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%U))
+        suffix='U'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=outFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
-            open(unit=1,file=fileName, status='new', &
+            open(unit=outFileUnit,file=fileName, status='new', &
                 form='unformatted',access='direct',recl=sizeOftype)
         endif
-        write(1,rec=1) wlcsim_d%U
-        close(1)
+        write(outFileUnit,rec=1) wlc_d%U
+        close(outFileUnit)
 
         ! -------- AB --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%AB))
-        sufix='AB'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%AB))
+        suffix='AB'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=outFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
-            open(unit=1,file=fileName, status='new', &
+            open(unit=outFileUnit,file=fileName, status='new', &
                 form='unformatted',access='direct',recl=sizeOftype)
         endif
-        write(1,rec=1) wlcsim_d%AB
-        close(1)
+        write(outFileUnit,rec=1) wlc_d%AB
+        close(outFileUnit)
 
         ! -------- Vol --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%Vol))
-        sufix='Vol'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%Vol))
+        suffix='Vol'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=outFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
-            open(unit=1,file=fileName, status='new', &
+            open(unit=outFileUnit,file=fileName, status='new', &
                 form='unformatted',access='direct',recl=sizeOftype)
         endif
-        write(1,rec=1) wlcsim_d%Vol
-        close(1)
+        write(outFileUnit,rec=1) wlc_d%Vol
+        close(outFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_readBindary(wlcsim_p,wlcsim_d,baceName)
+    subroutine wlcsim_params_readBinary(wlc_p, wlc_d, baseName)
     ! This function reads what wlcsim_params_writebinary writes and
-    ! stores it to wlcsim_p and wlcsim_d.  Be sure to allocate wlcsim_d before
+    ! stores it to wlc_p and wlc_d.  Be sure to allocate wlc_d before
     ! calling this command.
         IMPLICIT NONE
         integer sizeOftype         ! for binary saving
-        type(wlcsim_params) wlcsim_p             ! to be save or filled
-        type(wlcsim_data) wlcsim_d             ! to be save or filled
-        CHARACTER(LEN=16) baceName ! for example 'record/'
+        type(wlcsim_params) wlc_p             ! to be save or filled
+        type(wlcsim_data) wlc_d             ! to be save or filled
+        CHARACTER(LEN=16) baseName ! for example 'record/'
         CHARACTER(LEN=16) fileName ! fileName
-        CHARACTER(LEN=16) sufix    ! end of file name
+        CHARACTER(LEN=16) suffix    ! end of file name
         LOGICAL exists    ! does file already exist?
 
         !  ------parameters -----
 
-        sizeOftype=int(SIZEOF(wlcsim_p))
-        sufix='parameters'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_p))
+        suffix='parameters'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=inFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
             print*, 'Error in wlcsim_params_readBinary. file ',fileName,'does not exist'
             stop 1
         endif
-        read(1,rec=1) wlcsim_p
-        close(1)
+        read(inFileUnit,rec=1) wlc_p
+        close(inFileUnit)
 
         ! -------- R --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%R))
-        sufix='R'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%R))
+        suffix='R'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=inFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
             print*, 'Error in wlcsim_params_readBinary. file ',fileName,'does not exist'
             stop 1
         endif
-        read(1,rec=1) wlcsim_d%R
-        close(1)
+        read(inFileUnit,rec=1) wlc_d%R
+        close(inFileUnit)
 
         ! -------- U --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%U))
-        sufix='U'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%U))
+        suffix='U'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=inFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
             print*, 'Error in wlcsim_params_readBinary. file ',fileName,'does not exist'
             stop 1
         endif
-        read(1,rec=1) wlcsim_d%U
-        close(1)
+        read(inFileUnit,rec=1) wlc_d%U
+        close(inFileUnit)
 
         ! -------- AB --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%AB))
-        sufix='AB'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%AB))
+        suffix='AB'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=inFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
             print*, 'Error in wlcsim_params_readBinary. file ',fileName,'does not exist'
             stop 1
         endif
-        read(1,rec=1) wlcsim_d%AB
-        close(1)
+        read(inFileUnit,rec=1) wlc_d%AB
+        close(inFileUnit)
 
         ! -------- Vol --------
 
-        sizeOftype=int(SIZEOF(wlcsim_d%Vol))
-        sufix='Vol'
-        fileName=trim(baceName) // trim(sufix)
+        sizeOftype=int(SIZEOF(wlc_d%Vol))
+        suffix='Vol'
+        fileName=trim(baseName) // trim(suffix)
         inquire(file=fileName,exist=exists)
         if(exists) then
-            open(unit=1,file=fileName, status='old', &
+            open(unit=inFileUnit,file=fileName, status='old', &
                 form='unformatted',access='direct',recl=sizeOftype)
         else
             print*, 'Error in wlcsim_params_readBinary. file ',fileName,'does not exist'
             stop 1
         endif
-        read(1,rec=1) wlcsim_d%Vol
-        close(1)
+        read(inFileUnit,rec=1) wlc_d%Vol
+        close(inFileUnit)
     end subroutine
+
+    subroutine save_simulation_state(save_ind, wlc_d, wlc_p, outfile_base)
+        implicit none
+        type(wlcsim_data), intent(in) :: wlc_d
+        type(wlcsim_params), intent(in) :: wlc_p
+        integer, intent(in) :: save_ind
+        character(MAX_LOG10_SAVES) :: fileind ! num2str(i)
+        character(MAXFILENAMELEN) :: filename
+        character(MAXFILENAMELEN) :: outfile_base
+        integer :: ind, j
+
+        write (fileind,num2strFormatString) save_ind
+
+        !Save various energy contiributions to file
+        filename = trim(adjustL(outfile_base)) // 'energies'
+        call wlcsim_params_appendEnergyData(save_ind, wlc_p, wlc_d, filename)
+
+        !part 2.5 - adaptations
+        filename = trim(adjustL(outfile_base)) // 'adaptations'
+        call wlcsim_params_appendAdaptData(save_ind, wlc_p, wlc_d, filename)
+
+        if (wlc_p%savePhi) then
+            write(filename,num2strFormatString) save_ind
+            filename = trim(adjustL(outfile_base)) // 'phi' // trim(adjustL(filename))
+            call wlcsim_params_savePHI(wlc_p,wlc_d,filename)
+        endif
+
+        if (wlc_p%saveR) then
+            write(filename,num2strFormatString) save_ind
+            filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
+            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.)
+        endif
+
+        if (wlc_p%saveU) then
+            write(filename,num2strFormatString) save_ind
+            filename = trim(adjustL(outfile_base)) // 'u' // trim(adjustL(filename))
+            call wlcsim_params_saveU(wlc_p,wlc_d,filename)
+        endif
+
+        if (wlc_p%fptColType /= 0) then
+            filename = trim(adjustL(outfile_base)) // 'coltimes'
+            open(unit=outFileUnit, file=filename, status='REPLACE')
+            do ind=1,wlc_p%nt
+                write(outFileUnit,*) (wlc_d%coltimes(ind,j), j=1,wlc_p%nt)
+            enddo
+            close(outFileUnit)
+        endif
+    end subroutine save_simulation_state
 end module params
