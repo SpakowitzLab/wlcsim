@@ -13,11 +13,12 @@
       DOUBLE PRECISION, INTENT(OUT) :: FELAS(NT,3) ! Elastic force
       DOUBLE PRECISION, INTENT(OUT) :: TELAS(NT,3) ! Elastic force
       DOUBLE PRECISION, INTENT(IN) ::  R(NT,3)  ! Bead positions
-      DOUBLE PRECISION, INTENT(IN) :: U(NT,3)  ! Tangent vectors
+      ! u will be modified iff simtype=1, if want this to be intent(in), just
+      ! modify the below to use a separate variable for this
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NT,3)  ! Tangent vectors
       DOUBLE PRECISION B(NT)    ! Bond lengths
-      INTEGER I,J,IB,IBP1            ! Index holders
+      INTEGER I,J,IB            ! Index holders
       INTEGER, INTENT(IN) :: N,NT,NP  ! Number of bead
-      INTEGER N,NT,NP           ! Number of bead
       INTEGER SIMTYPE           ! Simulation method (WLC=1,SSWLC=2,GC=3)
 
 !     Polymer properties
@@ -29,7 +30,7 @@
 
       DOUBLE PRECISION DR(3),DRPAR,DRPERP(3)
       DOUBLE PRECISION FI(3),TI1(3),TI2(3)
-      DOUBLE PRECISION U1U2,GI(3),HI(3)
+      DOUBLE PRECISION U1U2,GI(3)
 
       IB=1
       DO 10 I=1,NP
