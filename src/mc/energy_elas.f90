@@ -8,14 +8,14 @@
 !     Andrew Spakowitz
 !     Written 9-1-04
 
-      SUBROUTINE energy_elas(EELAS,R,U,NT,NB,NP,PARA,RING,TWIST,Lk,tl,LP,L)
+      SUBROUTINE energy_elas(EELAS,R,U,NT,NB,NP,PARA,RING,TWIST,Lk,lt,L)
       use params, only: dp, pi
       IMPLICIT NONE
       INTEGER, intent(in) :: NB           ! Number of beads in a polymer
       INTEGER, intent(in) :: NT           ! Number of beads total
       INTEGER, intent(in) :: NP           ! Number of polymers
-      INTEGER, intent(in) :: lk, tl
-      real(dp), intent(in) :: lp, l
+      INTEGER, intent(in) :: lk
+      real(dp), intent(in) :: l, lt
       DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
       DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
       DOUBLE PRECISION, intent(out):: EELAS(6) ! Elastic force
@@ -44,18 +44,17 @@
       EELAS(3)=0.0_dp
       IB=1
       DO I=1,NP
-         DO J=1,(NB-1)
-            !TODO loop to N-1, then do N separately
+         DO J=1,NB
             IF (RING) THEN
-            IF (J.EQ.NB) THEN
-                IBP1=1+(I-1)*NB
+                IF (J.EQ.NB) THEN
+                    IBP1=1+(I-1)*NB
+                ELSE
+                    IBP1=IB+1
+                ENDIF
+            ELSEIF (.NOT.RING.AND.J.EQ.NB) THEN
+                CYCLE
             ELSE
                 IBP1=IB+1
-            ENDIF
-            ELSEIF (.NOT.RING.AND.J.EQ.NB) THEN
-            CYCLE !TODO check with Brad
-            ELSE
-            IBP1=IB+1
             ENDIF
 
             DR(1)=R(IBP1,1)-R(IB,1)
@@ -86,7 +85,6 @@
       IF (TWIST) THEN
           call WRITHE(R,NB,Wr)
           Tw=Lk-Wr
-          !TODO where does LT come from?
           EELAS(4)=((2*PI*Tw)**2)*LT/(2*L)
       ENDIF
 

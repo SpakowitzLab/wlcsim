@@ -12,49 +12,45 @@
 !     Arbitrary pair-wise potentials may be substituted
 
 SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
+    !TODO change so works with multiple chains
 
-  DOUBLE PRECISION R(NT,3)   ! Bead positions
+    use params, only: dp
+
+    implicit none
+
   INTEGER N,NT,NP            ! Current number of beads
+  DOUBLE PRECISION R(NT,3)   ! Bead positions
   DOUBLE PRECISION EPONP ! Self-interaction force
   DOUBLE PRECISION FMAG     ! Mag of force
-  DOUBLE PRECISION RIJ      ! Interbead dist
-  DOUBLE PRECISION EIJ(3)   ! Interbead unit vector
-  INTEGER I, J              ! Index holders
-  INTEGER SKIP              ! Bead skip index
 
   !     Variables for the calculation
 
   DOUBLE PRECISION U1(3),U2(3),U1U2
   DOUBLE PRECISION D1,D2
-  DOUBLE PRECISION R12(3),D12,E12(3),R12T(3),R12C1(3),R12C2(3)
+  DOUBLE PRECISION R12(3),D12,R12T(3),R12C1(3),R12C2(3)
   DOUBLE PRECISION S1,S2
   DOUBLE PRECISION GI(3)
-  INTEGER I1,J1,I2,J2
-  INTEGER IB1,IB2
   INTEGER IT1,IT2,IT1P1,IT2P1
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)
+  real(dp) PARA(10)
   DOUBLE PRECISION LHC      ! HC length
-  DOUBLE PRECISION SIGP     ! HC diameter
-  DOUBLE PRECISION VHC 	! Potential strengths
+  DOUBLE PRECISION VHC      ! Potential strengths
   DOUBLE PRECISION GAM
   DOUBLE PRECISION LBOX     ! Box edge length
-  DOUBLE PRECISION SUM
-  DOUBLE PRECISION DT
   DOUBLE PRECISION XIR
   INTEGER RING              ! Is polymer a ring?
   INTEGER NMAX
 
 
-  EB=PARA(1)
-  EPAR=PARA(2)
-  EPERP=PARA(3)
+  ! EB=PARA(1)
+  ! EPAR=PARA(2)
+  ! EPERP=PARA(3)
   GAM=PARA(4)
-  ETA=PARA(5)
+  ! ETA=PARA(5)
   XIR=PARA(6)
-  XIU=PARA(7)
+  ! XIU=PARA(7)
   LBOX=PARA(8)
   LHC=PARA(9)
   VHC=PARA(10)

@@ -107,3 +107,7 @@ gfortran wlcsim.f03 -I .. -I ../third_party/FLAP/exe/mod
 ../bd/stressp.o ../third_party/mt19937.o ../bd/RKstep.o ../third_party/dgtsv.o
 
 
+EELAS (1) = wlc
+EELAS (2) = wlc
+EELAS (3) = wlc
+EELAS (4) = twist

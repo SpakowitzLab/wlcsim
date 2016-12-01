@@ -74,8 +74,9 @@ call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
                  wlc_p%NP, pack_as_para(wlc_p))
 EPONP=0.
 if (wlc_p%INTON) then
-    call energy_ponp(EPONP, wlc_d%R, wlc_p%NT, wlc_p%NB, &
-                     wlc_p%NP, pack_as_para(wlc_p))
+    ! ring is always false for me
+    call energy_self_chain(EPONP, wlc_d%R, wlc_p%NT, wlc_p%NB, &
+                     wlc_p%NP, pack_as_para(wlc_p), .FALSE.)
 endif
 
 print*, '________________________________________'

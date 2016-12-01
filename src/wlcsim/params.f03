@@ -40,11 +40,18 @@ module params
     !!!     universal constants
     ! fully accurate, adaptive precision
     real(dp) :: pi = 4 * atan(1.0_dp)
-    ! won't get optimized away by compiler, see e.g.
-    ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680
-    real(dp) :: nan = transfer((/ Z'00000000', Z'7FF80000' /),1.0_dp)
+    real(dp) :: nan
+    ! ! won't get optimized away by compiler, see e.g.
+    ! ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680
+    ! real(dp) :: nan = transfer((/ Z'00000000', Z'7FF80000' /),1.0_dp)
     ! the following would be preferred, but generated compilation errors...
-    !real(dp) :: nan = IEEE_VALUE(IEEE_QUIET_NAN)
+    !real(dp) :: nan = IEEE_VALUE(nan, IEEE_QUIET_NAN)
+    real(dp) :: inf
+    ! ! doesn't work, inf needs to happen at runtime in fortran
+    ! real(dp) :: one = 1.0_dp
+    ! real(dp) :: inf = -log(one - one)
+    ! the following would be preferred, but generated compilation errors...
+    !real(dp) :: inf = ieee_value(inf, ieee_positive_inf)
 
     ! for all parameters that cannot change during individual simulations
     ! these are documented more thoroughly where they are read in (see the
@@ -117,6 +124,7 @@ module params
         integer NADAPT(nMoveTypes) ! Nunber of steps between adapt
         real(dp) min_accept  ! threshold for deciding to usually not use a move
         integer reduce_move  ! whether or not to stop usuing a move when it goes below min_accept success
+        integer winType      ! distributionof segment size in crankshaft move (unif=0, exp=1)
 
     !   Timing variables
         integer NPT                ! number of steps between parallel tempering
@@ -150,8 +158,9 @@ module params
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
-        logical inton       ! include intra-polymer interactions
         logical restart     ! whether we are restarting from a previous sim or not
+        logical INTERP_BEAD_LENNARD_JONES ! whether to have inter bead lennard jones energies
+        logical field_int_on ! include field interactions (e.g. A/B interactions)
 
     !   parallel Tempering parameters
         character(16) repSuffix    ! prefix for writing files
@@ -194,6 +203,7 @@ module params
         integer, allocatable, dimension(:) :: indPHI   ! indices of the phi
         ! simulation times at which (i,j)th bead pair first collided
         real(dp), allocatable, dimension(:,:) :: coltimes
+        real(dp) :: wr
 
     !   Monte Carlo Variables (for adaptation)
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
@@ -203,13 +213,14 @@ module params
 
     !   Energys
         !real(dp) Eint     ! running Eint
-        real(dp) EELAS(3) ! Elastic force
-        real(dp) ECHI     ! CHI energy
-        real(dp) EKAP     ! KAP energy
-        real(dp) ECouple  ! Coupling
-        real(dp) ebind    ! binding energy
-        real(dp) EField   ! Field energy
-        real(dp) EPONP    ! Self-interaction energy (polymer on polymer)
+        real(dp) eElas(3) ! Elastic force
+        real(dp) eChi     ! CHI energy
+        real(dp) eKap     ! KAP energy
+        real(dp) eCouple  ! Coupling
+        real(dp) eBind    ! binding energy
+        real(dp) eField   ! Field energy
+        real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
+        real(dp) eKnot    ! 0-inf potential for if chain crossed itself
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
         real(dp) x_Chi,   dx_Chi
@@ -226,6 +237,7 @@ module params
         real(dp) DEKap    ! compression energy
         real(dp) Debind   ! Change in binding energy
         real(dp) DEField  ! Change in field energy
+        real(dp) DESelf   ! change in self interaction energy
         real(dp) ECon     ! Confinement Energy
         integer NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
@@ -309,7 +321,8 @@ contains
         wlc_p%lk=0    ! no linking number (lays flat) by default
         wlc_p%min_accept=0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
         wlc_p%exitWhenCollided = .FALSE. ! stop sim when coltimes is full
-        wlc_p%inton = .FALSE. ! no intrapolymer interactions by default
+        wlc_p%field_int_on = .FALSE. ! no field interactions by default
+        wlc_p%INTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
@@ -318,6 +331,7 @@ contains
         wlc_p%numSavePoints=200    ! 200 total save points, i.e. 2000 steps per save point
         wlc_p%NNoInt=100    ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
         wlc_p%reduce_move=10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
+        wlc_p%winType = 1   ! exponential fragment sizes mix better
         wlc_p%useSchedule=.False. ! use Quinn's scheduler to modify wlc_p params halfway through the simulation
         wlc_p%KAP_ON=1.0_dp ! use full value of compression energy
         wlc_p%CHI_ON=1.0_dp ! use full value of chi energy
@@ -407,6 +421,10 @@ contains
             CALL reado(wlc_p%twist) ! whether to include twist energies in wlc_p
         CASE('RING')
             CALL reado(wlc_p%ring) ! whether polymer is a ring or not
+        CASE('INTERP_BEAD_LENNARD_JONES')
+            CALL reado(wlc_p%INTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
+        CASE('field_int_on')
+            CALL reado(wlc_p%field_int_on) ! whether polymer is a ring or not
         CASE('LK')
             CALL readi(wlc_p%lk) ! linking number
         CASE('PTON')
@@ -527,6 +545,8 @@ contains
             Call readF(wlc_p%MINWindoW(7))
         CASE('REDUCE_MOVE')
             Call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
+        CASE('WIN_TYPE')
+            call readI(wlc_p%winType)   ! fragment size distribution for crankshaft move
         CASE('MIN_ACCEPT')
             Call readF(wlc_p%MIN_ACCEPT) ! below which moves are turned off
         CASE('CRANK_SHAFT_TARGET')
@@ -671,6 +691,7 @@ contains
 
         ! initialize energies to zero
         wlc_d%EElas=0.0_dp
+        wlc_d%eKnot=0.0_dp
         wlc_d%ECouple=0.0_dp
         wlc_d%ebind=0.0_dp
         wlc_d%EKap=0.0_dp
@@ -790,6 +811,7 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         integer mctype ! type of move
+    !TODO
     !   Edit the following to optimize wlc_p performance
     ! Quinn's custom move-turn-on
         !  Monte-Carlo simulation parameters
@@ -808,53 +830,24 @@ contains
         wlc_p%MOVEON(2)=1  ! slide move
         wlc_p%MOVEON(3)=1  ! pivot move
         wlc_p%MOVEON(4)=1  ! rotate move
-        wlc_p%MOVEON(5)=0  ! full chain rotation
-        wlc_p%MOVEON(6)=0  ! full chain slide
+        wlc_p%MOVEON(5)=1  ! full chain rotation
+        wlc_p%MOVEON(6)=1  ! full chain slide
         wlc_p%MOVEON(7)=1  ! Change in Binding state
-        wlc_p%MOVEON(8)=0  ! Chain flip
-        wlc_p%MOVEON(9)=0  ! Chain exchange
-        wlc_p%MOVEON(10)=0 ! Reptation
-    ! ANDY's simtype-dependent move turning on
-        if (wlc_p%SIMtype.EQ.1) then
-            wlc_d%MCAMP(1)=1.
-            wlc_d%MCAMP(2)=1.
-            wlc_d%MCAMP(3)=1.
-            wlc_d%MCAMP(4)=1.
-            wlc_d%MCAMP(5)=1.
-            wlc_d%MCAMP(6)=1.
-            wlc_p%MOVEON(1)=1
-            wlc_p%MOVEON(2)=0
-            wlc_p%MOVEON(3)=1
-            wlc_p%MOVEON(4)=0
-        elseif (wlc_p%SIMtype.EQ.2) then
-            wlc_d%MCAMP(1)=1.
-            wlc_d%MCAMP(2)=1.
-            wlc_d%MCAMP(3)=1.
-            wlc_d%MCAMP(4)=1.
-            wlc_d%MCAMP(5)=1.
-            wlc_d%MCAMP(6)=1.
-            wlc_p%MOVEON(1)=1
-            wlc_p%MOVEON(2)=1
-            wlc_p%MOVEON(3)=1
-            wlc_p%MOVEON(4)=1
-        elseif (wlc_p%SIMtype.EQ.3) then
-            wlc_d%MCAMP(1)=1.
-            wlc_d%MCAMP(2)=1.
-            wlc_d%MCAMP(3)=1.
-            wlc_d%MCAMP(4)=1.
-            wlc_d%MCAMP(5)=1.
-            wlc_d%MCAMP(6)=1.
-            wlc_p%MOVEON(1)=1
-            wlc_p%MOVEON(2)=1
-            wlc_p%MOVEON(3)=1
-            wlc_p%MOVEON(4)=0
-        endif
-        if (wlc_p%INTON) then
-            wlc_p%MOVEON(5)=1
-            wlc_p%MOVEON(6)=1
-        else
-            wlc_p%MOVEON(5)=0
-            wlc_p%MOVEON(6)=0
+        wlc_p%MOVEON(8)=0  ! Chain flip ! TODO not working
+        wlc_p%MOVEON(9)=1  ! Chain exchange
+        wlc_p%MOVEON(10)=1 ! Reptation
+        if (wlc_p%codeName == 'quinn') then
+            !switches to turn on various types of moves
+            wlc_p%MOVEON(1)=1  ! crank-shaft move
+            wlc_p%MOVEON(2)=1  ! slide move
+            wlc_p%MOVEON(3)=1  ! pivot move
+            wlc_p%MOVEON(4)=1  ! rotate move
+            wlc_p%MOVEON(5)=0  ! full chain rotation
+            wlc_p%MOVEON(6)=0  ! full chain slide
+            wlc_p%MOVEON(7)=1  ! Change in Binding state
+            wlc_p%MOVEON(8)=0  ! Chain flip
+            wlc_p%MOVEON(9)=0  ! Chain exchange
+            wlc_p%MOVEON(10)=0 ! Reptation
         endif
 
         !     Initial segment window for wlc_p moves
@@ -1482,200 +1475,204 @@ contains
         endif
     end subroutine save_simulation_state
 
-    subroutine pt_restart(mc,md)
-    ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
-    ! parallel-tempered MC simulations.
-    !
-    ! This function takes the place of PT_override in the case of restart
-    ! This will read from a output directory and restart multiple replicas
-    ! Override initialization with parallel setup parameters
-    !  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSufix
-        ! use mpi
-        Implicit none
-        type(wlcsim_params), intent(inout) :: mc
-        type(wlcsim_data), intent(inout) :: md
-        integer (kind=4) dest ! message destination
-        integer (kind=4) source ! message source
-        integer (kind=4) id, nThreads,ierror
-        integer (kind=4) error  ! error id for MIP functions
-        character(64) iostrg    ! for file naming
-        character(16) vNum    ! for file naming
-        character(64) dir
-        integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-        integer, parameter :: nTerms=8  ! number of energy terms
-        real(dp) mag ! magnitude for renormalizing U
-        real(dp) cof(nTerms)
-        integer I ! bead index
+!     subroutine pt_restart(mc,md)
+!     ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
+!     ! parallel-tempered MC simulations.
+!     !
+!     ! This function takes the place of PT_override in the case of restart
+!     ! This will read from a output directory and restart multiple replicas
+!     ! Override initialization with parallel setup parameters
+!     !  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSufix
+!         ! use mpi
+!         Implicit none
+!         type(wlcsim_params), intent(inout) :: mc
+!         type(wlcsim_data), intent(inout) :: md
+!         integer (kind=4) dest ! message destination
+!         integer (kind=4) source ! message source
+!         integer (kind=4) id, nThreads,ierror
+!         integer (kind=4) error  ! error id for MIP functions
+!         character(64) iostrg    ! for file naming
+!         character(16) vNum    ! for file naming
+!         character(64) dir
+!         integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
+!         integer, parameter :: nTerms=8  ! number of energy terms
+!         real(dp) mag ! magnitude for renormalizing U
+!         real(dp) cof(nTerms)
+!         integer I ! bead index
 
-        ! file parsing
-        integer ios ! read status (detect end of file)
-        real(dp) temp(28)  ! values
+!         ! file parsing
+!         integer ios ! read status (detect end of file)
+!         real(dp) temp(28)  ! values
 
-        ! Which replica am I?
-        call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
-        call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
-        source=0;
-        call MPI_Recv ( md%rep, 1, MPI_integer, source, 0, &
-                    MPI_COMM_WORLD, status, error )
-        if (md%rep.ne.id) then
-            print*, "That's not what I expected! see restart"
-        endif
-        if (nThreads.lt.3) then
-            print*, "don't use pt_restart for fewer than 3 treads"
-            stop 1
-        endif
-        write(vNum,'(I4)') md%rep
-        vNum=adJustL(vNum)
-        vNum="v"//trim(vNum)
+!         ! Which replica am I?
+!         call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
+!         call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
+!         source=0;
+!         call MPI_Recv ( md%rep, 1, MPI_integer, source, 0, &
+!                     MPI_COMM_WORLD, status, error )
+!         if (md%rep.ne.id) then
+!             print*, "That's not what I expected! see restart"
+!         endif
+!         if (nThreads.lt.3) then
+!             print*, "don't use pt_restart for fewer than 3 treads"
+!             stop 1
+!         endif
+!         write(vNum,'(I4)') md%rep
+!         vNum=adJustL(vNum)
+!         vNum="v"//trim(vNum)
 
-        ! Where to read from
-        dir="data/"
+!         ! Where to read from
+!         dir="data/"
 
-        ! read Some operation variables
-        ! Many of these aren't necessary but a few are
-        iostrg=trim(dir)//"out1"
-        iostrg=trim(iostrg)//trim(vNum)
-        print*, "reading", iostrg
-        open(unit=1, file=iostrg, status ='OLD')
-        read(1,*)
-        do WHILE (.TRUE.)
-            read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
-                                temp(6), temp(7), temp(8), temp(9), temp(10), &
-                                temp(11), temp(12), temp(13), temp(14), &
-                                temp(15), temp(16)
-            if (ios.eq.0) then
-                mc%ind=nint(temp(1))
-                mc%EElas(1)=temp(3)
-                mc%EElas(2)=temp(4)
-                mc%EElas(3)=temp(5)
-                mc%ECouple=temp(6)
-                mc%EKap=temp(7)
-                mc%EChi=temp(8)
-                mc%EField=temp(9)
-                mc%ebind=temp(10)
-                mc%M=temp(11)
-                mc%HP1_Bind=temp(12)
-                mc%chi=temp(13)
-                mc%mu=temp(14)
-                mc%Kap=temp(15)
-                mc%h_A=temp(16)
-            else
-                Exit
-            endif
-        enddo
-        close(1)
-        print*, "first set from file", iostrg
-        print*, temp
-        ! not sure if the following if statments are necessary
-        if (mc%Chi.ne.0.0) then
-            mc%x_Chi=mc%EChi/mc%Chi
-        endif
-        if (mc%Chi.ne.0.0) then
-            mc%x_Couple=mc%ECouple/mc%HP1_Bind
-        endif
-        if (mc%Kap.ne.0) then
-            mc%x_Kap=mc%EKap/mc%Kap
-        endif
-        if (mc%x_Field.ne.0.0) then
-            mc%x_Field=mc%EField/mc%h_A
-        endif
-        if (mc%Mu.ne.0.0) then
-            mc%x_Mu=mc%ebind/mc%Mu
-        endif
+!         ! read Some operation variables
+!         ! Many of these aren't necessary but a few are
+!         iostrg=trim(dir)//"out1"
+!         iostrg=trim(iostrg)//trim(vNum)
+!         print*, "reading", iostrg
+!         open(unit=1, file=iostrg, status ='OLD')
+!         read(1,*)
+!         do WHILE (.TRUE.)
+!             read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
+!                                 temp(6), temp(7), temp(8), temp(9), temp(10), &
+!                                 temp(11), temp(12), temp(13), temp(14), &
+!                                 temp(15), temp(16)
+!             if (ios.eq.0) then
+!                 mc%ind=nint(temp(1))
+!                 mc%EElas(1)=temp(3)
+!                 mc%EElas(2)=temp(4)
+!                 mc%EElas(3)=temp(5)
+!                 mc%ECouple=temp(6)
+!                 mc%EKap=temp(7)
+!                 mc%EChi=temp(8)
+!                 mc%EField=temp(9)
+!                 mc%ebind=temp(10)
+!                 mc%M=temp(11)
+!                 mc%HP1_Bind=temp(12)
+!                 mc%chi=temp(13)
+!                 mc%mu=temp(14)
+!                 mc%Kap=temp(15)
+!                 mc%h_A=temp(16)
+!             else
+!                 Exit
+!             endif
+!         enddo
+!         close(1)
+!         print*, "first set from file", iostrg
+!         print*, temp
+!         ! not sure if the following if statments are necessary
+!         if (mc%Chi.ne.0.0) then
+!             mc%x_Chi=mc%EChi/mc%Chi
+!         endif
+!         if (mc%Chi.ne.0.0) then
+!             mc%x_Couple=mc%ECouple/mc%HP1_Bind
+!         endif
+!         if (mc%Kap.ne.0) then
+!             mc%x_Kap=mc%EKap/mc%Kap
+!         endif
+!         if (mc%x_Field.ne.0.0) then
+!             mc%x_Field=mc%EField/mc%h_A
+!         endif
+!         if (mc%Mu.ne.0.0) then
+!             mc%x_Mu=mc%ebind/mc%Mu
+!         endif
 
-        ! read back in addaptation stuff, May make slight difference
-        iostrg=trim(dir)//"out3"
-        iostrg=trim(iostrg)//trim(vNum)
-        print*, iostrg
-        open(unit=1, file=iostrg, status ='OLD')
-        read(1,*)
-        do WHILE (.TRUE.)
-            read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
-                                temp(6), temp(7), temp(8), temp(9), temp(10), &
-                                temp(11), temp(12), temp(13), temp(14), &
-                                temp(15), temp(16), temp(17), temp(18), &
-                                temp(19), temp(20), temp(21), temp(22), &
-                                temp(23), temp(24), temp(25), temp(26), &
-                                temp(27), temp(28)
-            if (ios.eq.0) then
-                mc%WindoW(1)=temp(3); mc%MCAMP(1)=temp(4); mc%PHIT(1)=temp(5);
-                mc%WindoW(2)=temp(6); mc%MCAMP(2)=temp(7); mc%PHIT(2)=temp(8);
-                mc%WindoW(3)=temp(9); mc%MCAMP(3)=temp(10); mc%PHIT(3)=temp(11);
-                mc%MOVEON(4)=nint(temp(12)); mc%MCAMP(4)=temp(13); mc%PHIT(4)=temp(14);
-                mc%MOVEON(5)=nint(temp(15)); mc%MCAMP(5)=temp(16); mc%PHIT(5)=temp(17);
-                mc%MOVEON(6)=nint(temp(18)); mc%MCAMP(6)=temp(19); mc%PHIT(6)=temp(20);
-                mc%MOVEON(7)=nint(temp(21)); mc%PHIT(7)=temp(22);
-                mc%MOVEON(8)=nint(temp(23)); mc%PHIT(8)=temp(24);
-                mc%MOVEON(9)=nint(temp(25)); mc%PHIT(9)=temp(26);
-                mc%MOVEON(10)=nint(temp(27)); mc%PHIT(10)=temp(28)
-            else
-                Exit
-            endif
-        enddo
-        close(1)
-        print*, "second set from file", iostrg
-        print*, temp
+!         ! read back in addaptation stuff, May make slight difference
+!         iostrg=trim(dir)//"out3"
+!         iostrg=trim(iostrg)//trim(vNum)
+!         print*, iostrg
+!         open(unit=1, file=iostrg, status ='OLD')
+!         read(1,*)
+!         do WHILE (.TRUE.)
+!             read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
+!                                 temp(6), temp(7), temp(8), temp(9), temp(10), &
+!                                 temp(11), temp(12), temp(13), temp(14), &
+!                                 temp(15), temp(16), temp(17), temp(18), &
+!                                 temp(19), temp(20), temp(21), temp(22), &
+!                                 temp(23), temp(24), temp(25), temp(26), &
+!                                 temp(27), temp(28)
+!             if (ios.eq.0) then
+!                 mc%WindoW(1)=temp(3); mc%MCAMP(1)=temp(4); mc%PHIT(1)=temp(5);
+!                 mc%WindoW(2)=temp(6); mc%MCAMP(2)=temp(7); mc%PHIT(2)=temp(8);
+!                 mc%WindoW(3)=temp(9); mc%MCAMP(3)=temp(10); mc%PHIT(3)=temp(11);
+!                 mc%MOVEON(4)=nint(temp(12)); mc%MCAMP(4)=temp(13); mc%PHIT(4)=temp(14);
+!                 mc%MOVEON(5)=nint(temp(15)); mc%MCAMP(5)=temp(16); mc%PHIT(5)=temp(17);
+!                 mc%MOVEON(6)=nint(temp(18)); mc%MCAMP(6)=temp(19); mc%PHIT(6)=temp(20);
+!                 mc%MOVEON(7)=nint(temp(21)); mc%PHIT(7)=temp(22);
+!                 mc%MOVEON(8)=nint(temp(23)); mc%PHIT(8)=temp(24);
+!                 mc%MOVEON(9)=nint(temp(25)); mc%PHIT(9)=temp(26);
+!                 mc%MOVEON(10)=nint(temp(27)); mc%PHIT(10)=temp(28)
+!             else
+!                 Exit
+!             endif
+!         enddo
+!         close(1)
+!         print*, "second set from file", iostrg
+!         print*, temp
 
 
 
-        ! read R and AB from file
-        write(iostrg,"(I8)"), mc%ind
-        iostrg=adjustL(iostrg)
-        iostrg="r"//trim(iostrg)
-        iostrg=trim(dir)//trim(iostrg)
-        iostrg=trim(iostrg)//trim(vNum)
-        print*, "reading", iostrg
-        open (unit = 5, file = iostrg, status = 'OLD')
-        print*, "NT=",mc%NT
-        ios=0;
-        do I=1,mc%NT
-        if (ios.ne.0) then
-            print*, "Problem while reading R, Possible incomplete file"
-            stop 1
-        endif
-        read(5,*) md%R(I,1),md%R(I,2),md%R(I,3),md%AB(I)
-        enddo
-        close(5)
+!         ! read R and AB from file
+!         write(iostrg,"(I8)"), mc%ind
+!         iostrg=adjustL(iostrg)
+!         iostrg="r"//trim(iostrg)
+!         iostrg=trim(dir)//trim(iostrg)
+!         iostrg=trim(iostrg)//trim(vNum)
+!         print*, "reading", iostrg
+!         open (unit = 5, file = iostrg, status = 'OLD')
+!         print*, "NT=",mc%NT
+!         ios=0;
+!         do I=1,mc%NT
+!         if (ios.ne.0) then
+!             print*, "Problem while reading R, Possible incomplete file"
+!             stop 1
+!         endif
+!         read(5,*) md%R(I,1),md%R(I,2),md%R(I,3),md%AB(I)
+!         enddo
+!         close(5)
 
-        ! read U
-        write(iostrg,"(I8)"), mc%ind
-        iostrg=adjustL(iostrg)
-        iostrg="u"//trim(iostrg)
-        iostrg=trim(dir)//trim(iostrg)
-        iostrg=trim(iostrg)//trim(vNum)
-        ! read U from file
-        open (unit = 5, file = iostrg, status = 'OLD')
-        do I=1,mc%NT
-        read(5,*) md%U(I,1),md%U(I,2),md%U(I,3)
-        mag=sqrt(md%U(I,1)**2+md%U(I,2)**2+md%U(I,3)**2)
-        md%U(I,1)=md%U(I,1)/mag
-        md%U(I,2)=md%U(I,2)/mag
-        md%U(I,3)=md%U(I,3)/mag
-        enddo
-        close(5)
+!         ! read U
+!         write(iostrg,"(I8)"), mc%ind
+!         iostrg=adjustL(iostrg)
+!         iostrg="u"//trim(iostrg)
+!         iostrg=trim(dir)//trim(iostrg)
+!         iostrg=trim(iostrg)//trim(vNum)
+!         ! read U from file
+!         open (unit = 5, file = iostrg, status = 'OLD')
+!         do I=1,mc%NT
+!         read(5,*) md%U(I,1),md%U(I,2),md%U(I,3)
+!         mag=sqrt(md%U(I,1)**2+md%U(I,2)**2+md%U(I,3)**2)
+!         md%U(I,1)=md%U(I,1)/mag
+!         md%U(I,2)=md%U(I,2)/mag
+!         md%U(I,3)=md%U(I,3)/mag
+!         enddo
+!         close(5)
 
-        ! Let head node know what cof values you read
-        cof(1)=mc%chi
-        cof(2)=mc%mu
-        cof(3)=mc%h_A
-        cof(4)=mc%HP1_Bind
-        cof(5)=mc%KAP
-        cof(6)=mc%para(1)
-        cof(7)=mc%para(2)
-        cof(8)=mc%para(3)
-        dest=0
-        call MPI_Send (cof,nTerms, MPI_doUBLE_PRECISION, dest,   0, &
-                        MPI_COMM_WORLD,error )
+!         ! Let head node know what cof values you read
+!         cof(1)=mc%chi
+!         cof(2)=mc%mu
+!         cof(3)=mc%h_A
+!         cof(4)=mc%HP1_Bind
+!         cof(5)=mc%KAP
+!         cof(6)=mc%para(1)
+!         cof(7)=mc%para(2)
+!         cof(8)=mc%para(3)
+!         dest=0
+!         call MPI_Send (cof,nTerms, MPI_doUBLE_PRECISION, dest,   0, &
+!                         MPI_COMM_WORLD,error )
 
-        ! Make repsufix
-        write(iostrg,"(I4)"), mc%rep
-        iostrg=adjustL(iostrg)
-        iostrg=trim(iostrg)
-        iostrg="v"//trim(iostrg)
-        iostrg=trim(iostrg)
-        mc%repSufix=trim(iostrg)
+!         ! Make repsufix
+!         write(iostrg,"(I4)"), mc%rep
+!         iostrg=adjustL(iostrg)
+!         iostrg=trim(iostrg)
+!         iostrg="v"//trim(iostrg)
+!         iostrg=trim(iostrg)
+!         mc%repSufix=trim(iostrg)
 
-        ! keep track of which thread you are
-        mc%id=int(id)
+!         ! keep track of which thread you are
+!         mc%id=int(id)
+!     end subroutine
+    subroutine setup_runtime_floats()
+        inf = ieee_value(inf, ieee_positive_inf)
+        nan = ieee_value(nan, ieee_quiet_nan)
     end subroutine
 end module params

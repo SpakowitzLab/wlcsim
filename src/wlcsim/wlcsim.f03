@@ -54,6 +54,8 @@ program main
     call cli%get(switch='-o', val=outfile, error=err)
     call stop_if_err(err, 'Unable to parse output file base.')
 
+    call setup_runtime_floats()
+
     call get_input_from_file(infile, wlc_p, wlc_d)
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
