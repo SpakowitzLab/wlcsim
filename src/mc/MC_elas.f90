@@ -7,11 +7,12 @@
 SUBROUTINE MC_eelas(DEELAS,R,U,RP,UP,&
                     NT,NB,IB1,IB2,&
                     IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
-                    RING,TWIST,Lk,lt,LP,L,MCTYPE,WR,WRP)
+                    RING,TWIST,Lk,lt,L,MCTYPE,WR,WRP, &
+                    SIMTYPE)
 
-use params, only: dp
+use params, only: dp, pi
 IMPLICIT NONE
-INTEGER, intent(in) :: NT                ! Total number of beads
+INTEGER, intent(in) :: NT, SIMTYPE
 DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
 DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
 DOUBLE PRECISION, intent(in) :: RP(NT,3)  ! Bead positions
@@ -21,6 +22,10 @@ INTEGER, intent(in) :: IB1               ! Test bead position 1
 INTEGER, intent(in) :: IT1               ! Index of test bead 1
 INTEGER, intent(in) :: IB2               ! Test bead position 2
 INTEGER, intent(in) :: IT2               ! Index of test bead 2
+
+DOUBLE PRECISION :: U0(NT,3)  ! dummy variable for calculating u in wlc case
+DOUBLE PRECISION :: UP0(NT,3)  ! dummy variable for calculating u in wlc case
+DOUBLE PRECISION :: UNORM,U1U2
 
 DOUBLE PRECISION, intent(out) :: DEELAS(4)   ! Change in ECOM
 
@@ -34,16 +39,17 @@ double precision, intent(in) :: ETA
 INTEGER  Lk               ! Linking number
 DOUBLE PRECISION L        ! Contour length
 DOUBLE PRECISION lt       ! Twist persistence length
-DOUBLE PRECISION LP       ! Bend persistence length
 DOUBLE PRECISION Tw       ! Twist
 DOUBLE PRECISION TWP      ! Twist of test structure
 DOUBLE PRECISION WR       ! Writhe
-DOUBLE PRECISION WRP      ! Writhe of test structure
+DOUBLE PRECISION, intent(out) :: WRP      ! Writhe of test structure
 DOUBLE PRECISION DWR      ! Change in Writhe
 DOUBLE PRECISION WRM,WRMP ! Component of writhe affected by move
 INTEGER RING              ! Is polymer a ring?
 INTEGER TWIST             ! Include twist?
 INTEGER IT1M1
+INTEGER IT1P1
+INTEGER IT2M1
 INTEGER IT2P1
 INTEGER MCTYPE            ! MC move type
 
@@ -77,34 +83,34 @@ DOUBLE PRECISION GI(3)
                  IT1P1 = IT1 + 1
              endif
 
-            U(IT1M1,1)=R(IT1,1)-R(IT1M1,1)
-            U(IT1M1,2)=R(IT1,2)-R(IT1M1,2)
-            U(IT1M1,3)=R(IT1,3)-R(IT1M1,3)
-            UNORM=sqrt(U(IT1M1,1)**2.+U(IT1M1,2)**2.+U(IT1M1,3)**2.)
-            U(IT1M1,1)=U(IT1M1,1)/UNORM
-            U(IT1M1,2)=U(IT1M1,2)/UNORM
-            U(IT1M1,3)=U(IT1M1,3)/UNORM
+            U0(IT1M1,1)=R(IT1,1)-R(IT1M1,1)
+            U0(IT1M1,2)=R(IT1,2)-R(IT1M1,2)
+            U0(IT1M1,3)=R(IT1,3)-R(IT1M1,3)
+            UNORM=sqrt(U0(IT1M1,1)**2.+U0(IT1M1,2)**2.+U0(IT1M1,3)**2.)
+            U0(IT1M1,1)=U0(IT1M1,1)/UNORM
+            U0(IT1M1,2)=U0(IT1M1,2)/UNORM
+            U0(IT1M1,3)=U0(IT1M1,3)/UNORM
 
-            U(IT1,1)=R(IT1+1,1)-R(IT1,1)
-            U(IT1,2)=R(IT1+1,2)-R(IT1,2)
-            U(IT1,3)=R(IT1+1,3)-R(IT1,3)
-            UNORM=sqrt(U(IT1,1)**2.+U(IT1,2)**2.+U(IT1,3)**2.)
-            U(IT1,1)=U(IT1,1)/UNORM
-            U(IT1,2)=U(IT1,2)/UNORM
-            U(IT1,3)=U(IT1,3)/UNORM
+            U0(IT1,1)=R(IT1+1,1)-R(IT1,1)
+            U0(IT1,2)=R(IT1+1,2)-R(IT1,2)
+            U0(IT1,3)=R(IT1+1,3)-R(IT1,3)
+            UNORM=sqrt(U0(IT1,1)**2.+U0(IT1,2)**2.+U0(IT1,3)**2.)
+            U0(IT1,1)=U0(IT1,1)/UNORM
+            U0(IT1,2)=U0(IT1,2)/UNORM
+            U0(IT1,3)=U0(IT1,3)/UNORM
 
-            UP(IT1,1)=RP(IT1+1,1)-RP(IT1,1)
-            UP(IT1,2)=RP(IT1+1,2)-RP(IT1,2)
-            UP(IT1,3)=RP(IT1+1,3)-RP(IT1,3)
-            UNORM=sqrt(UP(IT1,1)**2.+UP(IT1,2)**2.+UP(IT1,3)**2.)
-            UP(IT1,1)=UP(IT1,1)/UNORM
-            UP(IT1,2)=UP(IT1,2)/UNORM
-            UP(IT1,3)=UP(IT1,3)/UNORM
+            UP0(IT1,1)=RP(IT1+1,1)-RP(IT1,1)
+            UP0(IT1,2)=RP(IT1+1,2)-RP(IT1,2)
+            UP0(IT1,3)=RP(IT1+1,3)-RP(IT1,3)
+            UNORM=sqrt(UP0(IT1,1)**2.+UP0(IT1,2)**2.+UP0(IT1,3)**2.)
+            UP0(IT1,1)=UP0(IT1,1)/UNORM
+            UP0(IT1,2)=UP0(IT1,2)/UNORM
+            UP0(IT1,3)=UP0(IT1,3)/UNORM
 
-            U1U2=U(IT1M1,1)*U(IT1,1)+U(IT1M1,2)*U(IT1,2)+U(IT1M1,3)*U(IT1,3)
+            U1U2=U0(IT1M1,1)*U0(IT1,1)+U0(IT1M1,2)*U0(IT1,2)+U0(IT1M1,3)*U0(IT1,3)
             ! only bending energy in WLC, others are init to zero, so sum in total energy calculation later will be no-op
             DEELAS(1)=DEELAS(1)+EB*U1U2
-            U1U2=U(IT1M1,1)*UP(IT1,1)+U(IT1M1,2)*UP(IT1,2)+U(IT1M1,3)*UP(IT1,3)
+            U1U2=U(IT1M1,1)*UP0(IT1,1)+U(IT1M1,2)*UP(IT1,2)+U(IT1M1,3)*UP(IT1,3)
             DEELAS(1)=DEELAS(1)-EB*U1U2
 
          elseif (SIMTYPE.EQ.2) then
@@ -179,33 +185,33 @@ DOUBLE PRECISION GI(3)
                 IT2M1 = IT2 - 1
             endif
 
-            U(IT2-1,1)=R(IT2,1)-R(IT2-1,1)
-            U(IT2-1,2)=R(IT2,2)-R(IT2-1,2)
-            U(IT2-1,3)=R(IT2,3)-R(IT2-1,3)
+            U0(IT2-1,1)=R(IT2,1)-R(IT2-1,1)
+            U0(IT2-1,2)=R(IT2,2)-R(IT2-1,2)
+            U0(IT2-1,3)=R(IT2,3)-R(IT2-1,3)
             UNORM=sqrt(U(IT2-1,1)**2.+U(IT2-1,2)**2.+U(IT2-1,3)**2.)
-            U(IT2-1,1)=U(IT2-1,1)/UNORM
-            U(IT2-1,2)=U(IT2-1,2)/UNORM
-            U(IT2-1,3)=U(IT2-1,3)/UNORM
+            U0(IT2-1,1)=U0(IT2-1,1)/UNORM
+            U0(IT2-1,2)=U0(IT2-1,2)/UNORM
+            U0(IT2-1,3)=U0(IT2-1,3)/UNORM
 
-            U(IT2,1)=R(IT2+1,1)-R(IT2,1)
-            U(IT2,2)=R(IT2+1,2)-R(IT2,2)
-            U(IT2,3)=R(IT2+1,3)-R(IT2,3)
-            UNORM=sqrt(U(IT2,1)**2.+U(IT2,2)**2.+U(IT2,3)**2.)
-            U(IT2,1)=U(IT2,1)/UNORM
-            U(IT2,2)=U(IT2,2)/UNORM
-            U(IT2,3)=U(IT2,3)/UNORM
+            U0(IT2,1)=R(IT2+1,1)-R(IT2,1)
+            U0(IT2,2)=R(IT2+1,2)-R(IT2,2)
+            U0(IT2,3)=R(IT2+1,3)-R(IT2,3)
+            UNORM=sqrt(U0(IT2,1)**2.+U0(IT2,2)**2.+U0(IT2,3)**2.)
+            U0(IT2,1)=U0(IT2,1)/UNORM
+            U0(IT2,2)=U0(IT2,2)/UNORM
+            U0(IT2,3)=U0(IT2,3)/UNORM
 
-            UP(IT2-1,1)=RP(IT2,1)-RP(IT2-1,1)
-            UP(IT2-1,2)=RP(IT2,2)-RP(IT2-1,2)
-            UP(IT2-1,3)=RP(IT2,3)-RP(IT2-1,3)
-            UNORM=sqrt(UP(IT2-1,1)**2.+UP(IT2-1,2)**2.+UP(IT2-1,3)**2.)
-            UP(IT2-1,1)=UP(IT2-1,1)/UNORM
-            UP(IT2-1,2)=UP(IT2-1,2)/UNORM
-            UP(IT2-1,3)=UP(IT2-1,3)/UNORM
+            UP0(IT2-1,1)=RP(IT2,1)-RP(IT2-1,1)
+            UP0(IT2-1,2)=RP(IT2,2)-RP(IT2-1,2)
+            UP0(IT2-1,3)=RP(IT2,3)-RP(IT2-1,3)
+            UNORM=sqrt(UP0(IT2-1,1)**2.+UP0(IT2-1,2)**2.+UP0(IT2-1,3)**2.)
+            UP0(IT2-1,1)=UP0(IT2-1,1)/UNORM
+            UP0(IT2-1,2)=UP0(IT2-1,2)/UNORM
+            UP0(IT2-1,3)=UP0(IT2-1,3)/UNORM
 
-            U1U2=U(IT2-1,1)*U(IT2,1)+U(IT2-1,2)*U(IT2,2)+U(IT2-1,3)*U(IT2,3)
+            U1U2=U0(IT2-1,1)*U0(IT2,1)+U0(IT2-1,2)*U0(IT2,2)+U0(IT2-1,3)*U0(IT2,3)
             DEELAS(1)=DEELAS(1)+EB*U1U2
-            U1U2=UP(IT2-1,1)*U(IT2,1)+UP(IT2-1,2)*U(IT2,2)+UP(IT2-1,3)*U(IT2,3)
+            U1U2=UP0(IT2-1,1)*U0(IT2,1)+UP0(IT2-1,2)*U0(IT2,2)+UP0(IT2-1,3)*U0(IT2,3)
             DEELAS(1)=DEELAS(1)-EB*U1U2
 
          elseif (SIMTYPE.EQ.2) then
@@ -263,12 +269,12 @@ DOUBLE PRECISION GI(3)
 
       IF (RING.EQ.1.AND.TWIST.EQ.1) THEN
           IF (MCTYPE.EQ.1) THEN
-              CALL WRITHECRANK(R,IT1,IT2,N,WRM)
-              CALL WRITHECRANK(RP,IT1,IT2,N,WRMP)
+              CALL WRITHECRANK(R,IT1,IT2,NB,WRM)
+              CALL WRITHECRANK(RP,IT1,IT2,NB,WRMP)
               DWR=WRMP-WRM
           ELSEIF (MCTYPE.EQ.2) THEN
-              CALL WRITHESLIDE(R,IT1,IT2,N,WRM)
-              CALL WRITHESLIDE(RP,IT1,IT2,N,WRMP)
+              CALL WRITHESLIDE(R,IT1,IT2,NB,WRM)
+              CALL WRITHESLIDE(RP,IT1,IT2,NB,WRMP)
               DWR=WRMP-WRM
           ELSE
               DWR=0.

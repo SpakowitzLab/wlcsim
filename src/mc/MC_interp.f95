@@ -95,7 +95,7 @@ CASE (2) ! Box confinement
     IZ(2)=IZ(1)-1
 
     ! Calculate the bin weighting
-    WX(2)=(dbin*IX(1)-0.5_dp*dbin-RBIN(1))/DEL
+    WX(2)=(dbin*IX(1)-0.5_dp*dbin-RBIN(1))/dbin
     WX(1)=1.0_dp-WX(2)
     WY(2)=(dbin*IY(1)-0.5_dp*dbin-RBIN(2))/dbin
     WY(1)=1.0_dp-WY(2)

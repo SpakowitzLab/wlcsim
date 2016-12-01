@@ -41,7 +41,7 @@ type(random_stat) rand_stat !for random numer generator
 real urand(3)
 
 if (abs(dbin*NBINX-LBOX).gt.0.000001_dp) then
-    print*, "dbin=", DEL
+    print*, "dbin=", dbin
     print*, "NBINX=",NBINX
     print*, "LBOX=",LBOX
     print*, "Error in MC_calcvolume, make box integer lenth*dbin"
@@ -69,10 +69,10 @@ elseif(confineType.EQ.3) then
                 y=dbin*iy
                 z=dbin*iz
                 corner(1,1)=x;    corner(1,2)=y;    corner(1,3)=z
-                corner(2,1)=x;    corner(3,2)=y-dbin;corner(3,3)=z-DEL
-                corner(3,1)=x;    corner(2,2)=y;    corner(2,3)=z-DEL
-                corner(4,1)=x-dbin;corner(4,2)=y-dbin;corner(4,3)=z-DEL
-                corner(5,1)=x-dbin;corner(5,2)=y;    corner(5,3)=z-DEL
+                corner(2,1)=x;    corner(3,2)=y-dbin;corner(3,3)=z-dbin
+                corner(3,1)=x;    corner(2,2)=y;    corner(2,3)=z-dbin
+                corner(4,1)=x-dbin;corner(4,2)=y-dbin;corner(4,3)=z-dbin
+                corner(5,1)=x-dbin;corner(5,2)=y;    corner(5,3)=z-dbin
                 corner(6,1)=x;    corner(6,2)=y-dbin;corner(6,3)=z
                 corner(7,1)=x-dbin;corner(7,2)=y;    corner(7,3)=z
                 corner(8,1)=x-dbin;corner(8,2)=y-dbin;corner(8,3)=z

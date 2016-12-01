@@ -42,6 +42,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
     DOUBLE PRECISION LHC      ! Length of HC int
     DOUBLE PRECISION VHC      ! HC strength
     DOUBLE PRECISION phiTot  ! for testing
+    real(dp) wrp ! proposed writhe
 
     DOUBLE PRECISION ENERGY
     logical isfile
@@ -272,7 +273,9 @@ SUBROUTINE MCsim(mc,md,NSTEP)
               (MCTYPE.NE.10) )then
               call MC_eelas(md%DEElas,md%R,md%U,md%RP,md%UP,&
                             mc%NT,mc%NB,IB1,IB2, &
-                            IT1,IT2,EB,EPAR,EPERP,GAM,ETA)
+                            IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
+                            mc%ring,mc%twist,mc%lk,mc%lt,mc%l, &
+                            mctype,md%wr,wrp,mc%simtype)
           else
               md%DEElas(1)=0.0
               md%DEElas(2)=0.0
@@ -411,6 +414,9 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                 md%x_field=md%x_field+md%dx_field
 
              endif
+             md%WR=WRP
+             NCross=NCrossP
+             Cross=CrossP
              md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)+1
           endif
 !   Adapt the amplitude of step every NADAPT steps
