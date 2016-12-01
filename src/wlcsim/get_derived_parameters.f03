@@ -23,6 +23,9 @@ subroutine get_derived_parameters(wlc_p)
     type(wlcsim_params), intent(inout) :: wlc_p
     REAL(dp) :: pvec(679, 8) ! array holding dssWLC params calculated by Elena
 
+    !Calculate total number of beads
+    wlc_p%nT = wlc_p%nB*wlc_p%nP
+
     if (wlc_p%NB.EQ.1.0d0) then
         PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
         STOP 1

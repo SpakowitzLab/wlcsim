@@ -128,6 +128,7 @@ module params
 
     !   Timing variables
         integer NPT                ! number of steps between parallel tempering
+        integer nReplicaExchangePerSavePoint ! read teh variable name
         integer numSavePoints      ! total number of save points
         integer stepsPerSave       ! steps per save point
         integer NNoInt             ! save points before turning on NNoInt
@@ -165,6 +166,7 @@ module params
     !   parallel Tempering parameters
         character(16) repSuffix    ! prefix for writing files
         logical PTON    ! whether or not to parallel temper
+        logical PT_twist
         logical PT_chi
         logical PT_h
         logical PT_kap
@@ -209,6 +211,7 @@ module params
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
         real(dp) WindoW(nMoveTypes)         ! Size of window for bead selection
         integer SUCCESS(nMoveTypes)        ! Number of successes
+        integer successTOTAL(nMoveTypes)               !Total number of successes
         real(dp) PHit(nMoveTypes) ! hit rate
 
     !   Energys
@@ -245,9 +248,21 @@ module params
         integer rep  ! which replica am I
         integer id   ! which thread am I
         integer error  ! MPI error
+        integer, allocatable, dimension(:) ::  LKs    !Vector of linking numbers for replicas
+        integer nLKs      !Number of linking number replicas to parallel temper over
+        real(dp), allocatable, dimension(:) :: Wrs !Vector of writhe for each replica
+        real(dp), allocatable, dimension(:,:) :: eelasREPLICAS !elastic energies of replicas
+        integer replicaSTART !index for replica to start with for exchange loop
+        integer replicaEND   !index for replica to end at for exchange loop
+        integer, allocatable, dimension(:) :: nTRIALup !number of times this replica has attempted to swap with replica above
+        integer, allocatable, dimension(:) :: nTRIALdown !number of times this replica has attempted to swap with replica below
+        integer, allocatable, dimension(:) :: nSWAPup !number of times this replica has swapped with replica above
+        integer, allocatable, dimension(:) :: nSWAPdown !number of times this replica has swapped with replica below
+        integer, allocatable, dimension(:) :: nodeNUMBER !vector of replicas indices for nodes
 
     !   random number generator state
         type(random_stat) rand_stat
+        integer rand_seed
 
     !   indices
         integer time_ind                ! current time point
@@ -342,8 +357,9 @@ contains
         wlc_p%INITIAL_MAX_S=0.0_dp !TODO: for now must be set explicitly, was 0.1, Quinn, what is this value?
 
         ! replica options
-        wlc_p%PTON=.TRUE.  ! use parallel if applicable
+        wlc_p%PTON=.FALSE.  ! use parallel if applicable
         wlc_p%NPT=100      ! 100 steps between parallel tempering is pretty frequent
+        wlc_p%nReplicaExchangePerSavePoint=1000      ! 100 steps between parallel tempering is pretty frequent
         wlc_p%NRepAdapt=1000  ! 1000 exchange attempts between adaptations
         wlc_p%lowerRepExe=0.09 ! TODO: enter justification for these defaults, if any.
         wlc_p%upperRepExe=0.18 ! TODO: fine if the only justification is "these just work"
@@ -353,6 +369,7 @@ contains
         wlc_p%indendRepAdapt=20
         wlc_p%repAnnealSpeed=0.01
         wlc_p%replicaBounds=.TRUE.
+        wlc_p%PT_twist =.False. ! don't parallel temper chi by default
         wlc_p%PT_chi =.False. ! don't parallel temper chi by default
         wlc_p%PT_h =.False. ! don't parallel temper h by default
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
@@ -360,7 +377,7 @@ contains
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
     end subroutine
 
-    subroutine read_from_file(infile, wlc_p)
+    subroutine read_input_file(infile, wlc_p)
         use INPUTparaMS, only : readLINE, readA, readF, readI, reado
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
@@ -487,6 +504,8 @@ contains
             Call readI(wlc_p%stepsPerSave) ! steps per save point
         CASE('NPT')
             Call readI(wlc_p%NPT) ! number of steps between parallel tempering
+        CASE('nReplicaExchangePerSavePoint')
+            call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
         CASE('FPOLY')
             Call readF(wlc_p%Fpoly) ! Fraction Polymer
         CASE('V')
@@ -591,21 +610,29 @@ contains
             call reado(wlc_p%PT_mu) ! parallel temper mu
         CASE('PT_COUPLE')
             call reado(wlc_p%PT_couple) ! parallel temper HP1_bind
+        CASE('PT_TWIST')
+            call reado(wlc_p%pt_twist)  ! parallel temper over linking numbers
         CASE('RESTART')
             call reado(wlc_p%restart) ! Restart from parallel tempering
         CASE DEFAULT
-            print*, "Error in params%read_from_file.  Unidentified keyword:", &
+            print*, "Error in params%read_input_file.  Unidentified keyword:", &
                     TRIM(WORD)
             stop 1
         endSELECT
         enddo
         close(PF)
-    end subroutine read_from_file
+    end subroutine read_input_file
 
-    subroutine idiot_checks(wlc_p)
+    subroutine idiot_checks(wlc_p, wlc_d)
+#if MPI_VERSION
+        use mpi
+#endif
         IMPLICIT NONE
         type(wlcsim_params), intent(out) :: wlc_p
+        type(wlcsim_data), intent(out) :: wlc_d
         logical err
+        integer numProcesses ! number of threads running
+        integer (kind=4) mpi_err
 
         if ((wlc_p%NT.GT.200000).OR.(wlc_p%NT.lt.1)) then
             print*, "Requested ", wlc_p%NT," beads."
@@ -655,6 +682,22 @@ contains
 
         err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
         call stop_if_err(err, "error in mcsim. Can't have kap without int on")
+#if MPI_VERSION
+    if (wlc_p%pt_twist) then
+        if (.NOT.wlc_p%twist) then
+            print *, 'parallel tempering on twist, but twist off'
+            stop
+        endif
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcesses,mpi_err)
+        if (wlc_d%nLKs+1.ne.numProcesses) then
+            print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+            print *, 'number of threads not equal to number of replicas!'
+            print *, 'exiting...'
+            print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+            stop
+        endif
+#endif
+  endif
     end subroutine
 
 
@@ -669,12 +712,17 @@ contains
 
         call tweak_param_defaults(wlc_p, wlc_d)
 
-        call read_from_file(infile, wlc_p)
+        call read_input_file(infile, wlc_p)
 
         ! get derived parameters that aren't directly input from file
         call get_derived_parameters(wlc_p)
 
-        call idiot_checks(wlc_p)
+        !If parallel tempering is on, read the Lks
+        if (wlc_p%pt_twist) then
+            call get_LKs_from_file(wlc_d)
+        endif
+
+        call idiot_checks(wlc_p, wlc_d)
 
     end subroutine
 
@@ -683,11 +731,76 @@ contains
         implicit none
         type(wlcsim_data), intent(inout)   :: wlc_d
         type(wlcsim_params), intent(in)    :: wlc_p
-        integer Irand     ! Seed
         character(8) datedum  ! trash
         character(10) timedum ! trash
         character(5) zonedum  ! trash
         integer seedvalues(8) ! clock readings
+        integer NT  ! total number of beads
+        integer NBIN ! total number of bins
+        integer i
+        nt = wlc_p%nt
+        nbin = wlc_p%nbin
+
+        ALLOCATE(wlc_d%R(NT,3))
+        ALLOCATE(wlc_d%U(NT,3))
+        if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
+            Allocate(wlc_d%RP(NT,3))
+            Allocate(wlc_d%UP(NT,3))
+        endif
+        if (wlc_p%codeName == 'quinn') then
+            ALLOCATE(wlc_d%AB(NT))   !Chemical identity aka binding state
+            ALLOCATE(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            ALLOCATE(wlc_d%PHIA(NBIN))
+            ALLOCATE(wlc_d%PHIB(NBIN))
+            ALLOCATE(wlc_d%DPHIA(NBIN))
+            ALLOCATE(wlc_d%DPHIB(NBIN))
+            Allocate(wlc_d%indPHI(NBIN))
+            Allocate(wlc_d%PhiH(NBIN))
+            ALLOCATE(wlc_d%Vol(NBIN))
+            ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
+        endif
+        !Allocate vector of writhe and elastic energies for replicas
+        if (wlc_p%pt_twist) then
+            allocate(wlc_d%Wrs(wlc_d%nLKs))
+            allocate(wlc_d%eelasREPLICAS(wlc_d%nLKs,4))
+        endif
+        !If parallel tempering is on, initialize the nodeNumbers
+        !and initialize MPI
+        if (wlc_p%pt_twist) then
+
+            !Allocate node numbers
+            allocate(wlc_d%nodeNUMBER(wlc_d%nLKs))
+            do i = 1,wlc_d%nLKs
+                wlc_d%nodeNUMBER(i) = i
+            enddo
+
+            !Initially, replica start and replica end are the first and second to last replicas for even
+            !nLKs and the first and second to last for odd nLKs
+            if (mod(wlc_d%nLKs,2).eq.0) then
+                wlc_d%replicaSTART = 1
+                wlc_d%replicaEND = wlc_d%nLKs - 1
+            else
+                wlc_d%replicaSTART = 1
+                wlc_d%replicaEND = wlc_d%nLKs - 2
+            endif
+
+            !Allocate the number of replica exchange trials and successes and initialize to zero
+            allocate(wlc_d%nSWAPup(wlc_d%nLKs))
+            allocate(wlc_d%nSWAPdown(wlc_d%nLKs))
+            allocate(wlc_d%nTRIALup(wlc_d%nLKs))
+            allocate(wlc_d%nTRIALdown(wlc_d%nLKs))
+
+            wlc_d%nSWAPup = 0
+            wlc_d%nSWAPdown = 0
+            wlc_d%nTRIALup = 0
+            wlc_d%nTRIALdown = 0
+
+        endif
+
+        if (wlc_p%fptColType /= 0) then
+            allocate(wlc_d%coltimes(NT,NT))
+            wlc_d%coltimes = -1.0_dp
+        endif
 
         ! initialize energies to zero
         wlc_d%EElas=0.0_dp
@@ -703,17 +816,18 @@ contains
         wlc_d%x_Kap=0.0_dp
         wlc_d%x_Chi=0.0_dp
 
-        if (.false.) then ! set spedific seed
-            Irand=7171
+        if (.false.) then ! if you wanted to set specific seed
+            wlc_d%rand_seed=7171
         else ! seed from clock
             call date_and_time(datedum,timedum,zonedum,seedvalues)
-            Irand=int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
+            ! funny business
+            wlc_d%rand_seed=int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
                       -seedvalues(7)*1E3-seedvalues(8))
-            Irand=mod(Irand,10000)
-            ! print*, "Random Intiger seed:",Irand
+            wlc_d%rand_seed=mod(wlc_d%rand_seed,10000)
+            ! print*, "Random Intiger seed:",wlc_d%rand_seed
         endif
 
-        call random_setseed(Irand, wlc_d%rand_stat)
+        call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
 
         call initcond(wlc_d%R, wlc_d%U, wlc_d%AB, wlc_p%NT, wlc_p%NB, &
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
@@ -779,38 +893,12 @@ contains
         print*, "---------------------------------------------"
 
     end subroutine
-    subroutine wlcsim_params_allocate(wlc_p,wlc_d)
-        IMPLICIT NONE
-        type(wlcsim_params), intent(in) :: wlc_p
-        type(wlcsim_data), intent(out) :: wlc_d
-        integer NT  ! total number of beads
-        integer NBIN ! total number of bins
-        ALLOCATE(wlc_d%R(NT,3))
-        ALLOCATE(wlc_d%U(NT,3))
-        Allocate(wlc_d%RP(NT,3))
-        Allocate(wlc_d%UP(NT,3))
-        ALLOCATE(wlc_d%AB(NT))   !Chemical identity aka binding state
-        ALLOCATE(wlc_d%ABP(NT))   !Chemical identity aka binding state
-        ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
-        ALLOCATE(wlc_d%PHIA(NBIN))
-        ALLOCATE(wlc_d%PHIB(NBIN))
-        ALLOCATE(wlc_d%DPHIA(NBIN))
-        ALLOCATE(wlc_d%DPHIB(NBIN))
-        ALLOCATE(wlc_d%Vol(NBIN))
-        Allocate(wlc_d%indPHI(NBIN))
-        Allocate(wlc_d%PhiH(NBIN))
-        if (wlc_p%fptColType /= 0) then
-            allocate(wlc_d%coltimes(NT,NT))
-            wlc_d%coltimes = -1.0_dp
-        endif
-
-    end subroutine
 
     subroutine tweak_param_defaults(wlc_p, wlc_d)
         IMPLICIT NONE
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
-        integer mctype ! type of move
+        integer mctype,i ! type of move
     !TODO
     !   Edit the following to optimize wlc_p performance
     ! Quinn's custom move-turn-on
@@ -910,10 +998,30 @@ contains
         wlc_p%MAXAMP(9)=nan
         wlc_p%MAXAMP(9)=nan
 
+        if (wlc_p%codeName == 'brad') then
+            ! initialize windows to number of beads
+            wlc_p%MAXWindoW = wlc_p%nB         ! Max Size of window for bead selection
+            wlc_p% MINWindoW  = 1         ! Min Size of window for bead selection
+
+            ! Window amplitudes
+            wlc_p%MinAMP = 0.0_dp ! minium amplitude
+            wlc_p%MinAMP(1) = 0.07_dp*pi
+            wlc_p%MinAMP(2) = 0.01_dp*wlc_p%l/wlc_p%nB
+            wlc_p%MaxAMP = 2.0_dp*pi
+            wlc_p%MaxAMP(2) = wlc_p%lbox(1)
+            wlc_p%MaxAMP(6) = wlc_p%lbox(1)
+        endif
+
+        ! If ring is on, turn off the pivot move
+        if (wlc_p%ring) then
+        wlc_p%moveON(3) = 0
+        endif
+
         do mctype=1,wlc_p%movetypes
             wlc_p%NADAPT(mctype)=1000 ! adapt after at most 1000 steps
             wlc_p%PDESIRE(mctype)=0.5_dp ! Target
             wlc_d%SUCCESS(mctype)=0
+            wlc_d%SUCCESStotal(mctype)=0
             wlc_d%PHIT(mctype)=0.0_dp
         enddo
     end subroutine
@@ -1675,4 +1783,29 @@ contains
         inf = ieee_value(inf, ieee_positive_inf)
         nan = ieee_value(nan, ieee_quiet_nan)
     end subroutine
+    !Get Lks for parallel tempering from file
+    subroutine get_LKs_from_file(wlc_d)
+    type(wlcsim_data), intent(inout) :: wlc_d
+    integer nLKs !number of linking numbers
+    integer IOstatus
+    integer TempLk
+    integer i
+    nLKs = 0
+    open (unit = 1, file = 'input/LKs')
+    do
+        read(unit = 1, fmt = *,iostat=IOstatus) TempLk
+        if (IOstatus /= 0) exit
+        nLKs = nLKs + 1
+    end do
+    close(unit = 1)
+
+    wlc_d%nLKs = nLKs
+    allocate(wlc_d%LKs(nLks))
+
+    open(unit = 1, file = 'input/LKs')
+    do i = 1, nLks
+        read(unit = 1,fmt = *) wlc_d%Lks(i)
+    enddo
+    close(unit = 1)
+    end subroutine get_LKs_from_file
 end module params

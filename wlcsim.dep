@@ -124,7 +124,8 @@ src/mc/energy_elas.o : src/mc/energy_elas.f90 \
 src/util/abs_determinant.o : src/util/abs_determinant.f95
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/util/abs_determinant.f95 -o src/util/abs_determinant.o
 src/wlcsim/wlcsim_brad.o : src/wlcsim/wlcsim_brad.f03 \
-	src/third_party/mersenne_twister.o
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/wlcsim/wlcsim_brad.f03 -o src/wlcsim/wlcsim_brad.o
 src/wlcsim/initchem.o : src/wlcsim/initchem.f95 \
 	src/third_party/mersenne_twister.o \
