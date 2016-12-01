@@ -61,19 +61,19 @@ endif
 TSAVE = save_ind*wlc_p%stepsPerSave*wlc_p%dt
 !brown always true
 call BDsim(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, wlc_d%TIME, TSAVE, &
-           wlc_p%DT, .true., wlc_p%INTON, IDUM, pack_as_para(wlc_p), wlc_p%SIMtype, &
+           wlc_p%DT, .true., wlc_p%INTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMtype, &
            wlc_d%coltimes, wlc_p%FPT_DIST, wlc_p%fptColType)
 
 
 call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, &
-            pack_as_para(wlc_p), wlc_p%INTON, wlc_p%SIMtype)
+            pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, wlc_p%NB, &
-             wlc_p%NP, pack_as_para(wlc_p), wlc_p%INTON, wlc_p%SIMtype)
+             wlc_p%NP, pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 
 call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
                  wlc_p%NP, pack_as_para(wlc_p))
 EPONP=0.
-if (wlc_p%INTON) then
+if (wlc_p%INTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me
     call energy_self_chain(EPONP, wlc_d%R, wlc_p%NT, wlc_p%NB, &
                      wlc_p%NP, pack_as_para(wlc_p), .FALSE.)
