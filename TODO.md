@@ -28,6 +28,7 @@ Stack of things to do:
         N -> nMpP (in quinn's code)
         N -> nB (in Andy's code)
         V -> beadVolume
+        h_A -> hA
         ? -> tweak_param_defaults(wlcsim_p, wlcsim_d)
             => but instead, seems like MCAMP and SUCCESS and PHIT and WINDOW should
             be in wlcsim_p instead of _d, because they're being tweaked as parameters,

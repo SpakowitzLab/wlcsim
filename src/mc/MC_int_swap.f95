@@ -56,7 +56,7 @@ endif
 !
 !--------------------------------------------------------------
 
-mc%NPHI=0
+md%NPHI=0
 do IB=I1,I2
   IB2=IB+I3-I1
   !No need to do calculation if identities are the same
@@ -100,17 +100,17 @@ do IB=I1,I2
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      temp=rrdr*WTOT*mc%V/md%Vol(INDBIN)
-                      md%DPHIA(mc%NPHI)=temp
-                      md%DPHIB(mc%NPHI)=-temp
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
+                      md%DPHIA(md%NPHI)=temp
+                      md%DPHIB(md%NPHI)=-temp
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=rrdr*WTOT*mc%V/md%Vol(INDBIN)
+                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
                       md%DPHIA(I)=md%DPHIA(I)+temp
                       md%DPHIB(I)=md%DPHIB(I)-temp
                       exit
@@ -131,17 +131,17 @@ do IB=I1,I2
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      temp=rrdr*WTOT*mc%V/md%Vol(INDBIN)
-                      md%DPHIA(mc%NPHI)=-temp
-                      md%DPHIB(mc%NPHI)=temp
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
+                      md%DPHIA(md%NPHI)=-temp
+                      md%DPHIB(md%NPHI)=temp
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=rrdr*WTOT*mc%V/md%Vol(INDBIN)
+                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
                       md%DPHIA(I)=md%DPHIA(I)-temp
                       md%DPHIB(I)=md%DPHIB(I)+temp
                       exit

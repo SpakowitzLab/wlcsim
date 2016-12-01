@@ -5,23 +5,24 @@
 !           Quinn MacPherson
 !
 
-Subroutine wlcsim_params_adapt(mc,MCTYPE)
+Subroutine wlcsim_params_adapt(mc,md,MCTYPE)
 ! Run this after say 1000 move in order to improve performance
     !use mt19937, only : grnd
     use params
     IMPLICIT NONE
-    TYPE(wlcsim_params), intent(inout) :: mc
+    TYPE(wlcsim_params), intent(in) :: mc
+    TYPE(wlcsim_data), intent(inout) :: md
     INTEGER, intent(in) :: MCTYPE   ! Type of move
 
     ! Correct for turned down poor moves
-    if ((mc%PHit(MCTYPE).lt.mc%MIN_ACCEPT).and. &
+    if ((md%PHit(MCTYPE).lt.mc%MIN_ACCEPT).and. &
         ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
-        mc%SUCCESS(MCTYPE)=mc%SUCCESS(MCTYPE)*mc%reduce_move
+        md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)*mc%reduce_move
     endif
 
 !   Change the position if appropriate
-    mc%PHIT(MCTYPE)=real(mc%SUCCESS(MCTYPE))/real(mc%NADAPT(MCTYPE))
-    mc%SUCCESS(MCTYPE)=0
+    md%PHIT(MCTYPE)=real(md%SUCCESS(MCTYPE))/real(mc%NADAPT(MCTYPE))
+    md%SUCCESS(MCTYPE)=0
 
     if ((MCTYPE.eq.8).or.(MCTYPE.eq.9)) then
         return
@@ -29,16 +30,16 @@ Subroutine wlcsim_params_adapt(mc,MCTYPE)
 
     ! If move type has no amplitude then only ajust window
     if (MCTYPE.eq.7) then
-        if (mc%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
-           mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*1.05_dp
+        if (md%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
+           md%WINDOW(MCTYPE)=md%WINDOW(MCTYPE)*1.05_dp
         else
-           mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*0.95_dp
+           md%WINDOW(MCTYPE)=md%WINDOW(MCTYPE)*0.95_dp
         endif
         !window limits
-        if (mc%WINDOW(MCTYPE).LT.mc%MINWINDOW(MCTYPE)) then
-           mc%WINDOW(MCTYPE)=mc%MINWINDOW(MCTYPE)
-        elseif (mc%WINDOW(MCTYPE).GT.mc%MAXWINDOW(MCTYPE)) then
-           mc%WINDOW(MCTYPE)=mc%MAXWINDOW(MCTYPE)
+        if (md%WINDOW(MCTYPE).LT.mc%MINWINDOW(MCTYPE)) then
+           md%WINDOW(MCTYPE)=mc%MINWINDOW(MCTYPE)
+        elseif (md%WINDOW(MCTYPE).GT.mc%MAXWINDOW(MCTYPE)) then
+           md%WINDOW(MCTYPE)=mc%MAXWINDOW(MCTYPE)
         endif
         return
     endif
@@ -48,46 +49,46 @@ Subroutine wlcsim_params_adapt(mc,MCTYPE)
         (MCTYPE.eq.5) .or. &
         (MCTYPE.eq.6)) then
         ! Adjust Amplidtude
-        if (mc%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
-           mc%MCAMP(MCTYPE)=mc%MCAMP(MCTYPE)*1.05_dp
+        if (md%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
+           md%MCAMP(MCTYPE)=md%MCAMP(MCTYPE)*1.05_dp
         else
-           mc%MCAMP(MCTYPE)=mc%MCAMP(MCTYPE)*0.95_dp
+           md%MCAMP(MCTYPE)=md%MCAMP(MCTYPE)*0.95_dp
         endif
         ! amplitude limits
-        if (mc%MCAMP(MCTYPE).GT.mc%MAXAMP(MCTYPE)) then
-           mc%MCAMP(MCTYPE)=mc%MAXAMP(MCTYPE)
-        elseif (mc%MCAMP(MCTYPE).LT.mc%MINAMP(MCTYPE)) then
-           mc%MCAMP(MCTYPE)=mc%MINAMP(MCTYPE)
+        if (md%MCAMP(MCTYPE).GT.mc%MAXAMP(MCTYPE)) then
+           md%MCAMP(MCTYPE)=mc%MAXAMP(MCTYPE)
+        elseif (md%MCAMP(MCTYPE).LT.mc%MINAMP(MCTYPE)) then
+           md%MCAMP(MCTYPE)=mc%MINAMP(MCTYPE)
         endif
         return
     endif
 
     ! Adjust Amplidtude
-    if (mc%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
-       mc%MCAMP(MCTYPE)=mc%MCAMP(MCTYPE)*1.05_dp
-       mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*1.05_dp
+    if (md%PHIT(MCTYPE).GT.mc%PDESIRE(MCTYPE)) then
+       md%MCAMP(MCTYPE)=md%MCAMP(MCTYPE)*1.05_dp
+       md%WINDOW(MCTYPE)=md%WINDOW(MCTYPE)*1.05_dp
     else
-       mc%MCAMP(MCTYPE)=mc%MCAMP(MCTYPE)*0.95_dp
-       mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*0.95_dp
+       md%MCAMP(MCTYPE)=md%MCAMP(MCTYPE)*0.95_dp
+       md%WINDOW(MCTYPE)=md%WINDOW(MCTYPE)*0.95_dp
     endif
 
     ! Drift to target window
-    mc%WINDOW(MCTYPE)=mc%WINDOW(MCTYPE)*0.98_dp+&
+    md%WINDOW(MCTYPE)=md%WINDOW(MCTYPE)*0.98_dp+&
                       0.02_dp*mc%winTarget(MCTYPE)
 
 
     ! amplitude limits
-    if (mc%MCAMP(MCTYPE).GT.mc%MAXAMP(MCTYPE)) then
-       mc%MCAMP(MCTYPE)=mc%MAXAMP(MCTYPE)
-    elseif (mc%MCAMP(MCTYPE).LT.mc%MINAMP(MCTYPE)) then
-       mc%MCAMP(MCTYPE)=mc%MINAMP(MCTYPE)
+    if (md%MCAMP(MCTYPE).GT.mc%MAXAMP(MCTYPE)) then
+       md%MCAMP(MCTYPE)=mc%MAXAMP(MCTYPE)
+    elseif (md%MCAMP(MCTYPE).LT.mc%MINAMP(MCTYPE)) then
+       md%MCAMP(MCTYPE)=mc%MINAMP(MCTYPE)
     endif
 
     !window limits
-    if (mc%WINDOW(MCTYPE).LT.mc%MINWINDOW(MCTYPE)) then
-       mc%WINDOW(MCTYPE)=mc%MINWINDOW(MCTYPE)
-    elseif (mc%WINDOW(MCTYPE).GT.mc%MAXWINDOW(MCTYPE)) then
-       mc%WINDOW(MCTYPE)=mc%MAXWINDOW(MCTYPE)
+    if (md%WINDOW(MCTYPE).LT.mc%MINWINDOW(MCTYPE)) then
+       md%WINDOW(MCTYPE)=mc%MINWINDOW(MCTYPE)
+    elseif (md%WINDOW(MCTYPE).GT.mc%MAXWINDOW(MCTYPE)) then
+       md%WINDOW(MCTYPE)=mc%MAXWINDOW(MCTYPE)
     endif
 
 end subroutine

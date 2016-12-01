@@ -14,11 +14,11 @@
 !     Edited by Quinn in 2016
 
 SUBROUTINE MC_int(mc,md,I1,I2,initialize)
-use params, only: dp
+use params, only: dp, wlcsim_params, wlcsim_data
 IMPLICIT NONE
 
-TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
-TYPE(MCData), intent(inout) :: md
+TYPE(wlcsim_params), intent(in) :: mc   ! <---- Contains output
+TYPE(wlcsim_data), intent(inout) :: md
 LOGICAL, intent(in) :: initialize   ! if true, calculate absolute energy
 INTEGER, intent(in) :: I1           ! Test bead position 1
 INTEGER, intent(in) :: I2           ! Test bead position 2
@@ -60,12 +60,12 @@ if (initialize) then
        md%DPHIB(I)=0.0_dp
        md%INDPHI(I)=0
     enddo
-    mc%DEKap=0
-    mc%DECouple=0
-    mc%DEChi=0
+    md%DEKap=0
+    md%DECouple=0
+    md%DEChi=0
 endif
 
-mc%NPHI=0
+md%NPHI=0
 do IB=I1,I2
   do rrdr=-1,1,2
    ! on initialize only add current position
@@ -81,7 +81,7 @@ do IB=I1,I2
        RBIN(3)=md%RP(IB,3)
    endif
    isA=md%AB(IB).eq.1
-   temp=rrdr*mc%V/(mc%dbin**3)
+   temp=rrdr*mc%beadVolume/(mc%dbin**3)
    ! --------------------------------------------------
    !
    !  Interpolate beads into bins
@@ -108,17 +108,17 @@ do IB=I1,I2
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 if (initialize) then
                     ! Set all phi values on initialize
-                    md%PHIA(INDBIN)=md%PHIA(INDBIN)+WTOT*mc%V/md%Vol(INDBIN)
+                    md%PHIA(INDBIN)=md%PHIA(INDBIN)+WTOT*mc%beadVolume/md%Vol(INDBIN)
                 else
                     ! Generate list of which phi's change and by how much
-                    I=mc%NPHI
+                    I=md%NPHI
                     do
                        if (I.eq.0) then
-                          mc%NPHI=mc%NPHI+1
-                          md%INDPHI(mc%NPHI)=INDBIN
+                          md%NPHI=md%NPHI+1
+                          md%INDPHI(md%NPHI)=INDBIN
                           !md%DPHIA(mc%NPHI)=rrdr*WTOT*mc%V/md%Vol(INDBIN)
-                          md%DPHIA(mc%NPHI)=temp*WTOT
-                          md%DPHIB(mc%NPHI)=0.0_dp
+                          md%DPHIA(md%NPHI)=temp*WTOT
+                          md%DPHIB(md%NPHI)=0.0_dp
                           exit
                        elseif (INDBIN.EQ.md%INDPHI(I)) then
                           !md%DPHIA(I)=md%DPHIA(I)+rrdr*WTOT*mc%V/md%Vol(INDBIN)
@@ -143,17 +143,17 @@ do IB=I1,I2
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 if (initialize) then
                     ! Set all phi values on initialize
-                    md%PHIB(INDBIN)=md%PHIB(INDBIN)+WTOT*mc%V/md%Vol(INDBIN)
+                    md%PHIB(INDBIN)=md%PHIB(INDBIN)+WTOT*mc%beadVolume/md%Vol(INDBIN)
                 else
                     ! Generate list of which phi's change and by how much
-                    I=mc%NPHI
+                    I=md%NPHI
                     do
                        if (I.eq.0) then
-                          mc%NPHI=mc%NPHI+1
-                          md%INDPHI(mc%NPHI)=INDBIN
-                          md%DPHIA(mc%NPHI)=0.0_dp
+                          md%NPHI=md%NPHI+1
+                          md%INDPHI(md%NPHI)=INDBIN
+                          md%DPHIA(md%NPHI)=0.0_dp
                           !md%DPHIB(mc%NPHI)=rrdr*WTOT*mc%V/md%Vol(INDBIN)
-                          md%DPHIB(mc%NPHI)=temp*WTOT
+                          md%DPHIB(md%NPHI)=temp*WTOT
                           exit
                        elseif (INDBIN.EQ.md%INDPHI(I)) then
                           !md%DPHIB(I)=md%DPHIB(I)+rrdr*WTOT*mc%V/md%Vol(INDBIN)

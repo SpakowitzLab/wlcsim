@@ -16,8 +16,8 @@ use params
 IMPLICIT NONE
 
 !   iputs
-TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
-TYPE(MCData), intent(inout) :: md
+TYPE(wlcsim_params), intent(in) :: mc   ! <---- Contains output
+TYPE(wlcsim_data), intent(inout) :: md
 INTEGER, intent(in) :: I1  ! Test bead position 1
 INTEGER, intent(in) :: I2  ! Test bead position 2
 
@@ -41,7 +41,7 @@ LOGICAL, intent(in) :: forward ! move forward
 
 NBINX=mc%NBINX
 
-mc%NPHI=0
+md%NPHI=0
 ! -------------------------------------------------------------
 !
 !  Calculate end beads
@@ -103,16 +103,16 @@ do II=1,2
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      md%DPHIA(mc%NPHI)=rrdr*WTOT*mc%V/md%Vol(INDBIN)
-                      md%DPHIB(mc%NPHI)=0.0_dp
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      md%DPHIA(md%NPHI)=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
+                      md%DPHIB(md%NPHI)=0.0_dp
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      md%DPHIA(I)=md%DPHIA(I)+rrdr*WTOT*mc%V/md%Vol(INDBIN)
+                      md%DPHIA(I)=md%DPHIA(I)+rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
                       exit
                    else
                       I=I-1
@@ -131,16 +131,16 @@ do II=1,2
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      md%DPHIA(mc%NPHI)=0.0_dp
-                      md%DPHIB(mc%NPHI)=rrdr*WTOT*mc%V/md%Vol(INDBIN)
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      md%DPHIA(md%NPHI)=0.0_dp
+                      md%DPHIB(md%NPHI)=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      md%DPHIB(I)=md%DPHIB(I)+rrdr*WTOT*mc%V/md%Vol(INDBIN)
+                      md%DPHIB(I)=md%DPHIB(I)+rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
                       exit
                    else
                       I=I-1
@@ -199,17 +199,17 @@ do IB=I1,I2-1
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      temp=WTOT*mc%V/md%Vol(INDBIN)
-                      md%DPHIA(mc%NPHI)=temp
-                      md%DPHIB(mc%NPHI)=-temp
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      temp=WTOT*mc%beadVolume/md%Vol(INDBIN)
+                      md%DPHIA(md%NPHI)=temp
+                      md%DPHIB(md%NPHI)=-temp
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=WTOT*mc%V/md%Vol(INDBIN)
+                      temp=WTOT*mc%beadVolume/md%Vol(INDBIN)
                       md%DPHIA(I)=md%DPHIA(I)+temp
                       md%DPHIB(I)=md%DPHIB(I)-temp
                       exit
@@ -230,17 +230,17 @@ do IB=I1,I2-1
                 WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
                 INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
                 ! Generate list of which phi's change and by how much
-                I=mc%NPHI
+                I=md%NPHI
                 do
                    if (I.eq.0) then
-                      mc%NPHI=mc%NPHI+1
-                      md%INDPHI(mc%NPHI)=INDBIN
-                      temp=WTOT*mc%V/md%Vol(INDBIN)
-                      md%DPHIA(mc%NPHI)=-temp
-                      md%DPHIB(mc%NPHI)=temp
+                      md%NPHI=md%NPHI+1
+                      md%INDPHI(md%NPHI)=INDBIN
+                      temp=WTOT*mc%beadVolume/md%Vol(INDBIN)
+                      md%DPHIA(md%NPHI)=-temp
+                      md%DPHIB(md%NPHI)=temp
                       exit
                    elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=WTOT*mc%V/md%Vol(INDBIN)
+                      temp=WTOT*mc%beadVolume/md%Vol(INDBIN)
                       md%DPHIA(I)=md%DPHIA(I)-temp
                       md%DPHIB(I)=md%DPHIB(I)+temp
                       exit
