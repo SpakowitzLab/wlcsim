@@ -6,7 +6,7 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     integer, intent(in) :: save_ind ! 1, 2, ...
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
-    integer, save :: id, num_processes
+    integer, save :: i, id, num_processes
     integer (kind=4) error
 
     if (save_ind == 1) then
@@ -27,16 +27,16 @@ subroutine wlcsim_quinn(save_ind, mc, md)
      endif
 
 
-    do i=1,numReplicaExchangesBetweenSaves
+    do i=1,mc%numReplicaExchangesBetweenSaves
 !   * Perform a MC simulation *
-    call MCsim(mc,md,mc%numStepsBetweenExchanges,mc%field_int_on,md%rand_stat)
-
-    print*, '________________________________________'
-    print*, 'Time point ',save_ind, ' out of', save_indMAX
-    call wlcsim_params_printEnergies(mc)
-    call wlcsim_params_printWindowStats(mc)
-    !call wlcsim_params_printPhi(mc,md)
-
+        call VerifyEnegiesFromScratch(mc, md)
+        call MCsim(mc,md,mc%numStepsBetweenExchanges,mc%field_int_on,md%rand_stat)
+        print*, '________________________________________'
+        print*, 'Time point ',save_ind, ' out of', save_indMAX
+        call wlcsim_params_printEnergies(mc)
+        call wlcsim_params_printWindowStats(mc)
+        !call wlcsim_params_printPhi(mc,md)
+    enddo
 end subroutine wlcsim_quinn
 
 subroutine setup_mpi()

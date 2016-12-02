@@ -162,6 +162,7 @@ module params
         logical restart     ! whether we are restarting from a previous sim or not
         logical INTERP_BEAD_LENNARD_JONES ! whether to have inter bead lennard jones energies
         logical field_int_on ! include field interactions (e.g. A/B interactions)
+        logical bind_On
 
     !   parallel Tempering parameters
         character(16) repSuffix    ! prefix for writing files
@@ -213,6 +214,7 @@ module params
         INTEGER NCROSS
         INTEGER NCROSSP
         INTEGER CrossSize
+        INTEGER Delta 
 
 
     !   Monte Carlo Variables (for adaptation)
@@ -224,7 +226,7 @@ module params
 
     !   Energys
         !real(dp) Eint     ! running Eint
-        real(dp) eElas(3) ! Elastic force
+        real(dp) eElas(4) ! Elastic force
         real(dp) eChi     ! CHI energy
         real(dp) eKap     ! KAP energy
         real(dp) eCouple  ! Coupling
@@ -241,7 +243,7 @@ module params
         real(dp) x_Mu,    dx_Mu
 
     !   Move Variables
-        real(dp) DEELAS(3)   ! Change in bending energy
+        real(dp) DEELAS(4) ! Change in bending energy
     !    real(dp) DEINT    ! Change in self energy
         real(dp) DECouple ! Coupling energy
         real(dp) DEChi    ! chi interaction energy
@@ -346,6 +348,7 @@ contains
         wlc_p%min_accept=0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
         wlc_p%exitWhenCollided = .FALSE. ! stop sim when coltimes is full
         wlc_p%field_int_on = .FALSE. ! no field interactions by default
+        wlc_p%bind_On = .FALSE. ! no binding energy by default
         wlc_p%INTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
 
         ! timing options
@@ -451,6 +454,8 @@ contains
             CALL reado(wlc_p%INTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
         CASE('field_int_on')
             CALL reado(wlc_p%field_int_on) ! whether polymer is a ring or not
+        CASE('BIND_ON')
+            CALL reado(wlc_p%bind_on) ! Whether to include a binding state model
         CASE('LK')
             CALL readi(wlc_p%lk) ! linking number
         CASE('PTON')
@@ -705,8 +710,8 @@ contains
             print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             stop
         endif
-#endif
   endif
+#endif
     end subroutine
 
 
@@ -767,7 +772,7 @@ contains
             Allocate(wlc_d%PhiH(NBIN))
             ALLOCATE(wlc_d%Vol(NBIN))
             ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
-            do I=1,mc%NBIN
+            do I=1,wlc_p%NBIN
                 wlc_d%PHIA(I)=0.0_dp
                 wlc_d%PHIB(I)=0.0_dp
             enddo
@@ -779,7 +784,7 @@ contains
 
         endif
         if (wlc_p%ring) then !TODO this should be if ("knot")
-            NCross=0
+            wlc_d%NCross=0
             wlc_d%CrossSize=wlc_p%NB**2
             ALLOCATE(wlc_d%Cross(wlc_d%CrossSize,6))
             ALLOCATE(wlc_d%CrossP(wlc_d%CrossSize,6))
@@ -822,22 +827,6 @@ contains
             wlc_d%coltimes = -1.0_dp
         endif
 
-        ! initialize energies to zero
-        wlc_d%EElas=0.0_dp
-        wlc_d%eKnot=0.0_dp
-        wlc_d%ECouple=0.0_dp
-        wlc_d%ebind=0.0_dp
-        wlc_d%EKap=0.0_dp
-        wlc_d%ECHI=0.0_dp
-        wlc_d%EField=0.0_dp
-        wlc_d%x_mu=0.0_dp
-        wlc_d%x_Field=0.0_dp
-        wlc_d%x_couple=0.0_dp
-        wlc_d%x_Kap=0.0_dp
-        wlc_d%x_Chi=0.0_dp
-        CalculateEnergiesFromScratch(md%EBind, md% ....
-        
-
         if (.false.) then ! if you wanted to set specific seed
             wlc_d%rand_seed=7171
         else ! seed from clock
@@ -855,6 +844,40 @@ contains
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat)
 
+        
+        ! initialize energies
+        call CalculateEnergiesFromScratch(wlc_p,wlc_d)
+        wlc_d%EElas   =wlc_d%dEElas   
+        if (wlc_p%field_int_on) then
+            wlc_d%ECouple =wlc_d%dECouple 
+            wlc_d%EKap    =wlc_d%dEKap    
+            wlc_d%ECHI    =wlc_d%dECHI    
+            wlc_d%EField  =wlc_d%dEField  
+            wlc_d%x_Field =wlc_d%dx_Field 
+            wlc_d%x_couple=wlc_d%dx_couple
+            wlc_d%x_Kap   =wlc_d%dx_Kap   
+            wlc_d%x_Chi   =wlc_d%dx_Chi
+        else
+            wlc_d%ECouple =0.0_dp 
+            wlc_d%EKap    =0.0_dp 
+            wlc_d%ECHI    =0.0_dp 
+            wlc_d%EField  =0.0_dp 
+            wlc_d%x_Field =0.0_dp 
+            wlc_d%x_couple=0.0_dp
+            wlc_d%x_Kap   =0.0_dp 
+            wlc_d%x_Chi   =0.0_dp 
+        endif
+        if (wlc_p%bind_On) then
+            wlc_d%ebind   =wlc_d%debind   
+            wlc_d%x_mu    =wlc_d%dx_mu   
+        else
+            wlc_d%ebind   =0.0_dp   
+            wlc_d%x_mu    =0.0_dp
+        endif
+        if(wlc_p%Ring) then
+            wlc_d%eKnot   =1.0
+        endif
+        
         wlc_d%time = 0
         wlc_d%time_ind = 0
         wlc_d%mc_ind = 0

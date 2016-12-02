@@ -2,7 +2,8 @@
 !
 !
 ! This subroutine calculates the field Hamiltonian from the phi values.
-!
+! It puts the output in: md%dx_chi, md%dx_chi, md%dx_couple, md%dx_couple, md%dx_Kap, md%dx_Kap, md%DEChi,md%dx_chi, md%DECouple,
+! md%dx_couple, md%DEKap, md%dx_Kap, md%DEField, md%dx_Field
 !      by Quinn MacPherson based on code from Shifan Mao
 !       Made a separate function on 7/8/16
 !
@@ -99,7 +100,7 @@ md%dx_Kap=md%dx_Kap*mc%KAP_ON
 md%DEChi=mc%Chi*        md%dx_chi
 md%DECouple=mc%HP1_Bind*md%dx_couple
 md%DEKap=mc%Kap*        md%dx_Kap
-md%DEField=mc%hA*      md%dx_Field
+md%DEField=mc%hA*       md%dx_Field
 RETURN
 END subroutine
 
