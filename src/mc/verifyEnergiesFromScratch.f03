@@ -11,14 +11,14 @@ subroutine CalculateEnergiesFromScratch(mc, md)
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: mc
     type(wlcsim_data), intent(out) :: md
-
+    integer Delta !transh
 
     if (mc%bind_on) then
         md%ABP=0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1=1; IT2=mc%NT
         call MC_bind(mc%NT,mc%nBpM,IT1,IT2,md%ABP,md%AB,md%METH, &
-                     mc%EU,mc%EM,md%DEBind,mc%mu,md%x_mu)
+                     mc%EU,mc%EM,md%DEBind,mc%mu,md%dx_mu)
     endif
 
     call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc))
@@ -37,7 +37,7 @@ subroutine CalculateEnergiesFromScratch(mc, md)
      call WRITHE(md%R,mc%NB,md%Wr)
 
      !     Get initial value of Alexander polynomial and Cross matrix
-     CALL ALEXANDERP(md%R,mc%NB,md%DELTA,md%Cross,md%CrossSize,md%NCross)
+     CALL ALEXANDERP(md%R,mc%NB,DELTA,md%Cross,md%CrossSize,md%NCross)
      !     Begin Monte Carlo simulation
 
      print*, "Inside CalculateEnergiesFromScratch"

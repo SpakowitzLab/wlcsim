@@ -214,7 +214,6 @@ module params
         INTEGER NCROSS
         INTEGER NCROSSP
         INTEGER CrossSize
-        INTEGER Delta 
 
 
     !   Monte Carlo Variables (for adaptation)

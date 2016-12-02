@@ -94,16 +94,16 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                        mc%INTERP_BEAD_LENNARD_JONES)
 
         IF (mc%RING) THEN
-           CrossP=Cross
-           NCrossP=NCross
+           md%CrossP=md%Cross
+           md%NCrossP=md%NCross
            IF (MCTYPE.EQ.1) THEN
-              CALL alexanderp_crank(md%RP,mc%NB,DELTA,CrossP,CrossSize,NCrossP,IT1,IT2,DIB)
+              CALL alexanderp_crank(md%RP,mc%NB,DELTA,md%CrossP,md%CrossSize,md%NCrossP,IT1,IT2,DIB)
            ELSEIF (MCTYPE.EQ.2) THEN
               IF (DIB.NE.mc%NB) THEN
-                 CALL alexanderp_slide(md%RP,mc%NB,DELTA,CrossP,CrossSize,NCrossP,IT1,IT2,DIB)
+                 CALL alexanderp_slide(md%RP,mc%NB,DELTA,md%CrossP,md%CrossSize,md%NCrossP,IT1,IT2,DIB)
               ENDIF
            ELSE
-              CALL ALEXANDERP(md%RP,mc%NB,DELTA,CrossP,CrossSize,NCrossP)
+              CALL ALEXANDERP(md%RP,mc%NB,DELTA,md%CrossP,md%CrossSize,md%NCrossP)
            ENDIF
            IF (DELTA.NE.1) THEN
               md%eKnot = inf
@@ -264,8 +264,8 @@ SUBROUTINE MCsim(mc,md,NSTEP)
 
              endif
              md%WR=WRP
-             NCross=NCrossP
-             Cross=CrossP
+             md%NCross=md%NCrossP
+             md%Cross=md%CrossP
              md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)+1
           endif
 !   Adapt the amplitude of step every NADAPT steps
