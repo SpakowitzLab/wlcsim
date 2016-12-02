@@ -71,7 +71,7 @@ program main
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')
         do i=1,wlc_p%numSavePoints
-            ! call wlcsim_brad(i, wlc_d, wlc_p)
+            call wlcsim_brad(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile)
         enddo
     case ('bruno', 'brownian dynamics')
@@ -82,5 +82,6 @@ program main
     case default
         call stop_if_err(1, 'Invalid simulation code name specified.')
     end select
+
 end program main
 

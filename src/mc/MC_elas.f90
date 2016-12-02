@@ -4,6 +4,7 @@
 !
 !     Calculate the change in the polymer elastic energy
 !     due to the displacement from a MC move
+!
 SUBROUTINE MC_eelas(DEELAS,R,U,RP,UP,&
                     NT,NB,IB1,IB2,&
                     IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &

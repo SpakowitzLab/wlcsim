@@ -97,6 +97,11 @@ Stack of things to do:
         28. make sure time_ind is incremented in bdsim
         29. make sure head node generates random seed sfor all workers
         30. change all case's in params to CAPS_WITH_UNDERSCORES
+        31. only run VerifyEnegiesFromScratch if not manually changing mc
+            parameters (Quinn)
+        32. in CalculateEnergiesFromScratch, do Brad's eknot, self, etc
+        33. finish code to initialize energies in params and to get out x_'s
+            from CalculateEnergiesFromScratch
 
 sitting in the src/wlcsim directory, and you've just run make -i in the top
 level, the following now succeeds if you remove

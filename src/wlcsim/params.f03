@@ -207,6 +207,14 @@ module params
         real(dp), allocatable, dimension(:,:) :: coltimes
         real(dp) :: wr
 
+    !   Twist variables
+        DOUBLE PRECISION, ALLOCATABLE :: CROSS(:,:)   !Matrix of information for crossings in a 2-D projection of the polymer
+        DOUBLE PRECISION, ALLOCATABLE :: CROSSP(:,:)  !Matrix of crossings for the trial configuration
+        INTEGER NCROSS
+        INTEGER NCROSSP
+        INTEGER CrossSize
+
+
     !   Monte Carlo Variables (for adaptation)
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
         real(dp) WindoW(nMoveTypes)         ! Size of window for bead selection
@@ -265,6 +273,7 @@ module params
         integer rand_seed
 
     !   indices
+        integer mc_ind                  ! current mc step size
         integer time_ind                ! current time point
         real(dp) time
     end type
@@ -758,11 +767,22 @@ contains
             Allocate(wlc_d%PhiH(NBIN))
             ALLOCATE(wlc_d%Vol(NBIN))
             ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
+            do I=1,mc%NBIN
+                wlc_d%PHIA(I)=0.0_dp
+                wlc_d%PHIB(I)=0.0_dp
+            enddo
         endif
         !Allocate vector of writhe and elastic energies for replicas
         if (wlc_p%pt_twist) then
             allocate(wlc_d%Wrs(wlc_d%nLKs))
             allocate(wlc_d%eelasREPLICAS(wlc_d%nLKs,4))
+
+        endif
+        if (wlc_p%ring) then !TODO this should be if ("knot")
+            NCross=0
+            wlc_d%CrossSize=wlc_p%NB**2
+            ALLOCATE(wlc_d%Cross(wlc_d%CrossSize,6))
+            ALLOCATE(wlc_d%CrossP(wlc_d%CrossSize,6))
         endif
         !If parallel tempering is on, initialize the nodeNumbers
         !and initialize MPI
@@ -815,6 +835,8 @@ contains
         wlc_d%x_couple=0.0_dp
         wlc_d%x_Kap=0.0_dp
         wlc_d%x_Chi=0.0_dp
+        CalculateEnergiesFromScratch(md%EBind, md% ....
+        
 
         if (.false.) then ! if you wanted to set specific seed
             wlc_d%rand_seed=7171
@@ -835,6 +857,7 @@ contains
 
         wlc_d%time = 0
         wlc_d%time_ind = 0
+        wlc_d%mc_ind = 0
 
     end subroutine initialize_wlcsim_data
 

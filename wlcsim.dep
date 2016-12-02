@@ -8,6 +8,9 @@ src/wlcsim/initcond.o : src/wlcsim/initcond.f95 \
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/wlcsim/initcond.f95 -o src/wlcsim/initcond.o
 src/mc/writhe_slide.o : src/mc/writhe_slide.f95
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/writhe_slide.f95 -o src/mc/writhe_slide.o
+src/mc/verifyEnergiesFromScratch.o : src/mc/verifyEnergiesFromScratch.f03 \
+	src/wlcsim/params.o
+	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/verifyEnergiesFromScratch.f03 -o src/mc/verifyEnergiesFromScratch.o
 src/wlcsim/MCparrll_mpi.o : src/wlcsim/MCparrll_mpi.f90 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o

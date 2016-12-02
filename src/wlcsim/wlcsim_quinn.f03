@@ -1,11 +1,11 @@
 ! use mpi
 
-subroutine wlcsim_quinn(save_ind, wlc_p, wlc_d)
+subroutine wlcsim_quinn(save_ind, mc, md)
     use params
     implicit none
     integer, intent(in) :: save_ind ! 1, 2, ...
-    type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
+    type(wlcsim_params), intent(inout) :: mc
+    type(wlcsim_data), intent(inout) :: md
     integer, save :: id, num_processes
     integer (kind=4) error
 
@@ -21,7 +21,21 @@ subroutine wlcsim_quinn(save_ind, wlc_p, wlc_d)
         endif
     endif
 
+     ! for changing constants durring run
+     if (mc%useSchedule) then
+         call strength_schedule(mc,mc%field_int_on)
+     endif
 
+
+    do i=1,numReplicaExchangesBetweenSaves
+!   * Perform a MC simulation *
+    call MCsim(mc,md,mc%numStepsBetweenExchanges,mc%field_int_on,md%rand_stat)
+
+    print*, '________________________________________'
+    print*, 'Time point ',save_ind, ' out of', save_indMAX
+    call wlcsim_params_printEnergies(mc)
+    call wlcsim_params_printWindowStats(mc)
+    !call wlcsim_params_printPhi(mc,md)
 
 end subroutine wlcsim_quinn
 
@@ -74,7 +88,7 @@ subroutine setup_mpi()
 end subroutine
 
 
-subroutine wlcsim(rand_stat)
+subroutine wlcsim_quinn_orig(rand_stat)
 
 !
 !     This simulation tracks the dynamics of a single polymer
@@ -98,7 +112,7 @@ subroutine wlcsim(rand_stat)
   ! miscellaneous
   integer I
   character(4) fileind       ! index of output
-  character(16) iostr       ! file for output
+  character(MAXFILENAMELEN) iostr       ! file for output
 
 !     Simulation input variables
 
@@ -143,25 +157,25 @@ subroutine wlcsim(rand_stat)
 
 
     !   Setup the initial condition
-      call initcond(md%R,md%U,md%AB,mc%NT,mc%NB,mc%NP,mc%FRMfile,mc%para,mc%lbox, &
-                    mc%settype,rand_stat)
+      call initcond(md%R,md%U,md%AB,mc%NT,mc%NB,mc%NP,mc%FRMfile,pack_as_para(mc),mc%lbox, &
+                    mc%initCondType,rand_stat)
 
     !   Load in AB sequence
       if (mc%FRMCHEM) then
           iostr='input/ab'
           call wlcsim_params_loadAB(mc,md,iostr)
       else
-          call initchem(md%AB,mc%NT,mc%NB,mc%G,mc%NP,mc%FA,mc%LAM,rand_stat)
+          call initchem(md%AB,mc%NT,mc%NB,mc%nBpM,mc%NP,mc%FA,mc%LAM,rand_stat)
       endif
 
 
     !   Load methalation sequence
-      if (mc%FRMMETH) then
+      if (mc%FRMchem) then
           ! more to come here ...
           print*, "wlcsim: FRMMETH not fininshed"
           stop 1
       else
-          call initchem(md%METH,mc%NT,mc%N,mc%G,mc%NP,mc%F_METH,mc%LAM_METH,rand_stat)
+          call initchem(md%METH,mc%NT,mc%NB,mc%nBpM,mc%NP,mc%F_METH,mc%LAM_METH,md%rand_stat)
       endif
 
     ! Load External field
@@ -177,7 +191,7 @@ subroutine wlcsim(rand_stat)
 
       iostr='data/r0'
       I=0;
-      call wlcsim_params_saveR(mc,md,iostr,0)
+      call wlcsim_params_saveR(mc,md,iostr,.false.)
 
       iostr='data/params'
       call wlcsim_params_saveparameters(mc,iostr)
@@ -185,7 +199,6 @@ subroutine wlcsim(rand_stat)
       iostr='data/u0'
       call wlcsim_params_saveU(mc,md,iostr)
 
-      mc%ind=1
   endif
 
  ! call wlcsim_params_printDescription(mc)  ! output simulation parameters
@@ -195,9 +208,10 @@ subroutine wlcsim(rand_stat)
 !              Begin simulation
 !
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  print*, 'Beginning simulation: rep', mc%rep, " id", mc%id
+  
+  print*, 'Beginning simulation: rep', md%rep, " id", mc%id
 
-  do WHILE ((mc%ind).LE.mc%indMAX)
+  do WHILE ((save_ind).LE.save_indMAX)
 
      ! for changing constants durring run
      if (mc%useSchedule) then
@@ -209,7 +223,7 @@ subroutine wlcsim(rand_stat)
     call MCsim(mc,md,mc%NSTEP,INTON,rand_stat)
 
 !    Save the conformation and the metrics
-    write (fileind,'(I4)'), mc%ind
+    write (fileind,'(I4)'), save_ind
 
     !Save various energy contiributions to file
     iostr='data/out1'
@@ -220,28 +234,28 @@ subroutine wlcsim(rand_stat)
     call wlcsim_params_appendAdaptData(mc,iostr)
 
     if (mc%savePhi) then
-        write(iostr,"(I6)"), mc%ind
+        write(iostr,"(I6)"), save_ind
         iostr='data/phi' // trim(adjustL(iostr))
         call wlcsim_params_savePHI(mc,md,iostr)
     endif
 
-    write(iostr,"(I6)"), mc%ind
+    write(iostr,"(I6)"), save_ind
     iostr='data/r' // trim(adjustL(iostr))
     call wlcsim_params_saveR(mc,md,iostr,0)
 
     if (mc%saveU) then
-        write(iostr,"(I6)"), mc%ind
+        write(iostr,"(I6)"), save_ind
         iostr='data/u' // trim(adjustL(iostr))
         call wlcsim_params_saveU(mc,md,iostr)
     endif
 
 
     print*, '________________________________________'
-    print*, 'Time point ',mc%ind, ' out of', mc%indMAX
+    print*, 'Time point ',save_ind, ' out of', save_indMAX
     call wlcsim_params_printEnergies(mc)
     call wlcsim_params_printWindowStats(mc)
     !call wlcsim_params_printPhi(mc,md)
-    mc%ind=mc%ind+1
+    save_ind=save_ind+1
   enddo
 
 end

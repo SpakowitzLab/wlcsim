@@ -1,12 +1,10 @@
 !---------------------------------------------------------------*
 
 !
-!     This subroutine calculates the elastic forces for a wormlike
-!     chain with a stretching potential.  The stretch and bend
+!     This subroutine calculates the elastic energies for a wormlike
+!     chain with a stretching potential. The stretch and bend
 !     moduli are fed along with the bead positions.
-!
-!     Andrew Spakowitz
-!     Written 9-1-04
+
 
       SUBROUTINE energy_elas(EELAS,R,U,NT,NB,NP,PARA,RING,TWIST,Lk,lt,L)
       use params, only: dp, pi

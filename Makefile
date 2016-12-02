@@ -32,7 +32,13 @@ FCFLAGS = ${FASTFLAGS}
 FLFLAGS =
 
 # all non-legacy and non-test files should be compiled into wlcsim
-SRC := $(shell find "src" -type f -name '*.f*' -not -path "src/legacy/*" -not -path "src/tests/*" -not -path "src/third_party/FLAP/*" -not -path '*/\.*')
+SRC := $(shell find "src" -type f -name '*.f*' \
+			    -not -path "src/legacy/*" \
+				-not -path "src/tests/*" \
+				-not -path "src/third_party/FLAP/*" \
+				-not -path '*/\.*') # \
+# -not -path 'src/wlcsim/wlcsim_quinn.f03' -not -path 'src/wlcsim/MCparrll_mpi.f90' -not -path 'src/wlcsim/restart_mpi.f90')
+
 # takes each *.f* -> *.o
 OBJ := $(addsuffix .o,$(basename $(SRC)))
 TEST := $(shell find "src/tests" -type f -name '*.f*')
