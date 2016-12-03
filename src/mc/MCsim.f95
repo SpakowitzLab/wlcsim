@@ -282,10 +282,11 @@ SUBROUTINE MCsim(mc,md,NSTEP)
 
        enddo ! End of movetype loop
 
-       !  -----  Parallel tempering ----
-       IF (mod(ISTEP,mc%NPT).eq.0) THEN
-          call replicaExchange(mc)
-       ENDIF
+      ! Parallel tempereing used to happen here but now has been moved to wlcsim_name
+      ! !  -----  Parallel tempering ----
+      ! IF (mod(ISTEP,mc%NPT).eq.0) THEN
+      !    call replicaExchange(mc)
+      ! ENDIF
 
        ! seps in this subroutine
        ISTEP=ISTEP+1
