@@ -21,6 +21,8 @@ subroutine wlcsim_quinn(save_ind, mc, md)
         endif
     endif
 
+    md%mc_ind=save_ind
+
     if(num_processes==1) then
         call onlyNode(mc,md)
     elseif(id==0) then
@@ -29,11 +31,6 @@ subroutine wlcsim_quinn(save_ind, mc, md)
         call worker_node(mc,md)
     endif
 
-    print*, "Where does strength Schedule go?"
-    stop 1
-    if (mc%useSchedule) then
-        call strength_schedule(mc,mc%field_int_on)
-    endif
 
 
     print*, '________________________________________'
@@ -173,7 +170,6 @@ subroutine head_node(mc,md,p)
     !    Begin Main loop
     !
     !------------------------------------------------------
-    md%mc_ind=0
     keepGoing=.True.
     do while(keepGoing)
         ! give workers thier jobs
@@ -181,7 +177,7 @@ subroutine head_node(mc,md,p)
             dest=nodeNumber(rep)
             call MPI_Send (rep,1, MPI_integer, dest,   0, &
                             MPI_COMM_WORLD,error )
-            if (mc%restart.and.md%mc_ind.eq.0) then
+            if (mc%restart.and.md%mc_ind.eq.1) then
                 source=dest
                 call MPI_Recv (cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
                                MPI_COMM_WORLD, status, error )
@@ -347,6 +343,9 @@ subroutine worker_node(mc,md)
     type(wlcsim_data), intent(inout) :: md
     type(random_stat) rand_stat  ! state of random number chain
 
+    logical system_has_been_changed
+    system_has_been_changed=.False.
+
     source = 0
     dest = 0
     ! -----------------------------------------------
@@ -354,16 +353,84 @@ subroutine worker_node(mc,md)
     !   Generate thread safe random number chain: rand_stat
     !
     !--------------------------------------------
+    if (md%mc_ind==1) then
+        call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
+                        MPI_COMM_WORLD, status, ierror )
+        call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
+        if (mc%restart) then
+            call pt_restart(mc,md)
+        endif
+        system_has_been_changed=.TRUE.
+    endif
+    ! ------------------------------
+    !
+    ! Different instructions for each save point
+    !
+    !  --------------------------------
 
-    call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
-                    MPI_COMM_WORLD, status, ierror )
-    call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
+    if (md%mc_ind.LE.mc%NNOINT) then
+        mc%field_int_on=.false.
+    else
+        if (.not.mc%field_int_on)  system_has_been_changed=.TRUE.
+        mc%field_int_on=.true.
+    endif
+    if(md%mc_ind.lt.mc%N_KAP_ON) then
+        mc%KAP_ON=0.0_dp
+    else
+        if (mc%KAP_ON.eq.0.0_dp) system_has_been_changed=.TRUE.
+        mc%KAP_ON=1.0_dp
+    endif
+
+    if(md%mc_ind.lt.mc%N_CHI_ON) then
+        mc%CHI_ON=0.0_dp
+    else
+        if (mc%CHI_ON.eq.0.0_dp) system_has_been_changed=.TRUE.
+        mc%CHI_ON=1.0_dp
+    endif
+
+    if ((md%mc_ind.gt.mc%indStartRepAdapt).and. &
+        (md%mc_ind.le.mc%indendRepAdapt)) then ! addapt Cof was run
+        system_has_been_changed=.TRUE.
+    endif
+
+    if (system_has_been_changed) then
+        call CalculateEnergiesFromScratch(mc,md)
+        if (mc%field_int_on) then
+            md%ECouple =md%dECouple 
+            md%EKap    =md%dEKap    
+            md%ECHI    =md%dECHI    
+            md%EField  =md%dEField  
+            md%x_Field =md%dx_Field 
+            md%x_couple=md%dx_couple
+            md%x_Kap   =md%dx_Kap   
+            md%x_Chi   =md%dx_Chi
+        else
+            md%ECouple =0.0_dp 
+            md%EKap    =0.0_dp 
+            md%ECHI    =0.0_dp 
+            md%EField  =0.0_dp 
+            md%x_Field =0.0_dp 
+            md%x_couple=0.0_dp
+            md%x_Kap   =0.0_dp 
+            md%x_Chi   =0.0_dp 
+        endif
+        if (mc%bind_On) then
+            md%ebind   =md%debind   
+            md%x_mu    =md%dx_mu   
+        else
+            md%ebind   =0.0_dp   
+            md%x_mu    =0.0_dp
+        endif
+    else
+        call VerifyEnegiesFromScratch(mc, md)
+    endif
+
     ! ------------------------------
     !
     ! call main simulation code
     !
     !  --------------------------------
-    call VerifyEnegiesFromScratch(mc, md)
+
     do i=1,mc%nReplicaExchangePerSavePoint
 
         !   * Perform a MC simulation *
