@@ -67,7 +67,7 @@ subroutine VerifyEnegiesFromScratch(mc, md)
     if(abs(md%EBind-md%DEBind).gt.0.00001) then
         write(ERROR_UNIT,*) "Warning. Integrated binding enrgy:", &
                 md%EBind," while absolute binding energy:", &
-                md%DEBind
+                md%DEBind," save point mc_ind=",md%mc_ind
     endif
     md%EBind=md%DEBind
     md%x_mu=md%dx_mu
@@ -79,6 +79,7 @@ subroutine VerifyEnegiesFromScratch(mc, md)
                 (md%EElas(1)+md%EElas(2)+md%EElas(3)),&
                 " while absolute elastic energy:", &
                 (md%DEElas(1)+md%DEElas(2)+md%DEElas(3))
+        write(ERROR_UNIT,*) " save point mc_ind=",md%mc_ind
     endif
     md%EElas=md%DEElas ! copy array
 
@@ -88,21 +89,21 @@ subroutine VerifyEnegiesFromScratch(mc, md)
         if(abs(md%EChi-md%DEChi).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated chi energy:", &
                      md%EChi,"  while absolute chi energy:", &
-                     md%DEChi
+                     md%DEChi," save point mc_ind=",md%mc_ind
         endif
         md%EChi=md%DEChi
         md%x_chi=md%dx_chi
         if(abs(md%ECouple-md%DECouple).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated couple energy:", &
                      md%ECouple,"  while absolute couple energy:", &
-                     md%DECouple
+                     md%DECouple," save point mc_ind=",md%mc_ind
         endif
         md%ECouple=md%DECouple
         md%x_Couple=md%dx_couple
         if(abs(md%EKap-md%DEKap).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated Kap energy:", &
                      md%EKap,"  while absolute Kap energy:", &
-                     md%DEKap
+                     md%DEKap," save point mc_ind=",md%mc_ind
         endif
         md%EKap=md%DEKap
         md%x_Kap=md%dx_Kap
@@ -110,7 +111,7 @@ subroutine VerifyEnegiesFromScratch(mc, md)
         if(abs(md%EField-md%DEField).gt.0.00001) then
             write(ERROR_UNIT,*) "Warning. Integrated field enrgy:", &
                     md%EField," while absolute field energy:", &
-                    md%DEField
+                    md%DEField," save point mc_ind=",md%mc_ind
         endif
         md%EField=md%DEField
         md%x_Field=md%dx_Field
