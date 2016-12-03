@@ -127,7 +127,7 @@ module params
         integer winType      ! distributionof segment size in crankshaft move (unif=0, exp=1)
 
     !   Timing variables
-        integer NPT                ! number of steps between parallel tempering
+        integer stepsPerExchange   ! number of steps between parallel tempering
         integer nReplicaExchangePerSavePoint ! read teh variable name
         integer numSavePoints      ! total number of save points
         integer stepsPerSave       ! steps per save point
@@ -369,8 +369,8 @@ contains
 
         ! replica options
         wlc_p%PTON=.FALSE.  ! use parallel if applicable
-        wlc_p%NPT=100      ! 100 steps between parallel tempering is pretty frequent
-        wlc_p%nReplicaExchangePerSavePoint=1000      ! 100 steps between parallel tempering is pretty frequent
+        wlc_p%stepsPerExchange=100      ! 100 steps between parallel tempering is pretty frequent
+        wlc_p%nReplicaExchangePerSavePoint=1000      ! make this large 
         wlc_p%NRepAdapt=1000  ! 1000 exchange attempts between adaptations
         wlc_p%lowerRepExe=0.09 ! TODO: enter justification for these defaults, if any.
         wlc_p%upperRepExe=0.18 ! TODO: fine if the only justification is "these just work"
@@ -386,6 +386,7 @@ contains
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
         wlc_p%PT_mu =.False. ! don't parallel temper mu by default
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
+        wlc_p%repSuffix = '' !default no suffix
     end subroutine
 
     subroutine read_input_file(infile, wlc_p)
@@ -515,8 +516,8 @@ contains
             Call readI(wlc_p%nInitMCSteps) ! num initial mc steps
         CASE('stepsPerSave')
             Call readI(wlc_p%stepsPerSave) ! steps per save point
-        CASE('NPT')
-            Call readI(wlc_p%NPT) ! number of steps between parallel tempering
+        CASE('stepsPerExchange')
+            Call readI(wlc_p%stepsPerExchange) ! number of steps between parallel tempering
         CASE('nReplicaExchangePerSavePoint')
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
         CASE('FPOLY')
