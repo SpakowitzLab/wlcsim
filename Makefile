@@ -37,6 +37,7 @@ SRC := $(shell find "src" -type f -name '*.f*' \
 				-not -path "src/tests/*" \
 				-not -path "src/third_party/FLAP/*" \
 				-not -path '*/\.*') # \
+# -not -path 'src/wlcsim/wlcsim_brad.f03')
 # -not -path 'src/wlcsim/wlcsim_quinn.f03' -not -path 'src/wlcsim/MCparrll_mpi.f90' -not -path 'src/wlcsim/restart_mpi.f90')
 
 # takes each *.f* -> *.o
@@ -57,13 +58,19 @@ run: $(PROGRAM) dataclean
 # constructed makefile output
 $(PROGRAM): flap depend dummy_prog
 
+# ugly line, needs to ask for FLAP objects at runtime, there's probably a better
+# way to do this
 dummy_prog: $(OBJ)
-	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
+	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^ $(INCLUDE_DIRS) $(shell find "src/third_party/FLAP/exe/obj" -type f -not -path "src/third_party/FLAP/exe/obj/test_minimal.o")
 
 # build third party dependencies that require "make" by hand
 FLAP_DIR = src/third_party/FLAP
-flap: $(shell find ${FLAP_DIR} -type f -name '*.f*')
+flap: flap_exists $(shell find ${FLAP_DIR} -type f -name '*.f*')
 	make -C ${FLAP_DIR}
+
+flap_exists: ${FLAP_DIR}
+	git submodule update --init --recursive
+
 
 # Make dependencies, easier to type
 depend: $(DEP_FILE)

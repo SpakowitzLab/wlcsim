@@ -12,7 +12,6 @@ src/mc/verifyEnergiesFromScratch.o : src/mc/verifyEnergiesFromScratch.f03 \
 	src/wlcsim/params.o
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/verifyEnergiesFromScratch.f03 -o src/mc/verifyEnergiesFromScratch.o
 src/wlcsim/MCparrll_mpi.o : src/wlcsim/MCparrll_mpi.f90 \
-	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/wlcsim/MCparrll_mpi.f90 -o src/wlcsim/MCparrll_mpi.o
 src/wlcsim/get_derived_parameters.o : src/wlcsim/get_derived_parameters.f03 \
@@ -102,15 +101,12 @@ src/wlcsim/wlcsim.o : src/wlcsim/wlcsim.f03 \
 src/mc/energy_self_chain.o : src/mc/energy_self_chain.f95 \
 	src/wlcsim/params.o
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/energy_self_chain.f95 -o src/mc/energy_self_chain.o
+src/bd/concalc.o : src/bd/concalc.f95
+	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/bd/concalc.f95 -o src/bd/concalc.o
 src/mc/MC_move.o : src/mc/MC_move.f90 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/MC_move.f90 -o src/mc/MC_move.o
-src/bd/concalc.o : src/bd/concalc.f95
-	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/bd/concalc.f95 -o src/bd/concalc.o
-src/mc/MC_elas.o : src/mc/MC_elas.f90 \
-	src/wlcsim/params.o
-	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/MC_elas.f90 -o src/mc/MC_elas.o
 src/bd/force_ponp.o : src/bd/force_ponp.f95
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/bd/force_ponp.f95 -o src/bd/force_ponp.o
 src/bd/BDsim.o : src/bd/BDsim.f95 \
@@ -136,9 +132,9 @@ src/wlcsim/initchem.o : src/wlcsim/initchem.f95 \
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/wlcsim/initchem.f95 -o src/wlcsim/initchem.o
 src/util/writhe.o : src/util/writhe.f95
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/util/writhe.f95 -o src/util/writhe.o
-src/wlcsim/schedule.o : src/wlcsim/schedule.f95 \
+src/mc/MC_elas.o : src/mc/MC_elas.f90 \
 	src/wlcsim/params.o
-	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/wlcsim/schedule.f95 -o src/wlcsim/schedule.o
+	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/mc/MC_elas.f90 -o src/mc/MC_elas.o
 src/bd/force_elas.o : src/bd/force_elas.f95
 	mpifort -c -O3 -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp  src/bd/force_elas.f95 -o src/bd/force_elas.o
 src/bd/RKstep.o : src/bd/RKstep.f95

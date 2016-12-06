@@ -106,12 +106,12 @@ Stack of things to do:
 sitting in the src/wlcsim directory, and you've just run make -i in the top
 level, the following now succeeds if you remove
 references to mcsim from wlcsim_bruno:
-gfortran wlcsim.f03 -I .. -I ../third_party/FLAP/exe/mod
-../third_party/FLAP/exe/obj/flap* ../third_party/FLAP/exe/obj/penf*
-../util/stop_if_err.o params.o ../util/inputparams.o wlcsim_bruno.o
-../third_party/mersenne_twister.o initcond.o get_derived_parameters.o
-../bd/BDsim.o ../bd/concalc.o ../bd/force_ponp.o ../bd/force_elas.o
-../util/colchecker.o ../util/colsort.o ../third_party/kdtree2.o ../bd/stress.o
+gfortran wlcsim.f03 -I .. -I ../third_party/FLAP/exe/mod \
+../third_party/FLAP/exe/obj/flap* ../third_party/FLAP/exe/obj/penf* \
+../util/stop_if_err.o params.o ../util/inputparams.o wlcsim_bruno.o \
+../third_party/mersenne_twister.o initcond.o get_derived_parameters.o \
+../bd/BDsim.o ../bd/concalc.o ../bd/force_ponp.o ../bd/force_elas.o \
+../util/colchecker.o ../util/colsort.o ../third_party/kdtree2.o ../bd/stress.o \
 ../bd/stressp.o ../third_party/mt19937.o ../bd/RKstep.o ../third_party/dgtsv.o
 
 
