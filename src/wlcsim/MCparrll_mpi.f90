@@ -10,7 +10,7 @@ use mpi
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror
     integer (kind=4) error  ! error id for MIP functions
-    character*16 iostrg    ! for file naming
+    character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     integer, parameter :: nTerms=8  ! number of energy terms
     real(dp) cof(nTerms)
@@ -80,7 +80,7 @@ use mpi
     !mc%para(2)  =cof(7)
     !mc%para(3)  =cof(8)
 
-    write(iostrg,"(I4)"), md%rep
+    write(iostrg,"(I4)") md%rep
     iostrg=adjustL(iostrg)
     iostrg=trim(iostrg)
     iostrg="v"//trim(iostrg)
@@ -107,7 +107,7 @@ use mpi
     integer (kind=4) dest ! message destination
     integer (kind=4) source ! message source
     integer (kind=4) nThreads
-    character*16 iostr ! for handling sufix string
+    character(MAXFILENAMELEN) iostr ! for handling sufix string
     integer status(MPI_status_SIZE)  ! MPI status
     real(dp) cof(nTerms)
     real(dp) cofOld(nTerms)
@@ -151,8 +151,8 @@ use mpi
         else
             open (unit = 1, file = "data/error", status = 'new')
         endif
-        write(1,*), "Error in replicaExchange"
-        write(1,*), "I",I," test",test(I)," x",x(I)," cof",cofOld(I)
+        write(1,*) "Error in replicaExchange"
+        write(1,*) "I",I," test",test(I)," x",x(I)," cof",cofOld(I)
         print*, "Error in replicaExchange"
         print*, "I",I," test",test(I)," x",x(I)," cof",cofOld(I)
         close (1)
@@ -206,7 +206,7 @@ use mpi
     endif
 
     ! change output file sufix
-    write(iostr,"(I4)"), md%rep
+    write(iostr,"(I4)") md%rep
     iostr=adjustL(iostr)
     iostr=trim(iostr)
     iostr="v"//trim(iostr)

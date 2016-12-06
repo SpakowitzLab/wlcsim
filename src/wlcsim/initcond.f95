@@ -50,6 +50,8 @@ type(random_stat) rand_stat
 real urand(3)
 DOUBLE PRECISION mag  ! magnitude of U for reload
 
+GAM=PARA(4)
+
 !     Setup the choice parameters
 
 if(FRMFILE)then
@@ -76,7 +78,6 @@ endif
 !     Fix the initial condition
 if(setType.eq.1) then
 ! staight line in y direction with random starting position
-    GAM=PARA(4)
 
     IB=1
     DO I=1,NP
@@ -98,7 +99,6 @@ else if(setType.eq.2) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! slit boundary in z direction
-    GAM=PARA(4)
 
     IB=1
     DO  I=1,NP
@@ -160,7 +160,6 @@ else if(setType.eq.3) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! square boundary
-    GAM=PARA(4)
 
     IB=1
     DO  I=1,NP
@@ -237,7 +236,6 @@ else if(setType.eq.4) then
     ! shpere boundary
     ! radius of LBox/2 centered at LBox/2
     Rc=LBOX(1)/2.0_dp ! use LBOX as radius
-       GAM=PARA(4)
     IB=1
     DO  I=1,NP
        call random_number(urand,rand_stat)

@@ -1,84 +1,84 @@
- ! ----------------------------------------------------
- !Input file for polymer simulation package
+# ----------------------------------------------------
+#Input file for polymer simulation package
 
- !-Record 1
- !  LP              Persistence length ! of DNA in nm
-  1.0
+#-Record 1
+#  LP              Persistence length # of DNA in nm
+LP 1.0
 
- !-Record 2
- !  L               Chain length
-  10.0
+#-Record 2
+#  L               Chain length
+L 10.0
 
- !-Record 3
- !  LBOX            Box edge length - for MC box sizes
-  30.
+#-Record 3
+#  LBOX            Box edge length - for MC box sizes
+LBOX 30.
 
- !-Record 4
- !  REND	    Initial end-to-end distance (dimensionless)
-  0.0
+#-Record 4
+#  REND	    Initial end-to-end distance (dimensionless)
+REND 0.0
 
- !-Record 5
- !  VHC             Hard-core int strength - between beads
-  0.
+#-Record 5
+#  VHC             Hard-core int strength - between beads
+VHC 0.
 
- !-Record 6
- !  N               Number of beads
-  51
+#-Record 6
+#  N               Number of beads
+N 51
 
- !-Record 7         Sarah was running 1000
- !  NP              Number of polymers - won't interact unless interaction code added
-  1
+#-Record 7         Sarah was running 1000
+#  NP              Number of polymers - won't interact unless interaction code added
+NP 1
 
- !-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
- !  TF              Total simulation time
-  100
+#-Record 8         Sarah: 5x10e4 time takes for 10pers length chains on average
+#  TF              Total simulation time
+TF 100
 
- !-Record 9
- !  INDMAX          Total number of save points
-  100
+#-Record 9
+#  INDMAX          Total number of save points
+INDMAX 100
 
- !-Record 10
- !  DT              Timestep for integration - Sarah used 0.2 in above
-  0.1
+#-Record 10
+#  DT              Timestep for integration - Sarah used 0.2 in above
+DT 0.1
 
- !-Record 11
- !  FRMFILE         Load in the inital conf? - otherwise from MC
-  0
+#-Record 11
+#  FRMFILE         Load in the inital conf? - otherwise from MC
+FRMFILE 0
 
- !-Record 12
- !  BROWN           Include Brownian forces?
-  1
+#-Record 12
+#  BROWN           Include Brownian forces?
+BROWN 1
 
- !-Record 13
- !  INTON           Include polymer interactions? - space exlusion
-  0
+#-Record 13
+#  INTON           Include polymer interactions? - space exlusion
+INTON            0
 
- !-Record 14
- !  LOGTIME         Are data recorded in log time?
-  0
+#-Record 14
+#  LOGTIME         Are data recorded in log time?
+LOGTIME          0
 
- !-Record 15       Quinn: 1000s times #polymers, there's a script to check if OK
- !  NINIT          Number initialization MC steps - 40beads@rigid@2000poly==4e6
-  10000
+#-Record 15       Quinn: 1000s times #polymers, there's a script to check if OK
+#  NINIT          Number initialization MC steps - 40beads@rigid@2000poly==4e6
+NINIT           10000
 
- !-Record 16
- !  NSTEP          Number MC steps per save
-  0
+#-Record 16
+#  NSTEP          Number MC steps per save
+NSTEP           0
 
- !-Record 17
- !  FPT_DIST       l1 distance triggering a "collision" between beads
-  1
+#-Record 17
+#  FPT_DIST       l1 distance triggering a "collision" between beads
+FPT_DIST        1
 
- !-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
- !  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1,
-  3
+#-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
+#  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1,
+COL_TYPE        3
 
- !-Record 19       Whether to save the positions/momentums at each time point
- !  SAVE_RU
-  1
+#-Record 19       Whether to save the positions/momentums at each time point
+#  SAVE_RU
+SAVE_RU 1
 
- !-Record 20       Whether to terminate simulation when all collisions finish
- !  EXIT_WHEN_COLLIDED
-  0
+#-Record 20       Whether to terminate simulation when all collisions finish
+#  EXIT_WHEN_COLLIDED
+EXIT_WHEN_COLLIDED 0
 
- ! ----------------------------------------------------
+# ----------------------------------------------------

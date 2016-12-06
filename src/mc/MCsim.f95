@@ -178,7 +178,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
              elseif (MCTYPE.EQ.10) then
                  call MC_int_rep(mc,md,IT1,IT2,forward)
              else
-                 call MC_int(mc,md,IT1,IT2,.false.)
+                 call MC_int_update(mc,md,IT1,IT2,.false.)
              endif
           else
               md%DEKap=0.0_dp
@@ -234,7 +234,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
              endif
              if (md%ECon.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
-                 call wlcsim_params_printEnergies(mc)
+                 call printEnergies(md)
                  print*, "error in MCsim, out of bounds "
                  stop 1
              endif

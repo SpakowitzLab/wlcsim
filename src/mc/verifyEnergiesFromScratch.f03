@@ -26,7 +26,7 @@ subroutine CalculateEnergiesFromScratch(mc, md)
     ! --- Interaction Energy ---
     if (mc%field_int_on) then
         ! initialize phi
-        call MC_int(mc,md)
+        call MC_int_initialize(mc,md)
         do I=1,mc%NBIN
             phiTot=phiTot+(md%PHIA(I)+md%PHIB(I))*md%Vol(I)
         enddo

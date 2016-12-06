@@ -165,7 +165,7 @@ module params
         logical bind_On
 
     !   parallel Tempering parameters
-        character(16) repSuffix    ! prefix for writing files
+        character(MAXFILENAMELEN) repSuffix    ! prefix for writing files
         logical PTON    ! whether or not to parallel temper
         logical PT_twist
         logical PT_chi
@@ -370,7 +370,7 @@ contains
         ! replica options
         wlc_p%PTON=.FALSE.  ! use parallel if applicable
         wlc_p%stepsPerExchange=100      ! 100 steps between parallel tempering is pretty frequent
-        wlc_p%nReplicaExchangePerSavePoint=1000      ! make this large 
+        wlc_p%nReplicaExchangePerSavePoint=1000      ! make this large
         wlc_p%NRepAdapt=1000  ! 1000 exchange attempts between adaptations
         wlc_p%lowerRepExe=0.09 ! TODO: enter justification for these defaults, if any.
         wlc_p%upperRepExe=0.18 ! TODO: fine if the only justification is "these just work"
@@ -844,40 +844,40 @@ contains
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat)
 
-        
+
         ! initialize energies
         call CalculateEnergiesFromScratch(wlc_p,wlc_d)
-        wlc_d%EElas   =wlc_d%dEElas   
+        wlc_d%EElas   =wlc_d%dEElas
         if (wlc_p%field_int_on) then
-            wlc_d%ECouple =wlc_d%dECouple 
-            wlc_d%EKap    =wlc_d%dEKap    
-            wlc_d%ECHI    =wlc_d%dECHI    
-            wlc_d%EField  =wlc_d%dEField  
-            wlc_d%x_Field =wlc_d%dx_Field 
+            wlc_d%ECouple =wlc_d%dECouple
+            wlc_d%EKap    =wlc_d%dEKap
+            wlc_d%ECHI    =wlc_d%dECHI
+            wlc_d%EField  =wlc_d%dEField
+            wlc_d%x_Field =wlc_d%dx_Field
             wlc_d%x_couple=wlc_d%dx_couple
-            wlc_d%x_Kap   =wlc_d%dx_Kap   
+            wlc_d%x_Kap   =wlc_d%dx_Kap
             wlc_d%x_Chi   =wlc_d%dx_Chi
         else
-            wlc_d%ECouple =0.0_dp 
-            wlc_d%EKap    =0.0_dp 
-            wlc_d%ECHI    =0.0_dp 
-            wlc_d%EField  =0.0_dp 
-            wlc_d%x_Field =0.0_dp 
+            wlc_d%ECouple =0.0_dp
+            wlc_d%EKap    =0.0_dp
+            wlc_d%ECHI    =0.0_dp
+            wlc_d%EField  =0.0_dp
+            wlc_d%x_Field =0.0_dp
             wlc_d%x_couple=0.0_dp
-            wlc_d%x_Kap   =0.0_dp 
-            wlc_d%x_Chi   =0.0_dp 
+            wlc_d%x_Kap   =0.0_dp
+            wlc_d%x_Chi   =0.0_dp
         endif
         if (wlc_p%bind_On) then
-            wlc_d%ebind   =wlc_d%debind   
-            wlc_d%x_mu    =wlc_d%dx_mu   
+            wlc_d%ebind   =wlc_d%debind
+            wlc_d%x_mu    =wlc_d%dx_mu
         else
-            wlc_d%ebind   =0.0_dp   
+            wlc_d%ebind   =0.0_dp
             wlc_d%x_mu    =0.0_dp
         endif
         if(wlc_p%Ring) then
             wlc_d%eKnot   =1.0
         endif
-        
+
         wlc_d%time = 0
         wlc_d%time_ind = 0
         wlc_d%mc_ind = 0
@@ -944,7 +944,7 @@ contains
         IMPLICIT NONE
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
-        integer mctype,i ! type of move
+        integer mctype ! type of move
     !TODO
     !   Edit the following to optimize wlc_p performance
     ! Quinn's custom move-turn-on
@@ -1148,7 +1148,7 @@ contains
         print*,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     end subroutine
 
-    subroutine wlcsim_params_printWindowStats(wlc_p, wlc_d)
+    subroutine printWindowStats(wlc_p, wlc_d)
     ! For realtime feedback on adaptation
         IMPLICIT NONE
         type(wlcsim_params), intent(in) :: wlc_p

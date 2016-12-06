@@ -6,7 +6,7 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     integer, intent(in) :: save_ind ! 1, 2, ...
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
-    integer, save :: i, id, num_processes
+    integer, save :: id, num_processes
     integer (kind=4) error
 
     if (save_ind == 1) then
@@ -16,16 +16,13 @@ subroutine wlcsim_quinn(save_ind, mc, md)
         call stop_if_err(error, "Failed to get num_processes.")
         call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
-        if (num_processes > 1) then
-            call setup_mpi_stuff()
-        endif
     endif
 
     md%mc_ind=save_ind
 
-    if(num_processes==1) then
+    if (num_processes == 1) then
         call onlyNode(mc,md)
-    elseif(id==0) then
+    elseif (id == 0) then
         call head_node(mc,md,num_processes)
     else
         call worker_node(mc,md)
@@ -34,9 +31,9 @@ subroutine wlcsim_quinn(save_ind, mc, md)
 
 
     print*, '________________________________________'
-    print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', id 
-    call wlcsim_params_printEnergies(mc)
-    call wlcsim_params_printWindowStats(mc,md)
+    print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', id
+    call printEnergies(md)
+    call printWindowStats(mc,md)
     !call wlcsim_params_printPhi(mc,md)
 
 
@@ -64,9 +61,9 @@ subroutine head_node(mc,md,p)
     !   variable for random number generator seeding
     type(random_stat) rand_stat  ! state of random number chain
     integer Irand     ! Seed
-    character*8 datedum  ! trash
-    character*10 timedum ! trash
-    character*5 zonedum  ! trash
+    character(8) datedum  ! trash
+    character(10) timedum ! trash
+    character(5) zonedum  ! trash
     integer seedvalues(8) ! clock readings
     real urand(1)
 
@@ -74,14 +71,13 @@ subroutine head_node(mc,md,p)
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms=8  ! number of energy terms 
+    integer, parameter :: nTerms=8  ! number of energy terms
     double precision x(nTerms) ! slice of xMtrx
     double precision cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
     integer upSuccess(p-1)  ! number of successes since last average
     integer downSuccess(p-1) ! number of successes since last average
     integer nExchange ! total number of exchanges attemted
-    character*16 fileName ! ouput filename
     double precision energy ! for deciding to accept exchange
     integer term ! for loopin over terms
     double precision h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
@@ -114,8 +110,6 @@ subroutine head_node(mc,md,p)
     !
     ! --------------------------
     nPTReplicas = p-1;
-
-    call wlcsim_params_setparams(mc,fileName) ! so that the head thread knows the  parameters
 
     allocate( xMtrx(nPTReplicas,nTerms))
     allocate( cofMtrx(nPTReplicas,nTerms))
@@ -336,7 +330,7 @@ subroutine worker_node(mc,md)
     use mersenne_twister
     integer ( kind = 4 ) dest   !destination id for messages
     integer ( kind = 4 ) source  !source id for messages
-    integer ( kind = 4 ) id     ! which processor I am
+    integer ( kind = 4 ), save :: id = -1     ! which processor I am
     integer ( kind = 4 ) ierror  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: mc
@@ -345,6 +339,10 @@ subroutine worker_node(mc,md)
 
     logical system_has_been_changed
     system_has_been_changed=.False.
+    if (id == -1) then
+        call MPI_Comm_rank(MPI_COMM_WORLD, id, ierror)
+        call stop_if_err(error, "Failed to get num_processes.")
+    endif
 
     source = 0
     dest = 0
@@ -396,29 +394,29 @@ subroutine worker_node(mc,md)
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(mc,md)
         if (mc%field_int_on) then
-            md%ECouple =md%dECouple 
-            md%EKap    =md%dEKap    
-            md%ECHI    =md%dECHI    
-            md%EField  =md%dEField  
-            md%x_Field =md%dx_Field 
+            md%ECouple =md%dECouple
+            md%EKap    =md%dEKap
+            md%ECHI    =md%dECHI
+            md%EField  =md%dEField
+            md%x_Field =md%dx_Field
             md%x_couple=md%dx_couple
-            md%x_Kap   =md%dx_Kap   
+            md%x_Kap   =md%dx_Kap
             md%x_Chi   =md%dx_Chi
         else
-            md%ECouple =0.0_dp 
-            md%EKap    =0.0_dp 
-            md%ECHI    =0.0_dp 
-            md%EField  =0.0_dp 
-            md%x_Field =0.0_dp 
+            md%ECouple =0.0_dp
+            md%EKap    =0.0_dp
+            md%ECHI    =0.0_dp
+            md%EField  =0.0_dp
+            md%x_Field =0.0_dp
             md%x_couple=0.0_dp
-            md%x_Kap   =0.0_dp 
-            md%x_Chi   =0.0_dp 
+            md%x_Kap   =0.0_dp
+            md%x_Chi   =0.0_dp
         endif
         if (mc%bind_On) then
-            md%ebind   =md%debind   
-            md%x_mu    =md%dx_mu   
+            md%ebind   =md%debind
+            md%x_mu    =md%dx_mu
         else
-            md%ebind   =0.0_dp   
+            md%ebind   =0.0_dp
             md%x_mu    =0.0_dp
         endif
     else
@@ -435,7 +433,7 @@ subroutine worker_node(mc,md)
 
         !   * Perform a MC simulation *
         call MCsim(mc,md,mc%stepsPerExchange)
-        
+
         !   * Replica Exchange *
         call replicaExchange(mc)
 

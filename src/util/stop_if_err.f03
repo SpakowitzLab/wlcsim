@@ -1,8 +1,7 @@
 subroutine stop_if_err(err, msg)
-    use params, only: MAXFILENAMELEN
     implicit none
     integer err
-    character(MAXFILENAMELEN) msg
+    character(len=*), intent(in) :: msg
 
     if (err /= 0) then
         print *, msg
