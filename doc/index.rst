@@ -6,6 +6,10 @@
 Welcome to wlcsim's documentation!
 ==================================
 
+
+.. include:: ../README.rst
+    :start-line: 3
+
 Contents:
 
 .. toctree::
@@ -14,8 +18,9 @@ Contents:
    intro
    running
    analyzing
-
    wlcsim
+   plotting
+   generating_sequences
 
 
 
