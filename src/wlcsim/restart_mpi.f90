@@ -15,9 +15,9 @@ subroutine pt_restart(mc,md)
     integer (kind=4) source ! message source
     integer (kind=4) id, nThreads,ierror
     integer (kind=4) error  ! error id for MIP functions
-    character*64 iostrg    ! for file naming
-    character*16 vNum    ! for file naming
-    character*64 dir
+    character(MAXFILENAMELEN) iostrg    ! for file naming
+    character(16) vNum    ! for file naming
+    character(MAXFILENAMELEN) dir
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     integer, parameter :: nTerms=8  ! number of energy terms
     real(dp) mag ! magnitude for renormalizing U
@@ -56,10 +56,10 @@ subroutine pt_restart(mc,md)
     open(unit=1, file=iostrg, status ='OLD')
     read(1,*)
     do WHILE (.TRUE.)
-        read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
-                              temp(6), temp(7), temp(8), temp(9), temp(10), &
-                              temp(11), temp(12), temp(13), temp(14), &
-                              temp(15), temp(16)
+        read(1,*,IOSTAT=ios) temp(1), temp(2), temp(3), temp(4), temp(5), &
+                             temp(6), temp(7), temp(8), temp(9), temp(10), &
+                             temp(11), temp(12), temp(13), temp(14), &
+                             temp(15), temp(16)
         if (ios.eq.0) then
             md%mc_ind=nint(temp(1))
             md%EElas(1)=temp(3)
@@ -107,7 +107,7 @@ subroutine pt_restart(mc,md)
     open(unit=1, file=iostrg, status ='OLD')
     read(1,*)
     do WHILE (.TRUE.)
-        read(1,*,IOSTAT=ios), temp(1), temp(2), temp(3), temp(4), temp(5), &
+        read(1,*,IOSTAT=ios)  temp(1), temp(2), temp(3), temp(4), temp(5), &
                               temp(6), temp(7), temp(8), temp(9), temp(10), &
                               temp(11), temp(12), temp(13), temp(14), &
                               temp(15), temp(16), temp(17), temp(18), &
@@ -136,7 +136,7 @@ subroutine pt_restart(mc,md)
 
 
     ! read R and AB from file
-    write(iostrg,"(I8)"), md%mc_ind
+    write(iostrg,"(I8)") md%mc_ind
     iostrg=adjustL(iostrg)
     iostrg="r"//trim(iostrg)
     iostrg=trim(dir)//trim(iostrg)
@@ -155,7 +155,7 @@ subroutine pt_restart(mc,md)
     close(5)
 
     ! read U
-    write(iostrg,"(I8)"), md%mc_ind
+    write(iostrg,"(I8)") md%mc_ind
     iostrg=adjustL(iostrg)
     iostrg="u"//trim(iostrg)
     iostrg=trim(dir)//trim(iostrg)
@@ -185,7 +185,7 @@ subroutine pt_restart(mc,md)
                     MPI_COMM_WORLD,error )
 
     ! Make repsuffix
-    write(iostrg,"(I4)"), md%rep
+    write(iostrg,"(I4)") md%rep
     iostrg=adjustL(iostrg)
     iostrg=trim(iostrg)
     iostrg="v"//trim(iostrg)

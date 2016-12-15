@@ -68,11 +68,11 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 30	src/bd/stress.f95	/^ 30      CONTINUE$/;"	l	subroutine:stress	file:
 30	src/bd/stressp.f95	/^ 30      CONTINUE$/;"	l	subroutine:stressp	file:
 30	src/legacy/decim.f95	/^ 30      continue$/;"	l	subroutine:decim	file:
+30	src/legacy/energy_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_ponp	file:
 30	src/legacy/r_to_erg.f90	/^ 30   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 30	src/mc/MC_self.f90	/^ 30   CONTINUE$/;"	l	subroutine:MC_self	file:
 30	src/mc/alexanderp_crank.f95	/^30   CONTINUE$/;"	l	subroutine:alexanderp_crank	file:
 30	src/mc/alexanderp_slide.f95	/^30   CONTINUE$/;"	l	subroutine:alexanderp_slide	file:
-30	src/mc/energy_ponp.f90	/^ 30   CONTINUE$/;"	l	subroutine:energy_ponp	file:
 30	src/third_party/DGTSL.f	/^   30       CONTINUE$/;"	l	subroutine:DGTSL	file:
 30	src/third_party/dgtsv.f	/^   30          CONTINUE$/;"	l	subroutine:DGTSV	file:
 30	src/util/colchecker.f95	/^30  continue$/;"	l	subroutine:insertion_sort	file:
@@ -84,25 +84,25 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 40	src/bd/force_ponp.f95	/^ 40      CONTINUE$/;"	l	subroutine:force_ponp	file:
 40	src/bd/stressp.f95	/^ 40      CONTINUE$/;"	l	subroutine:stressp	file:
 40	src/legacy/decim.f95	/^ 40   CONTINUE$/;"	l	subroutine:decim	file:
+40	src/legacy/energy_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:energy_ponp	file:
 40	src/legacy/r_to_erg.f90	/^ 40   CONTINUE$/;"	l	subroutine:r_to_erg	file:
 40	src/mc/MC_self.f90	/^ 40      CONTINUE$/;"	l	subroutine:MC_self	file:
 40	src/mc/alexanderp_slide.f95	/^40   CONTINUE$/;"	l	subroutine:alexanderp_slide	file:
-40	src/mc/energy_ponp.f90	/^ 40      CONTINUE$/;"	l	subroutine:energy_ponp	file:
 40	src/third_party/DGTSL.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSL	file:
 40	src/third_party/dgtsv.f	/^   40    CONTINUE$/;"	l	subroutine:DGTSV	file:
 5	src/bd/concalc.f95	/^ 5    CONTINUE$/;"	l	subroutine:concalc	file:
 50	src/bd/concalc.f95	/^ 50      CONTINUE$/;"	l	subroutine:concalc	file:
 50	src/bd/force_ponp.f95	/^ 50         CONTINUE$/;"	l	subroutine:force_ponp	file:
 50	src/bd/stressp.f95	/^ 50      CONTINUE$/;"	l	subroutine:stressp	file:
+50	src/legacy/energy_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:energy_ponp	file:
 50	src/mc/MC_self.f90	/^ 50         CONTINUE$/;"	l	subroutine:MC_self	file:
 50	src/mc/alexanderp_slide.f95	/^50   CONTINUE$/;"	l	subroutine:alexanderp_slide	file:
-50	src/mc/energy_ponp.f90	/^ 50         CONTINUE$/;"	l	subroutine:energy_ponp	file:
 50	src/third_party/DGTSL.f	/^   50    CONTINUE$/;"	l	subroutine:DGTSL	file:
 50	src/third_party/dgtsv.f	/^   50             CONTINUE$/;"	l	subroutine:DGTSV	file:
 60	src/bd/BDsim.f95	/^ 60               CONTINUE$/;"	l	subroutine:BDsim	file:
 60	src/bd/force_ponp.f95	/^ 60            CONTINUE$/;"	l	subroutine:force_ponp	file:
+60	src/legacy/energy_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:energy_ponp	file:
 60	src/mc/DE_self_crank.f95	/^60      if (D12.GT.LHC) then$/;"	l	subroutine:DE_SELF_CRANK	file:
-60	src/mc/energy_ponp.f90	/^ 60            CONTINUE$/;"	l	subroutine:energy_ponp	file:
 60	src/mc/energy_self_chain.f95	/^60      if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_CHAIN	file:
 60	src/mc/energy_self_slide.f95	/^60         if (D12.GT.LHC) then$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 60	src/third_party/DGTSL.f	/^   60          CONTINUE$/;"	l	subroutine:DGTSL	file:
@@ -110,9 +110,9 @@ $.fn.comment	doc/_build/html/_static/websupport.js	/^  }$/;"	f
 65	src/bd/BDsim.f95	/^ 65                  CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/bd/BDsim.f95	/^ 70         CONTINUE$/;"	l	subroutine:BDsim	file:
 70	src/bd/force_ponp.f95	/^ 70               CONTINUE$/;"	l	subroutine:force_ponp	file:
+70	src/legacy/energy_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:energy_ponp	file:
 70	src/mc/DE_self_crank.f95	/^70      CONTINUE$/;"	l	subroutine:DE_SELF_CRANK	file:
 70	src/mc/MC_self.f90	/^ 70            CONTINUE$/;"	l	subroutine:MC_self	file:
-70	src/mc/energy_ponp.f90	/^ 70               CONTINUE$/;"	l	subroutine:energy_ponp	file:
 70	src/mc/energy_self_chain.f95	/^70      CONTINUE$/;"	l	subroutine:ENERGY_SELF_CHAIN	file:
 70	src/mc/energy_self_slide.f95	/^70         CONTINUE$/;"	l	subroutine:ENERGY_SELF_SLIDE	file:
 70	src/third_party/DGTSL.f	/^   70          CONTINUE$/;"	l	subroutine:DGTSL	file:
@@ -343,7 +343,7 @@ I4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_var
 I8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: I8P /;"	v	module:penf_global_parameters_variables
 IDUM	tests/mc/test_calcVolume.f95	/^    integer IDUM$/;"	v	program:test_calcVolume
 IDUM	tests/mc/test_int.f95	/^    integer IDUM$/;"	v	program:scratch
-INCLUDE_DIRS	Makefile	/^INCLUDE_DIRS = -Isrc -Isrc\/third_party\/FLAP\/exe\/mod$/;"	m
+INCLUDE_DIRS	Makefile	/^INCLUDE_DIRS = -Isrc -Isrc\/third_party\/FLAP\/exe\/mod -Isrc\/third_party$/;"	m
 INDPHI	tests/mc/test_int.f95	/^      INTEGER INDPHI(/;"	v	program:scratch
 INITRANGE	src/legacy/keys.f90	/^  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL, INITRANGE(/;"	v	module:KEYS
 INPUTPARAMS	src/legacy/inputparams.f90	/^MODULE INPUTPARAMS$/;"	m
@@ -410,9 +410,10 @@ MC_caclVolume	src/mc/MC_calcVolume.f95	/^SUBROUTINE MC_caclVolume(/;"	s
 MC_confine	src/mc/MC_confine.f95	/^SUBROUTINE MC_confine(/;"	s
 MC_eelas	src/mc/MC_elas.f90	/^SUBROUTINE MC_eelas(/;"	s
 MC_ex	src/mc/MC_capsid_ex.f90	/^      SUBROUTINE MC_ex(/;"	s
-MC_int	src/mc/MC_int.f95	/^SUBROUTINE MC_int(/;"	s
+MC_int_initialize	src/mc/MC_int.f95	/^SUBROUTINE MC_int_initialize(/;"	s
 MC_int_rep	src/mc/MC_int_rep.f95	/^SUBROUTINE MC_int_rep(/;"	s
 MC_int_swap	src/mc/MC_int_swap.f95	/^SUBROUTINE MC_int_swap(/;"	s
+MC_int_update	src/mc/MC_int.f95	/^SUBROUTINE MC_int_update(/;"	s
 MC_interp	tests/mc/MC_interp.f95	/^Subroutine MC_interp(/;"	s
 MC_move	src/mc/MC_move.f90	/^SUBROUTINE MC_move(/;"	s
 MC_self	src/mc/MC_self.f90	/^      SUBROUTINE MC_self(/;"	s
@@ -542,7 +543,7 @@ SPHINXBUILD	doc/make.bat	/^	set SPHINXBUILD=sphinx-build$/;"	v
 SPHINXBUILD	doc/make.bat	/^set SPHINXBUILD=python -m sphinx.__init__$/;"	v
 SPHINXOPTS	doc/Makefile	/^SPHINXOPTS    =$/;"	m
 SQUARELATTICE	src/legacy/keys.f90	/^  LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE,/;"	v	module:KEYS
-SRC	Makefile	/^SRC := $(shell find "src" -type f -name '*.f*' -not -path "src\/legacy\/*" -not -path "src\/tests\/*" -not -path "src\/third_party\/FLAP\/*" -not -path '*\/\\.*')$/;"	m
+SRC	Makefile	/^SRC := $(shell find "src" -type f -name '*.f*' \\$/;"	m
 STARTCOLLAPSE	src/legacy/keys.f90	/^  LOGICAL :: STARTCOLLAPSE$/;"	v	module:KEYS
 STARTEQUIL	src/legacy/keys.f90	/^  LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL$/;"	v	module:KEYS
 STARTEQUILLP	src/legacy/keys.f90	/^  DOUBLE PRECISION :: STARTEQUILLP$/;"	v	module:KEYS
@@ -879,7 +880,6 @@ check_m_exclusive	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90
 check_named_consistency	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine check_named_consistency(/;"	s	module:flap_command_line_argument_t
 check_optional_consistency	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine check_optional_consistency(/;"	s	module:flap_command_line_argument_t
 check_positional_consistency	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine check_positional_consistency(/;"	s	module:flap_command_line_argument_t
-chi_path	src/wlcsim/MCparrll_mpi.f90	/^function chi_path(/;"	f
 choices	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  character(len=:), allocatable, public :: choices /;"	v	module:flap_command_line_argument_t
 cla	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  type(command_line_argument), allocatable, public :: cla(/;"	v	module:flap_command_line_arguments_group_t
 cla_assign_cla	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  elemental subroutine cla_assign_cla(/;"	s	module:flap_command_line_argument_t
@@ -1017,7 +1017,7 @@ endian	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_
 endianB	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: endianB /;"	v	module:penf_global_parameters_variables
 endianL	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_global_parameters_variables.F90	/^integer, parameter :: endianL /;"	v	module:penf_global_parameters_variables
 energy_elas	src/mc/energy_elas.f90	/^      SUBROUTINE energy_elas(/;"	s
-energy_ponp	src/mc/energy_ponp.f90	/^      SUBROUTINE energy_ponp(/;"	s
+energy_ponp	src/legacy/energy_ponp.f90	/^      SUBROUTINE energy_ponp(/;"	s
 entli	doc/_build/html/_static/searchtools.js	/^    alli: 'al',$/;"	p	class:Stemmer.step2list
 envi	src/third_party/FLAP/src/tests/test_basic.f90	/^integer(I4P)                 :: envi /;"	v	program:test_basic
 envvar	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  character(len=:), allocatable, public :: envvar /;"	v	module:flap_command_line_argument_t
@@ -1030,7 +1030,6 @@ error	src/third_party/FLAP/src/tests/test_hidden.f90	/^integer(I4P)             
 error	src/third_party/FLAP/src/tests/test_minimal.f90	/^integer(I4P)                 :: error /;"	v	program:test_minimal
 error	src/third_party/FLAP/src/tests/test_nested.f90	/^integer(I4P)                 :: error /;"	v	program:test_nested
 error	src/third_party/FLAP/src/tests/test_string.f90	/^integer(I4P)                 :: error /;"	v	program:test_string
-error	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) error$/;"	v	program:main
 error_lun	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  integer(I4P),     public              :: error_lun=/;"	v	module:flap_object_t
 error_message	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  character(len=:), public, allocatable :: error_message /;"	v	module:flap_object_t
 errored	src/third_party/FLAP/src/lib/flap_command_line_argument_t.F90	/^  subroutine errored(/;"	s	module:flap_command_line_argument_t
@@ -1150,7 +1149,6 @@ grnd	src/third_party/mt19937.f90	/^FUNCTION grnd(/;"	f	module:mt19937
 grndORIG	src/third_party/mt19937.f90	/^FUNCTION grndORIG(/;"	f	module:mt19937
 group	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/^  character(len=:), allocatable,            public :: group /;"	v	module:flap_command_line_arguments_group_t
 gset	src/third_party/mersenne_twister.f90	/^          real:: gset$/;"	k	type:random_stat
-h_path	src/wlcsim/MCparrll_mpi.f90	/^function h_path(/;"	f
 hamiltonian	src/mc/MC_Hamiltonian.f95	/^subroutine hamiltonian(/;"	s
 handle	doc/_build/html/_static/jquery-1.11.1.js	/^		},$/;"	m	class:jQuery.event.special.change
 handle	doc/_build/html/_static/websupport.js	/^    function handle(ph, escape) {$/;"	f	function:renderTemplate
@@ -1173,7 +1171,6 @@ highlightstring	doc/_build/html/_static/searchtools.js	/^    var highlightstring
 hlterms	doc/_build/html/_static/searchtools.js	/^    var hlterms = [];$/;"	v
 hooks.empty.fire	doc/_build/html/_static/jquery-1.11.1.js	/^			oldfire = hooks.empty.fire;$/;"	f
 hostname	scan_wlcsim.py	/^hostname = socket.gethostname()$/;"	v
-hp1_bind_path	src/wlcsim/MCparrll_mpi.f90	/^function hp1_bind_path(/;"	f
 html_static_path	doc/conf.py	/^html_static_path = ['_static']$/;"	v
 html_theme	doc/conf.py	/^html_theme = 'classic'$/;"	v
 htmlhelp_basename	doc/conf.py	/^htmlhelp_basename = 'wlcsimdoc'$/;"	v
@@ -1187,7 +1184,6 @@ ical	doc/_build/html/_static/searchtools.js	/^    iciti: 'ic',$/;"	p	class:Stemm
 icate	doc/_build/html/_static/searchtools.js	/^  var step3list = {$/;"	p	class:Stemmer.step3list
 iciti	doc/_build/html/_static/searchtools.js	/^    alize: 'al',$/;"	p	class:Stemmer.step3list
 icolsort	src/util/colsort.f95	/^subroutine icolsort(/;"	s
-id	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) id$/;"	v	program:main
 idx	src/third_party/kdtree2.f90	/^      integer :: idx!/;"	k	type:kdtree2_result
 ieval	src/third_party/FLAP/src/tests/test_basic.f90	/^integer(I4P)                 :: ieval /;"	v	program:test_basic
 ieval	src/third_party/FLAP/src/tests/test_string.f90	/^integer(I4P)                 :: ieval /;"	v	program:test_string
@@ -1291,7 +1287,6 @@ j_arr	wlcsim/olddata.py	/^j_arr = np.array([[1]])$/;"	v
 jparam	scan_wlcsim.py	/^jparam = {}$/;"	v
 jparams	scan_wlcsim.py	/^jparams = []$/;"	v
 kanji	doc/_build/latex/Makefile	/^	for f in *.tex; do platex -kanji=utf8 $(LATEXOPTS) $$f; done$/;"	m
-kap_path	src/wlcsim/MCparrll_mpi.f90	/^function kap_path(/;"	f
 kdkind	src/third_party/kdtree2.f90	/^  integer, parameter :: kdkind /;"	v	module:kdtree2_precision_module
 kdtree2	src/third_party/kdtree2.f90	/^  type :: kdtree2$/;"	t	module:kdtree2_module
 kdtree2_create	src/third_party/kdtree2.f90	/^  function kdtree2_create(/;"	f	module:kdtree2_module
@@ -1343,7 +1338,6 @@ m	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n = 624, n1 = n+1, m /;"	v
 m_exclude	src/third_party/FLAP/src/lib/flap_object_t.f90	/^  character(len=:), public, allocatable :: m_exclude /;"	v	module:flap_object_t
 macros	fort_depend.py	/^    macros = {}$/;"	v
 mag01	src/third_party/mersenne_twister.f90	/^        integer,parameter:: mag01(/;"	v	module:mersenne_twister
-main	src/wlcsim/MCparrll_mpi.f90	/^program main$/;"	p
 make_gradient	vizualization/color_b.py	/^def make_gradient(sel,gradient,nbins,sat,value):$/;"	f
 make_release_tree	versioneer.py	/^        def make_release_tree(self, base_dir, files):$/;"	m	class:get_cmdclass.cmd_sdist
 man_pages	doc/conf.py	/^man_pages = [$/;"	v
@@ -1363,7 +1357,6 @@ mt19937	src/third_party/mt19937.f90	/^MODULE mt19937$/;"	m
 mti	src/third_party/mersenne_twister.f90	/^          integer:: mti=/;"	k	type:random_stat
 mti	src/third_party/mt19937.f90	/^INTEGER, SAVE      :: mt(0:n-1), mti /;"	v	module:mt19937
 mu	src/legacy/keys.f90	/^  double precision :: mu$/;"	v	module:KEYS
-mu_path	src/wlcsim/MCparrll_mpi.f90	/^function mu_path(/;"	f
 n	src/third_party/kdtree2.f90	/^      int/;"	k	type:kdtree2
 n	src/third_party/mersenne_twister.f90	/^        int/;"	v	module:mersenne_twister
 n	src/third_party/mt19937.f90	/^INTEGER, PARAMETER :: n /;"	v	module:mt19937
@@ -1402,12 +1395,10 @@ output	fort_depend.py	/^    output = args.output[0] if args.output else None$/;"
 output_base	scan_wlcsim.py	/^output_base = 'par-run-dir'$/;"	v
 overflow	src/third_party/kdtree2.f90	/^      logical           :: overflow$/;"	k	type:tree_search_record
 p	scan_wlcsim.py	/^    p = multiprocessing.Pool(num_cores)$/;"	v
-p	src/wlcsim/MCparrll_mpi.f90	/^  integer ( kind = 4 ) p$/;"	v	program:main
 packages	setup.py	/^          packages=find_packages(include=["wlcsim", "wlcsim.*"]),$/;"	v
 pairwise_distances3	wlcsim/data.py	/^def pairwise_distances3(r):$/;"	f
 panel	wlcsim/plot.py	/^panel = QtGui.QWidget()$/;"	v
 panel	wlcsim/plot_wlcsim.py	/^panel = QtGui.QWidget()$/;"	v
-paraTemp	src/wlcsim/MCparrll_mpi.f90	/^subroutine paraTemp /;"	s
 param_names	wlcsim/data.py	/^    def param_names(self):$/;"	m	class:Sim
 params	pscan.py	/^    def params(self):$/;"	m	class:Scan
 params	scan_wlcsim.py	/^params = {}$/;"	v
@@ -1607,7 +1598,6 @@ signature	src/third_party/FLAP/src/lib/flap_command_line_arguments_group_t.f90	/
 signature	src/third_party/FLAP/src/lib/flap_command_line_interface_t.F90	/^  function signature(/;"	f	module:flap_command_line_interface_t
 simpleSim	src/tests/parallelTemperingGaussianWells.f95	/^Subroutine simpleSim(/;"	s
 sims	wlcsim/data.py	/^    def sims(self):$/;"	m	class:Scan
-singleCall	src/wlcsim/MCparrll_mpi.f90	/^subroutine singleCall(/;"	s
 size	doc/_build/html/_static/underscore-1.3.1.js	/^    var size = 0, result = true;$/;"	v
 slice	doc/_build/html/_static/underscore-1.3.1.js	/^  var slice            = ArrayProto.slice,$/;"	v
 slider_t	wlcsim/plot.py	/^slider_t = Slider(ax, 't', 0, 1, valinit=0)$/;"	v
@@ -1648,7 +1638,7 @@ str_a_R16P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	
 str_a_R4P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_R4P(/;"	f	module:penf_stringify
 str_a_R8P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  pure function str_a_R8P(/;"	f	module:penf_stringify
 str_bol	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function str_bol(/;"	f	module:penf_stringify
-strength_schedule	src/wlcsim/schedule.f95	/^subroutine strength_schedule(/;"	s
+strength_schedule	src/legacy/schedule.f95	/^subroutine strength_schedule(/;"	s
 stress	src/bd/stress.f95	/^      SUBROUTINE stress(/;"	s
 stressp	src/bd/stressp.f95	/^      SUBROUTINE stressp(/;"	s
 strf_I1P	src/third_party/FLAP/src/third_party/PENF/src/lib/penf_stringify.F90	/^  elemental function strf_I1P(/;"	f	module:penf_stringify

@@ -19,24 +19,32 @@ DEP_FILE = wlcsim.dep
 
 # compiler
 FC = mpifort
+# FC = $(shell if [[ type mpifort >/dev/null 2>&1 & ]]; then echo "mpifort"; else; echo "gfortran"; fi)
 #TODO: fallback to gfortran gracefully, maybe with a dummy mpi.mod file?
+
+ifeq ($(FC), mpifort)
+MPI_FLAGS = -DMPI_VERSION
+else
+MPI_FLAGS =
+endif
 
 # compile flags
 INCLUDE_DIRS = -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party
 DEBUGFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp
 FASTFLAGS = -O3 -Jsrc ${INCLUDE_DIRS} -cpp
-PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof, Wno-surprising to enforce Werror even though gfortran has a bug https://gcc.gnu.org/ml/fortran/2013-08/msg00050.html
-FCFLAGS = ${FASTFLAGS}
+PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof (if you don't have sizeof, just comment out read/writeBinary in params.f03), Wno-surprising to enforce Werror even though gfortran has a bug https://gcc.gnu.org/ml/fortran/2013-08/msg00050.html
+FCFLAGS = ${PEDANTICFLAGS}
 
 # link flags
-FLFLAGS =
+FLFLAGS = -L/usr/lib/lapack -llapack
 
 # all non-legacy and non-test files should be compiled into wlcsim
 SRC := $(shell find "src" -type f -name '*.f*' \
 			    -not -path "src/legacy/*" \
 				-not -path "src/tests/*" \
 				-not -path "src/third_party/FLAP/*" \
-				-not -path '*/\.*') # \
+				-not -path '*/\.*' \
+				-not -path 'src/wlcsim/wlcsim_brad.f03')
 # -not -path 'src/wlcsim/wlcsim_quinn.f03' -not -path 'src/wlcsim/MCparrll_mpi.f90' -not -path 'src/wlcsim/restart_mpi.f90')
 
 # takes each *.f* -> *.o
@@ -57,13 +65,19 @@ run: $(PROGRAM) dataclean
 # constructed makefile output
 $(PROGRAM): flap depend dummy_prog
 
+# ugly line, needs to ask for FLAP objects at runtime, there's probably a better
+# way to do this
 dummy_prog: $(OBJ)
-	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
+	$(FC) $(FCFLAGS) -o $(PROGRAM) $^ $(INCLUDE_DIRS) $(shell find "src/third_party/FLAP/exe/obj" -type f -not -path "src/third_party/FLAP/exe/obj/test_minimal.o") $(FLFLAGS)
 
 # build third party dependencies that require "make" by hand
 FLAP_DIR = src/third_party/FLAP
-flap: $(shell find ${FLAP_DIR} -type f -name '*.f*')
+flap: flap_exists $(shell find ${FLAP_DIR} -type f -name '*.f*')
 	make -C ${FLAP_DIR}
+
+flap_exists: ${FLAP_DIR}
+	git submodule update --init --recursive
+
 
 # Make dependencies, easier to type
 depend: $(DEP_FILE)
@@ -74,7 +88,7 @@ depend: $(DEP_FILE)
 # only want to do e.g. make clean.
 $(DEP_FILE): $(SRC) Makefile
 	@echo "Making dependencies!"
-	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) -c "$(FC) -c $(FCFLAGS) "
+	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) -c "$(FC) -c $(FCFLAGS) $(MPI_FLAGS)"
 
 include $(DEP_FILE)
 

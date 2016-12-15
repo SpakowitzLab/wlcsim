@@ -5,7 +5,7 @@
 !           Quinn MacPherson
 !
 
-Subroutine wlcsim_params_adapt(mc,md,MCTYPE)
+Subroutine MC_adapt(mc,md,MCTYPE)
 ! Run this after say 1000 move in order to improve performance
     !use mt19937, only : grnd
     use params

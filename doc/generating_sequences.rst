@@ -1,4 +1,7 @@
+.. _generating_sequences:
 
+Generating Random Sequences
+###########################
 
 Throughout the code, anytime the polymer needs to be labelled with a binary
 sequence, a markov chain (whose states are the values of the label at each bead)
