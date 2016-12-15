@@ -111,8 +111,8 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
         ! better: "" "" if d == 1 (i.e. we're adding j to triplet array)
     integer, save, allocatable, dimension(:,:) :: ind, indi
     integer, save :: is_allocated = 0 ! "static" variable, allow initial setup
-    integer :: curr_indi, curr_ind, i, j, d, rd0
-    double precision :: rneighbor
+    integer :: curr_indi, curr_ind, i, j, d
+    double precision :: rneighbor, rd0
     ! initialize ind and indi on first pass, requires O(n log n) sort
     if (is_allocated == 0) then
         is_allocated = 1
