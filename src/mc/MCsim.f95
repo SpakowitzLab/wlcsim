@@ -41,11 +41,10 @@ SUBROUTINE MCsim(mc,md,NSTEP)
     DOUBLE PRECISION XIR,XIU
     DOUBLE PRECISION LHC      ! Length of HC int
     DOUBLE PRECISION VHC      ! HC strength
-    DOUBLE PRECISION phiTot  ! for testing
+!    DOUBLE PRECISION phiTot  ! for testing
     real(dp) wrp ! proposed writhe
 
     DOUBLE PRECISION ENERGY
-    logical isfile
 ! Things for random number generator
     real urnd(1) ! single random number
     type(random_stat) :: rand_stat

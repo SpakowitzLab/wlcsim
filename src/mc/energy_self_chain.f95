@@ -11,14 +11,14 @@
 !     Interaction is calculated for a repulsive lennard jones potential.
 !     Arbitrary pair-wise potentials may be substituted
 
-SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
+SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,NB,PARA,RING)
     !TODO change so works with multiple chains
 
     use params, only: dp
 
     implicit none
 
-  INTEGER N,NT,NP            ! Current number of beads
+  INTEGER NB,NT            ! Current number of beads
   DOUBLE PRECISION R(NT,3)   ! Bead positions
   DOUBLE PRECISION EPONP ! Self-interaction force
   DOUBLE PRECISION FMAG     ! Mag of force
@@ -60,21 +60,21 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
 
 
   IF (RING.EQ.1) THEN
-     NMAX=N
+     NMAX=NB
   ELSE
-     NMAX=N-1
+     NMAX=NB-1
   ENDIF
 
 
   EPONP=0.
   DO IT1=3,NMAX
-     IF (IT1.EQ.N.AND.RING.EQ.1) THEN
+     IF (IT1.EQ.NB.AND.RING.EQ.1) THEN
         IT1P1=1
      ELSE
         IT1P1=IT1+1
      ENDIF
      DO IT2=1,IT1-2
-        IF (IT2.EQ.N.AND.RING.EQ.1) THEN
+        IF (IT2.EQ.NB.AND.RING.EQ.1) THEN
            IT2P1=1
         ELSE
            IT2P1=IT2+1
