@@ -45,6 +45,7 @@ Stack of things to do:
         wlcsim_params_printEnergies -> printEnergies
         time_ind now refers to what time step you're on
         step_ind now refers to what mc step you're on
+        NPT -> stepsPerExchange
 
 
         notes to Quinn:

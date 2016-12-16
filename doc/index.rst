@@ -21,7 +21,7 @@ Contents:
    wlcsim
    plotting
    generating_sequences
-
+   quinnWLCsim
 
 
 Indices and tables

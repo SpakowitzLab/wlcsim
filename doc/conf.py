@@ -38,7 +38,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinxcontrib.napoleon',
-    'sphinxfortran.fortran_domain'
+    'sphinxfortran.fortran_domain',
+    'sphinxfortran.fortran_autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -346,3 +347,8 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+
+# -- Options for Fortran Including -------------------------------------------
+fortran_src = ['../src/bd/', '../src/mc/', '../src/wlcsim/', '../src/util/']
+fortran_ext = ['f90', 'f03', 'f95']
