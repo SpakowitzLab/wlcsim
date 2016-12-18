@@ -57,7 +57,9 @@ program main
     call setup_runtime_floats()
 
     call get_input_from_file(infile, wlc_p, wlc_d)
+    print*, "old McDonald"
     call initialize_wlcsim_data(wlc_d, wlc_p)
+    print*, "Had a farm"
 
     call save_parameters(wlc_p, trim(adjustL(outfile)) // 'params')
     i = 0

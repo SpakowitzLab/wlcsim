@@ -35,6 +35,7 @@ lBox 20
 np 2000
 # -below- nBpM use to be G
 nBpM 5
+nMpP 8
 nNoInt 10
 nKapOn 10
 nChiOn 15
