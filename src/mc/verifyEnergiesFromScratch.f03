@@ -23,7 +23,8 @@ subroutine CalculateEnergiesFromScratch(mc, md)
                      mc%EU,mc%EM,md%DEBind,mc%mu,md%dx_mu)
     endif
 
-    call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc))
+    call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc),&
+                     mc%Ring,mc%TWIST,mc%lk,mc%lt,mc%L)
 
     ! --- Interaction Energy ---
     if (mc%field_int_on) then
