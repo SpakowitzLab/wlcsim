@@ -4,71 +4,97 @@
 # -----------------------------------------------
 # Simulation basics
 #
-RESTART T
-SETTYPE 1
-CONFINETYPE 0
-SIMTYPE 0
-STRENGTH_SCHEDULE T
-FRMCHEM F
-FRMMETH F
-PTON T
-PT_CHI T
+codeName 3
+initCondType 1
+confineType 0
+recenterOn T
+solType 0
+frmChem F
+frmFile F
+twist F
+ring F
+interpBeadLennardJones F
+fieldIntOn T
+bindOn T
+# lk 0
+ptOn T
+saveR T
+# fptColType 0
+saveU T
+savePhi F
+# exitWhenCollided F
+nb 40
+# dt 0
+# -below- l = L0*nb
+l 16.266666
+# lt 0
+# -below- lp=L0/(EPS*2)
+lp 20.3333333
+dBin 1
+lBox 20
+np 2000
+# -below- nBpM use to be G
+nBpM 5
+nNoInt 10
+nKapOn 10
+nChiOn 15
+numSavePoints 5000
+# nInitMCSteps 1000
+# stepsPerSave 4000000
+stepsPerExchange 100
+nReplicaExchangePerSavePoint 40000
+fPoly 1
+beadVolume 0.1
+fA 0.5
+lam -1
+# chi 0.0
+# hA 0.0
+kap 10
+# EU 0
+# EM 0
+# mu 0
+# energyCouple
+# fMeth 0.5
+# lamMeth 0
+crankShaftOn 1
+slideOn 1
+pivotOn 1
+rotateOn 1
+fullChainRotationOn 1
+fullChainSlideOn 1
+bindMoveOn 1
+chainFlipMoveOn 0
+chainSwapMoveOn 1
+reptationMoveOn 1
+minCrankShaftWin 1
+minSlideWin 6 
+minPivotWin 6
+# minBindWin
+reduceMove 6
+winType 1
+minAccept 0.1
+# crankShaftTarget 
+# slideTarget
+# pivotTarget
+strengthSchedule T
+nRepAdapt 100
+lowerRepExe 0.12
+upperRepExe 0.22
+lowerCofRail 0.005
+upperCofRail 0.5
+indStartRepAdapt 15
+indEndRepAdapt 25
+repAnnealSpeed 0.01
+# frmField F
+# kField 
+replicaBounds F
+initialMaxS 0.1
+parallelTempChi T
+parallelTempH F
+parallelTempKap F
+parallelTempMu F
+parallelTempCouple F
+parallelTempTwist F
+restart F
 
-# Chain parameters
-G 5
-N 8
-FA 0.5
-LAM -1.0
-EPS 0.01
-L0 0.406666
-V 0.1
-
-# Simulation parameters
-FPOLY 1.0
-LBOX 20
-DEL 1.0000
-CHI 1.0
-KAP 10
-H_A 0.0
-
-# Simulation schedule
-#NSTEP 4000000
-NSTEP 4000
-NPT 100
-NNOINT 10
-INDMAX 1000
-N_KAP_ON 10
-N_CHI_ON 15
-
-# Parallel-tempering schedule and setup
-IND_START_REP_ADAPT 15
-IND_END_REP_ADAPT 25
-N_REP_ADAPT 1000
-LOWER_REP_EXE 0.12
-UPPER_REP_EXE 0.22
-LOWER_COF_RAIL 0.005
-UPPER_COF_RAIL 0.5
-REP_ANNEAL_SPEED 0.01
-REPLICA_BOUNDS F
-INITIAL_MAX_S 0.1
-
-# Monte-Carlo settings
-CRANK_SHAFT_ON 1
-SLIDE_ON 1
-PIVOT_ON 1
-ROTATE_ON 1
-FULL_CHAIN_ROTATION_ON 1
-FULL_CHAIN_SLIDE_ON 1
-BIND_MOVE_ON 0
-CHAIN_FLIP_MOVE_ON 0
-CHAIN_SWAP_MOVE_ON 1
-REPTATION_MOVE_ON 1
-RECENTER_ON T
-WINTYPE 1
-MIN_SLIDE_WIN 6
-MIN_PIVOT_WIN 6
-MIN_ACCEPT 0.1
-REDUCE_MOVE 6
-SAVE_U T
-SAVE_PHI F
 

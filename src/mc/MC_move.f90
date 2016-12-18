@@ -13,14 +13,13 @@ use mersenne_twister
 use params, only: dp
 IMPLICIT NONE
 DOUBLE PRECISION, PARAMETER :: PI=3.141592653589793_dp ! Value of pi
-
+INTEGER, intent(in) :: NT     ! Total beads in simulation
 DOUBLE PRECISION, intent(in) :: R(NT,3)  ! Bead positions
 DOUBLE PRECISION, intent(in) :: U(NT,3)  ! Tangent vectors
 DOUBLE PRECISION, intent(out) :: RP(NT,3)  ! Bead positions
 DOUBLE PRECISION, intent(out) :: UP(NT,3)  ! Tangent vectors
 INTEGER, intent(in) :: NB     ! Number of beads on a polymer
 INTEGER, intent(in) :: NP     ! Number of polymers
-INTEGER, intent(in) :: NT     ! Total beads in simulation
 INTEGER, intent(in) :: BPM    ! Beads per monomer, aka G
 INTEGER, intent(out) :: IP    ! Test polymer
 INTEGER IP2   ! Second Test polymer if applicable
