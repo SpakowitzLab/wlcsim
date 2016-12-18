@@ -24,6 +24,7 @@ program main
     ! CLI argument variables
     type(command_line_interface) :: cli
     character(MAXFILENAMELEN)    :: infile
+    character(MAXFILENAMELEN)    :: paramsFileName
     character(MAXFILENAMELEN)    :: outfile
     integer                      :: err
 
@@ -57,11 +58,10 @@ program main
     call setup_runtime_floats()
 
     call get_input_from_file(infile, wlc_p, wlc_d)
-    print*, "old McDonald"
     call initialize_wlcsim_data(wlc_d, wlc_p)
-    print*, "Had a farm"
 
-    call save_parameters(wlc_p, trim(adjustL(outfile)) // 'params')
+    paramsFileName=trim(adjustL(outfile)) // 'params'
+    call save_parameters(wlc_p,paramsFileName)
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile)
 

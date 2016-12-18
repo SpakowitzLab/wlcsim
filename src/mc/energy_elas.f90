@@ -54,10 +54,6 @@
             ELSE
                 IBP1=IB+1
             ENDIF
-           ! if (IBP1.gt.NT) then
-           !     print*, "We got your friend"
-           !     print*, "IBP1 ",IBP1," NT",NT," NB",NB," J",J," Ring",Ring
-           ! endif
             DR(1)=R(IBP1,1)-R(IB,1)
             DR(2)=R(IBP1,2)-R(IB,2)
             DR(3)=R(IBP1,3)-R(IB,3)
