@@ -40,7 +40,7 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
   DOUBLE PRECISION GAM
   DOUBLE PRECISION LBOX     ! Box edge length
   DOUBLE PRECISION XIR
-  INTEGER RING              ! Is polymer a ring?
+  logical RING              ! Is polymer a ring?
   INTEGER NMAX
 
 
@@ -59,7 +59,7 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
   !     Calculate the self-interaction forces
 
 
-  IF (RING.EQ.1) THEN
+  IF (RING) THEN
      NMAX=N
   ELSE
      NMAX=N-1
@@ -68,13 +68,13 @@ SUBROUTINE ENERGY_SELF_CHAIN(EPONP,R,NT,N,NP,PARA,RING)
 
   EPONP=0.
   DO IT1=3,NMAX
-     IF (IT1.EQ.N.AND.RING.EQ.1) THEN
+     IF (IT1.EQ.N.AND.RING) THEN
         IT1P1=1
      ELSE
         IT1P1=IT1+1
      ENDIF
      DO IT2=1,IT1-2
-        IF (IT2.EQ.N.AND.RING.EQ.1) THEN
+        IF (IT2.EQ.N.AND.RING) THEN
            IT2P1=1
         ELSE
            IT2P1=IT2+1
