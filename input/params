@@ -63,7 +63,7 @@ pivotOn 1
 rotateOn 1
 fullChainRotationOn 1
 fullChainSlideOn 1
-bindMoveOn 1
+bindMoveOn 0
 chainFlipMoveOn 0
 chainSwapMoveOn 1
 reptationMoveOn 1

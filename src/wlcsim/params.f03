@@ -918,8 +918,8 @@ contains
         use mpi
 #endif
         IMPLICIT NONE
-        type(wlcsim_params), intent(out) :: wlc_p
-        type(wlcsim_data), intent(out) :: wlc_d
+        type(wlcsim_params), intent(inout) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
         logical err
         integer numProcesses ! number of threads running
         integer (kind=4) mpi_err
@@ -1140,6 +1140,16 @@ contains
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat)
 
+        ! calculate volumes of bins
+        if (wlc_p%confineType.eq.3) then
+            call MC_calcVolume(wlc_p%confinetype, wlc_p%NBINX, wlc_p%dBin, &
+                               wlc_p%LBox(1), wlc_d%Vol,wlc_d%rand_stat)
+        else 
+            do I=1,wlc_p%NBIN
+                wlc_d%Vol(I)=wlc_p%dBin**3
+            enddo
+        endif
+
 
         ! initialize energies
         call CalculateEnergiesFromScratch(wlc_p,wlc_d)
@@ -1201,37 +1211,54 @@ contains
         IMPLICIT NONE
         type(wlcsim_params), intent(in) :: wlc_p
         print*, "---------------System Description---------------"
+        print*, " type of simulation, codeName", wlc_p%codeName
+        print*, " WLC, DSSWLC, GC, simType", wlc_p%simType
         print*, "Bead variables:"
         print*, " Total number of beads, NT=", wlc_p%NT
         print*, " Number of beads in a polymer, NB=", wlc_p%NB
-        print*, " Number of monomers in a polymer, N=", wlc_p%nMpP
+        print*, " Number of monomers in a polymer, nMpP=", wlc_p%nMpP
         print*, " Number of polymers, NP=",wlc_p%NP
         print*, " Number of beads in a monomer, nBpM=", wlc_p%nBpM
         print*, " fraction Methalated", wlc_p%F_METH
         print*, " LAM_METH", wlc_p%LAM_METH
+        print*, " "
         print*, "Length and volume Variables:"
         print*, " persistance length =",(wlc_p%L0/(2.0_dp*wlc_p%EPS))
+        print*, " length of each polymer in simulation, l=",wlc_p%l
+        print*, " twist persistence length, lt", wlc_p%lt
         print*, " lbox=", wlc_p%lbox(1), wlc_p%lbox(2), wlc_p%lbox(3)
         print*, " Number of bins in x direction", &
-                wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
+                   wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
         print*, " Number of bins", wlc_p%NBIN
         print*, " spatial descritation dbin=",wlc_p%dbin
         print*, " L0=", wlc_p%L0
         print*, " volume fraction polymer =", wlc_p%Fpoly
         print*, " bead volume V=", wlc_p%beadVolume
+        print*, " number of kuhn lengths between beads, eps ", wlc_p%eps
+        print*, " "
         print*, "Energy Variables"
         print*, " elasticity EPS =", wlc_p%EPS
         print*, " solvent-polymer CHI =",wlc_p%CHI
         print*, " compression cof, KAP =", wlc_p%KAP
         print*, " field strength, hA =", wlc_p%hA
-
         print*, " -energy of binding unmethalated ", wlc_p%EU," more positive for favorable binding"
         print*, " -energy of binding methalated",wlc_p%EM
         print*, " HP1_Binding energy parameter", wlc_p%HP1_Bind
-        print*, " chemical potential of HP1", wlc_p%mu
-        print*, "Other:"
+        print*, " chemical potential of HP1, mu", wlc_p%mu
+        print*, " bend-shear coupling parameter, eta ", wlc_p%eta
+        print*, " "
+        print*, "Time Variables"
+        print*, " stepsPerExchange", wlc_p%stepsPerExchange
+        print*, " nReplicaExchangePerSavePoint", wlc_p%nReplicaExchangePerSavePoint
+        print*, " numSavePoints", wlc_p%numSavePoints
+        print*, " stepsPerSave", wlc_p%stepsPerSave
+        print*, " "
+        print*, "Switches:"
         print*, " confinetype:",wlc_p%confinetype
         print*, " initCondType:",wlc_p%initCondType
+        print*, " ring:", wlc_p%ring
+        print*, " twist:", wlc_p%twist
+        print*, " "
         print*, "---------------------------------------------"
 
     end subroutine
@@ -1242,7 +1269,7 @@ contains
         type(wlcsim_data), intent(inout) :: wlc_d
 
 
-        wlc_p%L0 = wlc_p%l/wlc_p%nb
+        wlc_p%L0 = wlc_p%l/real(wlc_p%nb)
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters
         if (wlc_d%MCAMP(1) .ne. wlc_d%MCAMP(1)) wlc_d%MCAMP(1)=0.5_dp*PI

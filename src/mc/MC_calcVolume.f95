@@ -13,7 +13,7 @@
 !    2         |  Cube of size LBox**3,  range: 0-LBox
 !    3         |  Circle of radius LBox/2 inside box of size LBox
 
-SUBROUTINE MC_caclVolume(confineType,NBINX,dbin, LBox, &
+SUBROUTINE MC_calcVolume(confineType,NBINX,dbin, LBox, &
                          Vol,rand_stat)
 
 

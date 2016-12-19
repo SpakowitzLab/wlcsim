@@ -33,28 +33,22 @@ use mpi
     !----------------------------------------------
     if (id.eq.1) then
         do dest=2,nThreads-1
-            if(mc%simtype.eq.1) then
+            if(mc%bind_On) then
                 call MPI_Send (md%METH,mc%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
-            elseif(mc%simtype.eq.0) then
+            else
                 call MPI_Send (md%AB,mc%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
-            else
-                print*, "Error in PT_override. simtype doesn't exist."
-                stop 1
             endif
         enddo
     else
         source=1
-        if(mc%simtype.eq.1) then
+        if(mc%bind_On) then
             call MPI_Recv (md%METH, mc%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
-        elseif(mc%simtype.eq.0) then
+        else
             call MPI_Recv (md%AB, mc%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
-        else
-            print*, "Error in PT_override. simtype doesn't exist."
-            stop 1
         endif
     endif
 

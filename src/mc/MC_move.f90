@@ -50,7 +50,7 @@ DOUBLE PRECISION BETA     ! Angle of move
 
 !     MC adaptation variables
 
-INTEGER, PARAMETER :: moveTypes=7 ! Number of different move types
+INTEGER, PARAMETER :: moveTypes=10 ! Number of different move types
 DOUBLE PRECISION, intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
 INTEGER, intent(in) :: MCTYPE            ! Type of MC move
 INTEGER, intent(in) :: winType
@@ -592,7 +592,8 @@ elseif(MCTYPE.EQ.9) then
       UP(IT3+I,3)=U(IT1+I,3)
       ABP(IT3+I)=AB(IT3+I)
    ENDDO
-   IB1=0; IB1=IB1/IB1; IB2=IB1
+   IB1=-2000000
+   IB2=-2000000
 
 ! single bead reptation
 elseif(MCTYPE.EQ.10) then
@@ -718,7 +719,6 @@ elseif(MCTYPE.EQ.10) then
         ABP(J)=1-AB(J)
     ENDDO
 endif
-
 
 RETURN
 END
