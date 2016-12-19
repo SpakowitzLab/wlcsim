@@ -924,6 +924,12 @@ contains
         integer numProcesses ! number of threads running
         integer (kind=4) mpi_err
 
+        if (wlc_p%ring .and. wlc_p%NP .gt. 1) then
+            print*, "As of the writing of this error message"
+            print*, "MC_eelals and possible energy_elas are"
+            Print*, "not capable of more then one rings"
+            stop
+        endif
         if ((wlc_p%NT.GT.200000).OR.(wlc_p%NT.lt.1)) then
             print*, "Requested ", wlc_p%NT," beads."
             stop 1
