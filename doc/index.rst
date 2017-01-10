@@ -21,6 +21,7 @@ Contents:
    wlcsim
    plotting
    generating_sequences
+   params
 
 
 

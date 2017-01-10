@@ -70,6 +70,9 @@ $(PROGRAM): flap depend dummy_prog
 dummy_prog: $(OBJ)
 	$(FC) $(FCFLAGS) -o $(PROGRAM) $^ $(INCLUDE_DIRS) $(shell find "src/third_party/FLAP/exe/obj" -type f -not -path "src/third_party/FLAP/exe/obj/test_minimal.o") $(FLFLAGS)
 
+doc:
+	make -C doc html
+
 # build third party dependencies that require "make" by hand
 FLAP_DIR = src/third_party/FLAP
 flap: flap_exists $(shell find ${FLAP_DIR} -type f -name '*.f*')
