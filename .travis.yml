@@ -25,9 +25,9 @@ install:
       mkdir "$HOME/.local/bin"
     fi
   - export PATH="$HOME/.local/bin:$PATH"
-  - export FC=/usr/bin/gfortran-6
-  - ln -fs /usr/bin/gfortran-6 "$HOME/.local/bin/gfortran" && gfortran --version
-  - ls -l /usr/bin/gfortran-6
+  # - export FC=/usr/bin/gfortran-6
+  # - ln -fs /usr/bin/gfortran-6 "$HOME/.local/bin/gfortran" && gfortran --version
+  # - ls -l /usr/bin/gfortran-6
   # - ln -fs /usr/bin/gcov-6 "$HOME/.local/bin/gcov" && gcov --version
   # - |
   #   if ! which f90split; then
@@ -41,4 +41,4 @@ install:
 
 script:
     - make clean && make FC='mpifort'
-    - make clean && make FC='gfortran-6'
+    - make clean && make FC='gfortran'
