@@ -21,8 +21,7 @@ Contents:
    wlcsim
    plotting
    generating_sequences
-   params
-
+   :wparams
 
 
 Indices and tables

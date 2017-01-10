@@ -15,7 +15,8 @@ program main
     ! structs that will hold simulation params and state
     use params, only: wlcsim_params, wlcsim_data, &
         MAXFILENAMELEN, save_simulation_state, get_input_from_file, &
-        initialize_wlcsim_data, save_parameters, setup_runtime_floats
+        initialize_wlcsim_data, save_parameters, setup_runtime_floats, &
+        printDescription, printWindowStats
 
     implicit none
 
@@ -24,6 +25,7 @@ program main
     ! CLI argument variables
     type(command_line_interface) :: cli
     character(MAXFILENAMELEN)    :: infile
+    character(MAXFILENAMELEN)    :: paramsFileName
     character(MAXFILENAMELEN)    :: outfile
     integer                      :: err
 
@@ -59,14 +61,15 @@ program main
     call get_input_from_file(infile, wlc_p, wlc_d)
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
-    call save_parameters(wlc_p, trim(adjustL(outfile)) // 'params')
+    paramsFileName=trim(adjustL(outfile)) // 'params'
+    call save_parameters(wlc_p,paramsFileName)
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile)
 
     select case (wlc_p%codeName)
     case ('quinn', 'parallel temper continuous parameters')
         do i=1,wlc_p%numSavePoints
-            call wlcsim_quinn(i, wlc_d, wlc_p)
+            call wlcsim_quinn(i, wlc_p, wlc_d)
             call save_simulation_state(i, wlc_d, wlc_p, outfile)
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')

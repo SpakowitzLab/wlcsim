@@ -59,7 +59,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
   DOUBLE PRECISION EPAR
   DOUBLE PRECISION EPERP
   DOUBLE PRECISION EB
-  INTEGER RING              ! Is polymer a ring?
+  logical RING              ! Is polymer a ring?
   INTEGER NMAX
 
   DOUBLE PRECISION D12MIN,FMAGMIN
@@ -133,7 +133,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
      !Sum over segments inside segment slid (inner segments)
      DO  I=1,DIB
 
-        IF (II.EQ.N.AND.RING.EQ.1) THEN
+        IF (II.EQ.N.AND.RING) THEN
            IIP1=1
         ELSEIF (II.EQ.N+1) THEN
            II=1
@@ -145,9 +145,9 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
         !Sum over segments unchanged by slide (outer segments)
         DO J=1,DIO
 
-           IF (IO.EQ.N.AND.RING.EQ.1) THEN
+           IF (IO.EQ.N.AND.RING) THEN
               IOP1=1
-           ELSEIF (IO.EQ.N.AND.RING.EQ.0)THEN
+           ELSEIF (IO.EQ.N.AND.(.not.RING))THEN
               IO=0
               GOTO 110
            ELSEIF (IO.EQ.N+1) THEN
@@ -262,7 +262,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
               ENDIF
 
               !If the chain is linear and IS1P1.EQ.1 then there is no first 'stretched' segment
-              IF (IS1P1.EQ.1.AND.RING.EQ.0) THEN
+              IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
                  GOTO 90
               ENDIF
 
@@ -364,7 +364,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
               ENDIF
 
               !If the chain is linear and IS2=N, then there is no second 'stretched' segment
-              IF (IS2.EQ.N.AND.RING.EQ.0) THEN
+              IF (IS2.EQ.N.AND.(.not.RING)) THEN
                  GOTO 110
               ENDIF
 
@@ -467,7 +467,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
         ENDIF
 
         !If the chain is linear and  IS1P1=1 there is no first "stretched" segment
-        IF (IS1P1.EQ.1.AND.RING.EQ.0) THEN
+        IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
            GOTO 130
         ENDIF
 
@@ -562,7 +562,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
         ENDIF
 
         !If the chain is linear and IS2=N, there is no second "stretched" segment
-        IF (IS2.EQ.N.AND.RING.EQ.0) THEN
+        IF (IS2.EQ.N.AND.(.not.RING)) THEN
            GOTO 150
         ENDIF
 
@@ -767,9 +767,9 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
      !Sum over segments unchanged by slide (outer segments)
      DO J=1,DIO
 
-        IF (IO.EQ.N.AND.RING.EQ.1) THEN
+        IF (IO.EQ.N.AND.RING) THEN
            IOP1=1
-        ELSEIF (IO.EQ.N.AND.RING.EQ.0) THEN
+        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
            IO=0
            GOTO 210
         ELSEIF (IO.EQ.N+1) THEN
@@ -788,7 +788,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
         ENDIF
 
         !If the chain is linear and IP1P1=1, there is no first "stretched" segment
-        IF (IS1P1.EQ.1.AND.RING.EQ.0) THEN
+        IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
            GOTO 190
         ENDIF
 
@@ -891,7 +891,7 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
         !If the chain is linear and IS2=N, then there is no second "stretched" segment
 
-        IF (IS2.EQ.N.AND.RING.EQ.0) THEN
+        IF (IS2.EQ.N.AND.(.not.RING)) THEN
            GOTO 210
         ENDIF
 

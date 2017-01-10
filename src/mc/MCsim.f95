@@ -85,7 +85,6 @@ SUBROUTINE MCsim(mc,md,NSTEP)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-
           call MC_move(md%R,md%U,md%RP,md%UP,mc%NT,mc%NB,mc%NP, &
                        IP,IB1,IB2,IT1,IT2,MCTYPE, &
                        md%MCAMP,md%WINDOW,md%AB,md%ABP,mc%nBpM,&
@@ -123,7 +122,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                             mc%NT,mc%NB,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
                             mc%ring,mc%twist,mc%lk,mc%lt,mc%l, &
-                            mctype,md%wr,wrp,mc%simtype)
+                            mctype,md%wr,wrp,mc%simType)
           else
               md%DEElas(1)=0.0
               md%DEElas(2)=0.0
@@ -248,6 +247,10 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                    md%PHIA(J)=md%PHIA(J)+md%DPHIA(I)
                    md%PHIB(J)=md%PHIB(J)+md%DPHIB(I)
                    if ((md%PHIA(J).lt.-0.000001_dp) .or. (md%PHIB(J).lt.-0.00001_dp)) then
+                       print*, "Vol", md%Vol(I)
+                       print*, "MCTYPE", MCTYPE
+                       print*, "DPHIA ",md%DPHIA(I)," DPHIB",md%DPHIB(I)
+                       print*, "PHIA(J) ", md%PHIA(J), " PHIB(J) ", md%PHIB(J)
                        print*, "Error in MCsim. Negitive phi"
                        stop 1
                    endif
@@ -262,9 +265,11 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                 md%x_field=md%x_field+md%dx_field
 
              endif
-             md%WR=WRP
-             md%NCross=md%NCrossP
-             md%Cross=md%CrossP
+             if (mc%ring) then
+                 md%WR=WRP
+                 md%NCross=md%NCrossP
+                 md%Cross=md%CrossP
+             endif
              md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)+1
           endif
 !   Adapt the amplitude of step every NADAPT steps

@@ -11,6 +11,7 @@ SUBROUTINE MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
 
 use mersenne_twister
 use params, only: dp, pi
+
 IMPLICIT NONE
 
 INTEGER, intent(in) :: NB     ! Number of beads on a polymer
@@ -50,7 +51,7 @@ DOUBLE PRECISION BETA     ! Angle of move
 
 !     MC adaptation variables
 
-INTEGER, PARAMETER :: moveTypes=7 ! Number of different move types
+INTEGER, PARAMETER :: moveTypes=10 ! Number of different move types
 DOUBLE PRECISION, intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
 INTEGER, intent(in) :: MCTYPE            ! Type of MC move
 INTEGER, intent(in) :: winType
@@ -96,20 +97,23 @@ if (MCTYPE.EQ.1) then
                nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
    endif
 
-   if (RING) then
-        if (IB2.LT.1) then
-            IB2=1
-        endif
-        if (IB2.GT.NB) then
-            IB2=NB
-        endif
+   if (.not.ring) then
+       if (IB2.LT.1) then
+           IB2=1
+       endif
+       if (IB2.GT.NB) then
+           IB2=NB
+       endif
+       if (IB2.LT.IB1) then
+           TEMP=IB1
+           IB1=IB2
+           IB2=TEMP
+       endif
+   else
+       print*, "Something should go here! See move type 2"
+       stop
+   endif
 
-        if (IB2.LT.IB1) then
-            TEMP=IB1
-            IB1=IB2
-            IB2=TEMP
-        endif
-    endif
    IT1=NB*(IP-1)+IB1
    IT2=NB*(IP-1)+IB2
 
@@ -151,6 +155,10 @@ if (MCTYPE.EQ.1) then
            TA(2)=R(IT1+1,2)-R(IT1-1,2)
            TA(3)=R(IT1+1,3)-R(IT1-1,3)
         else
+           if (IT2.lt.0 .or. IT1 .lt.0 .or. IT1 .gt. NT .or. IT2 .gt. NT) then
+               print*, "IT2",IT2,"IT1",IT1,"NP",NP,"IB1",IB1,"IB2",IB2,"DIB",DIB, "IP",IP
+               print*, "wintype", winType, "Window", window(MCTYPE)
+           endif
            TA(1)=R(IT2,1)-R(IT1,1)
            TA(2)=R(IT2,2)-R(IT1,2)
            TA(3)=R(IT2,3)-R(IT1,3)
@@ -260,24 +268,28 @@ elseif (MCTYPE.EQ.2) then
                nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
    endif
 
-   if (RING) then
-    if (IB2.LT.1) then
-        IB2=1
-    endif
-    if (IB2.GT.NB) then
-        IB2=NB
-    endif
-    if (IB2.LT.IB1) then
-        TEMP=IB1
-        IB1=IB2
-        IB2=TEMP
-    endif
+   if (.not.RING) then
+       if (IB2.LT.1) then
+           IB2=1
+       endif
+       if (IB2.GT.NB) then
+           IB2=NB
+       endif
+       if (IB2.LT.IB1) then
+           TEMP=IB1
+           IB1=IB2
+           IB2=TEMP
+       endif
+       DIB=IB2-IB1
    else
-    DIB=IB2-IB1
-    if (IB2 .GT. NB) then
-        IB2=DIB-(NB-IB1)
-    endif
-    IT2=NB*(IP-1)+IB2
+       print*, "Please update this option"
+       print*, "Because the move window can be big you many need a mod"
+       stop 1
+       DIB=IB2-IB1
+       if (IB2 .GT. NB) then
+           IB2=DIB-(NB-IB1)
+       endif
+       IT2=NB*(IP-1)+IB2
    endif
 
    IT1=NB*(IP-1)+IB1
@@ -592,7 +604,8 @@ elseif(MCTYPE.EQ.9) then
       UP(IT3+I,3)=U(IT1+I,3)
       ABP(IT3+I)=AB(IT3+I)
    ENDDO
-   IB1=0; IB1=IB1/IB1; IB2=IB1
+   IB1=-2000000
+   IB2=-2000000
 
 ! single bead reptation
 elseif(MCTYPE.EQ.10) then
@@ -718,7 +731,6 @@ elseif(MCTYPE.EQ.10) then
         ABP(J)=1-AB(J)
     ENDDO
 endif
-
 
 RETURN
 END

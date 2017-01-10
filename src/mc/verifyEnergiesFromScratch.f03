@@ -10,18 +10,21 @@ subroutine CalculateEnergiesFromScratch(mc, md)
     integer IT1, IT2, I
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: mc
-    type(wlcsim_data), intent(out) :: md
+    type(wlcsim_data), intent(inout) :: md
     integer Delta !transh
 
     if (mc%bind_on) then
-        md%ABP=0 ! set entire array to zero
+        do I=1,mc%NBIN
+            md%ABP(i)=0 ! set entire array to zero
+        enddo
         !  Notide that ABP and AB are intensionally swapped below
         IT1=1; IT2=mc%NT
         call MC_bind(mc%NT,mc%nBpM,IT1,IT2,md%ABP,md%AB,md%METH, &
                      mc%EU,mc%EM,md%DEBind,mc%mu,md%dx_mu)
     endif
 
-    call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc))
+    call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc),&
+                     mc%Ring,mc%TWIST,mc%lk,mc%lt,mc%L)
 
     ! --- Interaction Energy ---
     if (mc%field_int_on) then

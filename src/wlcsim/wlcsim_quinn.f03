@@ -34,6 +34,7 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', id
     call printEnergies(md)
     call printWindowStats(mc,md)
+    call printWindowStats(mc, md)
     !call wlcsim_params_printPhi(mc,md)
 
 

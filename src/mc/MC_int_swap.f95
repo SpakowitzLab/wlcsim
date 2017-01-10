@@ -1,15 +1,11 @@
 !---------------------------------------------------------------!
-
 !
-!     This subroutine calculates the change in the self energy for
-!     a small Monte Carlo move in the position.
 !
-!     Andrew Spakowitz
-!     Written 6-29-04
+!     This subroutine calculates the change in field interaction
+!     energy for a MC move which swaps two chains.
 !
-!     Edited by Shifan
 !
-!     Edited by Quinn in 2016
+!     Written by Quinn in 2016 based on code from Andrew Spakowitz and Shifan
 
 SUBROUTINE MC_int_swap(mc,md,I1,I2,I3,I4)
 use params

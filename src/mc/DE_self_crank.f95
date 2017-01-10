@@ -52,7 +52,7 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   DOUBLE PRECISION LBOX     ! Box edge length
   DOUBLE PRECISION SUM
   DOUBLE PRECISION DT
-  INTEGER RING              ! Is polymer a ring?
+  logical RING              ! Is polymer a ring?
   INTEGER NMAX
 
   DOUBLE PRECISION D12MIN,FMAGMIN
@@ -66,7 +66,7 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
 
   ! Determine number of segments inside segment moved and outside
 
-  IF (RING.EQ.1) THEN
+  IF (RING) THEN
      IF (IB2.GE.IB1) THEN
         DII=IB2-IB1
      ELSE
@@ -90,9 +90,9 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   E=0.
   II=IB1
   DO I=1,DII
-     IF (II.EQ.N.AND.RING.EQ.1) THEN
+     IF (II.EQ.N.AND.RING) THEN
         IIP1=1
-     ELSEIF (II.EQ.N+1.AND.RING.EQ.1) THEN
+     ELSEIF (II.EQ.N+1.AND.RING) THEN
         II=1
         IIP1=II+1
      ELSE
@@ -100,12 +100,12 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
      ENDIF
      IO=IB2
      DO J=1,DIO
-        IF (IO.EQ.N.AND.RING.EQ.1) THEN
+        IF (IO.EQ.N.AND.RING) THEN
            IOP1=1
-        ELSEIF (IO.EQ.N+1.AND.RING.EQ.1) THEN
+        ELSEIF (IO.EQ.N+1.AND.RING) THEN
            IO=1
            IOP1=IO+1
-        ELSEIF (IO.EQ.N.AND.RING.EQ.0) THEN
+        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
            IO=0
            GOTO 70
         ELSE
@@ -209,9 +209,9 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   EP=0.
   II=IB1
   DO I=1,DII
-     IF (II.EQ.N.AND.RING.EQ.1) THEN
+     IF (II.EQ.N.AND.RING) THEN
         IIP1=1
-     ELSEIF (II.EQ.N+1.AND.RING.EQ.1) THEN
+     ELSEIF (II.EQ.N+1.AND.RING) THEN
         II=1
         IIP1=II+1
      ELSE
@@ -219,12 +219,12 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
      ENDIF
      IO=IB2
      DO J=1,DIO
-        IF (IO.EQ.N.AND.RING.EQ.1) THEN
+        IF (IO.EQ.N.AND.RING) THEN
            IOP1=1
-        ELSEIF (IO.EQ.N+1.AND.RING.EQ.1) THEN
+        ELSEIF (IO.EQ.N+1.AND.RING) THEN
            IO=1
            IOP1=IO+1
-        ELSEIF (IO.EQ.N.AND.RING.EQ.0) THEN
+        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
            IO=0
            GOTO 90
         ELSE
