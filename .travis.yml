@@ -13,7 +13,8 @@ cache:
 
 addons:
     packages:
-      - gfortran-6
+      - gfortran
+      - mpich
       - python-pip
 
 before_install:
