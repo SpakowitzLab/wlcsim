@@ -29,7 +29,6 @@ NB 51
 #  NP              Number of polymers - won't interact unless interaction code added
 NP 1
 
-
 #-Record 9
 #  INDMAX          Total number of save points
 INDMAX 100
