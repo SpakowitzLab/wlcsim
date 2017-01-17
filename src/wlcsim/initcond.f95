@@ -74,7 +74,6 @@ if(FRMFILE)then
    return
 endif
 
-
 !     Fix the initial condition
 if(setType.eq.1) then
 ! staight line in y direction with random starting position
@@ -85,6 +84,7 @@ if(setType.eq.1) then
        R0(1)=urand(1)*LBOX(1)
        R0(2)=urand(2)*LBOX(2)
        R0(3)=urand(3)*LBOX(3)
+
        DO J=1,NB
           R(IB,1)=R0(1)
           R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp) ! center on box
@@ -93,8 +93,10 @@ if(setType.eq.1) then
           U(IB,2)=1.
           U(IB,3)=0.
           IB=IB+1
+
        enddo
     enddo
+
 else if(setType.eq.2) then
     ! travel in radom direction
     ! rerandomize when reaching boundary

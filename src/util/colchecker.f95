@@ -151,7 +151,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
             if (curr_indi == nt) exit
             curr_ind = ind(curr_indi + j,d)
             rneighbor = r(curr_ind,d)
-            do while (rneighbor < rd0 + fpt_dist)
+            do while (rneighbor < rd0 + fpt_dist) ! actual collision check
 ! on the first pass, just mark that a collision happened in this coord
 ! then mark that index in the "hash table" as "needs zeroing"
                 if (d == 1) then
@@ -182,7 +182,7 @@ subroutine check_collisions_bb(r, nt, has_collided, fpt_dist, time)
             if (curr_indi == 1) exit
             curr_ind = ind(curr_indi - j,d)
             rneighbor = r(curr_ind,d)
-            do while (rneighbor > rd0 - fpt_dist)
+            do while (rneighbor > rd0 - fpt_dist) ! actual collision check
 ! on the first pass, just mark that a collision happened in this coord
 ! then mark that index in the "hash table" as "needs zeroing"
                 if (d == 1) then

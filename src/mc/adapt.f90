@@ -22,6 +22,7 @@ Subroutine MC_adapt(mc,md,MCTYPE)
 
 !   Change the position if appropriate
     md%PHIT(MCTYPE)=real(md%SUCCESS(MCTYPE))/real(mc%NADAPT(MCTYPE))
+
     md%SUCCESS(MCTYPE)=0
 
     if ((MCTYPE.eq.8).or.(MCTYPE.eq.9)) then

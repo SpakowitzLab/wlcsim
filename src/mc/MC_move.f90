@@ -82,6 +82,7 @@ endif
 !     Perform crank-shaft move (MCTYPE 1)
 
 if (MCTYPE.EQ.1) then
+
    call random_number(urand,rand_stat)
    IP=ceiling(urand(1)*NP)
    IB1=ceiling(urand(2)*NB)
@@ -91,79 +92,77 @@ if (MCTYPE.EQ.1) then
    ! small enough sections of chain are moved.
    if (winType.eq.0) then
        IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
-   elseif (winType.eq.1) then
+   elseif (winType.eq.1.and..not.RING) then
        call random_number(urnd,rand_stat)
        IB2=IB1+(2*nint(urand(3))-1)* &
                nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
-   endif
-
-   if (.not.ring) then
-       if (IB2.LT.1) then
-           IB2=1
-       endif
-       if (IB2.GT.NB) then
-           IB2=NB
-       endif
-       if (IB2.LT.IB1) then
-           TEMP=IB1
-           IB1=IB2
-           IB2=TEMP
-       endif
-   else
-       print*, "Something should go here! See move type 2"
-       stop
+   elseif (winType.eq.1.and.RING) then
+       call random_number(urnd,rand_stat)
+       IB2=IB1+nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
    endif
 
    IT1=NB*(IP-1)+IB1
    IT2=NB*(IP-1)+IB2
 
-     DIB = IB2 - IB1
-     if (RING) then                    !Polymer is a ring
-        IF (IB2.GT.NB) THEN
-           IB2=DIB-(NB-IB1)
-        ENDIF
-        IT2=NB*(IP-1)+IB2
+   DIB = IB2-IB1
+   if (RING) then                    !Polymer is a ring
+      IF (IB2.GT.NB) THEN
+         IB2=DIB-(NB-IB1)
+      ENDIF
+      IT2=NB*(IP-1)+IB2
+      if (IB1.EQ.IB2.AND.IB1.EQ.1) then
+         TA(1)=R(IT1+1,1)-R(NB*IP,1)
+         TA(2)=R(IT1+1,2)-R(NB*IP,2)
+         TA(3)=R(IT1+1,3)-R(NB*IP,3)
+      elseif (IB1.EQ.IB2.AND.IB1.EQ.NB) then
+         TA(1)=R(NB*(IP-1)+1,1)-R(IT1-1,1)
+         TA(2)=R(NB*(IP-1)+1,2)-R(IT1-1,2)
+         TA(3)=R(NB*(IP-1)+1,3)-R(IT1-1,3)
+      elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.NB) then
+         TA(1)=R(IT1+1,1)-R(IT1-1,1)
+         TA(2)=R(IT1+1,2)-R(IT1-1,2)
+         TA(3)=R(IT1+1,3)-R(IT1-1,3)
+      else
+         TA(1)=R(IT2,1)-R(IT1,1)
+         TA(2)=R(IT2,2)-R(IT1,2)
+         TA(3)=R(IT2,3)-R(IT1,3)
+      endif
+   else                                 !Polymer is not a ring
+      if (IB2.GT.NB) then
+         IB2 = NB
+      elseif (IB2.LT.1) then
+         IB2 = 1
+      endif
+      IT2 = NB*(IP-1)+IB2
 
-        if (IB1.EQ.IB2.AND.IB1.EQ.1) then
-           TA(1)=R(IT1+1,1)-R(NB*IP,1)
-           TA(2)=R(IT1+1,2)-R(NB*IP,2)
-           TA(3)=R(IT1+1,3)-R(NB*IP,3)
-        elseif (IB1.EQ.IB2.AND.IB1.EQ.NB) then
-           TA(1)=R(NB*(IP-1)+1,1)-R(IT1-1,1)
-           TA(2)=R(NB*(IP-1)+1,2)-R(IT1-1,2)
-           TA(3)=R(NB*(IP-1)+1,3)-R(IT1-1,3)
-        elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.NB) then
-           TA(1)=R(IT1+1,1)-R(IT1-1,1)
-           TA(2)=R(IT1+1,2)-R(IT1-1,2)
-           TA(3)=R(IT1+1,3)-R(IT1-1,3)
-        else
-           TA(1)=R(IT2,1)-R(IT1,1)
-           TA(2)=R(IT2,2)-R(IT1,2)
-           TA(3)=R(IT2,3)-R(IT1,3)
-        endif
-     else                                 !Polymer is not a ring
-        if (IB1.EQ.IB2.AND.IB1.EQ.1) then
-           TA(1)=R(IT1+1,1)-R(IT1,1)
-           TA(2)=R(IT1+1,2)-R(IT1,2)
-           TA(3)=R(IT1+1,3)-R(IT1,3)
-        elseif (IB1.EQ.IB2.AND.IB1.EQ.NB) then
-           TA(1)=R(NB*IP,1)-R(NB*IP-1,1)
-           TA(2)=R(NB*IP,2)-R(NB*IP-1,2)
-           TA(3)=R(NB*IP,3)-R(NB*IP-1,3)
-        elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.NB) then
-           TA(1)=R(IT1+1,1)-R(IT1-1,1)
-           TA(2)=R(IT1+1,2)-R(IT1-1,2)
-           TA(3)=R(IT1+1,3)-R(IT1-1,3)
-        else
-           if (IT2.lt.0 .or. IT1 .lt.0 .or. IT1 .gt. NT .or. IT2 .gt. NT) then
-               print*, "IT2",IT2,"IT1",IT1,"NP",NP,"IB1",IB1,"IB2",IB2,"DIB",DIB, "IP",IP
-               print*, "wintype", winType, "Window", window(MCTYPE)
-           endif
-           TA(1)=R(IT2,1)-R(IT1,1)
-           TA(2)=R(IT2,2)-R(IT1,2)
-           TA(3)=R(IT2,3)-R(IT1,3)
-        endif
-     endif
+      if (IT1.GT.IT2) then
+         TEMP=IT1
+         IT1=IT2
+         IT2=TEMP
+         TEMP=IB1
+         IB1=IB2
+         IB2=TEMP
+      endif
+      DIB = IB2-IB1
+
+      if (IB1.EQ.IB2.AND.IB1.EQ.1) then
+         TA(1)=R(IT1+1,1)-R(IT1,1)
+         TA(2)=R(IT1+1,2)-R(IT1,2)
+         TA(3)=R(IT1+1,3)-R(IT1,3)
+      elseif (IB1.EQ.IB2.AND.IB1.EQ.NB) then
+         TA(1)=R(NB*IP,1)-R(NB*IP-1,1)
+         TA(2)=R(NB*IP,2)-R(NB*IP-1,2)
+         TA(3)=R(NB*IP,3)-R(NB*IP-1,3)
+      elseif (IB1.EQ.IB2.AND.IB1.NE.1.AND.IB2.NE.NB) then
+         TA(1)=R(IT1+1,1)-R(IT1-1,1)
+         TA(2)=R(IT1+1,2)-R(IT1-1,2)
+         TA(3)=R(IT1+1,3)-R(IT1-1,3)
+      else
+         TA(1)=R(IT2,1)-R(IT1,1)
+         TA(2)=R(IT2,2)-R(IT1,2)
+         TA(3)=R(IT2,3)-R(IT1,3)
+      endif
+   endif
 
 
      MAG=sqrt(TA(1)**2.+TA(2)**2.+TA(3)**2.)
@@ -206,10 +205,11 @@ if (MCTYPE.EQ.1) then
         UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
         UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
         UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
-
         I=I+1
 
+
      ENDDO
+
   !  ------begining testing---------
   if(.false.) then
       ! This is a code block for testing
@@ -262,34 +262,36 @@ elseif (MCTYPE.EQ.2) then
    ! again, we use a window
    if (winType.eq.0) then
        IB2=IB1+nint((urand(3)-0.5_dp)*(2.0_dp*WINDOW(MCTYPE)+1.0))
-   elseif (winType.eq.1) then
+   elseif (winType.eq.1.and..not.RING) then
        call random_number(urnd,rand_stat)
        IB2=IB1+(2*nint(urand(3))-1)* &
                nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
+   elseif (winType.eq.1.and.RING) then
+       call random_number(urnd,rand_stat)
+       IB2=IB1+nint(-1.0*log(urnd(1))*WINDOW(MCTYPE))
+
    endif
 
-   if (.not.RING) then
-       if (IB2.LT.1) then
-           IB2=1
-       endif
-       if (IB2.GT.NB) then
-           IB2=NB
-       endif
-       if (IB2.LT.IB1) then
-           TEMP=IB1
-           IB1=IB2
-           IB2=TEMP
-       endif
-       DIB=IB2-IB1
+   DIB=IB2-IB1
+
+   if (RING) then
+    if (IB2.GT.NB) then
+        IB2=DIB-(NB-IB1)
+    endif
    else
-       print*, "Please update this option"
-       print*, "Because the move window can be big you many need a mod"
-       stop 1
-       DIB=IB2-IB1
-       if (IB2 .GT. NB) then
-           IB2=DIB-(NB-IB1)
-       endif
-       IT2=NB*(IP-1)+IB2
+    if (IB2.GT.NB) then
+        IB2=NB
+    endif
+    if (IB2.LT.1) then
+       IB2=1
+    endif
+    if (IB2.LT.IB1) then
+        TEMP=IB1
+        IB1=IB2
+        IB2=TEMP
+    endif
+    IT2=NB*(IP-1)+IB2
+    DIB = IB2-IB1
    endif
 
    IT1=NB*(IP-1)+IB1

@@ -152,6 +152,7 @@ module params
         logical exitWhenCollided  ! stop sim with coltimes is full
         logical saveR             ! save R vectors to file
         logical saveU             ! save U vectors to file
+        logical saveAB            ! save AB (chemical identity) to file
         logical savePhi           ! save Phi vectors to file
         integer solType           ! Melt vs. Solution, Choose hamiltonian
         logical recenter_on       ! recenter in "quasi"-periodic boundary, should be off in BD
@@ -190,16 +191,16 @@ module params
 
     ! for variables that can change during the simulation
     type wlcsim_data
-        ! a 
+        ! a
         ! really
-        ! long 
+        ! long
         ! comment
         ! for wlcsim
 
         ! for R
         ! i coudl
         ! do this
-        real(dp), allocatable, dimension(:,:):: R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj 
+        real(dp), allocatable, dimension(:,:):: R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj
         real(dp), allocatable, dimension(:,:):: U   ! Conformation of polymer chains
         real(dp), allocatable, dimension(:,:):: RP !Test Bead positions - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
@@ -263,6 +264,7 @@ module params
         integer NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
     !   Parallel tempering variables
+        integer numProcesses !number of MPI processes running
         integer rep  ! which replica am I
         integer id   ! which thread am I
         integer error  ! MPI error
@@ -310,6 +312,7 @@ contains
         wlc_p%FRMFIELD=.FALSE.     ! don't load initial field values from file
         wlc_p%saveR=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
         wlc_p%saveU=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
+        wlc_p%saveAB = .True.     ! save AB by default
         wlc_p%fptColType=0         ! don't track first passage time collisions between beads
         wlc_p%savePhi=.FALSE.      ! don't save A/B density per bin (not needed for restart)
         wlc_p%FRwlc_pHEM=.FALSE.      ! don't load initial a/b states from file
@@ -347,10 +350,10 @@ contains
         wlc_p%HP1_Bind=0.0_dp ! by default, no binding of HP1 to each other
 
         ! options
-        wlc_p%codeName= "" ! not bruno, brad, or quinn, so will error unless specified elsewehre
+        wlc_p%codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%movetypes=nMoveTypes
-        wlc_p%initCondType = 4 ! 4 for sphereical
-        wlc_p%confineType = 3 ! 3 for spherical
+        wlc_p%initCondType = 1 ! 1 for initializing polymer in a straight line
+        wlc_p%confineType = 0 ! 0 for no confinement
         wlc_p%solType=0    ! you better at least know whether you want a melt or solution
         wlc_p%ring=.false.    ! not a ring by default
         wlc_p%twist=.false.    ! don't include twist by default
@@ -391,7 +394,7 @@ contains
         wlc_p%indendRepAdapt=20
         wlc_p%repAnnealSpeed=0.01
         wlc_p%replicaBounds=.TRUE.
-        wlc_p%PT_twist =.False. ! don't parallel temper chi by default
+        wlc_p%PT_twist =.False. ! don't parallel temper linking number (twist) by default
         wlc_p%PT_chi =.False. ! don't parallel temper chi by default
         wlc_p%PT_h =.False. ! don't parallel temper h by default
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
@@ -416,7 +419,7 @@ contains
         do mctype=1,wlc_p%movetypes
             wlc_p%winTarget(mctype)=8.0_dp
             wlc_p%MINWindoW(mctype)=nan
-            wlc_d%MCAMP(mctype)=nan 
+            wlc_d%MCAMP(mctype)=nan
         enddo
         do mctype=1,wlc_p%movetypes
             wlc_p%NADAPT(mctype)=1000 ! adapt after at most 1000 steps
@@ -456,10 +459,10 @@ contains
         ! Skip any empty lines or any comment lines
         if (WORD(1:1).EQ.'#') cycle
 
-        SELECT CASE(WORD) ! pick which keyword
-        CASE('codeName') ! select version of wlcsim to run
+        SELECT CASE(WORD) ! pick which keyword, case matchign string must be all uppercase
+        CASE('CODENAME') ! select version of wlcsim to run
             call readi(codeNameNumber)
-            SELECT CASE(codeNameNumber)
+            select case(codeNameNumber)
             case(1)
                 wlc_p%codeName='brad'
             case(2)
@@ -471,7 +474,7 @@ contains
                 print*, "unrecognized codeName"
                 stop
             endselect
-        CASE('initCondType')
+        CASE('INITCONDTYPE')
             Call readI(wlc_p%initCondType)
             ! initCondType      |  Discription
             ! _____________|_________________________________
@@ -479,7 +482,7 @@ contains
             !    2         |   rerandomize when reaching boundary, slit in z dir
             !    3         |   rerandomize when reaching boundary, cube boundary
             !    4         |   rerandomize when reaching boundary, shpere
-        CASE('confineType')
+        CASE('CONFINETYPE')
             Call readI(wlc_p%confinetype)
             ! confinetype  |  Discription
             ! _____________|_________________________________
@@ -488,206 +491,211 @@ contains
             !    2         |  Cube of size lbox**3,  range: 0-lbox
             !    3         |  Circle of radius lbox, centered at lbox/2
             !    4         |  Periodic, unequal dimensions
-        CASE('recenterOn')
+        CASE('RECENTERON')
             Call reado(wlc_p%recenter_on) ! recenter in periodic boundary
-        CASE('solType')
+        CASE('SOLTYPE')
             Call readI(wlc_p%solType)
             ! solType      | Discription
             !______________|_________________________________
             !    0         | Melt density fluctuates around fixed mean
             !    1         | Solution (For DNA)
-        CASE('frmChem')
+        CASE('FRMCHEM')
             Call reado(wlc_p%FRMCHEM) ! Initial chemical/methylation sequence from file
-        CASE('frmFile')
+        CASE('FRMFILE')
             call reado(wlc_p%FRMfile) ! read configuration from file
-        CASE('twist')
+        CASE('TWIST')
             CALL reado(wlc_p%twist) ! whether to include twist energies in wlc_p
-        CASE('ring')
+        CASE('RING')
             CALL reado(wlc_p%ring) ! whether polymer is a ring or not
-        CASE('interpBeadLennardJones')
+        CASE('INTERPBEADLENNARDJONES')
             CALL reado(wlc_p%INTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
-        CASE('fieldIntOn')
+        CASE('FIELDINTON')
             CALL reado(wlc_p%field_int_on) !include field interactions
-        CASE('bindOn')
+        CASE('BINDON')
             CALL reado(wlc_p%bind_on) ! Whether to include a binding state model
-        CASE('lk')
+        CASE('LK')
             CALL readi(wlc_p%lk) ! linking number
-        CASE('ptOn')
+        CASE('PTON')
             CALL reado(wlc_p%PTON) ! parallel Tempering on
-        CASE('saveR')
-            Call reado(wlc_p%saveR)  ! save r vectors to file (every savepoint)
-        CASE('fptColType')
-            Call readi(wlc_p%fptColType)  
+        CASE('SAVE_R')
+            Call reado(wlc_p%saveR)  ! save R vectors to file (every savepoint)
+        CASE('SAVE_AB')
+            Call reado(wlc_p%saveAB)  ! save AB vectors to file (every savepoint)
+
+        CASE('FPT_COL_TYPE')
+            Call readi(wlc_p%fptColType)  ! save u vectors to file (every savepoint)
             ! fptColType   |  Description
             ! _____________|_________________________________
             !    0         |  No tracking fpt
             !    1         |  Use naive, O(n^2) algo for collision checking
             !    2         |  KDtree-based col checking (not implemented)
             !    3         |  custom, fast col checker written by bruno
-        CASE('saveU')
+        CASE('SAVEU')
             Call reado(wlc_p%saveU)  ! save u vectors to file (every savepoint)
-        CASE('savePhi')
+        CASE('SAVEPHI')
             Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
-        CASE('exitWhenCollided')
-            Call reado(wlc_p%exitWhenCollided) ! for finding looping time
-        CASE('nb')
+        CASE('EXIT_WHEN_COLLIDED')
+            Call reado(wlc_p%exitWhenCollided)  ! save u vectors to file (every savepoint)
+        CASE('NB')
             Call readi(wlc_p%nb)  ! number of beads in the polymer
-        CASE('dt')
+        CASE('DT')
             Call readF(wlc_p%dt)  ! time step of simulation. scaled non-dimensionalized time
-        CASE('l')
+        CASE('L')
             Call readF(wlc_p%l)  ! actual length in AU of polymer we want to simulate
-        CASE('lt')
-            Call readF(wlc_p%lt)  ! twist persistence length
-        CASE('lp')
-            Call readF(wlc_p%lp)  ! persistence length
-        CASE('dBin')
+        CASE('LT')
+            Call readF(wlc_p%lt)  ! persistence length
+        CASE('LP')
+            Call readF(wlc_p%lp)  ! twist persistence length
+        CASE('DBIN')
             Call readF(wlc_p%dbin) ! spaitial descretation length, not tested
-        CASE('lBox')
+        CASE('LBOX')
             Call readF(wlc_p%lbox(1)) ! side length of box
             wlc_p%lbox(2)=wlc_p%lbox(1)
             wlc_p%lbox(3)=wlc_p%lbox(1)
-        CASE('lBoxX')
+        CASE('LBOXX')
             Call readF(wlc_p%lbox(1)) ! side length of box in x direction
-        CASE('lBoxY')
+        CASE('LBOXY')
             Call readF(wlc_p%lbox(2)) ! side length of box in y direction
-        CASE('lBoxZ')
+        CASE('LBOXZ')
             Call readF(wlc_p%lbox(3)) ! side length of box in z direction
-        CASE('np')
+        CASE('NP')
             CALL readI(wlc_p%NP)  ! Number of polymers
-        CASE('nBpM')
+        CASE('NBPM')
             Call readI(wlc_p%nBpM) ! Beads per monomer
-        CASE('nMpP')
+        CASE('NMPP')
             CALL readI(wlc_p%nMpP) ! Number of monomers in a polymer
-        CASE('nNoInt')
+        CASE('NNOINT')
             Call readI(wlc_p%NNoInt) ! save points before turning on interaction
-        CASE('nKapOn')
+        CASE('NKAPON')
             call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
-        CASE('nChiOn')
+        CASE('NCHION')
             call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
-        CASE('numSavePoints')
+        CASE('NUMSAVEPOINTS')
             Call readI(wlc_p%numSavePoints) ! total number of save points
-        CASE('nInitMCSteps')
+        CASE('NINITMCSTEPS')
             Call readI(wlc_p%nInitMCSteps) ! num initial mc steps
-        CASE('stepsPerSave')
+        CASE('STEPSPERSAVE')
             Call readI(wlc_p%stepsPerSave) ! steps per save point
-        CASE('stepsPerExchange')
+        CASE('STEPS_PER_EXCHANGE')
             Call readI(wlc_p%stepsPerExchange) ! number of steps between parallel tempering
-        CASE('nReplicaExchangePerSavePoint')
+        CASE('N_REPLICA_EXCHANGE_PER_SAVEPOINT')
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
-        CASE('fPoly')
+        CASE('FPOLY')
             Call readF(wlc_p%Fpoly) ! Fraction Polymer
-        CASE('beadVolume')
+        CASE('BEADVOLUME')
             Call readF(wlc_p%beadVolume) ! Bead volume
-        CASE('fA')
+        CASE('FA')
             Call readF(wlc_p%FA) ! Fraction of A beads (fraction bound)
-        CASE('lam')
+        CASE('LAM')
             Call readF(wlc_p%LAM) ! Chemical correlation parameter
         CASE('EPS')
             Call readF(wlc_p%EPS) ! Elasticity l0/(2lp)
-            print*, 'EPS depricated'
-            stop 
-        CASE('chi')
+        CASE('VHC')
+            Call readF(wlc_p%VHC) ! hard-core lennard jones potential strength
+        CASE('LHC')
+            Call readF(wlc_p%LHC) ! hard-core lennard jones diameter
+        CASE('CHI')
             Call readF(wlc_p%CHI) ! CHI parameter (definition depends on  hamiltoniaon
-        CASE('hA')
+        CASE('HA')
             Call readF(wlc_p%hA) ! strength of externally applied field
-        CASE('kap')
+        CASE('KAP')
             Call readF(wlc_p%KAP) !  Incompressibility parameter
         CASE('EU')
             Call readF(wlc_p%EU) ! Energy of binding for unmethalated
         CASE('EM')
             Call readF(wlc_p%EM) ! Energy of binding for methalated
-        CASE('mu')
+        CASE('MU')
             Call readF(wlc_p%MU) ! chemical potential of HP1
-        CASE('energyCouple')
+        CASE('ENERGYCOUPLE')
             Call readF(wlc_p%HP1_Bind) ! Energy of binding of HP1 to eachother
-        CASE('fMeth')
+        CASE('FMETH')
             Call readF(wlc_p%F_METH) ! Fraction methalated
-        CASE('lamMeth')
+        CASE('LAMMETH')
             Call readF(wlc_p%LAM_METH) ! eigenvalue of methalation setup
-        CASE('crankShaftOn')
+        CASE('CRANKSHAFTON')
             Call readI(wlc_p%MOVEON(1)) ! is Crank shaft move on 1/0
-        CASE('slideOn')
+        CASE('SLIDEON')
             Call readI(wlc_p%MOVEON(2)) ! is Slide move on 1/0
-        CASE('pivotOn')
+        CASE('PIVOTON')
             Call readI(wlc_p%MOVEON(3)) ! is Pivot move on 1/0
-        CASE('rotateOn')
+        CASE('ROTATEON')
             Call readI(wlc_p%MOVEON(4)) ! is single bead rotate on 1/0
-        CASE('fullChainRotationOn')
+        CASE('FULLCHAINROTATIONON')
             Call readI(wlc_p%MOVEON(5)) ! is full chain rotate on 1/0
-        CASE('fullChainSlideOn')
+        CASE('FULLCHAINSLIDEON')
             Call readI(wlc_p%MOVEON(6)) ! is full chain slide on 1/0
-        CASE('bindMoveOn')
+        CASE('BINDMOVEON')
             Call readI(wlc_p%MOVEON(7)) ! is bind/unbind move on 1/0
-        CASE('chainFlipMoveOn')
+        CASE('CHAINFLIPMOVEON')
             Call readI(wlc_p%MOVEON(8)) ! is flip move move on 1/0
-        CASE('chainSwapMoveOn')
+        CASE('CHAINSWAPMOVEON')
             Call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
-        CASE('reptationMoveOn')
+        CASE('REPTATIONMOVEON')
             Call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
-        CASE('minCrankShaftWin')
+        CASE('MINCRANKSHAFTWIN')
             Call readF(wlc_p%MINWindoW(1)) ! min mean window size
-        CASE('minSlideWin')
+        CASE('MINSLIDEWIN')
             Call readF(wlc_p%MINWindoW(2))
-        CASE('minPivotWin')
+        CASE('MINPIVOTWIN')
             Call readF(wlc_p%MINWindoW(3))
-        CASE('minBindWin')
+        CASE('MINBINDWIN')
             Call readF(wlc_p%MINWindoW(7))
-        CASE('reduceMove')
+        CASE('REDUCEMOVE')
             Call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
-        CASE('winType')
+        CASE('WINTYPE')
             call readI(wlc_p%winType)   ! fragment size distribution for crankshaft move
-        CASE('minAccept')
+        CASE('MINACCEPT')
             Call readF(wlc_p%MIN_ACCEPT) ! below which moves are turned off
-        CASE('crankShaftTarget')
+        CASE('CRANKSHAFTTARGET')
             Call readF(wlc_p%winTarget(1)) ! target window size for crank shaft move
-        CASE('slideTarget')
+        CASE('SLIDETARGET')
             Call readF(wlc_p%winTarget(2)) ! target window size for slide move
-        CASE('pivotTarget')
+        CASE('PIVOTTARGET')
             Call readF(wlc_p%winTarget(3)) ! target window size for Pivot move
-        CASE('strengthSchedule')
+        CASE('STRENGTHSCHEDULE')
             Call reado(wlc_p%useSchedule) ! use scheduled ramp in interaction strength(s)
-        CASE('nRepAdapt')
+        CASE('NREPADAPT')
             Call readI(wlc_p%NRepAdapt)  ! number of exchange attemts between adapt
-        CASE('lowerRepExe')
+        CASE('LOWERREPEXE')
             Call readF(wlc_p%lowerRepExe) ! when to decrease cof spacing
-        CASE('upperRepExe')
+        CASE('UPPERREPEXE')
             Call readF(wlc_p%upperRepExe) ! when to increase cof spacing
-        CASE('lowerCofRail')
+        CASE('LOWERCOFRAIL')
             Call readF(wlc_p%lowerCofRail) ! minumum acceptable Cof
-        CASE('upperCofRail')
+        CASE('UPPERCOFRAIL')
             Call readF(wlc_p%upperCofRail) ! maximum acceptable Cof
-        CASE('indStartRepAdapt')
+        CASE('INDSTARTREPADAPT')
             Call readI(wlc_p%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
-        CASE('indEndRepAdapt')
+        CASE('INDENDREPADAPT')
             Call readI(wlc_p%indendRepAdapt) ! turn off rep adapt
-        CASE('repAnnealSpeed')
+        CASE('REPANNEALSPEED')
             Call readF(wlc_p%repAnnealSpeed)  ! max change in cof. every adjust
-        CASE('frmField')
+        CASE('FRMFIELD')
             Call reado(wlc_p%FRMFIELD)  ! read field from file
-        CASE('kField')
+        CASE('KFIELD')
             Call readF(wlc_p%k_field)  ! wave mode for default field
-        CASE('replicaBounds')
+        CASE('REPLICABOUNDS')
             Call reado(wlc_p%replicaBounds) ! insure that 0 < s < 1
-        CASE('initialMaxS')
+        CASE('INITIALMAXS')
             call readF(wlc_p%INITIAL_MAX_S) ! inital s of rep with highest s
-        CASE('parallelTempChi')
+        CASE('PARALLELTEMPCHI')
             call reado(wlc_p%PT_chi) ! parallel temper chi
-        CASE('parallelTempH')
+        CASE('PARALLELTEMPH')
             call reado(wlc_p%PT_h) ! parallel temper h
-        CASE('parallelTempKap')
+        CASE('PARALLELTEMPKAP')
             call reado(wlc_p%PT_kap) ! parallel temper kap
-        CASE('parallelTempMu')
+        CASE('PARALLELTEMPMU')
             call reado(wlc_p%PT_mu) ! parallel temper mu
-        CASE('parallelTempCouple')
+        CASE('PARALLELTEMPCOUPLE')
             call reado(wlc_p%PT_couple) ! parallel temper HP1_bind
-        CASE('parallelTempTwist')
+        CASE('PARALLELTEMPTWIST')
             call reado(wlc_p%pt_twist)  ! parallel temper over linking numbers
-        CASE('restart')
+        CASE('RESTART')
             call reado(wlc_p%restart) ! Restart from parallel tempering
         CASE DEFAULT
             print*, "Warning, the input key ", trim(Word), " hase been changed to camel case"
            SELECT CASE(WORD) ! pick which keyword
-            CASE('initCondType')
+            CASE('INITCONDTYPE')
                 Call readI(wlc_p%initCondType)
                 ! initCondType      |  Discription
                 ! _____________|_________________________________
@@ -695,7 +703,7 @@ contains
                 !    2         |   rerandomize when reaching boundary, slit in z dir
                 !    3         |   rerandomize when reaching boundary, cube boundary
                 !    4         |   rerandomize when reaching boundary, shpere
-            CASE('CONFINEtype')
+            CASE('CONFINETYPE')
                 Call readI(wlc_p%confinetype)
                 ! confinetype  |  Discription
                 ! _____________|_________________________________
@@ -706,7 +714,7 @@ contains
                 !    4         |  Periodic, unequal dimensions
             CASE('RECENTER_ON')
                 Call reado(wlc_p%recenter_on) ! recenter in periodic boundary
-            CASE('solType')
+            CASE('SOLTYPE')
                 Call readI(wlc_p%solType)
                 ! solType      | Discription
                 !______________|_________________________________
@@ -714,7 +722,7 @@ contains
                 !    1         | Solution (For DNA)
             CASE('FRMCHEM')
                 Call reado(wlc_p%FRMCHEM) ! Initial chemical/methylation sequence from file
-            CASE('FRMfile')
+            CASE('FRMFILE')
                 call reado(wlc_p%FRMfile) ! read configuration from file
             CASE('TWIST')
                 CALL reado(wlc_p%twist) ! whether to include twist energies in wlc_p
@@ -722,7 +730,7 @@ contains
                 CALL reado(wlc_p%ring) ! whether polymer is a ring or not
             CASE('INTERP_BEAD_LENNARD_JONES')
                 CALL reado(wlc_p%INTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
-            CASE('field_int_on')
+            CASE('FIELD_INT_ON')
                 CALL reado(wlc_p%field_int_on) !include field interactions
             CASE('BIND_ON')
                 CALL reado(wlc_p%bind_on) ! Whether to include a binding state model
@@ -746,33 +754,33 @@ contains
                 Call reado(wlc_p%savePhi) ! save Phi vectors to file (every savepoint)
             CASE('EXIT_WHEN_COLLIDED')
                 Call reado(wlc_p%exitWhenCollided)  ! save u vectors to file (every savepoint)
-            CASE('nb')
+            CASE('NB')
                 Call readi(wlc_p%nb)  ! number of beads in the polymer
-            CASE('dt')
+            CASE('DT')
                 Call readF(wlc_p%dt)  ! time step of simulation. scaled non-dimensionalized time
-            CASE('l')
+            CASE('L')
                 Call readF(wlc_p%l)  ! actual length in AU of polymer we want to simulate
-            CASE('lt')
+            CASE('LT')
                 Call readF(wlc_p%lt)  ! persistence length
-            CASE('lp')
+            CASE('LP')
                 Call readF(wlc_p%lp)  ! twist persistence length
-            CASE('dbin')
+            CASE('DBIN')
                 Call readF(wlc_p%dbin) ! spaitial descretation length, not tested
-            CASE('lbox')
+            CASE('LBOX')
                 Call readF(wlc_p%lbox(1)) ! side length of box
                 wlc_p%lbox(2)=wlc_p%lbox(1)
                 wlc_p%lbox(3)=wlc_p%lbox(1)
-            CASE('lboxX')
+            CASE('LBOXX')
                 Call readF(wlc_p%lbox(1)) ! side length of box in x direction
-            CASE('lboxY')
+            CASE('LBOXY')
                 Call readF(wlc_p%lbox(2)) ! side length of box in y direction
-            CASE('lboxZ')
+            CASE('LBOXZ')
                 Call readF(wlc_p%lbox(3)) ! side length of box in z direction
             CASE('NP')
                 CALL readI(wlc_p%NP)  ! Number of polymers
-            CASE('nBpM')
+            CASE('NBPM')
                 Call readI(wlc_p%nBpM) ! Beads per monomer
-            CASE('nMpP')
+            CASE('NMPP')
                 CALL readI(wlc_p%nMpP) ! Number of monomers in a polymer
             CASE('NNOINT')
                 Call readI(wlc_p%NNoInt) ! save points before turning on interaction
@@ -780,15 +788,15 @@ contains
                 call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
             CASE('N_CHI_ON')
                 call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
-            CASE('numSavePoints')
+            CASE('NUMSAVEPOINTS')
                 Call readI(wlc_p%numSavePoints) ! total number of save points
-            CASE('nInitMCSteps')
+            CASE('NINITMCSTEPS')
                 Call readI(wlc_p%nInitMCSteps) ! num initial mc steps
-            CASE('stepsPerSave')
+            CASE('STEPSPERSAVE')
                 Call readI(wlc_p%stepsPerSave) ! steps per save point
-            CASE('stepsPerExchange')
+            CASE('STEPSPEREXCHANGE')
                 Call readI(wlc_p%stepsPerExchange) ! number of steps between parallel tempering
-            CASE('nReplicaExchangePerSavePoint')
+            CASE('NREPLICAEXCHANGEPERSAVEPOINT')
                 call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
             CASE('FPOLY')
                 Call readF(wlc_p%Fpoly) ! Fraction Polymer
@@ -812,7 +820,7 @@ contains
                 Call readF(wlc_p%EM) ! Energy of binding for methalated
             CASE('MU')
                 Call readF(wlc_p%MU) ! chemical potential of HP1
-            CASE('HP1_Bind')
+            CASE('HP1_BIND')
                 Call readF(wlc_p%HP1_Bind) ! Energy of binding of HP1 to eachother
             CASE('F_METH')
                 Call readF(wlc_p%F_METH) ! Fraction methalated
@@ -830,7 +838,7 @@ contains
                 Call readI(wlc_p%MOVEON(5)) ! is full chain rotate on 1/0
             CASE('FULL_CHAIN_SLIDE_ON')
                 Call readI(wlc_p%MOVEON(6)) ! is full chain slide on 1/0
-            CASE('Bind_MOVE_ON')
+            CASE('BIND_MOVE_ON')
                 Call readI(wlc_p%MOVEON(7)) ! is bind/unbind move on 1/0
             CASE('CHAIN_FLIP_MOVE_ON')
                 Call readI(wlc_p%MOVEON(8)) ! is flip move move on 1/0
@@ -844,7 +852,7 @@ contains
                 Call readF(wlc_p%MINWindoW(2))
             CASE('MIN_PIVOT_WIN')
                 Call readF(wlc_p%MINWindoW(3))
-            CASE('MIN_Bind_WIN')
+            CASE('MIN_BIND_WIN')
                 Call readF(wlc_p%MINWindoW(7))
             CASE('REDUCE_MOVE')
                 Call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
@@ -870,9 +878,9 @@ contains
                 Call readF(wlc_p%lowerCofRail) ! minumum acceptable Cof
             CASE('UPPER_COF_RAIL')
                 Call readF(wlc_p%upperCofRail) ! maximum acceptable Cof
-            CASE('ind_START_REP_ADAPT')
+            CASE('IND_START_REP_ADAPT')
                 Call readI(wlc_p%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
-            CASE('ind_end_REP_ADAPT')
+            CASE('IND_END_REP_ADAPT')
                 Call readI(wlc_p%indendRepAdapt) ! turn off rep adapt
             CASE('REP_ANNEAL_SPEED')
                 Call readF(wlc_p%repAnnealSpeed)  ! max change in cof. every adjust
@@ -962,38 +970,43 @@ contains
         call stop_if_err(wlc_p%REND > wlc_p%L, &
             "Requesting initial end-to-end distance larger than polymer length.")
 
-        if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
-            (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
-            err = wlc_p%solType.eq.1
-            call stop_if_err(err, "Solution not tested with non-cube box, more coding needed")
-            err = wlc_p%confinetype.ne.4
-            call stop_if_err(err, "Unequal boundaries require confinetype=4")
-            err = wlc_p%initCondType.eq.4
-            call stop_if_err(err, "You shouldn't put a shpere in and unequal box!")
+        if (wlc_p%codeName == 'quinn') then
+           if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
+                (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
+              err = wlc_p%solType.eq.1
+              call stop_if_err(err, "Solution not tested with non-cube box, more coding needed")
+              err = wlc_p%confinetype.ne.4
+              call stop_if_err(err, "Unequal boundaries require confinetype=4")
+              err = wlc_p%initCondType.eq.4
+              call stop_if_err(err, "You shouldn't put a shpere in and unequal box!")
+           endif
+
+           err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
+           call stop_if_err(err, "error in mcsim. Wrong number of bins")
+
+           !TODO: replace with semantic descriptions of error encountered, instead
+           ! of simply outputting the input that the user put in
+           if (wlc_p%NT.ne.wlc_p%nMpP*wlc_p%NP*wlc_p%nBpM) then
+              print*, "error in mcsim.  NT=",wlc_p%NT," nMpP=",wlc_p%nMpP," NP=",wlc_p%NP," nBpM=",wlc_p%nBpM
+              stop 1
+           endif
+
+           if (wlc_p%NB.ne.wlc_p%nMpP*wlc_p%nBpM) then
+              print*, "error in mcsim.  NB=",wlc_p%NB," nMpP=",wlc_p%nMpP," nBpM=",wlc_p%nBpM
+              stop 1
+           endif
+
+           err = wlc_p%NNoInt.gt.wlc_p%indStartRepAdapt
+           call stop_if_err(err, "error in mcsim. don't run adapt without int on")
+
+           err = wlc_p%NNoInt.gt.wlc_p%N_CHI_ON
+           call stop_if_err(err, "error in mcsim. Can't have chi without int on")
+
+           err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
+           call stop_if_err(err, "error in mcsim. Can't have kap without int on")
+
         endif
 
-        err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
-        call stop_if_err(err, "error in mcsim. Wrong number of bins")
-
-        if (wlc_p%NT.ne.wlc_p%nMpP*wlc_p%NP*wlc_p%nBpM) then
-            print*, "Number of beads doesn't add up.  You should have NT=nMpP*NP*nBpM"
-            print*, "Insteead you have:  NT=",wlc_p%NT," nMpP=",wlc_p%nMpP," NP=",wlc_p%NP," nBpM=",wlc_p%nBpM
-            stop 1
-        endif
-
-        if (wlc_p%NB.ne.wlc_p%nMpP*wlc_p%nBpM) then
-            print*, "error in mcsim.  NB=",wlc_p%NB," nMpP=",wlc_p%nMpP," nBpM=",wlc_p%nBpM
-            stop 1
-        endif
-
-        err = wlc_p%NNoInt.gt.wlc_p%indStartRepAdapt
-        call stop_if_err(err, "error in mcsim. don't run adapt without int on")
-
-        err = wlc_p%NNoInt.gt.wlc_p%N_CHI_ON
-        call stop_if_err(err, "error in mcsim. Can't have chi without int on")
-
-        err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
-        call stop_if_err(err, "error in mcsim. Can't have kap without int on")
 #if MPI_VERSION
     if (wlc_p%pt_twist) then
         if (.NOT.wlc_p%twist) then
@@ -1020,16 +1033,16 @@ contains
         type(wlcsim_data), intent(out) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: infile  ! file with parameters
 
-        call set_param_defaults(wlc_p,wlc_d)
+        ! baseline defaults
+        call set_param_defaults(wlc_p, wlc_d)
 
         call read_input_file(infile, wlc_p)
 
-        ! for derived parameters other than wlc ones
+        ! advanced defaults that require some inputs to specify
         call tweak_param_defaults(wlc_p, wlc_d)
 
         ! get derived parameters that aren't directly input from file
         call get_derived_parameters(wlc_p)
-
 
         !If parallel tempering is on, read the Lks
         if (wlc_p%pt_twist) then
@@ -1057,28 +1070,28 @@ contains
         nt = wlc_p%nt
         nbin = wlc_p%nbin
 
-        ALLOCATE(wlc_d%R(NT,3))
-        ALLOCATE(wlc_d%U(NT,3))
+        allocate(wlc_d%R(NT,3))
+        allocate(wlc_d%U(NT,3))
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
-            Allocate(wlc_d%RP(NT,3))
-            Allocate(wlc_d%UP(NT,3))
+            allocate(wlc_d%RP(NT,3))
+            allocate(wlc_d%UP(NT,3))
         endif
-        if (wlc_p%codeName == 'quinn') then
-            ALLOCATE(wlc_d%AB(NT))   !Chemical identity aka binding state
-            ALLOCATE(wlc_d%ABP(NT))   !Chemical identity aka binding state
-            ALLOCATE(wlc_d%PHIA(NBIN))
-            ALLOCATE(wlc_d%PHIB(NBIN))
-            ALLOCATE(wlc_d%DPHIA(NBIN))
-            ALLOCATE(wlc_d%DPHIB(NBIN))
-            Allocate(wlc_d%indPHI(NBIN))
-            Allocate(wlc_d%PhiH(NBIN))
-            ALLOCATE(wlc_d%Vol(NBIN))
-            ALLOCATE(wlc_d%METH(NT)) !Underlying methalation profile
+!        if (wlc_p%codeName == 'quinn') then
+            allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
+            allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            allocate(wlc_d%PHIA(NBIN))
+            allocate(wlc_d%PHIB(NBIN))
+            allocate(wlc_d%DPHIA(NBIN))
+            allocate(wlc_d%DPHIB(NBIN))
+            allocate(wlc_d%indPHI(NBIN))
+            allocate(wlc_d%PhiH(NBIN))
+            allocate(wlc_d%Vol(NBIN))
+            allocate(wlc_d%METH(NT)) !Underlying methalation profile
             do I=1,wlc_p%NBIN
                 wlc_d%PHIA(I)=0.0_dp
                 wlc_d%PHIB(I)=0.0_dp
             enddo
-        endif
+ !       endif
         !Allocate vector of writhe and elastic energies for replicas
         if (wlc_p%pt_twist) then
             allocate(wlc_d%Wrs(wlc_d%nLKs))
@@ -1088,11 +1101,11 @@ contains
         if (wlc_p%ring) then !TODO this should be if ("knot")
             wlc_d%NCross=0
             wlc_d%CrossSize=wlc_p%NB**2
-            ALLOCATE(wlc_d%Cross(wlc_d%CrossSize,6))
-            ALLOCATE(wlc_d%CrossP(wlc_d%CrossSize,6))
+            allocate(wlc_d%Cross(wlc_d%CrossSize,6))
+            allocate(wlc_d%CrossP(wlc_d%CrossSize,6))
         endif
         !If parallel tempering is on, initialize the nodeNumbers
-        !and initialize MPI
+
         if (wlc_p%pt_twist) then
 
             !Allocate node numbers
@@ -1150,7 +1163,7 @@ contains
         if (wlc_p%confineType.eq.3) then
             call MC_calcVolume(wlc_p%confinetype, wlc_p%NBINX, wlc_p%dBin, &
                                wlc_p%LBox(1), wlc_d%Vol,wlc_d%rand_stat)
-        else 
+        else
             do I=1,wlc_p%NBIN
                 wlc_d%Vol(I)=wlc_p%dBin**3
             enddo
@@ -1158,8 +1171,8 @@ contains
 
 
         ! initialize energies
-        call CalculateEnergiesFromScratch(wlc_p,wlc_d)
-        wlc_d%EElas   =wlc_d%dEElas
+!        call CalculateEnergiesFromScratch(wlc_p,wlc_d)
+        wlc_d%EElas   = wlc_d%dEElas
         if (wlc_p%field_int_on) then
             wlc_d%ECouple =wlc_d%dECouple
             wlc_d%EKap    =wlc_d%dEKap
@@ -1278,12 +1291,41 @@ contains
         wlc_p%L0 = wlc_p%l/real(wlc_p%nb)
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters
-        if (wlc_d%MCAMP(1) .ne. wlc_d%MCAMP(1)) wlc_d%MCAMP(1)=0.5_dp*PI
-        if (wlc_d%MCAMP(2) .ne. wlc_d%MCAMP(2)) wlc_d%MCAMP(2)=0.3_dp*wlc_p%L0
-        if (wlc_d%MCAMP(3) .ne. wlc_d%MCAMP(3)) wlc_d%MCAMP(3)=0.5_dp*PI
-        if (wlc_d%MCAMP(4) .ne. wlc_d%MCAMP(4)) wlc_d%MCAMP(4)=0.5_dp*PI
-        if (wlc_d%MCAMP(5) .ne. wlc_d%MCAMP(5)) wlc_d%MCAMP(5)=0.5_dp*PI
-        if (wlc_d%MCAMP(6) .ne. wlc_d%MCAMP(6)) wlc_d%MCAMP(6)=5.0_dp*wlc_p%L0
+        wlc_d%MCAMP(1)=0.5_dp*PI
+        wlc_d%MCAMP(2)=0.3_dp*wlc_p%L0
+        wlc_d%MCAMP(3)=0.5_dp*PI
+        wlc_d%MCAMP(4)=0.5_dp*PI
+        wlc_d%MCAMP(5)=0.5_dp*PI
+        wlc_d%MCAMP(6)=5.0_dp*wlc_p%L0
+        wlc_d%MCAMP(7)=nan
+        wlc_d%MCAMP(8)=nan
+        wlc_d%MCAMP(9)=nan
+        wlc_d%MCAMP(10)=nan
+
+        !switches to turn on various types of moves
+        wlc_p%MOVEON(1)=1  ! crank-shaft move
+        wlc_p%MOVEON(2)=1  ! slide move
+        wlc_p%MOVEON(3)=1  ! pivot move
+        wlc_p%MOVEON(4)=1  ! rotate move
+        wlc_p%MOVEON(5)=1  ! full chain rotation
+        wlc_p%MOVEON(6)=1  ! full chain slide
+        wlc_p%MOVEON(7)=1  ! Change in Binding state
+        wlc_p%MOVEON(8)=0  ! Chain flip ! TODO not working
+        wlc_p%MOVEON(9)=1  ! Chain exchange
+        wlc_p%MOVEON(10)=1 ! Reptation
+        if (wlc_p%codeName == 'quinn') then
+            !switches to turn on various types of moves
+            wlc_p%MOVEON(1)=1  ! crank-shaft move
+            wlc_p%MOVEON(2)=1  ! slide move
+            wlc_p%MOVEON(3)=1  ! pivot move
+            wlc_p%MOVEON(4)=1  ! rotate move
+            wlc_p%MOVEON(5)=0  ! full chain rotation
+            wlc_p%MOVEON(6)=0  ! full chain slide
+            wlc_p%MOVEON(7)=1  ! Change in Binding state
+            wlc_p%MOVEON(8)=0  ! Chain flip
+            wlc_p%MOVEON(9)=0  ! Chain exchange
+            wlc_p%MOVEON(10)=0 ! Reptation
+        endif
 
         !     Initial segment window for wlc_p moves
         wlc_d%Window(1)=15.0_dp ! used to be N*G
@@ -1309,7 +1351,7 @@ contains
         wlc_p%MAXWindoW(9)=nan
         wlc_p%MAXWindoW(9)=nan ! need to chaige code to allow >1
 
-        
+
         if (wlc_p%MINWindow(1).ne.wlc_p%MINWindow(1)) wlc_p%MINWindoW(1)=dble(min(10,wlc_p%NB))
         if (wlc_p%MINWindow(2).ne.wlc_p%MINWindow(2)) wlc_p%MINWindoW(2)=dble(min(10,wlc_p%NB))
         if (wlc_p%MINWindow(3).ne.wlc_p%MINWindow(3)) wlc_p%MINWindoW(3)=dble(min(10,wlc_p%NB))
@@ -1337,7 +1379,7 @@ contains
         wlc_p%MAXAMP(9)=nan
         wlc_p%MAXAMP(10)=nan
 
-        ! Solution 
+        ! Solution
         wlc_p%NBINX(1)=nint(wlc_p%LBOX(1)/wlc_p%dBin)
         wlc_p%NBINX(2)=nint(wlc_p%LBOX(2)/wlc_p%dBin)
         wlc_p%NBINX(3)=nint(wlc_p%LBOX(3)/wlc_p%dBin)
@@ -1360,6 +1402,22 @@ contains
             wlc_p%MaxAMP = 2.0_dp*pi
             wlc_p%MaxAMP(2) = wlc_p%lbox(1)
             wlc_p%MaxAMP(6) = wlc_p%lbox(1)
+
+            ! Turn off saving AB
+            wlc_p%saveAB = .FALSE.
+
+            !Set which moves are used
+            wlc_p%MOVEON(1)=1  ! crank-shaft move
+            wlc_p%MOVEON(2)=1  ! slide move
+            wlc_p%MOVEON(3)=1  ! pivot move
+            wlc_p%MOVEON(4)=1  ! rotate move
+            wlc_p%MOVEON(5)=0  ! full chain rotation
+            wlc_p%MOVEON(6)=0  ! full chain slide
+            wlc_p%MOVEON(7)=0  ! Change in Binding state
+            wlc_p%MOVEON(8)=0  ! Chain flip
+            wlc_p%MOVEON(9)=0  ! Chain exchange
+            wlc_p%MOVEON(10)=0 ! Reptation
+
         endif
 
         ! If ring is on, turn off the pivot move
@@ -1527,35 +1585,48 @@ contains
         open (unit = outFileUnit, file = fullName, status = 'NEW')
         IB=1
         if (repeatingBC) then
-            do I=1,wlc_p%NP
-                do J=1,wlc_p%NB
-                        WRITE(outFileUnit,"(3f10.3,I2)") &
-                            wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
-                            wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
-                            wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
-                            wlc_d%AB(IB)
-                    IB=IB+1
-                enddo
-            enddo
-            print*, "Error in wlcsim_params_saveR"
-            print*, "Are you sure you want reapeating BC"
-            stop 1
+           do I=1,wlc_p%NP
+              do J=1,wlc_p%NB
+                 if (wlc_p%saveAB) then
+                    write(outFileUnit,"(3f10.3,I2)") &
+                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
+                         wlc_d%AB(IB)
+                 else
+                    write(outFileUnit,"(3f10.3)") &
+                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+                 endif
+                 IB=IB+1
+              enddo
+           enddo
+           print*, "Error in wlcsim_params_saveR"
+           print*, "Are you sure you want reapeating BC"
+           stop 1
         else
-            do I=1,wlc_p%NP
-                do J=1,wlc_p%NB
-                    if (wlc_p%solType.eq.0) then
-                        WRITE(outFileUnit,"(3f10.3,I2)") &
+           do I=1,wlc_p%NP
+              do J=1,wlc_p%NB
+                 if (wlc_p%solType.eq.0) then
+                    if (wlc_p%saveAB) then
+                       write(outFileUnit,"(3f10.3,I2)") &
                             wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB)
                     else
-                        WRITE(outFileUnit,"(3f10.3,I2)") &
-                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB), wlc_d%METH(IB)
+                       write(outFileUnit,"(3f10.3)") &
+                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3)
                     endif
-                    IB=IB+1
-                enddo
-            enddo
+                    else
+                    write(outFileUnit,"(3f10.3,I2)") &
+                         wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB), wlc_d%METH(IB)
+                 endif
+                 IB=IB+1
+              enddo
+           enddo
         endif
         close(outFileUnit)
-    end subroutine
+
+      end subroutine wlcsim_params_saveR
 
     subroutine wlcsim_params_savePHI(wlc_p,wlc_d,fileName)
     ! Saves PHIA and PHIB to file for analysis
@@ -1568,7 +1639,7 @@ contains
         fullName=  trim(fileName) // trim(wlc_p%repSuffix)
         open (unit = outFileUnit, file = fullName, status = 'NEW')
         do I=1,wlc_p%NBIN
-            WRITE(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
+            write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
         enddo
         close(outFileUnit)
     end subroutine
@@ -1586,7 +1657,7 @@ contains
         IB=1
         do I=1,wlc_p%NP
             do J=1,wlc_p%NB
-                WRITE(outFileUnit,"(3f8.3,2I2)") wlc_d%U(IB,1),wlc_d%U(IB,2),wlc_d%U(IB,3)
+                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(IB,1),wlc_d%U(IB,2),wlc_d%U(IB,3)
                 IB=IB+1
             enddo
         enddo
@@ -1599,26 +1670,26 @@ contains
         type(wlcsim_params), intent(in) :: wlc_p
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName=  trim(fileName) // "params"//trim(wlc_p%repSuffix)
         open (unit =outFileUnit, file = fullName, status = 'NEW')
-            WRITE(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
-            WRITE(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
-            WRITE(outFileUnit,"(I8)") wlc_p%NB ! 3 Number of beads in a polymer
-            WRITE(outFileUnit,"(I8)") wlc_p%NP ! 4 Number of polymers in simulation
-            WRITE(outFileUnit,"(I8)") wlc_p%NT ! 5 Number of beads in simulation
-            WRITE(outFileUnit,"(I8)") wlc_p%nBpM  ! 6 Number of beads per monomer
+            write(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
+            write(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
+            write(outFileUnit,"(I8)") wlc_p%NB ! 3 Number of beads in a polymer
+            write(outFileUnit,"(I8)") wlc_p%NP ! 4 Number of polymers in simulation
+            write(outFileUnit,"(I8)") wlc_p%NT ! 5 Number of beads in simulation
+            write(outFileUnit,"(I8)") wlc_p%nBpM  ! 6 Number of beads per monomer
 
-            WRITE(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
-            WRITE(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
-            WRITE(outFileUnit,"(f10.5)") wlc_p%Fpoly ! Fraction polymer
-            WRITE(outFileUnit,"(f10.5)") wlc_p%lbox(1)  ! 10 Lenth of box
-            WRITE(outFileUnit,"(f10.5)") wlc_p%EU    ! Energy unmethalated
-            WRITE(outFileUnit,"(f10.5)") wlc_p%EM    ! 12 Energy methalated
-            WRITE(outFileUnit,"(f10.5)") wlc_p%HP1_Bind ! Energy of HP1 binding
-            WRITE(outFileUnit,"(f10.5)") (wlc_p%L0/wlc_p%EPS) ! 14 Khun lenth
-            WRITE(outFileUnit,"(A)") "-999"  ! for historic reasons
-            WRITE(outFileUnit,"(f10.5)") wlc_p%F_METH  ! methalation fraction
-            WRITE(outFileUnit,"(f10.5)") wlc_p%LAM_METH  ! methalation lambda
+            write(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
+            write(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
+            write(outFileUnit,"(f10.5)") wlc_p%Fpoly ! Fraction polymer
+            write(outFileUnit,"(f10.5)") wlc_p%lbox(1)  ! 10 Lenth of box
+            write(outFileUnit,"(f10.5)") wlc_p%EU    ! Energy unmethalated
+            write(outFileUnit,"(f10.5)") wlc_p%EM    ! 12 Energy methalated
+            write(outFileUnit,"(f10.5)") wlc_p%HP1_Bind ! Energy of HP1 binding
+            write(outFileUnit,"(f10.5)") (wlc_p%L0/wlc_p%EPS) ! 14 Khun lenth
+            write(outFileUnit,"(A)") "-999"  ! for historic reasons
+            write(outFileUnit,"(f10.5)") wlc_p%F_METH  ! methalation fraction
+            write(outFileUnit,"(f10.5)") wlc_p%LAM_METH  ! methalation lambda
         close(outFileUnit)
     end subroutine
 
@@ -1637,12 +1708,12 @@ contains
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")
         else
             open (unit = outFileUnit, file = fullName, status = 'new')
-            WRITE(outFileUnit,*) "ind | id |",&
+            write(outFileUnit,*) "ind | id |",&
                        " ebend  | eparll | EShear | ECoupl | E Kap  | E Chi  |",&
                        " EField | ebind  |  x_Mu  | Couple |  Chi   |  mu    |",&
                        "  Kap   | Field  |"
         endif
-        WRITE(outFileUnit,"(2I5, 9f9.1,5f9.4)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f9.1,5f9.4)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_Bind*wlc_p%Couple_on, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%mu, wlc_p%KAP*wlc_p%KAP_ON,&
@@ -1665,14 +1736,14 @@ contains
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")
         else
             open (unit = outFileUnit, file = fullName, status = 'new')
-            WRITE(outFileUnit,*) "ind| id|",&
+            write(outFileUnit,*) "ind| id|",&
                        " WIN 1 | AMP 1 | SUC 1 | WIN 2 | AMP 2 | SUC 2 |",&
                        " WIN 3 | AMP 3 | SUC 3 | ON  4 | AMP 4 | SUC 4 |",&
                        " ON  5 | AMP 5 | SUC 5 | ON  6 | AMP 6 | SUC 6 |",&
                        " ON  7 | SUC 7 | ON  8 | SUC 8 |", &
                        " ON  9 | SUC 9 | ON 10 | SUC 10|"
         endif
-        WRITE(outFileUnit,"(2I4,26f8.3)") save_ind,wlc_d%id,&
+        write(outFileUnit,"(2I4,26f8.3)") save_ind,wlc_d%id,&
             real(wlc_d%WindoW(1)),wlc_d%MCAMP(1),wlc_d%PHIT(1), &
             real(wlc_d%WindoW(2)),wlc_d%MCAMP(2),wlc_d%PHIT(2), &
             real(wlc_d%WindoW(3)),wlc_d%MCAMP(3),wlc_d%PHIT(3), &

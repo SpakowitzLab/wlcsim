@@ -121,6 +121,10 @@ src/mc/energy_elas.o : src/mc/energy_elas.f90 \
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/energy_elas.f90 -o src/mc/energy_elas.o
 src/util/abs_determinant.o : src/util/abs_determinant.f95
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/abs_determinant.f95 -o src/util/abs_determinant.o
+src/wlcsim/wlcsim_brad.o : src/wlcsim/wlcsim_brad.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/wlcsim_brad.f03 -o src/wlcsim/wlcsim_brad.o
 src/wlcsim/initchem.o : src/wlcsim/initchem.f95 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
@@ -130,10 +134,10 @@ src/util/writhe.o : src/util/writhe.f95
 src/mc/MC_elas.o : src/mc/MC_elas.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_elas.f90 -o src/mc/MC_elas.o
-src/bd/force_elas.o : src/bd/force_elas.f95
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/force_elas.f95 -o src/bd/force_elas.o
 src/bd/RKstep.o : src/bd/RKstep.f95
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/RKstep.f95 -o src/bd/RKstep.o
+src/bd/force_elas.o : src/bd/force_elas.f95
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/force_elas.f95 -o src/bd/force_elas.o
 src/mc/MC_interp.o : src/mc/MC_interp.f95 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_interp.f95 -o src/mc/MC_interp.o
@@ -154,6 +158,9 @@ src/mc/MC_calcVolume.o : src/mc/MC_calcVolume.f95 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_calcVolume.f95 -o src/mc/MC_calcVolume.o
+src/wlcsim/init_MPI.o : src/wlcsim/init_MPI.f95 \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/init_MPI.f95 -o src/wlcsim/init_MPI.o
 src/mc/MC_bind.o : src/mc/MC_bind.f95 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_bind.f95 -o src/mc/MC_bind.o
