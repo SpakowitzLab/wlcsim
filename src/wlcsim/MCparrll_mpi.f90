@@ -1,3 +1,7 @@
+! file defines routines useful for parallel tempering continuous variables over 
+! MPI. Thus, only compiled if MPI is available.
+#if MPI_VERSION
+
 subroutine PT_override(mc,md)
 use params
 use mpi
@@ -211,3 +215,5 @@ use mpi
     ! keep track of which thread you are
     md%id=int(id)
 end subroutine
+
+#endif

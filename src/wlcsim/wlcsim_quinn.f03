@@ -1,6 +1,8 @@
 
 subroutine wlcsim_quinn(save_ind, mc, md)
+#if MPI_VERSION
     use mpi
+#endif
     use params
     implicit none
     integer, intent(in) :: save_ind ! 1, 2, ...
@@ -9,6 +11,11 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     integer, save :: id, num_processes
     integer (kind=4) error
 
+    ! to minimize code rewriting, we use our old name for save_ind internally
+    md%mc_ind=save_ind
+
+
+#if MPI_VERSION
     if (save_ind == 1) then
         call MPI_Init(error)
         call stop_if_err(error, "Failed to MPI_Init.")
@@ -18,7 +25,6 @@ subroutine wlcsim_quinn(save_ind, mc, md)
         call stop_if_err(error, "Failed to get num_processes.")
     endif
 
-    md%mc_ind=save_ind
 
     if (num_processes == 1) then
         call onlyNode(mc,md)
@@ -27,6 +33,9 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     else
         call worker_node(mc,md)
     endif
+#else
+    call onlyNode(mc, md)
+#endif
 
 
 
@@ -37,9 +46,9 @@ subroutine wlcsim_quinn(save_ind, mc, md)
     call printWindowStats(mc, md)
     !call wlcsim_params_printPhi(mc,md)
 
-
 end subroutine wlcsim_quinn
 
+#if MPI_VERSION
 subroutine head_node(mc,md,p)
     use mersenne_twister
     use mpi
@@ -269,6 +278,8 @@ subroutine head_node(mc,md,p)
     deallocate(s_vals)
 
 end subroutine head_node
+#endif
+
 function chi_path(s) result(chi)
     use params, only: dp
     implicit none
@@ -325,6 +336,7 @@ function hp1_bind_path(s) result(hp1_bind)
     hp1_bind=s
 end function hp1_bind_path
 
+#if MPI_VERSION
 subroutine worker_node(mc,md)
     use mpi
     use params
@@ -440,6 +452,7 @@ subroutine worker_node(mc,md)
 
     enddo
 end subroutine worker_node
+#endif
 
 subroutine onlyNode(mc,md)
     use params

@@ -1,3 +1,4 @@
+#if MPI_VERSION
 subroutine pt_restart(mc,md)
 ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
 ! parallel-tempered MC simulations.
@@ -195,3 +196,4 @@ subroutine pt_restart(mc,md)
     ! keep track of which thread you are
     md%id=int(id)
 end subroutine
+#endif
