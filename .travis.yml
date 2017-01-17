@@ -12,20 +12,21 @@ cache:
     - $HOME/.local
 
 addons:
+  apt:
     packages:
       - gfortran
-      - mpich
+      - libopenmpi-dev
       - python-pip
 
 before_install:
     git submodule update --init --recursive
 
-install:
-  - |
-    if [[ ! -d "$HOME/.local/bin" ]]; then
-      mkdir "$HOME/.local/bin"
-    fi
-  - export PATH="$HOME/.local/bin:$PATH"
+# install:
+  # - |
+  #   if [[ ! -d "$HOME/.local/bin" ]]; then
+  #     mkdir "$HOME/.local/bin"
+  #   fi
+  # - export PATH="$HOME/.local/bin:$PATH"
   # - export FC=/usr/bin/gfortran-6
   # - ln -fs /usr/bin/gfortran-6 "$HOME/.local/bin/gfortran" && gfortran --version
   # - ls -l /usr/bin/gfortran-6
