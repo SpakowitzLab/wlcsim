@@ -54,7 +54,7 @@ GAM=PARA(4)
 
 !     Setup the choice parameters
 
-if(FRMFILE)then
+if (FRMFILE)then
    OPEN (UNIT = 5, FILE = 'input/r0', STATUS = 'OLD')
    Do I=1,NT
       READ(5,*) R(I,1),R(I,2),R(I,3),AB(I)
@@ -75,7 +75,19 @@ if(FRMFILE)then
 endif
 
 !     Fix the initial condition
-if(setType.eq.1) then
+if (setType.eq.0) then
+! straight line in y direction starting at origin, equilibrium bond lengths
+    iB = 1
+    do i=1,nP
+        do j=1,nB
+            R(iB,1) = 0
+            R(iB,2) = gam*j
+            R(iB,3) = 0
+            iB = iB + 1
+        enddo
+    enddo
+
+else if (setType.eq.1) then
 ! staight line in y direction with random starting position
 
     IB=1
@@ -87,7 +99,7 @@ if(setType.eq.1) then
 
        DO J=1,NB
           R(IB,1)=R0(1)
-          R(IB,2)=R0(2)+GAM*(J-NB/2.0_dp-0.5_dp) ! center on box
+          R(IB,2)=R0(2) + GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
           R(IB,3)=R0(3)
           U(IB,1)=0.
           U(IB,2)=1.
@@ -97,7 +109,7 @@ if(setType.eq.1) then
        enddo
     enddo
 
-else if(setType.eq.2) then
+else if (setType.eq.2) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! slit boundary in z direction
@@ -120,7 +132,7 @@ else if(setType.eq.2) then
            ii=0
            do while(search)
                 ii=ii+1
-                if(ii.gt.100) then
+                if (ii.gt.100) then
                     print*,'stuck in loop'
                     print*,'Rold=',Rold(1),Rold(2),Rold(3)
                     print*,'test=',test(1),test(2),test(3)
@@ -130,13 +142,13 @@ else if(setType.eq.2) then
                 test(2)=Rold(2)+Uold(2)*GAM
                 test(3)=Rold(3)+Uold(3)*GAM
                 search=.FALSE.
-                if(test(3).gt.LBOX(3))then
+                if (test(3).gt.LBOX(3))then
                     search=.TRUE.
                 endif
-                if(test(3).lt.0)then
+                if (test(3).lt.0)then
                     search=.TRUE.
                 endif
-                if(search) then
+                if (search) then
                      call random_number(urand,rand_stat)
                      theta=urand(1)*2*PI
                      z=urand(2)*2-1
@@ -158,7 +170,7 @@ else if(setType.eq.2) then
            IB=IB+1
         enddo
     enddo
-else if(setType.eq.3) then
+else if (setType.eq.3) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! square boundary
@@ -181,7 +193,7 @@ else if(setType.eq.3) then
           ii=0
           do while(search)
                ii=ii+1
-               if(ii.gt.100) then
+               if (ii.gt.100) then
                    print*,'stuck in loop'
                    print*,'Rold=',Rold(1),Rold(2),Rold(3)
                    print*,'test=',test(1),test(2),test(3)
@@ -191,25 +203,25 @@ else if(setType.eq.3) then
                test(2)=Rold(2)+Uold(2)*GAM
                test(3)=Rold(3)+Uold(3)*GAM
                search=.FALSE.
-               if(test(1).gt.LBOX(1))then
+               if (test(1).gt.LBOX(1))then
                    search=.TRUE.
                endif
-               if(test(1).lt.0)then
+               if (test(1).lt.0)then
                    search=.TRUE.
                endif
-               if(test(2).gt.LBOX(2))then
+               if (test(2).gt.LBOX(2))then
                    search=.TRUE.
                endif
-               if(test(2).lt.0)then
+               if (test(2).lt.0)then
                    search=.TRUE.
                endif
-               if(test(3).gt.LBOX(3))then
+               if (test(3).gt.LBOX(3))then
                    search=.TRUE.
                endif
-               if(test(3).lt.0)then
+               if (test(3).lt.0)then
                    search=.TRUE.
                endif
-               if(search) then
+               if (search) then
                     call random_number(urand,rand_stat)
                     theta=urand(1)*2_dp*PI
                     z=urand(2)*2.0_dp-1.0_dp
@@ -232,7 +244,7 @@ else if(setType.eq.3) then
        enddo
     enddo
 
-else if(setType.eq.4) then
+else if (setType.eq.4) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! shpere boundary
@@ -260,12 +272,12 @@ else if(setType.eq.4) then
                test(2)=Rold(2)+Uold(2)*GAM
                test(3)=Rold(3)+Uold(3)*GAM
                search=.FALSE.
-               if((test(1)-Rc)**2+&
+               if ((test(1)-Rc)**2+&
                    (test(2)-Rc)**2+&
                    (test(3)-Rc)**2.gt.Rc**2)then
                    search=.TRUE.
                endif
-               if(search) then
+               if (search) then
                     call random_number(urand,rand_stat)
                     theta=urand(1)*2.0_dp*PI
                     z=urand(2)*2.0_dp-1.0_dp
@@ -286,7 +298,7 @@ else if(setType.eq.4) then
            IB=IB+1
        enddo ! loop to N
     enddo ! loop to np
-else if(setType.eq.5) then
+else if (setType.eq.5) then
     ! randomly distribute beads in shereical confinement
     do IB=1,NT
         search=.true.
@@ -295,7 +307,7 @@ else if(setType.eq.5) then
              test(1)=urand(1)*LBox(1)
              test(2)=urand(2)*LBox(2)
              test(3)=urand(3)*LBox(3)
-             if(((test(1)-LBox(1)/2.0_dp)**2+ &
+             if (((test(1)-LBox(1)/2.0_dp)**2+ &
                  (test(2)-LBox(1)/2.0_dp)**2+ &
                  (test(3)-LBox(1)/2.0_dp)**2).lt.(LBox(1)*LBox(1)*0.25_dp)) then
                  search=.false.

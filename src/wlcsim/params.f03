@@ -110,8 +110,8 @@ module params
         integer NBIN     ! Number of bins
         integer NBINX(3) ! Number of MC bins on an edge
         integer nColBin  ! Number of collision-detection bins on each edge
-        real(dp) lbox(3)  ! Box length (approximate)
-        real(dp) dbin      ! Discretization size (approximate)
+        real(dp) lbox(3)  ! monte carlo field bin total box length (approximate)
+        real(dp) dbin      ! monte carlo field bin discretization size (approximate)
 
     !   Monte Carlo Variables (for adaptation)
         integer movetypes
@@ -355,7 +355,7 @@ contains
         ! options
         wlc_p%codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%movetypes=nMoveTypes
-        wlc_p%initCondType = 1 ! 1 for initializing polymer in a straight line
+        wlc_p%initCondType = 0 ! 0 for initializing polymer in non-random straight line
         wlc_p%confineType = 0 ! 0 for no confinement
         wlc_p%solType=0    ! you better at least know whether you want a melt or solution
         wlc_p%ring=.false.    ! not a ring by default
@@ -843,9 +843,14 @@ contains
 
         if (wlc_p%lBox(1) .ne. wlc_p%lBox(1)) then
             print*, "No box size set.  If you need a box please specify it."
+            call stop_if_err(wlc_p%initCondType /= 0, &
+                'Only one initial polymer config supported if you''re not '//&
+                'using LBOX to define a MC simulation box.')
         else
             if ((wlc_p%NBIN.GT.20000).or.(wlc_p%NBIN.lt.1)) then
                 print*, "ERROR: Requested ", wlc_p%NBIN," bins."
+                print*, "You probably don't want this."
+                print*, "Comment me out if you do."
                 stop 1
             endif
             ! we no longer specify fPoly, it is set in tweak_param_defaults
@@ -1112,16 +1117,16 @@ contains
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
         real(dp) para(10)
-        PARA(1) = wlc_p%EB
-        PARA(2) = wlc_p%EPAR
-        PARA(3) = wlc_p%EPERP
-        PARA(4) = wlc_p%GAM
-        PARA(5) = wlc_p%ETA
-        PARA(6) = wlc_p%XIR
-        PARA(7) = wlc_p%XIU
-        PARA(8) = wlc_p%LBOX(1)
-        PARA(9) = wlc_p%lhc
-        PARA(10) = wlc_p%VHC
+        para(1) = wlc_p%EB
+        para(2) = wlc_p%EPAR
+        para(3) = wlc_p%EPERP
+        para(4) = wlc_p%GAM
+        para(5) = wlc_p%ETA
+        para(6) = wlc_p%XIR
+        para(7) = wlc_p%XIU
+        para(8) = wlc_p%LBOX(1)
+        para(9) = wlc_p%lhc
+        para(10) = wlc_p%VHC
     end function pack_as_para
 
 
