@@ -74,7 +74,7 @@ program main
     select case (trim(adjustL(wlc_p%codeName)))
     case ('quinn', 'parallel temper continuous parameters')
         do i=1,wlc_p%numSavePoints
-            call wlcsim_quinn(i, wlc_p, wlc_d)
+            call wlcsim_quinn(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile)
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')

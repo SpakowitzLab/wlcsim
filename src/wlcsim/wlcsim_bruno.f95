@@ -1,6 +1,6 @@
 !---------------------------------------------------------------*
 
-subroutine wlcsim_bruno(save_ind, wlc_p, wlc_d)
+subroutine wlcsim_bruno(save_ind, wlc_d, wlc_p)
 
 !     WLC Simulation Package:
 !     Simulation Package for Brownian dynamics and

@@ -313,7 +313,7 @@ contains
         wlc_p%FRMFIELD=.FALSE.     ! don't load initial field values from file
         wlc_p%saveR=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
         wlc_p%saveU=.TRUE.         ! do save orientation vectors (makes restart of ssWLC possible)
-        wlc_p%saveAB = .True.     ! save AB by default
+        wlc_p%saveAB = .False.     ! dont' save AB by default, almost nobody uses this
         wlc_p%collisionDetectionType=0         ! don't track first passage time collisions between beads
         wlc_p%collisionRadius=0    ! never collide except on floating-point coincidence
         wlc_p%savePhi=.FALSE.      ! don't save A/B density per bin (not needed for restart)
@@ -357,7 +357,7 @@ contains
         wlc_p%movetypes=nMoveTypes
         wlc_p%initCondType = 0 ! 0 for initializing polymer in non-random straight line
         wlc_p%confineType = 0 ! 0 for no confinement
-        wlc_p%solType=0    ! you better at least know whether you want a melt or solution
+        wlc_p%solType=1       ! solution, not melt, by default
         wlc_p%ring=.false.    ! not a ring by default
         wlc_p%twist=.false.    ! don't include twist by default
         wlc_p%lk=0    ! no linking number (lays flat) by default
@@ -1519,24 +1519,20 @@ contains
               enddo
            enddo
            print*, "Error in wlcsim_params_saveR"
-           print*, "Are you sure you want reapeating BC"
+           print*, "Are you sure you want repeating BC?"
+           print*, "Quinn put this in ages ago but never implemented it...."
            stop 1
         else
            do I=1,wlc_p%NP
               do J=1,wlc_p%NB
-                 if (wlc_p%solType.eq.0) then
-                    if (wlc_p%saveAB) then
-                       write(outFileUnit,"(3f10.3,I2)") &
+                  if (wlc_p%saveAB) then
+                     write(outFileUnit,"(3f10.3,I2)") &
                             wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB)
-                    else
-                       write(outFileUnit,"(3f10.3)") &
-                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3)
-                    endif
-                    else
-                    write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB), wlc_d%METH(IB)
-                 endif
-                 IB=IB+1
+                  else
+                     write(outFileUnit,"(3f10.3)") &
+                           wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3)
+                  endif
+                  IB=IB+1
               enddo
            enddo
         endif

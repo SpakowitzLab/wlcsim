@@ -1,5 +1,5 @@
 
-subroutine wlcsim_quinn(save_ind, mc, md)
+subroutine wlcsim_quinn(save_ind, md, mc)
 #if MPI_VERSION
     use mpi
 #endif
