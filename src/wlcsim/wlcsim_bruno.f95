@@ -15,8 +15,8 @@ integer, intent(in) :: save_ind
 type(wlcsim_params), intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 
-real(dp), allocatable, dimension(:,:):: R0 ! Conformation of polymer chains
-real(dp), allocatable, dimension(:,:):: U0 ! Conformation of polymer chains
+real(dp), save, allocatable, dimension(:,:):: R0 ! Conformation of polymer chains
+real(dp), save, allocatable, dimension(:,:):: U0 ! Conformation of polymer chains
 
 real(dp) TSAVE    ! Time of save point
 
@@ -37,7 +37,7 @@ integer IDUM              ! Seed for the generator
 integer NUM_POSSIBLE_COLLISIONS
 
 ! Exit early if all first passage times have been recorded and the relevant flag is set
-if (wlc_p%fptColType /= 0 .AND. wlc_p%exitWhenCollided) then
+if (wlc_p%collisionDetectionType /= 0 .AND. wlc_p%exitWhenCollided) then
     NUM_POSSIBLE_COLLISIONS = wlc_p%NT*wlc_p%NT - wlc_p%NT
     if (COUNT(wlc_d%coltimes.NE.-1.0d+0) == NUM_POSSIBLE_COLLISIONS) then
         ! we've already exited this function previously, giving us the
@@ -49,7 +49,7 @@ endif
 if (save_ind == 1) then
     ! perform initialization mc if applicable
     !brown always true
-    call MCsim(wlc_p, wlc_d, wlc_p%nInitMCSteps)
+    !call MCsim(wlc_p, wlc_d, wlc_p%nInitMCSteps)
     allocate(R0(wlc_p%NT,3))
     allocate(U0(wlc_p%NT,3))
 endif
@@ -62,7 +62,7 @@ TSAVE = save_ind*wlc_p%stepsPerSave*wlc_p%dt
 !brown always true
 call BDsim(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, wlc_d%TIME, TSAVE, &
            wlc_p%DT, .true., wlc_p%INTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMtype, &
-           wlc_d%coltimes, wlc_p%FPT_DIST, wlc_p%fptColType)
+           wlc_d%coltimes, wlc_p%collisionRadius, wlc_p%collisionDetectionType)
 
 
 call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, &
@@ -71,7 +71,8 @@ call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, wlc_p%NB, &
              wlc_p%NP, pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 
 call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
-                 wlc_p%NP, pack_as_para(wlc_p))
+                 wlc_p%NP, pack_as_para(wlc_p), wlc_p%ring, wlc_p%twist, &
+                 wlc_p%lk, wlc_p%lt, wlc_p%l)
 EPONP=0.
 if (wlc_p%INTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me

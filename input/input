@@ -1,81 +1,69 @@
 # ----------------------------------------------------
-#Input file for polymer simulation package
+# Example input file for polymer simulation package.
+# Used by Bruno for calculating collision time distributions.
 
-#-Record 1
-#  LP              Persistence length # of DNA in nm
+# simulation type to use: 2 aka Bruno's aka BD
+codeName bruno
+
+# Persistence length # of DNA in same units as L
 LP 1.0
 
-#-Record 2
-#  L               Chain length
+# chain length, set length unit
 L 10.0
 
-#-Record 3
-#  LBOX            Box edge length - for MC box sizes
-LBOX 30.
+# Box edge length - for MC box sizes
+LBOX 10.
 
-#-Record 4
-#  REND	    Initial end-to-end distance (dimensionless)
-#REND 0.0
+# Include polymer interactions? - space exlusion
+interpBeadLennardJones 0
 
-#-Record 5
-#  VHC             Hard-core int strength - between beads
+# vhc/lhc are used only if interpBeadLennardJones == 1
+# Hard-core int strength - between beads (lennard jones)
 VHC 0.
 
-#-Record 6
-#  N               Number of beads
+# hard-core int radius between beads (lennard jones)
+LHC 0.
+
+# Number of beads
 NB 51
 
-#-Record 7         Sarah was running 1000
-#  NP              Number of polymers - won't interact unless interaction code added
+# Number of polymers - won't interact unless interaction code added
 NP 1
 
+# Total number of save points
+numSavePoints 100
 
-#-Record 9
-#  INDMAX          Total number of save points
-INDMAX 100
+# time steps between save points
+stepsPerSave 100
 
-#-Record 10
-#  DT              Timestep for integration - Sarah used 0.2 in above
+# timestep for integration, set time units
 DT 0.1
 
-#-Record 11
-#  FRMFILE         Load in the inital conf? - otherwise from MC
+# Load in the inital conf? - otherwise initialize using MC
 FRMFILE 0
 
-#-Record 12
-#  BROWN           Include Brownian forces?
-BROWN 1
+# number of MC steps to run starting in the configuration dictated by
+# initCondType before starting actual BD simulations.
+# Ballpark is something like 1000s times #polymers,
+# e.g. 40beads@rigid@2000poly => 4e6
+# Quinn has a there's a script to check if you're OK by comparing
+# end-to-end distribution with analytical results.
+nInitMCSteps    10000
 
-#-Record 13
-#  INTON           Include polymer interactions? - space exlusion
-INTON            0
+# l1 distance triggering a "collision" between beads
+collisionRadius        1
 
-#-Record 14
-#  LOGTIME         Are data recorded in log time?
-LOGTIME          0
+# Algorithm for collision detection: 0) NONE 1) brute force, 2) k-d tree,
+# 3) Bruno's O(n) v1, 4) bin-based detection, recentering using center of mass
+collisionDetectionType        4
 
-#-Record 15       Quinn: 1000s times #polymers, there's a script to check if OK
-#  NINIT          Number initialization MC steps - 40beads@rigid@2000poly==4e6
-NINIT           10000
+# number of bins in each dimension to use in collision checker. only used if COL_TYPE == 4
+nColBin        5
 
-#-Record 16
-#  NSTEP          Number MC steps per save
-NSTEP           0
+# Whether to save the positions/momentums at each time point, or only most
+# recent time point
+saveR 1
+saveU 0
 
-#-Record 17
-#  FPT_DIST       l1 distance triggering a "collision" between beads
-FPT_DIST        1
-
-#-Record 18       Algorithm for collision detection: 0) NONE 1) brute force,
-#  COL_TYPE       2) k-d tree, 3) Bruno's O(n) v1,
-COL_TYPE        3
-
-#-Record 19       Whether to save the positions/momentums at each time point
-#  SAVE_RU
-SAVE_RU 1
-
-#-Record 20       Whether to terminate simulation when all collisions finish
-#  EXIT_WHEN_COLLIDED
-EXIT_WHEN_COLLIDED 0
-
-# ----------------------------------------------------
+# Whether to terminate simulation when all collisions finish
+exitWhenCollided 0

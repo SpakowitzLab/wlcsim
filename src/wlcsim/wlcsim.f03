@@ -66,13 +66,12 @@ program main
 
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
-    paramsFileName = trim(adjustL(outfile)) // 'params'
-    call save_parameters(wlc_p, paramsFileName)
+    call save_parameters(wlc_p, outfile)
 
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile)
 
-    select case (wlc_p%codeName)
+    select case (trim(adjustL(wlc_p%codeName)))
     case ('quinn', 'parallel temper continuous parameters')
         do i=1,wlc_p%numSavePoints
             call wlcsim_quinn(i, wlc_p, wlc_d)
