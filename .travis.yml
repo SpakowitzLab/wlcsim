@@ -30,7 +30,10 @@ before_install:
 before_script:
     - mkdir -p $HOME/.local/bin
     - export PATH="$HOME/.local/bin:${PATH}"
-    - ln -s `which gfortran-5` $HOME/.local/bin/gfortran
+    -|
+     if [[ ! -L "$HOME/.local/bin/gfortran" ]]; then
+        ln -s `which gfortran-5` $HOME/.local/bin/gfortran
+     fi
 
 script:
     - make clean && make FC='mpif90'
