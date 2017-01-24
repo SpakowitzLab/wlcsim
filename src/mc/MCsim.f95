@@ -268,9 +268,11 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                 md%x_field=md%x_field+md%dx_field
 
              endif
-             md%WR=WRP
-             md%NCross=md%NCrossP
-             md%Cross=md%CrossP  !this little bastard is causing a seg fault!
+             if (mc%ring) then
+                md%WR=WRP
+                md%NCross=md%NCrossP
+                md%Cross=md%CrossP  !this little bastard is causing a seg fault!
+            endif
              md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)+1
           endif
 !   Adapt the amplitude of step every NADAPT steps

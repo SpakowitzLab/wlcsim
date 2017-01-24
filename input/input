@@ -12,7 +12,7 @@ LP 1.0
 L 10.0
 
 # Box edge length - for MC box sizes
-#LBOX 10.
+LBOX 10.
 
 # Include polymer interactions? - space exlusion
 interpBeadLennardJones 0
@@ -48,7 +48,7 @@ frmFile 0
 # e.g. 40beads@rigid@2000poly => 4e6
 # Quinn has a there's a script to check if you're OK by comparing
 # end-to-end distribution with analytical results.
-#nInitMCSteps    10000
+nInitMCSteps    10000
 
 # l1 distance triggering a "collision" between beads
 collisionRadius        1

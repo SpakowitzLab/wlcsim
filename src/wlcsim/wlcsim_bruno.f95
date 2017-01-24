@@ -49,7 +49,7 @@ endif
 if (save_ind == 1) then
     ! perform initialization mc if applicable
     !brown always true
-    !call MCsim(wlc_p, wlc_d, wlc_p%nInitMCSteps)
+    call MCsim(wlc_p, wlc_d, wlc_p%nInitMCSteps)
     allocate(R0(wlc_p%NT,3))
     allocate(U0(wlc_p%NT,3))
 endif

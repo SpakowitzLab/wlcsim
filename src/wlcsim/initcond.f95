@@ -80,9 +80,12 @@ if (setType.eq.0) then
     iB = 1
     do i=1,nP
         do j=1,nB
-            R(iB,1) = 0
+            R(iB,1) = 0.0_dp
             R(iB,2) = gam*j
-            R(iB,3) = 0
+            R(iB,3) = 0.0_dp
+            U(iB,1) = 0.0_dp
+            U(iB,2) = 1.0_dp
+            U(iB,3) = 0.0_dp
             iB = iB + 1
         enddo
     enddo

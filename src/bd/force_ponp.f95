@@ -66,9 +66,6 @@
                   R12(1)=R(IB2,1)-R(IB1,1)
                   R12(2)=R(IB2,2)-R(IB1,2)
                   R12(3)=R(IB2,3)-R(IB1,3)
-                  R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-                  R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-                  R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
 
                   D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
                   if (D12.GT.(3.*GAM)) then
