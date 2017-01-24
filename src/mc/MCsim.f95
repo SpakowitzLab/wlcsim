@@ -271,7 +271,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
              if (mc%ring) then
                 md%WR=WRP
                 md%NCross=md%NCrossP
-                md%Cross=md%CrossP  !this little bastard is causing a seg fault!
+                md%Cross=md%CrossP
             endif
              md%SUCCESS(MCTYPE)=md%SUCCESS(MCTYPE)+1
           endif
