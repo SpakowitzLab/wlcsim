@@ -14,3 +14,6 @@ vizualization/pdb0/*
 vizualization/png/*
 par-run-dir
 __pycache__
+*.pyc
+*.egg-info
+doc/_build
