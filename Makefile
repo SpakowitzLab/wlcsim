@@ -18,42 +18,80 @@ MAKEDEPEND=./fort_depend.py
 DEP_FILE = wlcsim.dep
 
 # compiler
-FC = gfortran
+FC = mpifort
+# FC = $(shell if [[ type mpifort >/dev/null 2>&1 & ]]; then echo "mpifort"; else; echo "gfortran"; fi)
+#TODO: fallback to gfortran gracefully, maybe with a dummy mpi.mod file?
+
+ifeq ($(FC), mpifort)
+MPI_FLAGS = -DMPI_VERSION
+else
+MPI_FLAGS =
+endif
 
 # compile flags
-# FCFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-FCFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
-# FASTFLAGS = -O3 -Jsrc -Isrc -Isrc/third_party -cpp
-# PEDANTICFLAGS = -ggdb -Jsrc -Isrc -Isrc/third_party -cpp -fcheck=all -Wall -pedantic
+INCLUDE_DIRS = -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party
+DEBUGFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp
+FASTFLAGS = -O3 -Jsrc ${INCLUDE_DIRS} -cpp
+PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof (if you don't have sizeof, just comment out read/writeBinary in params.f03), Wno-surprising to enforce Werror even though gfortran has a bug https://gcc.gnu.org/ml/fortran/2013-08/msg00050.html
+FCFLAGS = ${PEDANTICFLAGS}
 
 # link flags
-FLFLAGS =
+FLFLAGS = -L/usr/lib/lapack -llapack
 
-# modules first, since they're heavily depended on
-# when doing it this way, a module must be listed after other modules it
-# depends on
-MOD_SRC := src/third_party/mt19937.f90 src/third_party/kdtree2.f90 src/BDcode/colsort.f90
-MOD_MOD := $(addprefix src/,$(notdir $(MOD_SRC:.f90=.mod)))
-SRC := src/DATAcode/MINV.f90 src/DATAcode/find_struc.f90 src/BDcode/force_elas.f90 src/BDcode/force_ponp.f90 src/BDcode/RKstep.f90 src/BDcode/concalc.f90 src/SIMcode/debugging.f90 src/third_party/dgtsv.f src/BDcode/BDsim.f90 src/MCcode/MC_move.f90 src/MCcode/MCsim.f90 src/MCcode/MC_elas.f90 src/MCcode/MC_capsid_ex.f90 src/MCcode/MC_self.f90 src/SIMcode/globals.f90 src/SIMcode/stressp.f90 src/SIMcode/energy_ponp.f90 src/SIMcode/gasdev.f90 src/SIMcode/r_to_erg.f90 src/SIMcode/ran2.f90 src/SIMcode/decim.f90 src/SIMcode/wlcsim.f90 src/SIMcode/stress.f90 src/SIMcode/ran1.f90 src/SIMcode/energy_elas.f90 src/SIMcode/initcond.f90 src/SIMcode/getpara.f90 src/BDcode/colchecker.f90
-OBJ := $(addsuffix .o,$(basename $(MOD_SRC))) $(addsuffix .o,$(basename $(SRC)))
-TEST := src/CCcode/test_sort.f90
+# all non-legacy and non-test files should be compiled into wlcsim
+SRC := $(shell find "src" -type f -name '*.f*' \
+			    -not -path "src/legacy/*" \
+				-not -path "src/tests/*" \
+				-not -path "src/third_party/FLAP/*" \
+				-not -path '*/\.*' )
+
+# takes each *.f* -> *.o
+OBJ := $(addsuffix .o,$(basename $(SRC)))
+TEST := $(shell find "src/tests" -type f -name '*.f*')
 
 # program name
 PROGRAM = wlcsim.exe
 
-# test:
-# 	@echo $(value MOD_MOD)
-
 # by default, compile only
-all: $(PROGRAM) Makefile $(DEP_FILE)
+all: $(PROGRAM) flap depend
 
 # a target to just run the main program
 run: $(PROGRAM) dataclean
 	./$(PROGRAM)
 
-# target to build main program
-$(PROGRAM): $(OBJ)
-	$(FC) $(FCFLAGS) $(FLFLAGS) -o $@ $^
+# target to build main program, depends on all object files, and on the
+# constructed makefile output
+$(PROGRAM): flap depend dummy_prog
+
+# ugly line, needs to ask for FLAP objects at runtime, there's probably a better
+# way to do this
+dummy_prog: $(OBJ)
+	$(FC) $(FCFLAGS) -o $(PROGRAM) $^ $(INCLUDE_DIRS) $(shell find "src/third_party/FLAP/exe/obj" -type f -not -path "src/third_party/FLAP/exe/obj/test_minimal.o") $(FLFLAGS)
+
+doc:
+	make -C doc html
+
+# build third party dependencies that require "make" by hand
+FLAP_DIR = src/third_party/FLAP
+flap: flap_exists $(shell find ${FLAP_DIR} -type f -name '*.f*')
+	make -C ${FLAP_DIR}
+
+flap_exists: ${FLAP_DIR}
+	git submodule update --init --recursive
+
+
+# Make dependencies, easier to type
+depend: $(DEP_FILE)
+
+# this forces the "included" part of makefile itself to be rebuilt whenever the
+# corresponding src files change, or when the Makefile itself changes
+# While this is useful, it will force the dependency checker to run even if we
+# only want to do e.g. make clean.
+$(DEP_FILE): $(SRC) Makefile
+	@echo "Making dependencies!"
+	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) -c "$(FC) -c $(FCFLAGS) $(MPI_FLAGS)"
+
+include $(DEP_FILE)
 
 .PHONY: depend clean destroy dataclean
 
@@ -63,9 +101,8 @@ clean: dataclean
 
 dataclean:
 	mkdir -p data trash
-	touch "data/`date`"
-	cp -r data trash/
-	rm data/*
+	mv data "trash/`date`"
+	mkdir -p data
 
 DEATH=rm -rf trash data savedata par-run-dir.*
 distclean: clean
@@ -79,11 +116,3 @@ distclean: clean
 		echo 'Canceling data deletion!'; \
 	fi
 
-# Make dependencies
-depend: $(DEP_FILE)
-
-$(DEP_FILE): $(MOD_SRC) $(SRC)
-	@echo "Making dependencies!"
-	$(MAKEDEPEND) -w -o $(DEP_FILE) -f $(SRC) $(MOD_SRC) -c "$(FC) -c $(FCFLAGS) "
-
-include $(DEP_FILE)

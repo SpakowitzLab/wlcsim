@@ -1,0 +1,35 @@
+# After changing this file, check it on:
+#   http://lint.travis-ci.org/
+language: generic
+
+sudo: false
+
+cache:
+  apt: true
+  pip: true
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.local
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gfortran-5
+      - binutils
+      - build-essential
+      - libopenmpi-dev
+      - python-pip
+      - liblapack-dev
+
+before_install:
+    - git submodule update --init --recursive
+
+# trick mpi into using our custom gfortran install
+before_script:
+    - ln -s `which gfortran-5` $HOME/.local/bin/gfortran
+
+script:
+    - make clean && make FC='mpif90'
+    - make clean && make FC='gfortran-5'

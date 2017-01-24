@@ -41,7 +41,8 @@ def write_depend(outfile="makefile.dep",dep=[],overwrite=False,build='',compile_
     f.write('# This file is generated automatically. DO NOT EDIT!\n')
     for i in dep.keys():
         fil,_=os.path.splitext(i)
-        stri="\n"+os.path.join(build, fil+".o"+" : ")
+        # make each object file depend on it's source file
+        stri="\n"+os.path.join(build, fil+".o"+" : "+i)
         for j in dep[i]:
             fdep,_=os.path.splitext(j)
             stri=stri+" \\\n\t"+os.path.join(build, fdep+".o")
@@ -136,7 +137,7 @@ def get_depends(fob=[],m2f=[]):
             try:
                 tmp.append(m2f[j.lower()])
             except:
-                print "\033[031mWarning:\033[039m module \033[032m"+j+"\033[039m not defined in any files. Skipping..."
+                print "\033[031mWarning:\033[039m module \033[032m"+j+"\033[039m used in "+i.file_name+" not defined in any files. Skipping..."
 
         deps[i.file_name]=tmp
 
