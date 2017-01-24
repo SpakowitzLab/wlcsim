@@ -1,6 +1,6 @@
 # WormLike Chain SIMulator
 
-![Travis CI Build Status](https://travis-ci.org/brunobeltran/BasicWLC.svg?branch=master)
+[![Build Status](https://travis-ci.org/brunobeltran/wlcsim.svg?branch=master)](https://travis-ci.org/brunobeltran/wlcsim)
 
 This code is designed to efficiently simulate the wormlike chain polymer model
 using various coarse-grainings where applicable.
