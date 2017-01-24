@@ -121,11 +121,11 @@ def get_com_msd(run_dir):
     sim_dirs = wdata.Scan(run_dir).sim_paths
     num_sims = len(sim_dirs)
     sim0 = wdata.Sim(sim_dirs[0])
-    num_time_points, ndims, num_beads = sim0.r.shape
-    msd_com = np.zeros((num_time_points, ndims))
+    num_time_points, ndims, num_polymers, num_beads = sim0.r.shape
+    msd_com = np.zeros((num_time_points, ndims, num_polymers))
     for i,sim_dir in enumerate(sim_dirs):
         sim = wdata.Sim(sim_dir)
-        msd_com += np.power(sim.center_of_mass - sim.center_of_mass[0,:], 2)
+        msd_com += np.power(sim.center_of_mass - sim.center_of_mass[0,:,:], 2)
         print('Progress: {:2.1%}'.format(float(i)/num_sims), end='\r')
     msd_com = msd_com/len(sim_dirs)
     return msd_com

@@ -7,7 +7,6 @@ Shifan's simulations (SpakowitzLab/MCparallelMPI/utility/*)
 
 from pymatbridge import Matlab
 import os
-import .input as winput
 import .data as wdata
 
 def test_init_end_to_end_distance(run_dir):

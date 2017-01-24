@@ -6,7 +6,7 @@ import os
 import logging
 import glob
 import re
-from . import input as winput
+from .input import ParsedInput
 from .utils.cached_property import cached_property
 import shutil
 
@@ -137,6 +137,10 @@ class Sim:
         self.load_method = load_method
 
     @cached_property
+    def parsed_input(self):
+        return ParsedInput(self.input_file)
+
+    @cached_property
     def coltimes(self):
         coltimes = pd.read_csv(self.coltimes_file, delim_whitespace=True,
                                 header=None).values
@@ -147,42 +151,66 @@ class Sim:
     def r0(self):
         """ Numpy array of positions of each particle at each time point. """
         rfile_name = self._rfile_base + str(0)
+        num_beads = self.params['NB']
+        num_polymers = self.params['NP']
         r0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-        return r0.values.T
+        return r0.values.reshape((3, num_polymers, num_beads))
 
     @cached_property
     def u0(self):
         """ Numpy array of positions of each particle at each time point. """
         ufile_name = self._ufile_base + str(0)
+        num_beads = self.params['NB']
+        num_polymers = self.params['NP']
         u0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-        return u0.values.T
+        return u0.values.reshape((3, num_polymers, num_beads))
 
     @cached_property
     def r(self):
         """ Numpy array of positions of each particle at each time point. """
-        num_time_points = len(self.rtime_idxs)
-        r = np.full((num_time_points, 3, self.params['N']), 0.0)
-        for i, ti in enumerate(self.rtime_idxs):
-            rfile_name = self._rfile_base + str(ti)
-            ri = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-            r[i,:,:] = ri.values.T
+        r = np.full((self.num_time_points, 3, self.num_polymers,
+                     self.num_beads), np.nan)
+        for i in range(self.num_time_points):
+            rfile_name = self._rfile_base + str(i)
+            try:
+                ri = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
+            except OSError:
+                continue
+            r[i,:,:,:] = ri.values.T.reshape((1, 3, self.num_polymers,
+                                            self.num_beads))
         return r
 
     @cached_property
     def u(self):
         """ Numpy array of positions of each particle at each time point. """
-        num_time_points = len(self.utime_idxs)
-        u = np.full((num_time_points, 3, self.params['N']), 0.0)
-        for i, ti in enumerate(self.utime_idxs):
-            ufile_name = self._ufile_base + str(ti)
-            ui = pd.read_csv(ufile_name, delim_whitespace=True, header=None)
-            u[i,:,:] = ui.values.T
+        u = np.full((self.num_time_points, 3, self.num_polymers,
+                     self.num_beads), 0.0)
+        for i in range(self.num_time_points):
+            ufile_name = self._ufile_base + str(i)
+            try:
+                ui = pd.read_csv(ufile_name, delim_whitespace=True, header=None)
+            except OSError:
+                continue
+            u[i,:,:,:] = ui.values.T.reshape((1, 3, self.num_polymers,
+                                            self.num_beads))
         return u
+
+    @property
+    def num_time_points(self):
+        return int(self.params['NUMSAVEPOINTS'])
+
+    @property
+    def num_polymers(self):
+        return int(self.params['NP'])
+
+    @property
+    def num_beads(self):
+        return int(self.params['NB'])
 
     @cached_property
     def center_of_mass(self):
         # "equal mass" beads, so just average positions
-        return np.mean(self.r, axis=2)
+        return np.mean(self.r, axis=3)
 
     @cached_property
     def rtime_idxs(self):
@@ -201,13 +229,12 @@ class Sim:
 
     @cached_property
     def param_names(self):
-        param_names, _ = winput.read_file(self.input_file)
+        param_names, _ = self.parsed_input
         return param_names
 
-    @cached_property
+    @property # caching won't help a call that's just a redirection
     def params(self):
-        _, params = winput.read_file(self.input_file)
-        return params
+        return self.parsed_input.params
 
     @cached_property
     def rtimes(self):
@@ -216,6 +243,13 @@ class Sim:
     @cached_property
     def utimes(self):
         return self.utime_idxs * self.params['DT']
+
+    @cached_property
+    def polymer_length(self):
+        """The sum of interbead distances in the polymer at each time"""
+        sqd = np.sum(np.power(self.r[:,:,:,1:] - self.r[:,:,:,0:-1], 2),
+                     axis=(1,3))
+        return np.sqrt(sqd)
 
     def df_from_coltimes(self, coltimes, method=3):
         # coltimes_file = os.path.join(self.data_dir, 'coltimes.csv')
@@ -374,18 +408,19 @@ def combine_coltimes_csvs(run_dir, *args, **kwargs):
     first_file = next(csv_files)
     coltimes = pd.read_csv(first_file, index_col=0)
     coltimes['run_name'] = os.path.basename(os.path.dirname(first_file))
-    param_names, params = winput.read_file(os.path.join(os.path.dirname(first_file), 'input', 'input'))
-    for param in param_names:
-        coltimes[param] = params[param]
+    input_file = os.path.join(os.path.dirname(first_file), 'input', 'input')
+    parsed_input = ParsedInput(input_file)
+    for param in parsed_input.ordered_param_names:
+        coltimes[param] = parsed_input.params[param]
     coltimes.to_csv(os.path.join(run_dir, 'coltimes.csv'), index=False)
     # now append the remaining
     for csv_file in csv_files:
         coltimes = pd.read_csv(csv_file, index_col=0)
         coltimes['run_name'] = os.path.basename(os.path.dirname(csv_file))
-        param_names, params = winput.read_file(os.path.join(
-                os.path.dirname(csv_file), 'input', 'input'))
-        for param in param_names:
-            coltimes[param] = params[param]
+        input_file = os.path.join(os.path.dirname(first_file), 'input', 'input')
+        parsed_input = ParsedInput(input_file)
+        for param in parsed_input.ordered_param_names:
+            coltimes[param] = parsed_input.params[param]
         coltimes.to_csv(os.path.join(run_dir, 'coltimes.csv'),
                                         index=False, mode='a', header=False)
 

@@ -28,7 +28,7 @@ LHC 0.
 NB 51
 
 # Number of polymers - won't interact unless interaction code added
-NP 1
+NP 10
 
 # Total number of save points
 numSavePoints 100
