@@ -13,6 +13,8 @@ cache:
 
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - gfortran-5
       - binutils
