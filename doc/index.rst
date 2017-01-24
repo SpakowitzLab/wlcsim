@@ -7,7 +7,7 @@ Welcome to wlcsim's documentation!
 ==================================
 
 
-.. include:: ../README.rst
+.. include:: ../README.md
     :start-line: 3
 
 Contents:

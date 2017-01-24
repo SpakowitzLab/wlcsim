@@ -1,5 +1,6 @@
-WormLike Chain SIMulator
-========================
+# WormLike Chain SIMulator
+
+![Travis CI Build Status](https://travis-ci.org/brunobeltran/BasicWLC.svg?branch=master)
 
 This code is designed to efficiently simulate the wormlike chain polymer model
 using various coarse-grainings where applicable.
@@ -11,8 +12,7 @@ used.
 
 For *VERY* stretchable polymers, a purely Gaussian chain is used.
 
-To Run
-------
+## To Run
 
 Simply typing ``make`` in the top level directory will build the simulator
 from source. The executable created (``wlcsim.exe``) will use the parameters in
@@ -37,8 +37,7 @@ care of saving the current git commit\_hash, all inputs, etc. into a unique
 directory, and preventing race conditions even on shared filesystems, among
 other things.
 
-Disclaimer
-----------
+## Disclaimer
 
 This codebase is internal to the Spakowitz lab and is not guaranteed to be
 bug-free at any point. For battle-tested versions of our software, please see
