@@ -14,7 +14,9 @@ cache:
 addons:
   apt:
     packages:
-      - gfortran
+      - gfortran-5
+      - binutils
+      - build-essential
       - libopenmpi-dev
       - python-pip
 
@@ -42,5 +44,5 @@ before_install:
   # - pip install --upgrade pandas
 
 script:
-    - make clean && make FC='mpifort'
-    - make clean && make FC='gfortran'
+    - make clean && make FC='mpif90'
+    - make clean && make FC='gfortran-5'
