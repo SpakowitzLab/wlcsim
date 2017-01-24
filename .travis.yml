@@ -28,6 +28,8 @@ before_install:
 
 # trick mpi into using our custom gfortran install
 before_script:
+    - mkdir -p $HOME/.local/bin
+    - export PATH="$HOME/.local/bin:${PATH}"
     - ln -s `which gfortran-5` $HOME/.local/bin/gfortran
 
 script:
