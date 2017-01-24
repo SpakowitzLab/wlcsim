@@ -21,9 +21,14 @@ addons:
       - build-essential
       - libopenmpi-dev
       - python-pip
+      - liblapack-dev
 
 before_install:
-    git submodule update --init --recursive
+    - git submodule update --init --recursive
+
+# trick mpi into using our custom gfortran install
+before_script:
+    - ln -s `which gfortran-5` $HOME/.local/bin/gfortran
 
 # install:
   # - |
