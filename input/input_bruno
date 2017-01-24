@@ -1,9 +1,19 @@
 # ----------------------------------------------------
 # Example input file for polymer simulation package.
 # Used by Bruno for calculating collision time distributions.
+#
+# Comment lines must start with a ``#''.
+#
+# All other lines must be of the form
+# "paramName paramValue"
+# where paramValue is parsed directly into its target
+# datatype by Fortran, and so care must be taken to match
+# the expected input format for the relevant type. e.g. 5/2
+# will not work for 2.5. e.g. 3.0 will error if an int is
+# expected.
 
 # simulation type to use: 2 aka Bruno's aka BD
-codeName 2
+codeName bruno
 
 # Persistence length # of DNA in same units as L
 LP 1.0
@@ -11,8 +21,9 @@ LP 1.0
 # chain length, set length unit
 L 10.0
 
-# Box edge length - for MC box sizes
-LBOX 30.
+# Box edge length - for initialization MC box sizes
+# initialization using MC not currently tested.
+#LBOX 10.
 
 # Include polymer interactions? - space exlusion
 interpBeadLennardJones 0
@@ -28,7 +39,7 @@ LHC 0.
 NB 51
 
 # Number of polymers - won't interact unless interaction code added
-NP 1
+NP 10
 
 # Total number of save points
 numSavePoints 100
@@ -40,7 +51,7 @@ stepsPerSave 100
 DT 0.1
 
 # Load in the inital conf? - otherwise initialize using MC
-FRMFILE 0
+frmFile 0
 
 # number of MC steps to run starting in the configuration dictated by
 # initCondType before starting actual BD simulations.
@@ -48,14 +59,14 @@ FRMFILE 0
 # e.g. 40beads@rigid@2000poly => 4e6
 # Quinn has a there's a script to check if you're OK by comparing
 # end-to-end distribution with analytical results.
-nInitMCSteps    10000
+#nInitMCSteps    10000
 
 # l1 distance triggering a "collision" between beads
 collisionRadius        1
 
 # Algorithm for collision detection: 0) NONE 1) brute force, 2) k-d tree,
 # 3) Bruno's O(n) v1, 4) bin-based detection, recentering using center of mass
-collisionDetectionType        4
+collisionDetectionType        3
 
 # number of bins in each dimension to use in collision checker. only used if COL_TYPE == 4
 nColBin        5
@@ -66,4 +77,4 @@ saveR 1
 saveU 0
 
 # Whether to terminate simulation when all collisions finish
-exitWhenCollided 0
+exitWhenCollided 1

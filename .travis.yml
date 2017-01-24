@@ -30,26 +30,6 @@ before_install:
 before_script:
     - ln -s `which gfortran-5` $HOME/.local/bin/gfortran
 
-# install:
-  # - |
-  #   if [[ ! -d "$HOME/.local/bin" ]]; then
-  #     mkdir "$HOME/.local/bin"
-  #   fi
-  # - export PATH="$HOME/.local/bin:$PATH"
-  # - export FC=/usr/bin/gfortran-6
-  # - ln -fs /usr/bin/gfortran-6 "$HOME/.local/bin/gfortran" && gfortran --version
-  # - ls -l /usr/bin/gfortran-6
-  # - ln -fs /usr/bin/gcov-6 "$HOME/.local/bin/gcov" && gcov --version
-  # - |
-  #   if ! which f90split; then
-  #     wget http://people.sc.fsu.edu/~jburkardt/f_src/f90split/f90split.f90 && \
-  #     gfortran -o f90split f90split.f90 && \
-  #     mv f90split "$HOME/.local/bin/" && \
-  #     rm f90split.f90
-  #   fi
-  # - pip install --upgrade numpy
-  # - pip install --upgrade pandas
-
 script:
     - make clean && make FC='mpif90'
     - make clean && make FC='gfortran-5'
