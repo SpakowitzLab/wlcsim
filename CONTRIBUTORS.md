@@ -1,9 +1,22 @@
-Andrew Spakowitz  (wrote initial code for wlc)
-Bruno Beltran (wrote ...)
-Contact: brunobeltran0@gmail.com
-Shifan Mao (Improved MC setup)
+Andrew Spakowitz  (wrote initial code for wlc, PI overseeing code)
+ 
+Contact: ajspakow@stanford.edu
 
-Quinn MacPherson (Improved MC setup and MPI paralleization)  spring 2016
+Brad Krajina (wrote twist/ring-related MC code)
+
+Contact: bkrajina@stanford.edu
+
+Bruno Beltran (wrote fast collision detection, wlcsim module, merged
+changes made by Shifan, Quin, Brad and Andy)
+
+Contact: bbeltr1@stanford.edu
+
+Shifan Mao (improved MC setup)
+
+Contact: shifan@stanford.edu
+
+Quinn MacPherson (improved MC setup and MPI paralleization)
+
 Contact: qmac@stanford.edu
 
 

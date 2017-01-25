@@ -273,7 +273,7 @@ class Sim:
 
     def add_useful_cols_to_coltimes(self, coltimes):
         """Only works on coltimes that come from combine_coltimes_csvs."""
-        dr = self.params['L']/(self.params['N'] - 1)
+        dr = self.params['L']/(self.params['NB'] - 1)
         coltimes['linear_distance'] = dr*np.abs(coltimes['i'] - coltimes['j'])
 
 
@@ -289,9 +289,11 @@ class Scan:
     """Can tell you what dirs in a run_dir are simulation directories, and what
     all the input files said, and more. """
 
-    def __init__(self, run_dir, *args, **kwargs):
+    def __init__(self, run_dir, limit=None, *args, **kwargs):
         is_sim = lambda d: Scan.is_simdir(d, run_dir)
         self.sim_dirs = list(filter(is_sim, os.listdir(run_dir)))
+        if limit is not None:
+            self.sim_dirs = self.sim_dirs[:limit]
         prepend_path = lambda d: os.path.join(run_dir, d)
         self.sim_paths = list(map(prepend_path, self.sim_dirs))
         # self.wlcsim_data = [Sim(folder, *args, **kwargs) for folder in
@@ -333,16 +335,14 @@ class Scan:
     # into one big pandas df
     # def calculate_linear_distance(self):
         # # actual distance along polymer is dx*(number_separating)
-        # self.coltimes['dx'] = self.coltimes['L']/(self.coltimes['N'] - 1)
+        # self.coltimes['dx'] = self.coltimes['L']/(self.coltimes['NB'] - 1)
         # self.coltimes['linear_distance'] = self.coltimes['dx']*np.abs(self.coltimes['i'] - self.coltimes['j'])
     # def calculate_for_each_param(self, f):
         # """unimplemented"""
         # pass
 
 def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):
-    for folder in glob.glob(os.path.join(run_dir, '*.*')):
-        if not os.path.isdir(folder):
-            continue
+    for folder in Scan(run_dir).sim_paths:
         coltimes_file = os.path.join(folder, 'coltimes.csv')
         if not overwrite and os.path.isfile(coltimes_file):
             continue
@@ -361,9 +361,7 @@ def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):
             continue
 
 def write_initial_dists_csvs(run_dir, overwrite=True, *args, **kwargs):
-    for folder in glob.glob(os.path.join(run_dir, '*.*')):
-        if not os.path.isdir(folder):
-            continue
+    for folder in Scan(run_dir).sim_paths:
         dists_file = os.path.join(folder, 'initial_dists.csv')
         if not overwrite and os.path.isfile(dists_file):
             continue
@@ -382,9 +380,7 @@ def write_initial_dists_csvs(run_dir, overwrite=True, *args, **kwargs):
             continue
 
 def write_coltimes_pkls(run_dir, *args, **kwargs):
-    for folder in glob.glob(os.path.join(run_dir, '*.*')):
-        if not os.path.isdir(folder):
-            continue
+    for folder in Scan(run_dir).sim_paths:
         try:
             sim = Sim(folder, *args, **kwargs)
         except FileNotFoundError:
@@ -402,7 +398,15 @@ def write_coltimes_pkls(run_dir, *args, **kwargs):
 #     pkl_glob = os.path.join(run_dir, '*', 'coltimes.pkl')
 #     for coltimes_pkl in glob.glob(pkl_glob):
 
-def combine_coltimes_csvs(run_dir, *args, **kwargs):
+def combine_coltimes_csvs(run_dir, conditionals=[],
+                          outfile_name='coltimes.csv'):
+    """takes a directory that scan_wlcsim.py has output to and an optional list
+    of functions that takes a coltimes array and decides whether it may be
+    used, and an output location"""
+    #TODO: finish converting to following:
+    # csv_files = [os.path.join(folder, 'coltimes.csv')
+    #              for folder in Scan(run_dir).sim_paths]
+    # csv_files = [f for f in csv_files if os.path.isfile(f)]
     csv_glob = os.path.join(run_dir, '*', 'coltimes.csv')
     csv_files = iter(glob.glob(csv_glob))
     first_file = next(csv_files)
@@ -417,16 +421,27 @@ def combine_coltimes_csvs(run_dir, *args, **kwargs):
     for csv_file in csv_files:
         coltimes = pd.read_csv(csv_file, index_col=0)
         coltimes['run_name'] = os.path.basename(os.path.dirname(csv_file))
+        # throw away all coltimes that don't pass our conditional checks
+        keep_this_coltimes = True
+        for conditional in conditionals:
+            if not conditional(coltimes):
+                keep_this_coltimes = False
+                break
+        if not keep_this_coltimes:
+            continue
         input_file = os.path.join(os.path.dirname(first_file), 'input', 'input')
         parsed_input = ParsedInput(input_file)
         for param in parsed_input.ordered_param_names:
             coltimes[param] = parsed_input.params[param]
-        coltimes.to_csv(os.path.join(run_dir, 'coltimes.csv'),
-                                        index=False, mode='a', header=False)
+        coltimes.to_csv(os.path.join(run_dir, outfile_name),
+                                     index=False, mode='a', header=False)
+
+def combine_complete_coltime_csvs(run_dir):
+    combine_coltimes_csvs(run_dir, [], 'complete_coltimes.csv')
 
 def add_useful_cols_to_coltimes(coltimes):
     """Only works on coltimes that come from combine_coltimes_csvs."""
-    coltimes['dr'] = coltimes['L']/(coltimes['N'] - 1)
+    coltimes['dr'] = coltimes['L']/(coltimes['NB'] - 1)
     coltimes['linear_distance'] = coltimes['dr']*np.abs(coltimes['i'] - coltimes['j'])
 
 def combine_initial_dists_csvs(run_dir, *args, **kwargs):
@@ -446,7 +461,7 @@ def aggregate_r0_group_NP_L0(run_dir, overwrite=True, *args, **kwargs):
             logger.warning('aggregate_r0_group_NP_L0: Unable to construct sim from ' + folder)
             continue
         # #beads
-        N = sim.params['N']
+        N = sim.params['NB']
         # length in units of simulation
         L = sim.params['L']
         r0_agg_file = os.path.join(e2e_folder, 'r0_' + str(N) + '_' + str(L) + '.csv')

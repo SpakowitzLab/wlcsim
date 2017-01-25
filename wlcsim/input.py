@@ -18,8 +18,8 @@ class InputFormat(Enum):
     ORIGINAL=1
     LENA=2
 
-
-renamer = {'N': 'NB', 'INDMAX': 'NUMSAVEPOINTS'}
+renamer = {'COL_TYPE': 'COLLISIONDETECTIONTYPE', 'COLTYPE': 'COLLISIONDETECTIONTYPE', 'FPT_DIST': 'COLLISIONRADIUS',
+           'INTON': 'INTERPBEADLENNARDJONES', 'N': 'NB', 'INDMAX': 'NUMSAVEPOINTS'}
 
 def correct_param_name(name):
     """Takes messy param names from different generations of the simulator and
@@ -31,6 +31,26 @@ def correct_param_name(name):
     else:
         return renamer[name]
 
+def brown_to_codename(name, value):
+    new_name = 'CODENAME'
+    if int(value) == 1:
+        return (new_name, 'bruno')
+    else:
+        return (new_name, 'brad')
+# for each old param name that needs to go through correct_param_value, the
+# function that will convert its value. recall all "values" are strings at this
+# point
+revalueer = {'BROWN': brown_to_codename}
+
+def correct_param_value(name, value):
+    """Some old param names also have new types. This takes messy param names
+    from different generations of the simulator and converts their names and
+    values to their newest forms so that simulations from across different
+    years can be tabulated together."""
+    if name in revalueer:
+        return revalueer[name](name, value)
+    else:
+        return (name, value)
 
 class ParsedInput(object):
     """Knows how to handle various input file types used by wlcsim simulator
@@ -44,20 +64,29 @@ class ParsedInput(object):
 
     """
 
-    def __init__(self, input_file):
-        # if we get the sim dir or the input dir, resolve to the actual input file
-        if not os.path.isfile(input_file) and os.path.isdir(input_file):
-            input_file = os.path.join(input_file, 'input')
-        if not os.path.isfile(input_file) and os.path.isdir(input_file):
-            input_file = os.path.join(input_file, 'input')
-        self.ordered_param_names = []
+    def __init__(self, input_file=None, params=None):
+        """Can be constructed from an input file or from params directly. If an
+        input file is provided, params are just ignored if passed in."""
         self.params = {}
+        self.ordered_param_names = []
+        self.file_format = InputFormat.LENA
         self.input_file = input_file
-        self.decide_input_format()
-        self.parse_params_file()
+        if input_file is not None:
+            # if we get the sim dir or the input dir, resolve to the actual input file
+            if not os.path.isfile(input_file) and os.path.isdir(input_file):
+                input_file = os.path.join(input_file, 'input')
+            if not os.path.isfile(input_file) and os.path.isdir(input_file):
+                input_file = os.path.join(input_file, 'input')
+            self.decide_input_format()
+            self.parse_params_file()
+        elif params is not None:
+            for name, value in params.items():
+                self.append_param(name, value)
+        else:
+            Warning('ParsedInput: no params or input file provided!')
 
     def __repr__(self):
-        print(self.params)
+        return str(self.params)
 
     @property
     def ordered_param_values(self):
@@ -65,22 +94,23 @@ class ParsedInput(object):
 
     def append_param(self, name, value):
         name = correct_param_name(name)
+        name, value = correct_param_value(name, value)
         self.ordered_param_names.append(name)
-        self.params[name] = value
+        self.params.update({name: value})
 
-    def write(output_file_name):
+    def write(self, output_file_name):
         """ writes out a valid input file for wlcsim.exe given parameters
             in the format returned by read_file """
         with open(output_file_name, 'w') as f:
-            if self.file_format == formats.ORIGINAL:
+            if self.file_format == InputFormat.ORIGINAL:
                 # write the three garbage lines
                 f.write('!\n!\n\n')
-                for i,name in enumerate(ordered_param_names):
+                for i,name in enumerate(self.ordered_param_names):
                     f.write('!-Record ' + str(i) + '\n!  ' + name + '\n')
-                    f.write(str(params[name]) + '\n\n')
-            elif self.file_format == formats.LENA:
-                for _,name in enumerate(ordered_param_names):
-                    f.write(str(name) + ' ' + str(params[name]) + '\n')
+                    f.write(str(self.params[name]) + '\n\n')
+            elif self.file_format == InputFormat.LENA:
+                for name in self.ordered_param_names:
+                    f.write(str(name) + ' ' + str(self.params[name]) + '\n')
             else:
                 raise ValueError('wlcsim.input: attempt to print a ParsedInput'
                                  ' with unknown file_format.')

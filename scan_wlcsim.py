@@ -19,35 +19,27 @@ count_funcs = []
 # specify where simulations will be run and where output will go
 # you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
 # preserve your sanity
-run_name = 'increasing-chain-length-0.1_fpt_dist'
+run_name = '1000-bead-runs-full-colradius-2x-lp'
 output_base = 'par-run-dir'
 
 # the following uses numpy to create arrays of parameters
 # (http://docs.scipy.org/doc/numpy/reference/routines.array-creation.html)
 # don't forget to specify dtype=np.int32 if you need integers!
 
-# to vary parameters combinatorially, list all the values for all parameters
-# you want like this, all combinations will be exected automatically
-params['FPT_DIST'] = np.array([0.1])
-params['DT'] = np.array([0.5])
-# 2 bead chains basically never loop since no bend
-# similarly, < 1 bead per persistence length seems to give silly answers
-# similarly, < 2 bead per persistence length quantitatively incorrect answers
-params['TF'] = np.array([10000000]) # max sim time
-params['INDMAX'] = np.array([10000]) # max num saves (determines save freq)
-params['SAVE_RU'] = np.array([0])
-params['EXIT_WHEN_COLLIDED'] = np.array([1])
-# to vary parameters jointly, make dictionaries with values of matching size
-# like this. see pscan.py for more details.
-jparam = {}
-jparam['L'] = np.linspace(10, 100, 10, dtype=np.int32)
-jparam['N'] = np.linspace(20, 200, 10, dtype=np.int32) + 1
-jparams.append(jparam)
+# # to vary parameters combinatorially, list all the values for all parameters
+# # you want like this, all combinations will be exected automatically
+# params['DT'] = np.array([0.1, 1.0, 2.0])
+# params['collisionRadius'] = np.array([0.1, 1.0, 2.0])
+# # to vary parameters jointly, make dictionaries with values of matching size
+# # like this. see pscan.py for more details.
+# jparam['L'] = np.linspace(10, 100, 10, dtype=np.int32)
+# jparam['N'] = np.linspace(20, 200, 10, dtype=np.int32) + 1
+# jparams.append(jparam)
 
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 10
+default_repeats_per_param = 100
 count_funcs.append(lambda p: default_repeats_per_param)
 #count_funcs.append(lambda p: max(1,int(default_repeats_per_param/50)) if p['DT'] < 0.1 else None)
 
@@ -61,8 +53,15 @@ os.chdir(script_dir)
 
 # read in parameter names and "default" values
 # from files in Andy's input format
-input_file = os.path.join(script_dir, 'input', 'input')
-ordered_param_names, simulation_params = wlcsim.input.read_file(input_file)
+params_file = os.path.join('input', 'input')
+input_file = os.path.join(script_dir, params_file)
+parsed_input = wlcsim.input.ParsedInput(input_file)
+ordered_param_names = parsed_input.ordered_param_names
+# update params dict with the values requested by the user
+# remembering that everything must be in allcaps, and that pscan wants a list
+# of params
+simulation_params = {name.upper(): [value] for name, value in
+                     parsed_input.params.items()}
 simulation_params.update(params)
 scan = pscan.Scan(simulation_params)
 for jparam in jparams:
@@ -96,8 +95,11 @@ def run_wlcsim(params):
     # make empty output directory
     os.mkdir(os.path.join(run_dir, 'data'))
     os.chdir(run_dir)
-    # make input file from parameters provided
-    wlcsim.input.write_file('input/input', ordered_param_names, params)
+    # save parameter defaults used for the run
+    defaults_file = os.path.join('input', 'input.defaults')
+    shutil.copyfile(params_file, defaults_file)
+    # make new input file from parameters provided
+    wlcsim.input.ParsedInput(params=params).write(params_file)
     # now we're in the right directory, with input and output ready, go ahead
     # and run the simulation
     with open('./data/wlcsim.log', 'w') as f:
@@ -109,6 +111,12 @@ if __name__ == '__main__':
     p = multiprocessing.Pool(num_cores)
     script_name = os.path.basename(__file__)
     print(script_name + ': Running scan!')
+    # # non-parallel version for testing
+    # for params in scan.params():
+    #     run_wlcsim(params)
+    #     print(script_name + ": " + datetime.datetime.now().isoformat()
+    #           + ": completed run with params: " + str(params))
+    # parallel version
     for params in p.imap_unordered(run_wlcsim, scan.params(), chunksize=1):
         print(script_name + ": " + datetime.datetime.now().isoformat()
               + ": completed run with params: " + str(params))
