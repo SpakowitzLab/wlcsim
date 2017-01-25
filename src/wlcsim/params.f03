@@ -980,9 +980,13 @@ contains
             allocate(wlc_d%RP(NT,3))
             allocate(wlc_d%UP(NT,3))
         endif
-!        if (wlc_p%codeName == 'quinn') then
-            allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
-            allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+        !TODO these should in principle be inside the following if statement,
+        !but it's not clear if that's possible without adding a bunch of dirty
+        !if statements deep inside mc_move. which is fine, but I would want to
+        !check with quinn *exactly* in which cases they're needed if i do that
+        allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
+        allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
             allocate(wlc_d%PHIA(NBIN))
             allocate(wlc_d%PHIB(NBIN))
             allocate(wlc_d%DPHIA(NBIN))
@@ -995,7 +999,7 @@ contains
                 wlc_d%PHIA(I)=0.0_dp
                 wlc_d%PHIB(I)=0.0_dp
             enddo
- !       endif
+        endif
         !Allocate vector of writhe and elastic energies for replicas
         if (wlc_p%pt_twist) then
             allocate(wlc_d%Wrs(wlc_d%nLKs))
@@ -1059,18 +1063,21 @@ contains
 
         call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
 
-        call initcond(wlc_d%R, wlc_d%U, wlc_d%AB, wlc_p%NT, wlc_p%NB, &
+        call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat)
 
-        ! calculate volumes of bins
-        if (wlc_p%confineType.eq.3) then
-            call MC_calcVolume(wlc_p%confinetype, wlc_p%NBINX, wlc_p%dBin, &
-                               wlc_p%LBox(1), wlc_d%Vol,wlc_d%rand_stat)
-        else
-            do I=1,NBIN
-                wlc_d%Vol(I)=wlc_p%dBin**3
-            enddo
+        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
+            call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            ! calculate volumes of bins
+            if (wlc_p%confineType.eq.3) then
+                call MC_calcVolume(wlc_p%confinetype, wlc_p%NBINX, wlc_p%dBin, &
+                                wlc_p%LBox(1), wlc_d%Vol, wlc_d%rand_stat)
+            else
+                do I=1,NBIN
+                    wlc_d%Vol(I)=wlc_p%dBin**3
+                enddo
+            endif
         endif
 
 
@@ -1225,9 +1232,20 @@ contains
         wlc_p%MOVEON(4)=1  ! rotate move
         wlc_p%MOVEON(5)=1  ! full chain rotation
         wlc_p%MOVEON(6)=1  ! full chain slide
-        wlc_p%MOVEON(7)=1  ! Change in Binding state
+        ! if we're not using field interactions or direct binding interaction
+        ! energies, then this should never be on
+        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
+            wlc_p%MOVEON(7)=1  ! Change in Binding state
+        else
+            wlc_p%MOVEON(7)=0
+        endif
         wlc_p%MOVEON(8)=0  ! Chain flip ! TODO not working
-        wlc_p%MOVEON(9)=1  ! Chain exchange
+        ! if number of polymers is 1, this should never be on
+        if (wlc_p%np < 2) then
+            wlc_p%moveon(9) = 0
+        else
+            wlc_p%MOVEON(9)=1  ! Chain exchange
+        endif
         wlc_p%MOVEON(10)=1 ! Reptation
         if (wlc_p%codeName == 'quinn') then
             !switches to turn on various types of moves

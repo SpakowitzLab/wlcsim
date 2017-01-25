@@ -89,9 +89,9 @@ SUBROUTINE MCsim(mc,md,NSTEP)
           endif
           call MC_move(md%R,md%U,md%RP,md%UP,mc%NT,mc%NB,mc%NP, &
                        IP,IB1,IB2,IT1,IT2,MCTYPE, &
-                       md%MCAMP,md%WINDOW,md%AB,md%ABP,mc%nBpM,&
+                       md%MCAMP,md%WINDOW,mc%nBpM,&
                        rand_stat, mc%winType,IT3,IT4,forward,dib,mc%ring, &
-                       mc%INTERP_BEAD_LENNARD_JONES)
+                       mc%INTERP_BEAD_LENNARD_JONES,md)
 
         IF (mc%RING) THEN
            md%CrossP=md%Cross

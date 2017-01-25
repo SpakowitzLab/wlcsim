@@ -9,7 +9,7 @@
 !
 !     Updated by Quinn in 2016
 !
-SUBROUTINE initcond(R,U,AB,NT,NB,NP,FRMFILE,PARA,LBOX, &
+SUBROUTINE initcond(R,U,NT,NB,NP,FRMFILE,PARA,LBOX, &
                     setType,rand_stat,ring)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
@@ -22,7 +22,6 @@ logical ring
 INTEGER NB,NP,NT           ! Number of beads
 DOUBLE PRECISION R(NT,3)  ! Bead positions
 DOUBLE PRECISION U(NT,3)  ! Tangent vectors
-INTEGER AB(NT)            ! Chemical identity of beads
 DOUBLE PRECISION GAM      ! Equil bead separation
 DOUBLE PRECISION LBOX(3)  ! Box edge length
 INTEGER I,J,IB            ! Index Holders
@@ -57,7 +56,7 @@ GAM=PARA(4)
 if (FRMFILE)then
    OPEN (UNIT = 5, FILE = 'input/r0', STATUS = 'OLD')
    Do I=1,NT
-      READ(5,*) R(I,1),R(I,2),R(I,3),AB(I)
+      READ(5,*) R(I,1),R(I,2),R(I,3)
    enddo
    CLOSE(5)
 

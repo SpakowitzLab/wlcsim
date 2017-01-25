@@ -25,7 +25,6 @@ program main
     ! CLI argument variables
     type(command_line_interface) :: cli
     character(MAXFILENAMELEN)    :: infile
-    character(MAXFILENAMELEN)    :: paramsFileName
     character(MAXFILENAMELEN)    :: outfile
     integer                      :: err
 

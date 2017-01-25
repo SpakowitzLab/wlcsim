@@ -5,15 +5,21 @@
 !    Quinn Made Changes to this file starting on 12/15/15
 !
 !---------------------------------------------------------------
+
+! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
+! please move other variables in as you see fit
 SUBROUTINE MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
-                  ,MCAMP,WINDOW,AB,ABP,BPM,rand_stat,winType &
-                  ,IT3,IT4,forward,dib,ring,INTERP_BEAD_LENNARD_JONES)
+                  ,MCAMP,WINDOW,BPM,rand_stat,winType &
+                  ,IT3,IT4,forward,dib,ring,INTERP_BEAD_LENNARD_JONES &
+                  ,md)
 
 use mersenne_twister
-use params, only: dp, pi
+use params, only: dp, pi, wlcsim_data
 
 IMPLICIT NONE
 
+!type(wlcsim_params), intent(in) :: mc
+type(wlcsim_data), intent(inout) :: md
 INTEGER, intent(in) :: NB     ! Number of beads on a polymer
 INTEGER, intent(in) :: NP     ! Number of polymers
 INTEGER, intent(in) :: NT     ! Total beads in simulation
@@ -60,8 +66,6 @@ DOUBLE PRECISION DR(3)    ! Displacement for slide move
 INTEGER TEMP
 
 ! Variables for change of binding state move
-INTEGER, intent(in) :: AB(NT)            ! Chemical (binding) state
-INTEGER, intent(out) :: ABP(NT)          ! Underlying (methalation) state
 Double precision d1,d2  !for testing
 
 ! variables for reptation move
@@ -386,7 +390,7 @@ elseif (MCTYPE.EQ.3) then
       UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
       UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
       UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
-      ABP(I)=AB(I)
+      md%ABP(I)=md%AB(I)
    enddo
 
 !     Perform rotate move (MCTYPE 4)
@@ -431,7 +435,7 @@ elseif (MCTYPE.EQ.4) then
    RP(I,1)=R(I,1)
    RP(I,2)=R(I,2)
    RP(I,3)=R(I,3)
-   ABP(I)=AB(I)
+   md%ABP(I)=md%AB(I)
 
 !     Perform a full chain rotation
 
@@ -484,7 +488,7 @@ elseif (MCTYPE.EQ.5) then
        UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
        UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
        UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
-       ABP(I)=AB(I)
+       md%ABP(I)=md%AB(I)
     enddo
 
 !     Perform full chain slide move (MCTYPE 6)
@@ -509,11 +513,11 @@ elseif (MCTYPE.EQ.6) then
       UP(I,1)=U(I,1)
       UP(I,2)=U(I,2)
       UP(I,3)=U(I,3)
-      ABP(I)=AB(I)
+      md%ABP(I)=md%AB(I)
    enddo
 
 elseif (MCTYPE.EQ.7) then
-   ! Change AB (a.k.a HP1 binding type fore section of polymer)
+   ! Change md%AB (a.k.a HP1 binding type fore section of polymer)
    ! Move amplitude is ignored for this move type
 
    call random_number(urand,rand_stat)
@@ -543,7 +547,7 @@ elseif (MCTYPE.EQ.7) then
    IT2=IT2-MOD(IT2-1,BPM)+BPM-1
 
    DO J=IT1,IT2
-       ABP(J)=1-AB(J)
+       md%ABP(J)=1-md%AB(J)
    ENDDO
 
    !This loop may not be necessary
@@ -571,7 +575,7 @@ elseif (MCTYPE.EQ.8) then
       UP(IT1+I,1)=-U(IT2-I,1)
       UP(IT1+I,2)=-U(IT2-I,2)
       UP(IT1+I,3)=-U(IT2-I,3)
-      ABP(IT1+I)=AB(IT1+I)
+      md%ABP(IT1+I)=md%AB(IT1+I)
    ENDDO
 ! switch two chains
 elseif(MCTYPE.EQ.9) then
@@ -597,14 +601,14 @@ elseif(MCTYPE.EQ.9) then
       UP(IT1+I,1)=U(IT3+I,1)
       UP(IT1+I,2)=U(IT3+I,2)
       UP(IT1+I,3)=U(IT3+I,3)
-      ABP(IT1+I)=AB(IT1+I)
+      md%ABP(IT1+I)=md%AB(IT1+I)
       RP(IT3+I,1)=R(IT1+I,1)
       RP(IT3+I,2)=R(IT1+I,2)
       RP(IT3+I,3)=R(IT1+I,3)
       UP(IT3+I,1)=U(IT1+I,1)
       UP(IT3+I,2)=U(IT1+I,2)
       UP(IT3+I,3)=U(IT1+I,3)
-      ABP(IT3+I)=AB(IT3+I)
+      md%ABP(IT3+I)=md%AB(IT3+I)
    ENDDO
    IB1=-2000000
    IB2=-2000000
@@ -730,7 +734,7 @@ elseif(MCTYPE.EQ.10) then
         enddo
     endif
     DO J=IT1,IT2
-        ABP(J)=1-AB(J)
+        md%ABP(J)=1-md%AB(J)
     ENDDO
 endif
 
