@@ -164,7 +164,9 @@ module params
         logical restart     ! whether we are restarting from a previous sim or not
         logical INTERP_BEAD_LENNARD_JONES ! whether to have inter bead lennard jones energies
         logical field_int_on ! include field interactions (e.g. A/B interactions)
-        logical bind_On
+                             ! uses many of the same functions as the chemical
+                             ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
+        logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
 
     !   parallel Tempering parameters
         character(MAXFILENAMELEN) repSuffix    ! prefix for writing files
@@ -984,9 +986,9 @@ contains
         !but it's not clear if that's possible without adding a bunch of dirty
         !if statements deep inside mc_move. which is fine, but I would want to
         !check with quinn *exactly* in which cases they're needed if i do that
-        allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
-        allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
-        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
+        if (wlc_p%field_int_on) then
+            allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
+            allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
             allocate(wlc_d%PHIA(NBIN))
             allocate(wlc_d%PHIB(NBIN))
             allocate(wlc_d%DPHIA(NBIN))
@@ -994,11 +996,13 @@ contains
             allocate(wlc_d%indPHI(NBIN))
             allocate(wlc_d%PhiH(NBIN))
             allocate(wlc_d%Vol(NBIN))
-            allocate(wlc_d%METH(NT)) !Underlying methalation profile
             do I=1,NBIN
                 wlc_d%PHIA(I)=0.0_dp
                 wlc_d%PHIB(I)=0.0_dp
             enddo
+        endif
+        if (wlc_p%bind_on) then
+            allocate(wlc_d%METH(NT)) !Underlying methalation profile
         endif
         !Allocate vector of writhe and elastic energies for replicas
         if (wlc_p%pt_twist) then
@@ -1067,7 +1071,7 @@ contains
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat)
 
-        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
+        if (wlc_p%field_int_on) then
             call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
             ! calculate volumes of bins
             if (wlc_p%confineType.eq.3) then
@@ -1080,6 +1084,9 @@ contains
             endif
         endif
 
+        if (wlc_p%bind_on) then
+            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+        endif
 
         ! initialize energies
 !        call CalculateEnergiesFromScratch(wlc_p,wlc_d)
@@ -1232,9 +1239,9 @@ contains
         wlc_p%MOVEON(4)=1  ! rotate move
         wlc_p%MOVEON(5)=1  ! full chain rotation
         wlc_p%MOVEON(6)=1  ! full chain slide
-        ! if we're not using field interactions or direct binding interaction
+        ! if we're not using field interactions
         ! energies, then this should never be on
-        if (wlc_p%field_int_on .or. wlc_p%bind_on) then
+        if (wlc_p%field_int_on) then
             wlc_p%MOVEON(7)=1  ! Change in Binding state
         else
             wlc_p%MOVEON(7)=0

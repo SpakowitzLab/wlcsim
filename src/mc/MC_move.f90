@@ -390,7 +390,6 @@ elseif (MCTYPE.EQ.3) then
       UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
       UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
       UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
-      md%ABP(I)=md%AB(I)
    enddo
 
 !     Perform rotate move (MCTYPE 4)
@@ -435,7 +434,6 @@ elseif (MCTYPE.EQ.4) then
    RP(I,1)=R(I,1)
    RP(I,2)=R(I,2)
    RP(I,3)=R(I,3)
-   md%ABP(I)=md%AB(I)
 
 !     Perform a full chain rotation
 
@@ -488,7 +486,6 @@ elseif (MCTYPE.EQ.5) then
        UP(I,1)=ROT(1,1)*U(I,1)+ROT(1,2)*U(I,2)+ROT(1,3)*U(I,3)
        UP(I,2)=ROT(2,1)*U(I,1)+ROT(2,2)*U(I,2)+ROT(2,3)*U(I,3)
        UP(I,3)=ROT(3,1)*U(I,1)+ROT(3,2)*U(I,2)+ROT(3,3)*U(I,3)
-       md%ABP(I)=md%AB(I)
     enddo
 
 !     Perform full chain slide move (MCTYPE 6)
@@ -513,7 +510,6 @@ elseif (MCTYPE.EQ.6) then
       UP(I,1)=U(I,1)
       UP(I,2)=U(I,2)
       UP(I,3)=U(I,3)
-      md%ABP(I)=md%AB(I)
    enddo
 
 elseif (MCTYPE.EQ.7) then
@@ -575,7 +571,6 @@ elseif (MCTYPE.EQ.8) then
       UP(IT1+I,1)=-U(IT2-I,1)
       UP(IT1+I,2)=-U(IT2-I,2)
       UP(IT1+I,3)=-U(IT2-I,3)
-      md%ABP(IT1+I)=md%AB(IT1+I)
    ENDDO
 ! switch two chains
 elseif(MCTYPE.EQ.9) then
@@ -601,14 +596,12 @@ elseif(MCTYPE.EQ.9) then
       UP(IT1+I,1)=U(IT3+I,1)
       UP(IT1+I,2)=U(IT3+I,2)
       UP(IT1+I,3)=U(IT3+I,3)
-      md%ABP(IT1+I)=md%AB(IT1+I)
       RP(IT3+I,1)=R(IT1+I,1)
       RP(IT3+I,2)=R(IT1+I,2)
       RP(IT3+I,3)=R(IT1+I,3)
       UP(IT3+I,1)=U(IT1+I,1)
       UP(IT3+I,2)=U(IT1+I,2)
       UP(IT3+I,3)=U(IT1+I,3)
-      md%ABP(IT3+I)=md%AB(IT3+I)
    ENDDO
    IB1=-2000000
    IB2=-2000000
@@ -733,9 +726,6 @@ elseif(MCTYPE.EQ.10) then
            UP(I,3)=U(I-1,3)
         enddo
     endif
-    DO J=IT1,IT2
-        md%ABP(J)=1-md%AB(J)
-    ENDDO
 endif
 
 RETURN
