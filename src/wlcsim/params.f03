@@ -932,7 +932,7 @@ contains
     end subroutine
 
 
-    subroutine get_input_from_file(infile, wlc_p, wlc_d)
+    subroutine get_input_from_file(infile, wlc_d, wlc_p)
         ! Based on Elena's readkeys subroutine
         IMPLICIT NONE
         type(wlcsim_params), intent(out) :: wlc_p
@@ -1204,6 +1204,7 @@ contains
         IMPLICIT NONE
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
+        real(dp) :: default_window
 
         if (wlc_p%dbin /= wlc_p%dbin) then
             ! discretizing at 1 persistence length seems to be a reasonable default
@@ -1269,15 +1270,18 @@ contains
         endif
 
         !     Initial segment window for wlc_p moves
-        wlc_d%Window(1)=15.0_dp ! used to be N*G
-        wlc_d%Window(2)=15.0_dp ! used to be N*G
-        wlc_d%Window(3)=15.0_dp ! used to be N*G
-        wlc_d%Window(4)=1.0_dp
-        wlc_d%Window(5)=dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(6)=dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(7)=15.0_dp ! used to be N*G
-        wlc_d%Window(8)=dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(9)=dble(wlc_p%nMpP*wlc_p%nBpM)
+        default_window = wlc_p%nB
+        default_window = max(default_window, 1.0_dp*wlc_p%nMpP*wlc_p%nBpM)
+        default_window = default_window/5.0_dp
+        wlc_d%Window(1)=default_window ! 15.0_dp ! used to be N*G
+        wlc_d%Window(2)=default_window ! 15.0_dp ! used to be N*G
+        wlc_d%Window(3)=default_window ! 15.0_dp ! used to be N*G
+        wlc_d%Window(4)=default_window ! 1.0_dp
+        wlc_d%Window(5)=default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%Window(6)=default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%Window(7)=default_window ! 15.0_dp ! used to be N*G
+        wlc_d%Window(8)=default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
+        wlc_d%Window(9)=default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
         wlc_d%Window(9)=1.0_dp
 
         !    Maximum window size (large windows are expensive)
@@ -1938,6 +1942,7 @@ contains
         inf = ieee_value(inf, ieee_positive_inf)
         nan = ieee_value(nan, ieee_quiet_nan)
     end subroutine
+
     !Get Lks for parallel tempering from file
     subroutine get_LKs_from_file(wlc_d)
     type(wlcsim_data), intent(inout) :: wlc_d

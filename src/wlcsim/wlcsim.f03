@@ -61,7 +61,7 @@ program main
     call init_MPI(wlc_d)
 #endif
 
-    call get_input_from_file(infile, wlc_p, wlc_d)
+    call get_input_from_file(infile, wlc_d, wlc_p)
 
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
