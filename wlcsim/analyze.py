@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import glob
 import numpy as np
+import itertools
 
 logger = logging.getLogger(__name__)
 
@@ -129,3 +130,71 @@ def get_com_msd(run_dir):
         print('Progress: {:2.1%}'.format(float(i)/num_sims), end='\r')
     msd_com = msd_com/len(sim_dirs)
     return msd_com
+
+def fraction_collided_from_csv(csv_file):
+    with open(csv_file) as f:
+        # first establish the correct column identities
+        column_names = next(f).rstrip().split(',')
+        col_i = None
+        i_i = None
+        j_i = None
+        nb_i = None
+        for i,name in enumerate(column_names):
+            if name.upper() == 'COLTIME':
+                col_i = i
+            elif name.upper() == 'I':
+                i_i = i
+            elif name.upper() == 'J':
+                j_i = i
+            elif name.upper() == 'NB' or name.upper() == 'N':
+                nb_i = i
+        if col_i is None or i_i is None or j_i is None or nb_i is None:
+            raise ValueError(csv_file + "does not contain coltime,i,j,nb columns.")
+        # peek at first line to get number of beads per polymer
+        try:
+            data = next(f).rstrip().split(',')
+        except StopIteration:
+            raise ValueError(csv_file + "has no data")
+        nB = int(data[nb_i])
+        num_uncollided = np.zeros((nB))
+        num_precollided = np.zeros((nB))
+        num_total = np.zeros((nB))
+        # loop and a half, since we peeked the first line
+        coltime = float(data[col_i])
+        i = int(round(float(data[i_i])))
+        j = int(round(float(data[j_i])))
+        linear_distance = i - j
+        num_total[linear_distance] += 1
+        if coltime == 0.0:
+            num_precollided[linear_distance] += 1
+        elif coltime < 0.0:
+            num_uncollided[linear_distance] += 1
+        for line in f:
+            data = line.rstrip().split(',')
+            coltime = float(data[col_i])
+            i = int(round(float(data[i_i])))
+            j = int(round(float(data[j_i])))
+            linear_distance = i - j
+            num_total[linear_distance] += 1
+            if coltime == 0.0:
+                num_precollided[linear_distance] += 1
+            elif coltime < 0.0:
+                num_uncollided[linear_distance] += 1
+    return num_uncollided, num_precollided, num_total
+
+def get_coltimes_by_pos(scan_dir, linear_distance):
+    """Get all coltimes that happened at a fixed linear distance as a
+    function of their position on the polymer"""
+    scan = wdata.Scan(scan_dir)
+    c_fixed_dist = pd.DataFrame(columns=['coltime', 'i', 'j',
+                                'linear_distance'])
+    for sim_dir in scan.sim_dirs:
+        s = wdata.Sim(os.path.join(scan.scan_dir, sim_dir))
+        try:
+            c = s.coltimes
+        except FileNotFoundError:
+            continue
+        c_fixed_dist = c_fixed_dist.append(
+            c.loc[c['linear_distance'] == linear_distance]
+        )
+    return c_fixed_dist

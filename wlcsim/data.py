@@ -135,6 +135,7 @@ class Sim:
         self._rfile_base = os.path.join(self.data_dir, 'r')
         self._ufile_base = os.path.join(self.data_dir, 'u')
         self.load_method = load_method
+        self._has_loaded_r = False
 
     @cached_property
     def parsed_input(self):
@@ -149,25 +150,47 @@ class Sim:
 
     @cached_property
     def r0(self):
-        """ Numpy array of positions of each particle at each time point. """
+        """ Numpy array of positions of each particle pre-first time point. """
         rfile_name = self._rfile_base + str(0)
-        num_beads = self.params['NB']
-        num_polymers = self.params['NP']
         r0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-        return r0.values.reshape((3, num_polymers, num_beads))
+        return r0.values.reshape((3, self.num_polymers, self.num_beads))
+
+    @cached_property
+    def rend(self):
+        """ Numpy array of positions of each particle pre-first time point. """
+        last_saved_ti = np.max(self.rtime_idxs)
+        rfile_name = self._rfile_base + str(last_saved_ti)
+        rend = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
+        return rend
+
+    @property
+    def rend2end(self):
+        rend2end = np.empty((self.num_time_points, 3, self.num_polymers))
+        rend2end[:] = np.nan
+        for ti in self.rtime_idxs:
+            rfile_name = self._rfile_base + str(ti)
+            with open(rfile_name, 'r') as f:
+                first_line = f.readline().rstrip()
+                line_len = len(first_line)
+                r1 = np.array([float(rij) for rij in first_line.split()])
+                f.seek(-line_len*2, os.SEEK_END)
+                last_line = f.readlines()[-1].rstrip()
+                rN = np.array([float(rij) for rij in last_line.split()])
+                rend2end[ti] = rN - r1
+        # return self.r[:,:,:,-1] - self.r[:,:,:,0]
+        return rend2end
 
     @cached_property
     def u0(self):
         """ Numpy array of positions of each particle at each time point. """
         ufile_name = self._ufile_base + str(0)
-        num_beads = self.params['NB']
-        num_polymers = self.params['NP']
         u0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-        return u0.values.reshape((3, num_polymers, num_beads))
+        return u0.values.reshape((3, self.num_polymers, self.num_beads))
 
     @cached_property
     def r(self):
         """ Numpy array of positions of each particle at each time point. """
+        #TODO make only load saved time points
         r = np.full((self.num_time_points, 3, self.num_polymers,
                      self.num_beads), np.nan)
         for i in range(self.num_time_points):
@@ -178,6 +201,7 @@ class Sim:
                 continue
             r[i,:,:,:] = ri.values.T.reshape((1, 3, self.num_polymers,
                                             self.num_beads))
+        self._has_loaded_r = True
         return r
 
     @cached_property
@@ -215,16 +239,17 @@ class Sim:
     @cached_property
     def rtime_idxs(self):
         rfiles = glob.glob(self._rfile_base + '*')
-        return self.time_idxs(self._rfile_base, rfiles)
+        return self._time_idxs(self._rfile_base, rfiles)
 
     @cached_property
     def utime_idxs(self):
         ufiles = glob.glob(self._ufile_base + '*')
-        return self.time_idxs(self._ufile_base, ufiles)
+        return self._time_idxs(self._ufile_base, ufiles)
 
-    def time_idxs(self, base, file_names):
+    def _time_idxs(self, base, file_names):
         number_from_filename = re.compile(re.escape(base) + '([0-9]+)')
-        return np.array([re.search(number_from_filename, file_name).groups()[0]
+        return np.array([int(re.search(number_from_filename,
+                                       file_name).groups()[0])
                          for file_name in file_names])
 
     @cached_property
@@ -251,6 +276,36 @@ class Sim:
                      axis=(1,3))
         return np.sqrt(sqd)
 
+    # the properties of coltimes are all coded as a function of the linear
+    # distance between the beads of interest, as opposed to as a function of
+    # their absolute location, although that may not be super good?
+    @property
+    def fraction_collided(self):
+        return 1.0 - self.fraction_uncollided
+
+    @property
+    def fraction_uncollided(self):
+        return np.array([float(self.num_uncollided[i])/float(self.num_possible[i])
+                         for i in range(length(self.num_possible))])
+
+    @property
+    def num_uncollided(self):
+        c = self.coltimes
+        distances = c['linear_distance'].unique()
+        return np.array([sum(pd.isnull(c.loc[c['linear_distance'] == i, 'coltime']))
+                         for i in distances])
+
+    @property
+    def num_collided(self):
+        return self.num_possible - self.num_uncollided
+
+    @property
+    def num_possible(self):
+        c = self.coltimes
+        distances = c['linear_distance'].unique()
+        return np.array([len(c.loc[c['linear_distance'] == i, 'coltime'])
+                         for i in distances])
+
     def df_from_coltimes(self, coltimes, method=3):
         # coltimes_file = os.path.join(self.data_dir, 'coltimes.csv')
         # if os.path.isfile(coltimes_file) and not self.overwrite_coltimes:
@@ -269,7 +324,6 @@ class Sim:
         self.add_useful_cols_to_coltimes(coltimes)
         # coltimes.to_csv(coltimes_file)
         return coltimes
-
 
     def add_useful_cols_to_coltimes(self, coltimes):
         """Only works on coltimes that come from combine_coltimes_csvs."""
@@ -292,6 +346,7 @@ class Scan:
     def __init__(self, run_dir, limit=None, *args, **kwargs):
         is_sim = lambda d: Scan.is_simdir(d, run_dir)
         self.sim_dirs = list(filter(is_sim, os.listdir(run_dir)))
+        self.path = run_dir
         if limit is not None:
             self.sim_dirs = self.sim_dirs[:limit]
         prepend_path = lambda d: os.path.join(run_dir, d)
@@ -331,6 +386,14 @@ class Scan:
     def all_param_values(self):
         return {col: self.inputs[col].unique() for col in self.inputs.columns}
 
+    @property
+    def run_dir(self):
+        return self.path
+
+    @property
+    def scan_dir(self):
+        return self.path
+
     # from back when we used this class to combine coltimes's from a scan
     # into one big pandas df
     # def calculate_linear_distance(self):
@@ -340,6 +403,19 @@ class Scan:
     # def calculate_for_each_param(self, f):
         # """unimplemented"""
         # pass
+
+    @property
+    def rend2end(self):
+        """Last time point for each simulation as pandas array"""
+        example_sim = self.sims[0]
+        rend2end = np.empty([len(self.sims), example_sim.num_time_points,
+                             3, example_sim.num_polymers])
+        rend2end[:] = np.nan
+        for i,sim in enumerate(self.sims):
+            print(i)
+            rend2end[i,:,:,:] = sim.rend2end
+        return rend2end
+
 
 def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):
     for folder in Scan(run_dir).sim_paths:
@@ -412,6 +488,8 @@ def combine_coltimes_csvs(run_dir, conditionals=[],
     first_file = next(csv_files)
     coltimes = pd.read_csv(first_file, index_col=0)
     coltimes['run_name'] = os.path.basename(os.path.dirname(first_file))
+    # loop and a half. create file uncoditinoally on pre-first iteration so
+    # that we can append from then on
     input_file = os.path.join(os.path.dirname(first_file), 'input', 'input')
     parsed_input = ParsedInput(input_file)
     for param in parsed_input.ordered_param_names:
@@ -419,6 +497,7 @@ def combine_coltimes_csvs(run_dir, conditionals=[],
     coltimes.to_csv(os.path.join(run_dir, 'coltimes.csv'), index=False)
     # now append the remaining
     for csv_file in csv_files:
+        print(csv_file)
         coltimes = pd.read_csv(csv_file, index_col=0)
         coltimes['run_name'] = os.path.basename(os.path.dirname(csv_file))
         # throw away all coltimes that don't pass our conditional checks
