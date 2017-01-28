@@ -17,3 +17,9 @@ __pycache__
 *.pyc
 *.egg-info
 doc/_build
+*.lof
+*.log
+*.lot
+*.toc
+*.out
+*.aux
