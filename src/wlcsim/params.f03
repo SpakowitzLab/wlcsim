@@ -884,7 +884,7 @@ contains
               err = wlc_p%confinetype.ne.4
               call stop_if_err(err, "Unequal boundaries require confinetype=4")
               err = wlc_p%initCondType.eq.4
-              call stop_if_err(err, "You shouldn't put a shpere in and unequal box!")
+              call stop_if_err(err, "You shouldn't put a sphere in and unequal box!")
            endif
 
            err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
