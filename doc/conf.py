@@ -352,5 +352,5 @@ texinfo_documents = [
 
 
 # -- Options for Fortran Including -------------------------------------------
-fortran_src = ['../src/bd/', '../src/mc/', '../src/wlcsim/', '../src/util/']
+fortran_src = ['../src/bd/', '../src/mc/', '../src/util/']
 fortran_ext = ['f90', 'f03', 'f95']

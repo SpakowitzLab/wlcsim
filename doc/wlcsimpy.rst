@@ -1,4 +1,4 @@
-.. _wlcsim:
+.. _wlcsimpy:
 
 wlcsim Python Module
 ####################

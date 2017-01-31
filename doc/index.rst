@@ -15,13 +15,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   intro
-   running
-   analyzing
-   wlcsim
-   plotting
-   generating_sequences
-   params
+   wlcsimpy
+   wlcsimf 
 
 
 Indices and tables
