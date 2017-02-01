@@ -10,13 +10,15 @@
 !     Updated by Quinn in 2016
 !
 SUBROUTINE initcond(R,U,NT,NB,NP,FRMFILE,PARA,LBOX, &
-                    setType,rand_stat,ring)
+                    initCondType,rand_stat,ring, wlc_p)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use params, only: dp, pi
+use params, only: dp, pi, wlcsim_params
 
 IMPLICIT NONE
+
+type(wlcsim_params), intent(in) :: wlc_p
 
 logical ring
 INTEGER NB,NP,NT           ! Number of beads
@@ -29,7 +31,7 @@ LOGICAL FRMFILE           ! Is conformation in file?
 !DOUBLE PRECISION RMIN
 DOUBLE PRECISION R0(3)
 DOUBLE PRECISION PARA(10)
-INTEGER setType           ! select what type of configurateion
+INTEGER initCondType           ! select what type of configurateion
 
 !     Varibles for type 2
 
@@ -43,11 +45,13 @@ DOUBLE PRECISION test(3) ! test position for inside confinment
 DOUBLE PRECISION Rc      ! radius of confinement
 INTEGER ii !for testing
 
+!   temporary variables
+real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 
 !      Random number generator initiation
 type(random_stat) rand_stat
 real urand(3)
-DOUBLE PRECISION mag  ! magnitude of U for reload
+real nrand(3)
 
 GAM=PARA(4)
 
@@ -74,7 +78,7 @@ if (FRMFILE)then
 endif
 
 !     Fix the initial condition
-if (setType.eq.0) then
+if (initCondType.eq.0) then
 ! straight line in y direction starting at origin, equilibrium bond lengths
     iB = 1
     do i=1,nP
@@ -89,7 +93,7 @@ if (setType.eq.0) then
         enddo
     enddo
 
-else if (setType.eq.1) then
+else if (initCondType.eq.1) then
 ! staight line in y direction with random starting position
 
     IB=1
@@ -111,7 +115,7 @@ else if (setType.eq.1) then
        enddo
     enddo
 
-else if (setType.eq.2) then
+else if (initCondType.eq.2) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! slit boundary in z direction
@@ -172,7 +176,7 @@ else if (setType.eq.2) then
            IB=IB+1
         enddo
     enddo
-else if (setType.eq.3) then
+else if (initCondType.eq.3) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! square boundary
@@ -246,7 +250,7 @@ else if (setType.eq.3) then
        enddo
     enddo
 
-else if (setType.eq.4) then
+else if (initCondType.eq.4) then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! shpere boundary
@@ -300,7 +304,7 @@ else if (setType.eq.4) then
            IB=IB+1
        enddo ! loop to N
     enddo ! loop to np
-else if (setType.eq.5) then
+else if (initCondType.eq.5) then
     ! randomly distribute beads in shereical confinement
     do IB=1,NT
         search=.true.
@@ -322,7 +326,7 @@ else if (setType.eq.5) then
         U(IB,2)=0.00_dp
         U(IB,3)=0.00_dp
     enddo
-else if (setType == 6) then
+else if (initCondType == 6) then
     IB=1
     DO  I=1,NP
         call random_number(urand,rand_stat)
@@ -351,6 +355,55 @@ else if (setType == 6) then
         ENDDO
     ENDDO
 
+else if (initCondType == 7) then
+    ! initialize as if it were a gaussian chain, first bead at zero
+    IB=1
+    do I=1,NP
+        R(IB,1) = 0.0_dp
+        R(IB,2) = 0.0_dp
+        R(IB,3) = 0.0_dp
+        IB = IB + 1
+        do J=2,NB
+            call random_gauss(nrand, rand_stat)
+            R(IB,1) = R(IB-1,1) + wlc_p%sigma*nrand(1)
+            R(IB,2) = R(IB-1,2) + wlc_p%sigma*nrand(2)
+            R(IB,3) = R(IB-1,3) + wlc_p%sigma*nrand(3)
+            IB = IB + 1
+        enddo
+    enddo
+    ! now initialize the orientation vectors by smoothing
+    IB=1
+    do I=1,NP
+        U(IB,1) = R(IB+1,1) - R(IB,1)
+        U(IB,2) = R(IB+1,2) - R(IB,2)
+        U(IB,3) = R(IB+1,3) - R(IB,3)
+        mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
+        U(IB,1) = U(IB,1)/mag
+        U(IB,2) = U(IB,2)/mag
+        U(IB,3) = U(IB,3)/mag
+        IB = IB + 1
+        do J=2,NB-1
+            U(IB,1) = R(IB+1,1) - R(IB-1,1)
+            U(IB,2) = R(IB+1,2) - R(IB-1,2)
+            U(IB,3) = R(IB+1,3) - R(IB-1,3)
+            mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
+            U(IB,1) = U(IB,1)/mag
+            U(IB,2) = U(IB,2)/mag
+            U(IB,3) = U(IB,3)/mag
+            IB = IB + 1
+        enddo
+        U(IB,1) = R(IB,1) - R(IB-1,1)
+        U(IB,2) = R(IB,2) - R(IB-1,2)
+        U(IB,3) = R(IB,3) - R(IB-1,3)
+        mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
+        U(IB,1) = U(IB,1)/mag
+        U(IB,2) = U(IB,2)/mag
+        U(IB,3) = U(IB,3)/mag
+        IB = IB + 1
+    enddo
+else
+    print*, "Unknown version of chain initialization initCondType....."
+    stop 1
 endif
 
 

@@ -27,17 +27,19 @@ subroutine get_derived_parameters(wlc_p)
     wlc_p%nT = wlc_p%nB*wlc_p%nP
 
     if (wlc_p%NB.EQ.1.0d0) then
-        PRINT*, 'Non-dimensionalization used requires at least two beads, 1 requested.'
+        ! since we use "DEL" as an intermediate, we need at least two beads
+        PRINT*, 'Some intermediate calculations used require at least two beads, 1 requested.'
         STOP 1
     endif
-    wlc_p%REND=wlc_p%REND*wlc_p%L/wlc_p%LP
 
-    !TODO code smell, ask brad what he needs here
+    ! calculate metrics that don't change between WLC, ssWLC, GC
     IF (wlc_p%RING) THEN
         wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB)
     ELSE
         wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
     ENDIF
+    ! std dev of interbead distribution of GC, used to initialize
+    wlc_p%SIGMA=sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
 
 !     Load the tabulated parameters
 

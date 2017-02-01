@@ -84,6 +84,7 @@ module params
         real(dp) gam    ! average equilibrium interbead spacing
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
+        real(dp) sigma  ! variance of interbead position distribution of appropriately renormalized gaussian chain
         real(dp) xiu    ! rotational drag
         real(dp) eps      ! number of kuhn lengths between beads
         real(dp) del      ! number of persistence lengths between beads
@@ -832,11 +833,17 @@ contains
         integer numProcesses ! number of threads running
         integer (kind=4) mpi_err
 
-        if (wlc_p%ring .and. wlc_p%NP .gt. 1) then
-            print*, "As of the writing of this error message"
-            print*, "MC_eelals and possible energy_elas are"
-            Print*, "not capable of more then one rings"
-            stop
+        if (wlc_p%ring) then
+            if (wlc_p%NP .gt. 1) then
+                print*, "As of the writing of this error message"
+                print*, "MC_eelals and possible energy_elas are"
+                print*, "not capable of more than one rings"
+                stop
+            endif
+            if (wlc_p%initCondType == 7) then
+                print*, "initCondType=7 doesn't know how to make a ring."
+                stop
+            endif
         endif
         if ((wlc_p%NT.GT.200000).OR.(wlc_p%NT.lt.1)) then
             print*, "ERROR: Requested ", wlc_p%NT," beads."
@@ -912,6 +919,7 @@ contains
            call stop_if_err(err, "error in mcsim. Can't have kap without int on")
 
         endif
+
 
 #if MPI_VERSION
     if (wlc_p%pt_twist) then
@@ -1069,7 +1077,7 @@ contains
 
         call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
-            wlc_p%initCondType, wlc_d%rand_stat)
+            wlc_p%initCondType, wlc_d%rand_stat, wlc_p%ring, wlc_p)
 
         if (wlc_p%field_int_on) then
             call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)

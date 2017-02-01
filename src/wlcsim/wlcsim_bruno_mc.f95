@@ -49,6 +49,8 @@ endif
 
 call MCsim(wlc_p, wlc_d, wlc_p%stepsPerSave)
 
+call VerifyEnegiesFromScratch(wlc_p, wlc_d)
+
 call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, &
             pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, wlc_p%NB, &
