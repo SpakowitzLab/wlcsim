@@ -433,7 +433,7 @@ subroutine worker_node(mc,md)
             md%x_mu    =0.0_dp
         endif
     else
-        call VerifyEnegiesFromScratch(mc, md)
+        call VerifyEnergiesFromScratch(mc, md)
     endif
 
     ! ------------------------------
@@ -459,6 +459,6 @@ subroutine onlyNode(mc,md)
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
     !   * Perform a MC simulation *
-    call VerifyEnegiesFromScratch(mc, md)
+    call VerifyEnergiesFromScratch(mc, md)
     call MCsim(mc,md,mc%nReplicaExchangePerSavePoint*mc%stepsPerExchange)
 end subroutine onlyNode

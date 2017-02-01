@@ -50,7 +50,32 @@ subroutine CalculateEnergiesFromScratch(mc, md)
   ENDIF
 
 end subroutine
-subroutine VerifyEnegiesFromScratch(mc, md)
+
+subroutine InitializeEnergiesForVerifier(mc, md)
+    use params
+    implicit none
+    type(wlcsim_params), intent(in) :: mc
+    type(wlcsim_data), intent(inout) :: md
+    ! identical to VerifyEnergiesFromScratch, but instead of checkign if they
+    ! match previous values, the values are simply updated
+    call CalculateEnergiesFromScratch(mc, md)
+    md%EBind=md%DEBind
+    md%x_mu=md%dx_mu
+    md%EElas=md%DEElas ! copy array
+    ! --- Interaction Energy ---
+    if (mc%field_int_on) then
+        md%EChi=md%DEChi
+        md%x_chi=md%dx_chi
+        md%ECouple=md%DECouple
+        md%x_Couple=md%dx_couple
+        md%EKap=md%DEKap
+        md%x_Kap=md%dx_Kap
+        md%EField=md%DEField
+        md%x_Field=md%dx_Field
+    endif
+end subroutine
+
+subroutine VerifyEnergiesFromScratch(mc, md)
     use params
     implicit none
     type(wlcsim_params), intent(in) :: mc
