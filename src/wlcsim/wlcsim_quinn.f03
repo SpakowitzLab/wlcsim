@@ -8,7 +8,6 @@ subroutine wlcsim_quinn(save_ind, md, mc)
     integer, intent(in) :: save_ind ! 1, 2, ...
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
-    integer, save :: id, num_processes
     integer (kind=4) error
 
     ! to minimize code rewriting, we use our old name for save_ind internally
@@ -16,20 +15,10 @@ subroutine wlcsim_quinn(save_ind, md, mc)
 
 
 #if MPI_VERSION
-    if (save_ind == 1) then
-        call MPI_Init(error)
-        call stop_if_err(error, "Failed to MPI_Init.")
-        call MPI_Comm_size(MPI_COMM_WORLD, num_processes, error)
-        call stop_if_err(error, "Failed to get num_processes.")
-        call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
-        call stop_if_err(error, "Failed to get num_processes.")
-    endif
-
-
-    if (num_processes == 1) then
+    if (md%numProcesses == 1) then
         call onlyNode(mc,md)
-    elseif (id == 0) then
-        call head_node(mc,md,num_processes)
+    elseif (md%id == 0) then
+        call head_node(mc,md,md%numProcesses)
     else
         call worker_node(mc,md)
     endif
@@ -40,7 +29,7 @@ subroutine wlcsim_quinn(save_ind, md, mc)
 
 
     print*, '________________________________________'
-    print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', id
+    print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', md%id
     call printEnergies(md)
     call printWindowStats(mc,md)
     call printWindowStats(mc, md)

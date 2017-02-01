@@ -57,10 +57,6 @@ program main
 
     call setup_runtime_floats()
 
-#if MPI_VERSION
-    call init_MPI(wlc_d)
-#endif
-
     call get_input_from_file(infile, wlc_d, wlc_p)
 
     call initialize_wlcsim_data(wlc_d, wlc_p)

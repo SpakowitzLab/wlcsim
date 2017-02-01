@@ -254,7 +254,7 @@ SUBROUTINE MCsim(mc,md,NSTEP)
                        print*, "MCTYPE", MCTYPE
                        print*, "DPHIA ",md%DPHIA(I)," DPHIB",md%DPHIB(I)
                        print*, "PHIA(J) ", md%PHIA(J), " PHIB(J) ", md%PHIB(J)
-                       print*, "Error in MCsim. Negitive phi"
+                       print*, "Error in MCsim. Negative phi"
                        stop 1
                    endif
                 enddo

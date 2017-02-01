@@ -830,7 +830,6 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         logical err
-        integer numProcesses ! number of threads running
         integer (kind=4) mpi_err
 
         if (wlc_p%ring) then
@@ -927,8 +926,7 @@ contains
             print *, 'parallel tempering on twist, but twist off'
             stop
         endif
-        call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcesses,mpi_err)
-        if (wlc_d%nLKs+1.ne.numProcesses) then
+        if (wlc_d%nLKs+1.ne.wlc_d%numProcesses) then
             print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             print *, 'number of threads not equal to number of replicas!'
             print *, 'exiting...'
@@ -984,6 +982,9 @@ contains
         nt = wlc_p%nt
         nbin = wlc_p%nbin
 
+#if MPI_VERSION
+        call init_MPI(wlc_d)
+#endif
         allocate(wlc_d%R(NT,3))
         allocate(wlc_d%U(NT,3))
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
@@ -1080,7 +1081,7 @@ contains
             wlc_p%initCondType, wlc_d%rand_stat, wlc_p%ring, wlc_p)
 
         if (wlc_p%field_int_on) then
-            call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
             ! calculate volumes of bins
             if (wlc_p%confineType.eq.3) then
                 call MC_calcVolume(wlc_p%confinetype, wlc_p%NBINX, wlc_p%dBin, &
@@ -1093,7 +1094,7 @@ contains
         endif
 
         if (wlc_p%bind_on) then
-            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nB, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
         endif
 
         ! initialize energies

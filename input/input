@@ -3,7 +3,7 @@
 # Used by Bruno for calculating collision time distributions.
 
 # simulation type to use: 2 aka Bruno's aka BD
-codeName bruno_mc
+codeName quinn
 
 # Persistence length # of DNA in same units as L
 LP 1.0
@@ -34,7 +34,7 @@ NP 1
 numSavePoints 1000
 
 # time steps between save points
-stepsPerSave 1000
+stepsPerSave 10000
 
 # Load in the inital conf? - otherwise initialize using MC
 frmFile 0

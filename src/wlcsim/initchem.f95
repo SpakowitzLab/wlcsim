@@ -25,6 +25,11 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
   real(dp), intent(in) :: LAM  ! Chemical correlation parameter
   real(dp) PAA,PBB,PAB,PBA ! Chemical identity statistics
 
+  !     idiot check
+  if (NT .ne. NP*N*G) then
+      print *, "NP = " , NP, ", nMpP = ", nMpP, ", nBpM = ", nBpM
+      call stop_if_err(1, "initchem: nt \= nP*nBpM*nMpP")
+  endif
 
   !		Translate LAM and FA to probabilities
 
@@ -35,22 +40,22 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 
   !		Determine the bead identities
 
-  IB=1
-  do 10 I=1,NP
-     !TEST=grnd()
-     call random_number(TEST,rand_stat)
-     if (dble(TEST(1)).lt.FA) then
+IB=1
+do I=1,NP
+    !TEST=grnd()
+    call random_number(TEST,rand_stat)
+    if (dble(TEST(1)).lt.FA) then
         AB(IB)=1
-     else
+    else
         AB(IB)=0
-     endif
-     IB=IB+1
-     do 15 K=2,G
+    endif
+    IB=IB+1
+    do K=2,G
         AB(IB)=AB(IB-1)
         IB=IB+1
-15   continue
+    enddo
 
-     do 20 J=2,N
+    do J=2,N
         !TEST=grnd()
         call random_number(TEST,rand_stat)
         if (AB(IB-1).EQ.1) then
@@ -68,12 +73,12 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
         endif
         IB=IB+1
 
-     do 30 K=2,G
-        AB(IB)=AB(IB-1)
-        IB=IB+1
-30      continue
-20      continue
-10      continue
+        do K=2,G
+            AB(IB)=AB(IB-1)
+            IB=IB+1
+        enddo
+    enddo
+enddo
 
 RETURN
 end
