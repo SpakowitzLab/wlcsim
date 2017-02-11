@@ -52,6 +52,7 @@ subroutine get_derived_parameters(wlc_p)
 
 !     Setup the parameters for WLC simulation
 
+    ! if del < 0.01
     if (wlc_p%DEL.LT.PVEC(1,1)) then
         PRINT*, 'It has never been known if the WLC code actually works.'
         PRINT*, 'An entire summer student (Luis Nieves) was thrown at this'
@@ -64,6 +65,7 @@ subroutine get_derived_parameters(wlc_p)
 
 !    Setup the parameters for GC simulation
 
+    ! if del > 10
     elseif (wlc_p%DEL.GT.PVEC(679,1)) then
         wlc_p%EPAR=1.5/wlc_p%DEL
         wlc_p%GAM=0.0_dp
@@ -71,7 +73,7 @@ subroutine get_derived_parameters(wlc_p)
         wlc_p%XIR=wlc_p%L/wlc_p%NB/wlc_p%LP
 
 !    Setup the parameters for ssWLC simulation
-
+    ! if 0.01 <= del <= 10
     else !  if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
         wlc_p%SIMTYPE=2
 

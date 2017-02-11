@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import os
 import logging
+import itertools
 import glob
 import re
 from .input import ParsedInput
@@ -165,19 +166,24 @@ class Sim:
 
     @property
     def rend2end(self):
-        rend2end = np.empty((self.num_time_points, 3, self.num_polymers))
-        rend2end[:] = np.nan
-        for ti in self.rtime_idxs:
-            rfile_name = self._rfile_base + str(ti)
-            with open(rfile_name, 'r') as f:
-                first_line = f.readline().rstrip()
-                line_len = len(first_line)
-                r1 = np.array([float(rij) for rij in first_line.split()])
-                f.seek(-line_len*2, os.SEEK_END)
-                last_line = f.readlines()[-1].rstrip()
-                rN = np.array([float(rij) for rij in last_line.split()])
-                rend2end[ti] = rN - r1
-        # return self.r[:,:,:,-1] - self.r[:,:,:,0]
+        # there's a fast way to do this if there's only one polymer
+        #TODO use known linesize to extend this to work no matter how many
+        # polymers there are
+        if self.num_polymers == 1:
+            rend2end = np.empty((self.num_time_points, 3, self.num_polymers))
+            rend2end[:] = np.nan
+            for ti in self.rtime_idxs:
+                rfile_name = self._rfile_base + str(ti)
+                with open(rfile_name, 'rb') as f:
+                    first_line = f.readline().rstrip()
+                    line_len = len(first_line)
+                    r1 = np.array([float(rij) for rij in first_line.split()])
+                    f.seek(-line_len*2, os.SEEK_END)
+                    last_line = f.readlines()[-1].rstrip()
+                    rN = np.array([float(rij) for rij in last_line.split()])
+                    rend2end[ti,:,0] = rN - r1
+        else:
+            rend2end = self.r[:,:,:,-1] - self.r[:,:,:,0]
         return rend2end
 
     @cached_property
@@ -221,7 +227,7 @@ class Sim:
 
     @property
     def num_time_points(self):
-        return int(self.params['NUMSAVEPOINTS'])
+        return int(self.params['NUMSAVEPOINTS']) + 1 # account for time 0
 
     @property
     def num_polymers(self):
@@ -343,14 +349,13 @@ class Scan:
     """Can tell you what dirs in a run_dir are simulation directories, and what
     all the input files said, and more. """
 
-    def __init__(self, run_dir, limit=None, *args, **kwargs):
-        is_sim = lambda d: Scan.is_simdir(d, run_dir)
-        self.sim_dirs = list(filter(is_sim, os.listdir(run_dir)))
+    def __init__(self, run_dir, limit=None, complete=False, *args, **kwargs):
+        self.limit = limit
+        self.complete = complete
         self.path = run_dir
-        if limit is not None:
-            self.sim_dirs = self.sim_dirs[:limit]
-        prepend_path = lambda d: os.path.join(run_dir, d)
-        self.sim_paths = list(map(prepend_path, self.sim_dirs))
+        self._prepend_path = lambda d: os.path.join(self.path, d)
+        self._is_simdir = lambda d: Scan.is_simdir(d, self.path)
+        self._is_complete = lambda d: Scan.is_complete(d, self.path)
         # self.wlcsim_data = [Sim(folder, *args, **kwargs) for folder in
         #                     glob.glob(os.path.join(run_dir, '*.*'))
         #                     if os.path.isdir(folder)]
@@ -363,6 +368,22 @@ class Scan:
         # self.coltimes = pd.concat(coltimes)
         # self.calculate_linear_distance()
 
+    @property
+    def sim_dirs(self):
+        if self.complete:
+            is_sim = lambda d: self._is_simdir(d) and self._is_complete(d)
+        else:
+            is_sim = self._is_simdir
+        sim_dirs = filter(is_sim, os.listdir(self.path))
+        if self.limit is None:
+            return list(sim_dirs)
+        else:
+            return list(itertools.islice(sim_dirs, self.limit))
+
+    @property
+    def sim_paths(self):
+        return list(map(self._prepend_path, self.sim_dirs))
+
     @staticmethod
     def is_simdir(dirname, run_dir):
         sim_name_re = re.compile('.*\.[0-9]+')
@@ -371,6 +392,12 @@ class Scan:
         return sim_name_re.search(dirname) \
                 and os.path.isdir(abs_dirname) \
                 and os.path.isfile(input_file)
+
+    @staticmethod
+    def is_complete(dirname, run_dir):
+        abs_dirname = os.path.join(run_dir, dirname)
+        complete_file = os.path.join(abs_dirname, 'complete')
+        return os.path.isfile(complete_file)
 
     @cached_property
     def sims(self):
@@ -406,11 +433,13 @@ class Scan:
 
     @property
     def rend2end(self):
-        """Last time point for each simulation as pandas array"""
+        """End bead distances for each simulation as numpy array"""
         example_sim = self.sims[0]
         rend2end = np.empty([len(self.sims), example_sim.num_time_points,
                              3, example_sim.num_polymers])
         rend2end[:] = np.nan
+        print('This is a time consuming function, I will print out a number'
+              'for each sim I process.')
         for i,sim in enumerate(self.sims):
             print(i)
             rend2end[i,:,:,:] = sim.rend2end
