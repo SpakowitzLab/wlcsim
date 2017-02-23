@@ -55,10 +55,11 @@ max_boxes_away_for_ellipse_collision = 20
 
 # normal vectors and intercepts defining the planes of the unit box in the
 # first quadrant, used throughout collision detection
-ws = [[0, -1, 0], [-1, 0, 0], [0, 0, -1], [0, 1, 0], [1, 0, 0], [0, 0, 1]]
+ws = [[0.0, -1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0],
+      [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]
 ws = [np.array(w) for w in ws]
 # three planes pass through (0,0,0), other three pass through (1,1,1)
-w0s = [0, 0, 0, 1, 1, 1]
+w0s = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 # how to project a vector into any of the box walls
 plane_projs = [np.array(w) == 0.0 for w in ws]
 non_zero_indices = [[i for i,c in enumerate(plane_proj) if c]
@@ -117,6 +118,7 @@ for plist in periodizers_given_face:
 # semantically useful throughout code, create once
 box_center = np.array([0.5, 0.5, 0.5])
 
+@jit(nopython=True)
 def line_hit_hyperplane(xi, xf, w, w0):
     """Get point of intersection of a lines in N-D with a hyperplane of
     dimension N-1. The line should be defined by two pionts and the hyperplane
@@ -126,14 +128,13 @@ def line_hit_hyperplane(xi, xf, w, w0):
     # projection onto plane's normal of x
     x_proj_w = np.dot(w, x)
     if np.abs(x_proj_w) < SMALL_NUM: # effectively parallel to plane
-        import pdb; pdb.set_trace()
         return None
     # intersection point as parameter of xi + (xf - xi)*t
     t = (w0 - np.dot(xi, w))/x_proj_w
     # intersection point itself
     return xi + x*t
 
-@jit
+@jit(nopython=True)
 def get_face_given_point(x):
     # xz-plane
     if np.abs(x[1] - 0.0) < SMALL_NUM:
@@ -150,7 +151,7 @@ def get_face_given_point(x):
     elif np.abs(x[2] - 1.0) < SMALL_NUM:
         return 5
 
-@jit
+@jit(nopython=True)
 def d_line_line(x1, x2, y1, y2):
     """Find distance between two lines defined by two non-degenerate
     points on each of those lines."""
@@ -241,7 +242,7 @@ def d_segment_segment(xinit0, xfinal0, xinit1, xfinal1):
 
     return np.linalg.norm(dP)
 
-@jit
+@jit(nopython=True)
 def norm3_squared(x):
     """Avoid extra operations when doing something like np.dot(f(x), f(x))"""
     # we don't need the generality of np.linalg.norm, so @jit of this simple function
@@ -426,6 +427,7 @@ def check_tube2_tube2_collisions(tube1, tube2):
 def check_ellipse_collisions(ellipse1, ellipse2):
     a1,b1,theta1,h1,k1 = ellipse1
     a2,b2,theta2,h2,k2 = ellipse2
+    raise NotImplementedError('not done coding check_ellipse_collisions')
 
 
 
@@ -442,7 +444,7 @@ def uniform_segment_from_unit_cube():
     face_dx = face_dx/np.linalg.norm(face_dx)
     face_dx[2] = np.abs(face_dx[2]) # ignore sign
     # draw one of the six faces of the cube
-    face = int(np.floor(np.random.rand(1)*6)[0])
+    face = int(np.floor(np.random.rand(1)*6)[0]) # awkward casting to help jit
     # sample a point uniformly on that face
     face_x = np.random.rand(2)
     xinit = np.zeros(3)
@@ -498,13 +500,14 @@ def uniform_segment_from_unit_cube():
     # get the segment initial and final locations
     return xinit, xfinal
 
-@jit
+@jit(nopython=True)
 def uniform_segment_from_cube(a):
     """Draws uneformly random segments from cube (in first quadrant) defined by
     its side length."""
     xi,xf = uniform_segment_from_unit_cube()
     return a*xi, a*xf
 
+# @jit(nopython=True)
 def volume_of_cylinder(xi, xf, d, periodic=True):
     """Calculat the volume of a cylinder with center running from xi to xf
     inside a cube of side length a in the 1st quadrant. The formula used is the
@@ -536,6 +539,7 @@ def volume_of_cylinder(xi, xf, d, periodic=True):
         xi, xf = get_true_xif_periodic(xi, xf)
     return np.pi*d*d*np.linalg.norm(xf - xi)
 
+# @jit(nopython=True)
 def get_true_xif_periodic(xi, xf):
     xi_face = get_face_given_point(xi)
     xf_face = get_face_given_point(xf)
@@ -667,7 +671,7 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
     if lines is None:
         lines = []
     else:
-        lines = [line/a for line in lines]
+        lines = [(line[0]/a, line[1]/a) for line in lines]
     num_lines = len(lines)
     if phi is None:
         phi = 0 # volume fraction of cylinders in box
@@ -866,7 +870,8 @@ def get_accept_prob(outdir, nPhi, nL, steps_per_batch, k_remove, d, a=1, num_sim
             break
     return accepted_moves, total_moves
 
-def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None):
+def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None,
+                    periodic=True):
     """For the values of d and k_remove provide, run until equilibrium. Here,
     equilibrium means run in batches of steps_per_batch MC steps, then if the
     average phi (packing fraction) in a batch drops below the average phi of
@@ -885,14 +890,16 @@ def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None):
     lines = []; phi = 0;
     while True:
         lines, phi, moves = monte_carlo_with_removal(steps_per_batch, k_remove,
-                                                     d, a, lines, phi)
+                                                     d, a, lines, phi,
+                                                     periodic=periodic)
         moves = moves[~moves.is_removal]
         phi_ave = moves['phi'].mean()
         # if termination condition reached, run again so taht we decorrelate
         # from the artificial lower value of phi
         if phi_ave < prev_phi_ave:
             _, _, moves = monte_carlo_with_removal(steps_per_batch, k_remove,
-                                                   d, a, lines, phi)
+                                                   d, a, lines, phi,
+                                                   periodic=periodic)
             moves = moves[~moves.is_removal]
             return moves['phi'].mean()
         prev_phi_ave = phi_ave
@@ -900,16 +907,16 @@ def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None):
 
 def equilibrium_mapper(p):
     return (p['k'], p['d'],
-            get_equilibrium(p['s'], p['k'], p['d']))
+            get_equilibrium(p['s'], p['k'], p['d'], periodic=p['p']))
 
-def scan_equilibriums(steps_per_batch, k_removes, ds, num_cores=8):
+def scan_equilibriums(steps_per_batch, k_removes, ds, periodic=True, num_cores=8):
     """Use pscan to get a list of equilibrium phi levels as a function of the
     removal probability (i.e. k_remove a.k.a. chemical potential of the bath of
     "sticks" feeding our box filling process) and the diameter/box width ratio."""
     script_name = os.path.basename(__file__)
     #print(script_name + ': Running scan_equilibriums!')
     p = multiprocessing.Pool(num_cores)
-    scan = pscan.Scan({'s': [steps_per_batch], 'k': k_removes, 'd': ds})
+    scan = pscan.Scan({'p': [periodic], 's': [steps_per_batch], 'k': k_removes, 'd': ds})
     print("k_remove\twidth_ratio\tequilibrium_phi")
     for k,d,phi in p.imap_unordered(
             equilibrium_mapper, scan.params(), chunksize=10):
@@ -989,10 +996,10 @@ if __name__ == '__main__':
 
     k_removes = np.linspace(0.01, 5, 51)
     ds = np.linspace(0.01, 0.1, 11)
-    scan_equilibriums(20000, k_removes, ds, num_cores=32)
+    scan_equilibriums(20000, k_removes, ds, num_cores=32, periodic=True)
 
 
-    # get_accept_prob('tmp/accept_probs_d_0.01_k_5', nPhi=100, nL=50,
+    # get_accept_prob('tmp/accept_probs', nPhi=100, nL=50,
     #                 steps_per_batch=1000, k_remove=5, d=0.01,
     #                 num_sims=1000)
 
