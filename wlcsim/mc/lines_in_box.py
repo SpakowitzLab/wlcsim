@@ -1,6 +1,32 @@
+"""lines_in_box monte carlo simulator
+pseudocode for col checker
+poca - two points at which infinite lines get closest
+bpoca - poca of two finite segments defining centers of cylinders
+loca - line conencts poca
+for periodization old line
+  for periodization of new line
+      if d(poca) > 2r
+          return false
+      if bpoca is not on tip of cylinder for either cylinder
+          return naive formula
+      elif one tip and one interior point (of closest approach)
+          if loca's midpoint is inside box # already know: |loca| < 2 r
+                  or check if intersections with box bdry collide
+              return true
+          else:
+              return false
+      else (if two tips)
+          for each tip
+              for each edge adjacent to the face tip is hitting
+                  if |loca btween edge and cylinder| < r
+                     mark wall opposite that edge for that tip
+          for each wall that both tips share
+              return if their ellipse outlines on that wall collide inside of the box wall
+
+"""
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import axes3d
 import pandas as pd
 from ..utils import path as wpath
 import os
@@ -8,12 +34,156 @@ from numba import jit
 import multiprocessing
 import pscan
 
+# our "floating precision" cutoff
 SMALL_NUM = np.power(10.0, -8)
 
+# in what follows, a cylinder's centerline's is used as a proxy for the
+# cylinder itself. comments often only make sense with this in mind (e.g. the
+# cylinder "hits" a wall means the intersection of its centerline with the
+# plane defining the wall).
+
+# if a cylinder hits one of the infinite planes defined by the ws, w0s below at
+# a distance far enough away from the unit box's extents, then the outline of
+# the intersection of the full cylinder with the unit box's wall will be
+# effectively a rectange instead of an ellipse. this is the maximum magnitude
+# of the collision (in units of box-widths away from the box's center) before the
+# collision code simply uses the parallelogram approximation
+max_boxes_away_for_ellipse_collision = 20
+
+# now comes an absurd amount of precomputed constants that describe a unit box
+# in the first quadrant
+
+# normal vectors and intercepts defining the planes of the unit box in the
+# first quadrant, used throughout collision detection
+ws = [[0, -1, 0], [-1, 0, 0], [0, 0, -1], [0, 1, 0], [1, 0, 0], [0, 0, 1]]
+ws = [np.array(w) for w in ws]
+# three planes pass through (0,0,0), other three pass through (1,1,1)
+w0s = [0, 0, 0, 1, 1, 1]
+# how to project a vector into any of the box walls
+plane_projs = [np.array(w) == 0.0 for w in ws]
+non_zero_indices = [[i for i,c in enumerate(plane_proj) if c]
+                    for plane_proj in plane_projs]
+plane_projs = [p.astype(float) for p in plane_projs]
+# convenience variables for defining points on the box
+ux = np.array([1.0, 0.0, 0.0])
+uy = np.array([0.0, 1.0, 0.0])
+uz = np.array([0.0, 0.0, 1.0])
+uo = np.array([0.0, 0.0, 0.0])
+edges = [(uo, ux), (ux, ux+uz), (ux+uz, uz), (uz, uo),
+         (uo, uy), (uy, uy+uz), (uy+uz, uz),
+         (ux, ux+uy), (ux+uy, uy),
+         (ux+uy, ux+uy+uz), (ux+uz, ux+uy+uz), (uy+uz, ux+uy+uz)]
+# I didn't choose the best edge labelling, but if you want to change it, just
+# change all the relevant variables up here in the global scope, I didn't use
+# the edge labeling explicitly anywhere in the main program, just through these
+# variables
+
+# each edge is adjacent to two faces
+adjacent_faces = [(0, 2), (0, 4), (0, 5), (0, 1),
+                  (1, 2), (1, 3), (1, 5), (2, 4),
+                  (2, 3), (3, 4), (4, 5), (3, 5)]
+# a map from faces to clockwise (from inside box) listing of adjacent edges to
+# that face, list of lists of edge indexes.
+adjacent_edges = [[0, 1, 2, 3],  # face 0
+                  [4, 5, 6, 3],  # face 1
+                  [0, 4, 8, 7],  # face 2
+                  [11, 5, 8, 9], # face 3
+                  [1, 10, 9, 7], # face 4
+                  [2, 6, 11, 10]] # face 5
+# face, edge -> other face
+face_edge_to_face = {(faces[0], edge): faces[1] for edge, faces
+        in enumerate(adjacent_faces)}
+face_edge_to_face.update({(faces[1], edge): faces[0] for edge, faces
+        in enumerate(adjacent_faces)})
+# set of pairs of faces that share an edge, with both index orders for fast
+# lookup
+face_pairs = {face_pair for face_pair in adjacent_faces}
+face_pairs.update({(face_pair[1], face_pair[0]) for face_pair in adjacent_faces})
+# lookup the opposite of a face quickly as face_opposite[face]
+face_opposite = [3, 4, 5, 0, 1, 2]
+# periodization vectors to add to get possible periodizations about a
+# particular face can be looked up easily here
+# we quickly use the normals of the faces that share an edge with the face we
+# want to keep constant during our periodization
+periodizers_given_face = [
+        [ws[face_edge_to_face[(face,edge)]] for edge in adjacent_edges[face]]
+        for face in range(6)]
+for plist in periodizers_given_face:
+    plist.append(plist[0] + plist[1])
+    plist.append(plist[1] + plist[2])
+    plist.append(plist[2] + plist[3])
+    plist.append(plist[3] + plist[0])
+
+# semantically useful throughout code, create once
+box_center = np.array([0.5, 0.5, 0.5])
+
+def line_hit_hyperplane(xi, xf, w, w0):
+    """Get point of intersection of a lines in N-D with a hyperplane of
+    dimension N-1. The line should be defined by two pionts and the hyperplane
+    should be defined by its normal vector and a point on it."""
+    w = w/np.linalg.norm(w)
+    x = xf - xi
+    # projection onto plane's normal of x
+    x_proj_w = np.dot(w, x)
+    if np.abs(x_proj_w) < SMALL_NUM: # effectively parallel to plane
+        import pdb; pdb.set_trace()
+        return None
+    # intersection point as parameter of xi + (xf - xi)*t
+    t = (w0 - np.dot(xi, w))/x_proj_w
+    # intersection point itself
+    return xi + x*t
+
 @jit
-def dsegment(xinit0, xfinal0, xinit1, xfinal1):
+def get_face_given_point(x):
+    # xz-plane
+    if np.abs(x[1] - 0.0) < SMALL_NUM:
+        return 0
+    # yz-plane
+    elif np.abs(x[0] - 0.0) < SMALL_NUM:
+        return 1
+    elif np.abs(x[2] - 0.0) < SMALL_NUM:
+        return 2
+    elif np.abs(x[1] - 1.0) < SMALL_NUM:
+        return 3
+    elif np.abs(x[0] - 1.0) < SMALL_NUM:
+        return 4
+    elif np.abs(x[2] - 1.0) < SMALL_NUM:
+        return 5
+
+@jit
+def d_line_line(x1, x2, y1, y2):
+    """Find distance between two lines defined by two non-degenerate
+    points on each of those lines."""
+    w = x1 - y1
+    u = x2 - x1
+    v = y2 - y1
+    uu = np.dot(u,u)
+    uv = np.dot(u,v)
+    vv = np.dot(v,v)
+    uw = np.dot(u,w)
+    vw = np.dot(v,w)
+    D = uu*vv - uv*uv # "descrimant" / denominator ( always > 0 )
+
+    if D < SMALL_NUM: # lines must be nearly parallel
+        # subtract projection of w onto either line from w
+        # same as distance formula from just one line to a point
+        s = 0.0
+        t = uw/uu if uu > vv else vw/vv
+    else:
+        s = (uv*vw - vv*uw)/D
+        t = (uu*vw - uv*uw)/D
+    # vector of closest approach
+    voca = w + s*u - t*v
+    return np.linalg.norm(voca)
+
+
+@jit(nopython=True)
+def d_segment_segment(xinit0, xfinal0, xinit1, xfinal1):
     """Find distance between two segments defined by initial
     and ending position vectors."""
+    # see e.g.
+    # http://geomalgorithms.com/a07-_distance.html#dist3D_Segment_to_Segment()
+    # for details of algorithm
     u = xfinal0 - xinit0
     v = xfinal1 - xinit1
     w = xinit0 - xinit1
@@ -72,8 +242,199 @@ def dsegment(xinit0, xfinal0, xinit1, xfinal1):
     return np.linalg.norm(dP)
 
 @jit
+def norm3_squared(x):
+    """Avoid extra operations when doing something like np.dot(f(x), f(x))"""
+    # we don't need the generality of np.linalg.norm, so @jit of this simple function
+    # will probably outperform np
+    return x[0]*x[0] + x[1]+x[1] + x[2]*x[2]
+    # return (x[0] - y[0])**2 + (x[1] - y[1])**2 + (x[2] - y[2])**2
+
+def periodic_cylinder_collision(ui, uf, vi, vf, d):
+    """Decide whether or not two cylinders inside of the box of side length 1
+    are overlapping each other, when the box has "periodic" boundary conditions
+    along all sides except for those on which the cylinders terminate."""
+
+#     # renormalize to the equivalent problem on unit cube
+#     if a != 1:
+#         d = d/float(a)
+#         ui = ui/a
+#         vi = vi/a
+#         uf = uf/a
+#         vf = vf/a
+#         a = 1.0
+    r = d/2.0
+    u = uf - ui
+    v = vf - vi
+    a = np.dot(u,u)
+    b = np.dot(u,v)
+    c = np.dot(v,v)
+    d = np.dot(u,w)
+    e = np.dot(v,w)
+    D = a*c - b*b
+
+    # if lines are nearly parallel, don't try to find point they're closest
+    if D < SMALL_NUM:
+        # any point works to check for collisions
+        return norm3_squared(ui - vi) < d*d
+    # calculate fractional path from xinit to xfinal that point of closest
+    # approach between the two infinite lines defined by the input points is
+    sN = (b*e - c*d) # numerator of "sC" on geomalgorithms.com
+    tN = (a*e - b*d) # numerator of "tC"
+    # if that point of closest approach is within the box (i.e. 0-1.0
+    # fractionally), then collision detection is straightforward
+    if 0.0 < sN and sN < D and 0.0 < tN and tN < D:
+        sC = sN / sD if np.abs(sN) > SMALL_NUM else 0.0
+        tC = tN / tD if np.abs(tN) > SMALL_NUM else 0.0
+        return norm3_squared(ui + (sC*u) - (vi + (tC*v))) < d*d
+    # if the point of closest approach is described by the tip of one
+    # cylinder's center and an interior point of the other cylinder's center,
+    # then there is a collision IFF (midpoint of line joining closest approach
+    # points is inside of the box OR their extents on the box's wall overlap)
+    # we take care of the first case here
+    elif (sN <= 0.0 or D <= sN) and (0.0 < tN and tN < D):
+        # uC = ui + (sC*u)
+        # vC = vi + (tC*v)
+        # wc = uC - vC
+        # mp = vC + wc/2
+        mp = ((ui + sC*u) + (vi + tC*v))/2
+        # mp in unit box in first quadrant is same as ||R(pi/2)*(mp-0.5)||_1 < 1
+        # but not sure if a rotation matrix is faster or slower than a bunch of
+        # if statements
+        if np.all((0.0 < mp) & (mp < 1.0)):
+            return True
+    # at this point, we know the point of closest approach is described by
+    # either one tip and one interior point, and that we need to check if their
+    # extents on the box's wall overlap, or the stick's two tips describe their
+    # pointof closest approach, in which case we still only need to check if
+    # their extents on the box overlap
+
+    # then the sticks come closer and closer until they both hit their
+    # respective ending walls. so we need only figure out what these
+    # walls are and check if their outlines on the wall overlap or
+    # not (accounting for fact that they might be fat enough for their
+    # outlines to "spill" over onto a neighboring wall).
+    # we number the walls 0-5, as in uniform_segment_from_unit_cube xz,
+    # yz, xy planes and their opposites in the same order
+    ui_walls = get_walls_with_outline(ui) #TODO periodize
+    uf_walls = get_walls_with_outline(uf)
+    vi_walls = get_walls_with_outline(vi)
+    vi_walls = get_walls_with_outline(vf)
+    isCollided = False
+    for i in range(6):
+        # if they cylinders' outlines on the box both have segment on a
+        # particular wall, and these outlines overlap on the box's
+        # wall, then the cylinders themselves overlap
+        if (ui_walls[i] or uf_walls[i]) and (vi_walls[i] or vf_walls[i]) \
+                and check_outline_overlap(ui, uf, vi, vf, wall=i):
+            isCollided = True
+            break
+    return isCollided
+
+def check_outline_overlap(ui, uf, vi, vf, wall):
+    ellipse1 = get_ellipse_from_cylinder_wall(ui, uf, wall)
+    ellipse2 = get_ellipse_from_cylinder_wall(vi, vf, wall)
+    if ellipse1 and ellipse2:
+        return check_ellipse_collisions(ellipse1, ellipse2)
+    elif ellipse1:
+        tube2 = get_tube2_from_cyclinder_wall(vi, vf, wall)
+        return check_ellipse_tube2_collisions(ellipse=ellipse1, tube=tube2)
+    elif ellipse2:
+        tube1 = get_tube2_from_cyclinder_wall(ui, uf, wall)
+        return check_ellipse_tube2_collisions(ellipse=ellipse2, tube=tube1)
+    else:
+        tube1 = get_tube2_from_cyclinder_wall(ui, uf, wall)
+        tube2 = get_tube2_from_cyclinder_wall(vi, vf, wall)
+        return check_tube2_tube2_collisions(tube1, tube2)
+
+def get_ellipse_from_cylinder_wall(xi, xf, wall, r):
+    w = ws[wall]
+    w0 = w0s[wall]
+    non_zero_index = non_zero_indices[wall]
+    x = xf - xi
+    Ip = line_hit_hyperplane(xi, xf, w, w0)
+    # maybe they're not effectively parallell by numerical precision
+    # (SMALL_NUM) test, but still effectively parallel in practice...say
+    # collision happens very far from actual box
+    if Ip is None \
+    or norm3_squared(Ip - box_center) > MAX_BOXES_AWAY_FOR_ELLIPSE_COLLISION**2:
+        return None
+    # otherwise, we've determined the coordinates in the plane of interest
+    h = Ip[non_zero_index[0]]
+    k = Ip[non_zero_index[1]] # other index of Ip should be 1 or 0
+    # angle from first coordinate to direction of long axis of ellipse
+    theta = np.arctan(x[non_zero_index[1]]/x[non_zero_index[0]])
+    # the minor axis is always the radius of the cylinder by definition
+    b = r
+    # the major axis is r*sec(phi), where phi is the (positive) angle between x and w
+    # but we know phi = arccos(w.(x/||x||)), and sec(arccos(z)) = 1/z, so
+    a = 1.0/np.dot(w, x/np.linalg.norm(x))
+    return (a, b, theta, h, k)
+
+def get_tube2_from_cyclinder_wall(xi, xf, wall, r):
+    """Gets extents of 2D tube in which a (plane) wall, cylinder collision is
+    effectively taking place for cylinders that are nearly perpendicular to the
+    normal vector of the plane. This is returns as a start an end vector and a
+    diameter in the plane."""
+    w = ws[wall]
+    w0 = w0s[wall]
+    non_zero_index = non_zero_indices[wall]
+    # the vector is nearly parallel to the plane, so we need only get the
+    # distance from the plane to any point on the cylinder's center line to
+    # determine its distance from the wall
+    # also, w is already normalized in its definition
+    dist = np.abs(d + np.dot(w, xi))
+    # a plane parallel to a cylinder with radius r has a rectangular
+    # intersection with the plane in the coordinates of the cylinder. the
+    # height of this rectangle is just
+    h = 2*np.sqrt(r*r - dist*dist)
+    pi = xi*non_zero_index
+    pf = xf*non_zero_index
+    return (pi, pf, h)
+
+def check_tube2_tube2_collisions(tube1, tube2):
+    """Checks if the rectangular croos-sections of two cylinders parallel to
+    the box's wall intersect in the the plane of the wall. The 2D tubular
+    cross sections are passed in via two points along their center line and the
+    the size of their extent as a distance from this center line. Thus, we need
+    only check if the two corresponding infinite tube collide, then if they
+    collide within the box's wall's boundaries. Two infinite tubes in 2D always
+    collide unless their center lines are parallel. When they collide, their
+    overlapping volume is a parallelogram. Either this parallelogram is
+    contained by the box wall, or the two intersect. If they intersect, since
+    they are both convex hulls of four points, it is enough to check that none
+    of the vertices of the parallelgoram are contained in the box (and
+    vice-versa) to conclude that they are not colliding."""
+    xi, xf, h1 = tube1
+    yi, yf, h2 = tube2
+    x = xf - xi
+    ui = x/np.linalg.norm(x)
+    y = yf - yi
+    vi = y/np.linalg.norm(y)
+    # first check if tubes are parallell. if so, just return collision by
+    # checking if the two lines as a whole are the correct distance from each
+    # other
+    if np.norm(ui - vi) < SMALL_NUM or np.norm(ui + vi) < SMALL_NUM:
+        # distance between two parallel lines each defined by two points isn't
+        # too hard to work out, just take the vector between any two points on
+        # the line, then subtract off that vector's projection onto either line
+        return np.linalg.norm((yi - xi) - np.dot(yi - xi, vi)) < h1 + h2
+    # get the four vertices of the parallelogram that the two
+    # tubes intersect in
+    raise NotImplementedError('not done coding check_tube2_tube2_collisions')
+
+
+def check_ellipse_collisions(ellipse1, ellipse2):
+    a1,b1,theta1,h1,k1 = ellipse1
+    a2,b2,theta2,h2,k2 = ellipse2
+
+
+
+@jit(nopython=True)
 def uniform_segment_from_unit_cube():
-    """Draws uniformly random segments from (unit) cube (in first quadrant)"""
+    """
+    TODO: check if drawing a line through a random interior point with a random
+    angle gives different distribution of stick density in box.
+    Draws uniformly random segments from (unit) cube (in first quadrant)"""
     # sample a unit vector perpendicular to the xy-plane
     # using the "three normals" trick to generate a point on a sphere, then
     # ignoring the sign of the third component
@@ -81,7 +442,7 @@ def uniform_segment_from_unit_cube():
     face_dx = face_dx/np.linalg.norm(face_dx)
     face_dx[2] = np.abs(face_dx[2]) # ignore sign
     # draw one of the six faces of the cube
-    face = np.floor(np.random.rand(1)*6)
+    face = int(np.floor(np.random.rand(1)*6)[0])
     # sample a point uniformly on that face
     face_x = np.random.rand(2)
     xinit = np.zeros(3)
@@ -139,17 +500,19 @@ def uniform_segment_from_unit_cube():
 
 @jit
 def uniform_segment_from_cube(a):
-    """Draws uniformly random segments from cube (in first quadrant) defined by
+    """Draws uneformly random segments from cube (in first quadrant) defined by
     its side length."""
     xi,xf = uniform_segment_from_unit_cube()
     return a*xi, a*xf
 
-def volume_of_cylinder(xi, xf, a=1):
+def volume_of_cylinder(xi, xf, d, periodic=True):
     """Calculat the volume of a cylinder with center running from xi to xf
-    inside a cube of side length a in the 1st quadrant."""
-    #TODO: implement, then replace calculation fo phi in monte_carlo with call
-    # to this guy
-    # correct method:
+    inside a cube of side length a in the 1st quadrant. The formula used is the
+    naive one, \pi r^2 l, but it is exactly correct if you're using periodic
+    boundary conditions."""
+    #TODO: ultra-low priority: implement exact formula for case when we are not
+    # using periodic BCs
+    # incorrect method: (see notes for full, correct method)
     # cases:
     #     1) hitting no edges - naive calculation works, same "in" as out
     #     2) hitting one edge - small modification
@@ -169,11 +532,44 @@ def volume_of_cylinder(xi, xf, a=1):
     # since the ellipse's axes will in general not line up with the box edge,
     # we approximate by an intersection that is instead a circle with the
     # average of the major and minor axes as
-    pass
+    if periodic:
+        xi, xf = get_true_xif_periodic(xi, xf)
+    return np.pi*d*d*np.linalg.norm(xf - xi)
+
+def get_true_xif_periodic(xi, xf):
+    xi_face = get_face_given_point(xi)
+    xf_face = get_face_given_point(xf)
+    # if the faces are opposite of each other, then we are already fine
+    if (xi_face, xf_face) not in face_pairs:
+        return (xi, xf)
+    # otherwise, we have to calculate which one is at a less extreme angle and
+    # extend the other point beyond the box (recall ws are already normalized)
+    mag_x = np.linalg.norm(xf - xi)
+    thetai = np.arccos(np.dot(xi - xf, ws[xi_face])/mag_x)
+    thetaf = np.arccos(np.dot(xf - xi, ws[xf_face])/mag_x)
+    # if the angle is smaller, then the vector is more parallel to the normal
+    # to the face, so we want to accept that face as the one we won't periodize
+    # about
+    if thetai > thetaf:
+        # then we want new xi, found by continuing xf + t*(xi - xf) until it
+        # hits the plane opposite to xf_face
+        opposite_face = face_opposite[xf_face]
+    else:
+        opposite_face = face_opposite[xi_face]
+    w = ws[opposite_face]
+    w0 = w0s[opposite_face]
+    # intersection point must always exist since we chose the plane of
+    # intersection cleverly. order of xi,xf don't matter, the point will be
+    # found regardless
+    Ip = line_hit_hyperplane(xi, xf, w, w0)
+    if thetai > thetaf:
+        return (Ip, xf)
+    else:
+        return (xi, Ip)
 
 def calculate_sphericity(lines):
     vectors = [line[1] - line[0] for line in lines]
-    # vectors = [vector/np.norm(vector) for vector in vectors]
+    # vectors = [vector/np.linalg.norm(vector) for vector in vectors]
     outers = [np.outer(a, a) for a in vectors]
     inners = [np.inner(a, a) for a in vectors]
     S = np.zeros((3,3))
@@ -185,7 +581,6 @@ def calculate_sphericity(lines):
     evals = eig[0]
     evals.sort()
     return evals, (evals[0]+evals[1])*3/2
-
 
 def plot_segment(xinits, xfinals):
     """Plot a list of uniformly generated segments."""
@@ -206,15 +601,51 @@ def plot_segment(xinits, xfinals):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
-def detect_collision(xi, xf, xi_new, xf_new, d, a=1, periodic=False):
+def periodize(xi, xf, d):
+    """A generator for each of the copies of the cylinder that we have to check
+    for collisions."""
+    # of course the cylinder itself must be used, so we return that first in
+    # case anybody only cares to do one, then they do the most important one
+    yield xi, xf
+    # now for each edge adjacent to the face that the tip of the line defining
+    # the center of the cylinder is hitting, we can check if the cylinder
+    # spills over onto the next face in that direction by just checking if the
+    # points of closest approach from the cylinder to the edge are within r of
+    # each other
+    xip, xfp = get_true_xif_periodic(xi, xf)
+    periodizers = periodizers_given_face[get_face_given_point(xip)]
+    for periodizer in periodizers:
+        yield periodizer+xip, periodizer+xfp
+
+
+# old way to do periodization. unfinished. was going to "faster" by manually
+# checking to make sure that we had to actually periodize by a face before we
+# do. but logic for avoiding repeats,etc. seems hard and it costs a d_line_line
+# to do the check anyway, which is the price we pay for just periodizing
+# regardless and just making sure it's fine
+    # periodization_faces = []
+    # for edge_idx in adjacent_edges[xi_face]:
+    #     edge = edges[edge_idx]
+    #     if d_line_line(*edge, xi, xf):
+    #         periodization_faces.append(face_edge_to_face[(xi_face, edge_idx)])
+
+
+def detect_collision(xi, xf, xi_new, xf_new, d, periodic=False):
     """Are cylinders defined by start and end centerpoint sof xi,xf and
     xi_new,xf_new, each of diameter d, overlapping? use periodic boundary
     conditions in the box of side length a centered in the first quadrant if
     requested."""
     if not periodic:
-        return dsegment(xi, xf, xi_new, xf_new) < d
+        return d_segment_segment(xi, xf, xi_new, xf_new) < d
     # one for each of the 26 cubes adjacent to you that can affect you
-    multipliers = [(i-1,j-1,k-1) for i in range(3) for j in range(3) for k in range(3)]
+    else:
+        for xi_p, xf_p in periodize(xi, xf, d):
+            for xi_new_p, xf_new_p in periodize(xi_new, xf_new, d):
+                # not accurate if POCA is at tip of on or both cylinders
+                if d_segment_segment(xi_p, xf_p, xi_new_p, xf_new_p) < d:
+                    return True
+        return False
+
 
 # alternate collision detection, more accurate:
 # first, if the point of closest approach of the cylinders' centers is interior
@@ -235,6 +666,8 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
     length*d^2*pi approximation, which only works for thin d."""
     if lines is None:
         lines = []
+    else:
+        lines = [line/a for line in lines]
     num_lines = len(lines)
     if phi is None:
         phi = 0 # volume fraction of cylinders in box
@@ -242,9 +675,11 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
                                 columns=['xi1', 'xi2', 'xi3', 'xf1', 'xf2',
                                          'xf3', 'phi', 'num_lines',
                                          'did_succeed', 'is_removal'])
+    # renormalize to box size 1, so d = ratio of radius to box length
+    # so we multiply all position outputs by a to get true answers
+    d = d/a
     for i in range(nsteps):
         if np.random.rand(1) < 0.5:
-            num_lines = len(lines)
             if num_lines == 0:
                 # record an unsuccessful removal move
                 move_history.loc[i] = [np.nan, np.nan, np.nan,
@@ -262,15 +697,16 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
                 # delete that line
                 line = lines.pop(remove_ind)
                 num_lines -= 1
-                phi -= np.pi*d*d*np.linalg.norm(xf_rem - xi_rem)
-            move_history.loc[i] = [xi_rem[0], xi_rem[1], xi_rem[2],
-                                   xf_rem[0], xf_rem[1], xf_rem[2],
+                phi -= volume_of_cylinder(xi_rem, xf_rem, d, periodic)
+            move_history.loc[i] = [a*xi_rem[0], a*xi_rem[1], a*xi_rem[2],
+                                   a*xf_rem[0], a*xf_rem[1], a*xf_rem[2],
                                    phi, num_lines, did_succeed, True]
         else:
-            xi_new, xf_new = uniform_segment_from_cube(a)
+            xi_new, xf_new = uniform_segment_from_unit_cube()
+
             did_succeed = True
             for xi, xf in lines:
-                if detect_collision(xi, xf, xi_new, xf_new, d, a, periodic):
+                if detect_collision(xi, xf, xi_new, xf_new, d, periodic):
                     did_succeed = False
                     break
             move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
@@ -278,13 +714,15 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
                                 phi, num_lines, did_succeed, False]
             if did_succeed:
                 num_lines += 1
-                phi += np.pi*d*d*np.linalg.norm(xf_new - xi_new)
+                phi += volume_of_cylinder(xi_new, xf_new, d, periodic)
                 lines += [(xi_new, xf_new)]
     numeric_columns = ['xi1', 'xi2', 'xi3', 'xf1', 'xf2', 'xf3', 'phi',
                        'num_lines']
     move_history[numeric_columns] = move_history[numeric_columns].apply(pd.to_numeric)
     move_history['did_succeed'] = move_history.did_succeed.astype(bool)
     move_history['is_removal'] = move_history.is_removal.astype(bool)
+    # unrenormalize last few lengths
+    lines = [line*a for line in lines]
     return lines, phi, move_history
 
 #DEPRECATED!
@@ -311,7 +749,7 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 #         xi_new, xf_new = uniform_segment_from_cube(a)
 #         did_succeed = True
 #         for xi, xf in lines:
-#             if dsegment(xi, xf, xi_new, xf_new) < d:
+#             if d_segment_segment(xi, xf, xi_new, xf_new) < d:
 #                 did_succeed = False
 #                 break
 #         move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
@@ -331,7 +769,7 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 #     xi_new, xf_new = uniform_segment_from_cube(a)
 #     did_succeed = True
 #     for xi, xf in lines:
-#         if dsegment(xi, xf, xi_new, xf_new) < d:
+#         if d_segment_segment(xi, xf, xi_new, xf_new) < d:
 #             did_succeed = False
 #             break
 #     move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
@@ -549,13 +987,17 @@ def plot_accept_prob(outdir):
 if __name__ == '__main__':
 
 
-    # k_removes = np.linspace(0.01, 5, 51)
-    # ds = np.linspace(0.01, 0.1, 11)
-    # scan_equilibriums(20000, k_removes, ds, num_cores=32)
+    k_removes = np.linspace(0.01, 5, 51)
+    ds = np.linspace(0.01, 0.1, 11)
+    scan_equilibriums(20000, k_removes, ds, num_cores=32)
 
 
-    get_accept_prob('tmp/accept_probs_d_0.01_k_5', nPhi=100, nL=50,
-                    steps_per_batch=1000, k_remove=5, d=0.01,
-                    num_sims=1000)
+    # get_accept_prob('tmp/accept_probs_d_0.01_k_5', nPhi=100, nL=50,
+    #                 steps_per_batch=1000, k_remove=5, d=0.01,
+    #                 num_sims=1000)
+
+    # lines, phi, move_history = monte_carlo_with_removal(10000, 1, 0.1, periodic=True)
+    # print(move_history.phi.mean())
+
 
 
