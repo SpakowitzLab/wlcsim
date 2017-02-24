@@ -33,6 +33,10 @@ import os
 from numba import jit
 import multiprocessing
 import pscan
+from scipy.optimize import curve_fit
+import statsmodels.api as sm
+from scipy.spatial import cKDTree
+
 
 # our "floating precision" cutoff
 SMALL_NUM = np.power(10.0, -8)
@@ -484,8 +488,10 @@ def uniform_segment_from_unit_cube():
         xinit[2] = 1.0
         dxinit = face_dx
         dxinit[2] = -dxinit[2]
-    else:
-        raise ValueError('internal error: face \\notin {0,1,2,3,4,5}')
+    #DEBUG
+    # else:
+    #     raise ValueError('internal error: face \\notin {0,1,2,3,4,5}')
+
     # now get collision point with other side of cube, by pretending our
     # segment is a path and asking at what time the path intersects the cube
     # if dx_i < 0, then x_i + dx_i*t exits the cube when x_i == 0
@@ -495,8 +501,10 @@ def uniform_segment_from_unit_cube():
     if np.any(is_dx_pos):
         tout[is_dx_pos] = np.min((1.0 - xinit[is_dx_pos])/dxinit[is_dx_pos])
     xfinal = xinit + np.min(tout)*dxinit
-    if np.any(xfinal > 1.0):
-        raise ValueError('internal error: xfinal should be inside unit cube')
+    #DEBUG
+    # if np.any(xfinal > 1.0):
+    #     raise ValueError('internal error: xfinal should be inside unit cube')
+
     # get the segment initial and final locations
     return xinit, xfinal
 
@@ -906,21 +914,29 @@ def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None,
 
 
 def equilibrium_mapper(p):
-    return (p['k'], p['d'],
+    return (p['s'], p['k'], p['d'],
             get_equilibrium(p['s'], p['k'], p['d'], periodic=p['p']))
 
 def scan_equilibriums(steps_per_batch, k_removes, ds, periodic=True, num_cores=8):
     """Use pscan to get a list of equilibrium phi levels as a function of the
     removal probability (i.e. k_remove a.k.a. chemical potential of the bath of
-    "sticks" feeding our box filling process) and the diameter/box width ratio."""
+    "sticks" feeding our box filling process) and the diameter/box width ratio.
+
+    steps_per_batch must be scalar, or same size as k_removes, they'll be
+    jparams.
+    """
     script_name = os.path.basename(__file__)
     #print(script_name + ': Running scan_equilibriums!')
     p = multiprocessing.Pool(num_cores)
-    scan = pscan.Scan({'p': [periodic], 's': [steps_per_batch], 'k': k_removes, 'd': ds})
-    print("k_remove\twidth_ratio\tequilibrium_phi")
-    for k,d,phi in p.imap_unordered(
+    if len(steps_per_batch) == 1:
+        steps_per_batch = steps_per_batch*np.ones_like(k_removes)
+    jparam = {'s': steps_per_batch, 'k': k_removes}
+    scan = pscan.Scan({'p': [periodic], 'd': ds})
+    scan.add_jparam(jparam)
+    print("k_remove\twidth_ratio\tequilibrium_phi\tnsteps")
+    for s,k,d,phi in p.imap_unordered(
             equilibrium_mapper, scan.params(), chunksize=10):
-        print(str(k) + '\t' + str(d) + '\t' + str(phi))
+        print(str(k) + '\t' + str(d) + '\t' + str(phi) + '\t' + str(s))
 
 def plot_equilibrium_scan(outfile):
     df = pd.read_table(outfile)
@@ -932,6 +948,30 @@ def plot_equilibrium_scan(outfile):
     ha.set_zlabel('$\mu$: Chemical potential/length')
     ha.set_title('Equilibrium Packing Densities from MC')
     return ha
+
+# approx packing fract of cylinders is 0.73
+def balls_approximation(phi, N, phi_full=0.73):
+    phi_solvent = 1 - phi/phi_full
+    return N*( phi_solvent*np.log(phi_solvent) - phi_solvent + 1 )
+
+def fit_equilibrium_scan(outfile):
+    """Try to get a fit for mu as a function of d and phi. So far, we tried
+    "balls_approximation" above, which Quinn derived just based on
+    inserting a comparable number of identifiable beads into a bin. but that
+    function is concave up in planes of fixed d, and ours is concave down
+    for the first long time before it slopes up rapidly (presumedly due to
+    nematic effects, should check this)."""
+    df = pd.read_table(outfile)
+    ds = df.width_ratio.unique()
+    ds.sort()
+    for d in ds:
+        dfd = df[df.width_ratio == d]
+        phi = np.array(dfd.equilibrium_phi)
+        mu = np.array(dfd.k_remove)
+        popt, pcov = curve_fit(balls_approximation, phi, mu, p0=[d*d*d])
+        import pdb; pdb.set_trace()
+
+
 
 def plot_accept_prob(outdir):
     files = os.listdir(outdir)
@@ -987,17 +1027,67 @@ def plot_accept_prob(outdir):
     plt.plot(X,Zave)
     return ha,ha2
 
+def get_mu_of_d_phi(equilibrium_outfile, nphigrid=100):
+    df = pd.read_table(equilibrium_outfile)
+    dgrid = df.width_ratio.unique()
+    dgrid.sort()
+    phigrid = np.linspace(0, 1, nphigrid)
+    mu = np.zeros((len(dgrid), nphigrid))
+    mu[:,:] = np.nan
+    zs = {}
+    for i,d in enumerate(dgrid):
+        lowess = sm.nonparametric.lowess
+        dfd = df[df.width_ratio == d]
+        x = dfd.equilibrium_phi
+        y = dfd.k_remove
+        z = lowess(y, x, frac=1.0/3.0)
+        zs[d] = z
+        xfit = z[:,0]
+        yfit = z[:,1]
+        # this should in principle be faster and generalize to arbitrary
+        # dimensions, but DEFINITELY doesn't work as is. not sure what's
+        # wrong. gives "almost" correct results
+        # tree = cKDTree(np.expand_dims(xfit, axis=1))
+        # dist, ind = tree.query(np.expand_dims(phigrid, axis=1), k=2)
+        # d1, d2 = dist.T
+        # x1, x2 = xfit[ind].T
+        # v1, v2 = yfit[ind].T
+        # mult = np.ones_like(v1)
+        # mult[x1 > x2] = -1.0
+        # mu[i,:] = mult*(d1)/(d1 + d2)*(v2 - v1) + v1
+        # mu[i, phigrid < xfit[0]] = -float('inf')
+        # mu[i, phigrid > xfit[-1]] = float('inf')
+        for j,phi in enumerate(phigrid):
+            inds = np.argwhere(xfit < phi)
+            if inds.size == 0:
+                mu[i,j] = -float('inf')
+                continue
+            ind_l = inds[-1]
+            inds = np.argwhere(xfit > phi)
+            if inds.size == 0:
+                mu[i,j] = float('inf')
+                continue
+            ind_r = inds[0]
+            x1 = xfit[ind_l]
+            x2 = xfit[ind_r]
+            y1 = yfit[ind_l]
+            y2 = yfit[ind_r]
+            mu[i,j] = y1 + (phi - x1)*(y2 - y1)/(x2 - x1)
+    return dgrid, phigrid, mu
 
-
-
+def plot_equilibrium_scan_with_interp(outfile, *args, **kwargs):
+    ha = plot_equilibrium_scan(outfile)
+    dgrid, phigrid, mu = get_mu_of_d_phi(outfile, *args, **kwargs)
+    X, Y = np.meshgrid(dgrid, phigrid)
+    ha.plot_surface(X, Y, mu.T, alpha=0.5)
+    return ha
 
 if __name__ == '__main__':
 
-
-    k_removes = np.linspace(0.01, 5, 51)
-    ds = np.linspace(0.01, 0.1, 11)
-    scan_equilibriums(20000, k_removes, ds, num_cores=32, periodic=True)
-
+    nsteps = np.linspace(1000, 5000, 101).astype(int)
+    k_removes = np.linspace(0.01, 10, 101)
+    ds = np.linspace(0.01, 0.3, 31)
+    scan_equilibriums(nsteps, k_removes, ds, num_cores=32, periodic=True)
 
     # get_accept_prob('tmp/accept_probs', nPhi=100, nL=50,
     #                 steps_per_batch=1000, k_remove=5, d=0.01,
