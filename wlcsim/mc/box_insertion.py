@@ -23,6 +23,9 @@ for periodization old line
           for each wall that both tips share
               return if their ellipse outlines on that wall collide inside of the box wall
 
+Yes I know this could have been done more prettily with object oriented shapes,
+but I'm busy getting real results, do it yourself if you want.
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -121,6 +124,95 @@ for plist in periodizers_given_face:
 
 # semantically useful throughout code, create once
 box_center = np.array([0.5, 0.5, 0.5])
+
+def new_object(shape_params, shape):
+    if 'sphere' in shape:
+        r = shape_params
+        return (uniform_point_from_unit_cube(), r)
+    elif 'cylinder' in shape:
+        return uniform_segment_from_unit_cube()
+    else:
+        raise ValueError('Invalid shape requested!')
+    return None
+
+def volume_of_shape(obj, shape_params, shape, periodic):
+    if 'sphere' in shape:
+        (c, r) = obj
+        return volume_of_sphere(c, r, periodic)
+    elif 'cylinder' in shape:
+        xi, xf = obj
+        d = shape_params
+        return volume_of_cylinder(xi, xf, d, periodic)
+    else:
+        raise ValueError('Invalid shape requested!')
+    return np.nan
+
+def detect_collision(obj, obj_new, shape_params, shape, periodic=False):
+    if 'sphere' in shape:
+        (c, r) = obj
+        (c_new, r_new) = obj_new
+        return detect_collision_spheres(c, r, c_new, r_new, periodic)
+    elif 'cylinder' in shape:
+        xi, xf = obj
+        xi_new, xf_new = obj_new
+        d = shape_params
+        return detect_collision_cylinders(xi, xf, xi_new, xf_new, d, periodic)
+    else:
+        raise ValueError('Invalid shape requested!')
+    return False
+
+def columns_for_shape(shape):
+    if 'cylinder' in shape:
+        return ['xi1', 'xi2', 'xi3', 'xf1', 'xf2', 'xf3', 'phi', 'num_objects',
+                'did_succeed', 'is_removal']
+    elif 'sphere' in shape:
+        return ['c1', 'c2', 'c3', 'r', 'phi', 'num_objects',
+                'did_succeed', 'is_removal']
+    else:
+        raise ValueError('Invalid shape requested!')
+    return []
+
+def numeric_columns_for_shape(shape):
+    if 'sphere' in shape:
+        return ['c1', 'c2', 'c3', 'r', 'phi', 'num_objects']
+    elif 'cylinder' in shape:
+        return ['xi1', 'xi2', 'xi3', 'xf1', 'xf2', 'xf3', 'phi', 'num_objects']
+    else:
+        raise ValueError('Invalid shape requested!')
+    return []
+
+def row_for_shape(obj, shape, phi, num_objects, did_succeed, is_removal):
+    if 'sphere' in shape:
+        if obj is None:
+            c = [np.nan, np.nan, np.nan]
+            r = np.nan
+        else:
+            c, r = obj
+        return [c[0], c[1], c[2], r, phi, num_objects, did_succeed, is_removal]
+    elif 'cylinder' in shape:
+        if obj is None:
+            xf = [np.nan, np.nan, np.nan]
+            xi = [np.nan, np.nan, np.nan]
+        else:
+            xi, xf = obj
+        return [xi[0], xi[1], xi[2], xf[0], xf[1], xf[2], phi, num_objects,
+                did_succeed, is_removal]
+    else:
+        raise ValueError('Invalid shape requested!')
+    return []
+
+def get_removal_amount(obj, shape):
+    """Get parameter that is used to scale probability of removal.
+    e.g. for cylinders, this is their length. for spheres, this is their
+    radius. etc."""
+    if 'sphere' in shape:
+        return 1 # all have same volume, so do per number
+    elif 'cylinder' in shape:
+        xi, xf = obj
+        return np.linalg.norm(xf - xi)
+    else:
+        raise ValueError('Invalid shape requested!')
+    return np.nan
 
 @jit(nopython=True)
 def line_hit_hyperplane(xi, xf, w, w0):
@@ -418,7 +510,7 @@ def check_tube2_tube2_collisions(tube1, tube2):
     # first check if tubes are parallell. if so, just return collision by
     # checking if the two lines as a whole are the correct distance from each
     # other
-    if np.norm(ui - vi) < SMALL_NUM or np.norm(ui + vi) < SMALL_NUM:
+    if np.linalg.norm(ui - vi) < SMALL_NUM or np.linalg.norm(ui + vi) < SMALL_NUM:
         # distance between two parallel lines each defined by two points isn't
         # too hard to work out, just take the vector between any two points on
         # the line, then subtract off that vector's projection onto either line
@@ -433,7 +525,9 @@ def check_ellipse_collisions(ellipse1, ellipse2):
     a2,b2,theta2,h2,k2 = ellipse2
     raise NotImplementedError('not done coding check_ellipse_collisions')
 
-
+@jit(nopython=True)
+def uniform_point_from_unit_cube():
+    return np.random.rand(3)
 
 @jit(nopython=True)
 def uniform_segment_from_unit_cube():
@@ -514,6 +608,14 @@ def uniform_segment_from_cube(a):
     its side length."""
     xi,xf = uniform_segment_from_unit_cube()
     return a*xi, a*xf
+
+@jit(nopython=True)
+def volume_of_sphere(c, r, periodic=True):
+    if periodic:
+        return 4.0/3.0*np.pi*r*r*r
+    else:
+        raise NotImplementedError('volume of non-periodic sphere')
+        return np.nan
 
 # @jit(nopython=True)
 def volume_of_cylinder(xi, xf, d, periodic=True):
@@ -613,7 +715,7 @@ def plot_segment(xinits, xfinals):
     ax.set_ylabel('y')
     ax.set_zlabel('z')
 
-def periodize(xi, xf, d):
+def periodize_cylinders(xi, xf, d):
     """A generator for each of the copies of the cylinder that we have to check
     for collisions."""
     # of course the cylinder itself must be used, so we return that first in
@@ -628,8 +730,6 @@ def periodize(xi, xf, d):
     periodizers = periodizers_given_face[get_face_given_point(xip)]
     for periodizer in periodizers:
         yield periodizer+xip, periodizer+xfp
-
-
 # old way to do periodization. unfinished. was going to "faster" by manually
 # checking to make sure that we had to actually periodize by a face before we
 # do. but logic for avoiding repeats,etc. seems hard and it costs a d_line_line
@@ -641,8 +741,29 @@ def periodize(xi, xf, d):
     #     if d_line_line(*edge, xi, xf):
     #         periodization_faces.append(face_edge_to_face[(xi_face, edge_idx)])
 
+# @jit(nopython=True)
+def periodize_point(p):
+    periodizers = [-1.0, 0.0, 1.0]
+    # points = []
+    for offset_x in periodizers:
+        for offset_y in periodizers:
+            for offset_z in periodizers:
+                # points.append(p + np.array([offset_x, offset_y, offset_z]))
+                yield p + np.array([offset_x, offset_y, offset_z])
+    # return points
 
-def detect_collision(xi, xf, xi_new, xf_new, d, periodic=False):
+# jitting this causes a memory leak
+# @jit(nopython=True)
+def detect_collision_spheres(c, r, c_new, r_new, periodic):
+    if not periodic:
+        raise NotImplementedError('collision detection for non-periodic spheres')
+    for cp in periodize_point(c):
+        for c_newp in periodize_point(c_new):
+            if np.linalg.norm(cp - c_newp) < r + r_new:
+                return True
+    return False
+
+def detect_collision_cylinders(xi, xf, xi_new, xf_new, d, periodic):
     """Are cylinders defined by start and end centerpoint sof xi,xf and
     xi_new,xf_new, each of diameter d, overlapping? use periodic boundary
     conditions in the box of side length a centered in the first quadrant if
@@ -651,8 +772,8 @@ def detect_collision(xi, xf, xi_new, xf_new, d, periodic=False):
         return d_segment_segment(xi, xf, xi_new, xf_new) < d
     # one for each of the 26 cubes adjacent to you that can affect you
     else:
-        for xi_p, xf_p in periodize(xi, xf, d):
-            for xi_new_p, xf_new_p in periodize(xi_new, xf_new, d):
+        for xi_p, xf_p in periodize_cylinders(xi, xf, d):
+            for xi_new_p, xf_new_p in periodize_cylinders(xi_new, xf_new, d):
                 # not accurate if POCA is at tip of on or both cylinders
                 if d_segment_segment(xi_p, xf_p, xi_new_p, xf_new_p) < d:
                     return True
@@ -663,10 +784,10 @@ def detect_collision(xi, xf, xi_new, xf_new, d, periodic=False):
 # first, if the point of closest approach of the cylinders' centers is interior
 # to the cube, then the #TODO
 
-def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
-                             periodic=False):
+def monte_carlo_with_removal(nsteps, mu, shape_params, shape, objects=None, phi=None,
+                             periodic=True):
     """Perform nsteps MC steps. Half steps try to remove a uniformly random
-    line with probability exp(-k_remove). Other half attempts (nsteps times)
+    line with probability exp(-mu). Other half attempts (nsteps times)
     to insert a random line into a box of side length
     a. If the line overlaps with any other line (in the sense that they
     represent the centers of cylinders of radius d), reject the new line.
@@ -676,66 +797,59 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 
     TODO: calculate actual volume being added to box instead of just using the
     length*d^2*pi approximation, which only works for thin d."""
-    if lines is None:
-        lines = []
-    else:
-        lines = [(line[0]/a, line[1]/a) for line in lines]
-    num_lines = len(lines)
+    if objects is None:
+        objects = []
+    num_objects = len(objects)
     if phi is None:
         phi = 0 # volume fraction of cylinders in box
-    move_history = pd.DataFrame(index=np.arange(0, nsteps, 1),
-                                columns=['xi1', 'xi2', 'xi3', 'xf1', 'xf2',
-                                         'xf3', 'phi', 'num_lines',
-                                         'did_succeed', 'is_removal'])
-    # renormalize to box size 1, so d = ratio of radius to box length
-    # so we multiply all position outputs by a to get true answers
-    d = d/a
+    columns = columns_for_shape(shape)
+    move_history = pd.DataFrame(index=np.arange(0, nsteps, 1), columns=columns)
     for i in range(nsteps):
-        if np.random.rand(1) < 0.5:
-            if num_lines == 0:
-                # record an unsuccessful removal move
-                move_history.loc[i] = [np.nan, np.nan, np.nan,
-                                       np.nan, np.nan, np.nan,
-                                       phi, num_lines, False, True]
-
+        # two monte carlo moves available: insertion and removal
+        if np.random.rand(1) < 0.5: # removal MC move
+            # if no object exist, doens't make sense to try to remove them
+            if num_objects == 0:
+                move_history.loc[i] = row_for_shape(obj=None, shape=shape,
+                        phi=phi, num_objects=num_objects, did_succeed=False,
+                        is_removal=True)
                 continue
-            # choose a random line in the box
-            remove_ind = int(np.random.rand(1)*num_lines)
-            xi_rem, xf_rem = lines[remove_ind]
-            L = np.linalg.norm(xf_rem - xi_rem)
-            did_succeed = False
-            if np.random.rand(1) < np.exp(-k_remove*L):
-                did_succeed = True
-                # delete that line
-                line = lines.pop(remove_ind)
-                num_lines -= 1
-                phi -= volume_of_cylinder(xi_rem, xf_rem, d, periodic)
-            move_history.loc[i] = [a*xi_rem[0], a*xi_rem[1], a*xi_rem[2],
-                                   a*xf_rem[0], a*xf_rem[1], a*xf_rem[2],
-                                   phi, num_lines, did_succeed, True]
-        else:
-            xi_new, xf_new = uniform_segment_from_unit_cube()
-
+            # choose a random object in the box
+            remove_ind = int(np.random.rand(1)*num_objects)
+            obj_rem = objects[remove_ind]
+            # remove it with probability given by chemical potential "mu"
+            # according to some parameter of the shape
+            L = get_removal_amount(obj_rem, shape)
+            did_succeed = np.random.rand(1) < np.exp(-mu*L)
+            move_history.loc[i] = row_for_shape(obj_rem, shape, phi, num_objects,
+                    did_succeed, is_removal=True)
+            if did_succeed:
+                objects.pop(remove_ind)
+                num_objects -= 1
+                phi -= volume_of_shape(obj_rem, shape_params, shape, periodic)
+        else: # insertion MC move
+            new_obj = new_object(shape_params, shape)
             did_succeed = True
-            for xi, xf in lines:
-                if detect_collision(xi, xf, xi_new, xf_new, d, periodic):
+            for existing_obj in objects:
+                if detect_collision(existing_obj, new_obj, shape_params, shape, periodic):
                     did_succeed = False
                     break
-            move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
-                                xf_new[0], xf_new[1], xf_new[2],
-                                phi, num_lines, did_succeed, False]
+            move_history.loc[i] = row_for_shape(new_obj, shape, phi, num_objects,
+                    did_succeed, is_removal=False)
             if did_succeed:
-                num_lines += 1
-                phi += volume_of_cylinder(xi_new, xf_new, d, periodic)
-                lines += [(xi_new, xf_new)]
-    numeric_columns = ['xi1', 'xi2', 'xi3', 'xf1', 'xf2', 'xf3', 'phi',
-                       'num_lines']
+                num_objects += 1
+                phi += volume_of_shape(new_obj, shape_params, shape, periodic)
+                objects += [new_obj]
+    # the simulation is now done
+    # hack in the correct types to the pandas dataframe holding the history fo
+    # the moves we've done, since this can't be done at instantiation
+    # (open bug in pandas as of 2017-02-24)
+    numeric_columns = numeric_columns_for_shape(shape)
     move_history[numeric_columns] = move_history[numeric_columns].apply(pd.to_numeric)
     move_history['did_succeed'] = move_history.did_succeed.astype(bool)
     move_history['is_removal'] = move_history.is_removal.astype(bool)
-    # unrenormalize last few lengths
-    lines = [line*a for line in lines]
-    return lines, phi, move_history
+    # return account of simulation as well as everything you need to continue
+    # the simulation where it left off
+    return objects, phi, move_history
 
 #DEPRECATED!
 # def monte_carlo(nsteps, d, a=1, lines=None, phi=None):
@@ -750,12 +864,12 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 #     length*d^2*pi approximation, which only works for thin d."""
 #     if lines is None:
 #         lines = []
-#     num_lines = len(lines)
+#     num_objects = len(lines)
 #     if phi is None:
 #         phi = 0 # volume fraction of cylinders in box
 #     move_history = pd.DataFrame(index=np.arange(0, nsteps, 1),
 #                                 columns=['xi1', 'xi2', 'xi3', 'xf1', 'xf2',
-#                                          'xf3', 'phi', 'num_lines',
+#                                          'xf3', 'phi', 'num_objects',
 #                                          'did_succeed'])
 #     for i in range(nsteps):
 #         xi_new, xf_new = uniform_segment_from_cube(a)
@@ -766,9 +880,9 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 #                 break
 #         move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
 #                                xf_new[0], xf_new[1], xf_new[2],
-#                                phi, num_lines, did_succeed]
+#                                phi, num_objects, did_succeed]
 #         if did_succeed:
-#             num_lines += 1
+#             num_objects += 1
 #             phi += np.pi*d*d*np.linalg.norm(xf_new - xi_new)
 #             lines += [(xi_new, xf_new)]
 #     move_history = move_history.apply(pd.to_numeric)
@@ -786,7 +900,7 @@ def monte_carlo_with_removal(nsteps, k_remove, d, a=1, lines=None, phi=None,
 #             break
 #     move_history.loc[i] = [xi_new[0], xi_new[1], xi_new[2],
 #                             xf_new[0], xf_new[1], xf_new[2],
-#                             phi, num_lines, did_succeed]
+#                             phi, num_objects, did_succeed]
 #     if did_succeed:
 #         line = (xi_new, xf_new)
 #         lines += [line]
@@ -804,7 +918,8 @@ def get_all_line_lengths(moves_df):
 # values from an insertion/removal process to get the acceptance probabilities
 # at equilibrium. if you want to come back and still do this, you should modify
 # this function to work with the new monte_carlo functions
-def get_accept_prob(outdir, nPhi, nL, steps_per_batch, k_remove, d, a=1, num_sims=None):
+def get_accept_prob(outdir, nPhi, nL, steps_per_batch, mu,
+                    shape_params, shape, num_sims=None):
     """Bin acceptance ratio dependence on phi into nP bins. Restart the
     MC sim every time that the rate that phi is increasing per nS steps is less
     than restart_thresh."""
@@ -843,7 +958,7 @@ def get_accept_prob(outdir, nPhi, nL, steps_per_batch, k_remove, d, a=1, num_sim
     while True:
         # perform MC
         lines, phi, new_moves = monte_carlo_with_removal(steps_per_batch,
-                                                         k_remove, d, a, lines, phi)
+                mu, shape_params, shape, lines, phi)
         new_moves['L'] = get_all_line_lengths(new_moves)
         # update ratios
         #TODO: check if np.digitize is faster
@@ -878,9 +993,9 @@ def get_accept_prob(outdir, nPhi, nL, steps_per_batch, k_remove, d, a=1, num_sim
             break
     return accepted_moves, total_moves
 
-def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None,
-                    periodic=True):
-    """For the values of d and k_remove provide, run until equilibrium. Here,
+def get_equilibrium(steps_per_batch, mu, shape_params, shape, lines=None,
+                    phi=None, periodic=True):
+    """For the values of d and mu provide, run until equilibrium. Here,
     equilibrium means run in batches of steps_per_batch MC steps, then if the
     average phi (packing fraction) in a batch drops below the average phi of
     the previous batch. One more batch is then run to calculate the equilibrium
@@ -897,52 +1012,56 @@ def get_equilibrium(steps_per_batch, k_remove, d, a=1, lines=None, phi=None,
     prev_phi_ave = -float('inf')
     lines = []; phi = 0;
     while True:
-        lines, phi, moves = monte_carlo_with_removal(steps_per_batch, k_remove,
-                                                     d, a, lines, phi,
-                                                     periodic=periodic)
+        lines, phi, moves = monte_carlo_with_removal(steps_per_batch, mu,
+                shape_params, shape, lines, phi, periodic=periodic)
         moves = moves[~moves.is_removal]
         phi_ave = moves['phi'].mean()
         # if termination condition reached, run again so taht we decorrelate
         # from the artificial lower value of phi
         if phi_ave < prev_phi_ave:
-            _, _, moves = monte_carlo_with_removal(steps_per_batch, k_remove,
-                                                   d, a, lines, phi,
-                                                   periodic=periodic)
+            _, _, moves = monte_carlo_with_removal(steps_per_batch, mu,
+                    shape_params, shape, lines, phi, periodic=periodic)
             moves = moves[~moves.is_removal]
             return moves['phi'].mean()
         prev_phi_ave = phi_ave
 
 
 def equilibrium_mapper(p):
-    return (p['s'], p['k'], p['d'],
-            get_equilibrium(p['s'], p['k'], p['d'], periodic=p['p']))
+    return (p['s'], p['mu'], p['shape_param'],
+            get_equilibrium(p['s'], p['mu'], p['shape_param'], p['shape'], periodic=p['p']))
 
-def scan_equilibriums(steps_per_batch, k_removes, ds, periodic=True, num_cores=8):
+def scan_equilibriums(steps_per_batch, mus, shape_params, shape, periodic=True, num_cores=8):
     """Use pscan to get a list of equilibrium phi levels as a function of the
-    removal probability (i.e. k_remove a.k.a. chemical potential of the bath of
+    removal probability (i.e. mu a.k.a. chemical potential of the bath of
     "sticks" feeding our box filling process) and the diameter/box width ratio.
 
-    steps_per_batch must be scalar, or same size as k_removes, they'll be
+    steps_per_batch must be scalar, or same size as mus, they'll be
     jparams.
     """
     script_name = os.path.basename(__file__)
     #print(script_name + ': Running scan_equilibriums!')
     p = multiprocessing.Pool(num_cores)
+    if type(steps_per_batch) is int:
+        steps_per_batch = [steps_per_batch]
+    if type(shape) is str:
+        shape = [shape]
     if len(steps_per_batch) == 1:
-        steps_per_batch = steps_per_batch*np.ones_like(k_removes)
-    jparam = {'s': steps_per_batch, 'k': k_removes}
-    scan = pscan.Scan({'p': [periodic], 'd': ds})
+        steps_per_batch = steps_per_batch*np.ones_like(mus, dtype=np.dtype(int))
+    jparam = {'s': steps_per_batch, 'mu': mus}
+    scan = pscan.Scan({'p': [periodic], 'shape_param': shape_params,
+            'shape': shape})
     scan.add_jparam(jparam)
-    print("k_remove\twidth_ratio\tequilibrium_phi\tnsteps")
-    for s,k,d,phi in p.imap_unordered(
+    print("mu\twidth_ratio\tequilibrium_phi\tnsteps")
+    # for s,mu,sp,phi in map(equilibrium_mapper, scan.params()):
+    for s,mu,sp,phi in p.imap_unordered(
             equilibrium_mapper, scan.params(), chunksize=10):
-        print(str(k) + '\t' + str(d) + '\t' + str(phi) + '\t' + str(s))
+        print(str(mu) + '\t' + str(sp) + '\t' + str(phi) + '\t' + str(s))
 
 def plot_equilibrium_scan(outfile):
     df = pd.read_table(outfile)
     hf = plt.figure()
     ha = hf.add_subplot(111, projection='3d')
-    ha.scatter(df.width_ratio, df.equilibrium_phi, df.k_remove)
+    ha.scatter(df.width_ratio, df.equilibrium_phi, df.mu)
     ha.set_xlabel('$d$: Cylinder diameter/Box side length')
     ha.set_ylabel('$\phi$: Equilibrium packing density')
     ha.set_zlabel('$\mu$: Chemical potential/length')
@@ -967,7 +1086,7 @@ def fit_equilibrium_scan(outfile):
     for d in ds:
         dfd = df[df.width_ratio == d]
         phi = np.array(dfd.equilibrium_phi)
-        mu = np.array(dfd.k_remove)
+        mu = np.array(dfd.mu)
         popt, pcov = curve_fit(balls_approximation, phi, mu, p0=[d*d*d])
         import pdb; pdb.set_trace()
 
@@ -1039,7 +1158,7 @@ def get_mu_of_d_phi(equilibrium_outfile, nphigrid=100):
         lowess = sm.nonparametric.lowess
         dfd = df[df.width_ratio == d]
         x = dfd.equilibrium_phi
-        y = dfd.k_remove
+        y = dfd.mu
         z = lowess(y, x, frac=1.0/3.0)
         zs[d] = z
         xfit = z[:,0]
@@ -1084,13 +1203,14 @@ def plot_equilibrium_scan_with_interp(outfile, *args, **kwargs):
 
 if __name__ == '__main__':
 
-    nsteps = np.linspace(1000, 5000, 101).astype(int)
-    k_removes = np.linspace(0.01, 10, 101)
-    ds = np.linspace(0.01, 0.3, 31)
-    scan_equilibriums(nsteps, k_removes, ds, num_cores=32, periodic=True)
+    # nsteps = np.linspace(1000, 5000, 101).astype(int)
+    nsteps = 2000
+    mus = np.flipud(np.linspace(0.01, 10, 101))
+    ds = np.flipud(np.linspace(0.01, 0.3, 31))
+    scan_equilibriums(nsteps, mus, ds, 'sphere', num_cores=32, periodic=True)
 
     # get_accept_prob('tmp/accept_probs', nPhi=100, nL=50,
-    #                 steps_per_batch=1000, k_remove=5, d=0.01,
+    #                 steps_per_batch=1000, mu=5, d=0.01,
     #                 num_sims=1000)
 
     # lines, phi, move_history = monte_carlo_with_removal(10000, 1, 0.1, periodic=True)
