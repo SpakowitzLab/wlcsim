@@ -696,6 +696,11 @@ def calculate_sphericity(lines):
     evals.sort()
     return evals, (evals[0]+evals[1])*3/2
 
+def plot_lines(lines):
+    xinits = [line[0] for line in lines]
+    xfinals = [line[1] for line in lines]
+    return plot_segment(xinits, xfinals)
+
 def plot_segment(xinits, xfinals):
     """Plot a list of uniformly generated segments."""
     # xfinals = np.stack(xfinals, axis=-1)

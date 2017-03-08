@@ -101,6 +101,35 @@ def df_from_coltimes_method1(coltimes):
     # method 2: still slow from creating Series?
     return df
 
+def non_overlapping_pairs(length, spacing, max_pairs=None, min_pairs=0):
+    """Return the "most spaced" possible sets of pairs of indices that are a
+    specific spacing apart, for getting statistics that aren't biased by the
+    overlap between neighboring segments of the polymer."""
+    # use the number of possible left endpoints to get the num possible pairs
+    num_possible_pairs = np.floor((length - spacing)/spacing).astype(int)
+    if num_possible_pairs < min_pairs:
+        raise ValueError("Requested too large of a spacing for a given minimum "
+                         + "number of overlapping pairs")
+    # by default, return all possible non-overlapping pairs
+    if max_pairs is None or max_pairs > num_possible_pairs:
+        max_pairs = num_possible_pairs
+    num_leftover_indices = length - max_pairs*spacing
+    # num skips is of course num_pairs-1, fenceposts problem
+    skip_per_step = int(num_leftover_indices/(max_pairs-1))
+    num_leftover_indices -= skip_per_step*(max_pairs-1)
+    # the leftover indices should pad the outside of the things, so we just use
+    # half of them to pad on the left
+    num_leftover_indices = int(num_leftover_indices/2)
+    left, right = (0, spacing)
+    left, right = (left + num_leftover_indices, right + num_leftover_indices)
+    yield (left, right)
+    for i in range(max_pairs-1):
+        # if num_leftover_indices > 0:
+        #     num_leftover_indices -= 1
+        #     left = right+skip_per_step+1
+        #     right = left + spacing
+        left, right = (right + skip_per_step, right + skip_per_step + spacing)
+        yield (left, right)
 
 class Sim:
     """
@@ -114,7 +143,7 @@ class Sim:
     if a file is moved, or doesn't exist. Afterwards, the values will be cached.
     """
 
-    def __init__(self, sim_path, overwrite_coltimes=False, load_method=3):
+    def __init__(self, sim_path, input_file=None, overwrite_coltimes=False, load_method=3):
         # since these are all lazily evaluated, we throw exceptions right away
         # if the files we need do not exist, to prevent long running programs
         # from throwing an exception midway
@@ -124,7 +153,7 @@ class Sim:
                                     ' wlcsim.data.Sim does not exist!')
         self.sim_path = sim_path
         self.sim_dir = os.path.basename(sim_path)
-        self.input_file = os.path.join(sim_path, 'input', 'input')
+        self.input_file = Sim.guess_input_name(sim_path, input_file)
         # without input file, we don't really have a chance of using the
         # simulation data from a simulation anyway, so we can safely error out
         # here
@@ -133,10 +162,28 @@ class Sim:
         self.data_dir = os.path.join(sim_path, 'data')
         self.coltimes_file = os.path.join(self.data_dir, 'coltimes')
         self.overwrite_coltimes = overwrite_coltimes
+        #TODO correctly set rfile base for quinn's simulations
         self._rfile_base = os.path.join(self.data_dir, 'r')
         self._ufile_base = os.path.join(self.data_dir, 'u')
         self.load_method = load_method
         self._has_loaded_r = False
+
+    def guess_input_name(sim_path, input_file):
+        bruno_input_name = os.path.join(sim_path, 'input', 'input')
+        quinn_input_name = os.path.join(sim_path, 'input', 'params')
+        if input_file:
+            if os.path.isfile(input_file):
+                return input_file
+            elif os.path.is_file(os.path.join(sim_path, input_file)):
+                return os.path.join(sim_path, input_file)
+            elif os.path.is_file(os.path.join(sim_path, 'input', input_file)):
+                return os.path.join(sim_path, 'input', input_file)
+        if os.path.isfile(bruno_input_name):
+            return bruno_input_name
+        elif os.path.isfile(quinn_input_name):
+            return quinn_input_name
+        else:
+            return None
 
     @cached_property
     def parsed_input(self):
@@ -195,7 +242,10 @@ class Sim:
 
     @cached_property
     def r(self):
-        """ Numpy array of positions of each particle at each time point. """
+        """ Numpy array of positions of each particle at each time point.
+        shape:
+        r.shape == (self.num_time_points, 3, self.num_polymers, self.num_beads)
+        """
         #TODO make only load saved time points
         r = np.full((self.num_time_points, 3, self.num_polymers,
                      self.num_beads), np.nan)
@@ -282,6 +332,19 @@ class Sim:
                      axis=(1,3))
         return np.sqrt(sqd)
 
+
+    def dr_mean_by_distance(self, lengths, max_samples_per_len=1000):
+        distances = np.full((len(lengths), self.num_time_points, self.num_polymers), np.nan)
+        for i,length in enumerate(lengths):
+            mean_dist = 0
+            num_dists = 0
+            for left, right in non_overlapping_pairs(self.polymer_length,
+                    length, max_pairs=max_samples_per_len):
+                mean_dist += np.linalg.norm(self.r[:,:,:,right] - self.r[:,:,:,left], axis=1)
+                num_dists += 1
+            distances[i,:,:] = np.squeeze(mean_dist/num_dists)
+        return distances
+
     # the properties of coltimes are all coded as a function of the linear
     # distance between the beads of interest, as opposed to as a function of
     # their absolute location, although that may not be super good?
@@ -311,6 +374,14 @@ class Sim:
         distances = c['linear_distance'].unique()
         return np.array([len(c.loc[c['linear_distance'] == i, 'coltime'])
                          for i in distances])
+
+    def position_in_axis(self, axis=0):
+        """Project position as a function of N along the chain into one of it's
+        dimensions to see how it's oriented.
+
+        Useful for e.g. visualizing if bacterial DNA in confinement aligns
+        linearly along the cell's length as in e.g. Caulobacter."""
+        return np.squeeze(self.r[:,axis,:,:])
 
     def df_from_coltimes(self, coltimes, method=3):
         # coltimes_file = os.path.join(self.data_dir, 'coltimes.csv')
@@ -549,8 +620,8 @@ def combine_complete_coltime_csvs(run_dir):
 
 def add_useful_cols_to_coltimes(coltimes):
     """Only works on coltimes that come from combine_coltimes_csvs."""
-    coltimes['dr'] = coltimes['L']/(coltimes['NB'] - 1)
-    coltimes['linear_distance'] = coltimes['dr']*np.abs(coltimes['i'] - coltimes['j'])
+    coltimes['deltaR'] = coltimes['L']/(coltimes['NB'] - 1)
+    coltimes['linear_distance'] = coltimes['deltaR']*np.abs(coltimes['i'] - coltimes['j'])
 
 def combine_initial_dists_csvs(run_dir, *args, **kwargs):
     """Not yet implemented."""
