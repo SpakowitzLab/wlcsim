@@ -141,9 +141,15 @@ class Sim:
 
     Accessing properties of this class for the first time can return an IOError
     if a file is moved, or doesn't exist. Afterwards, the values will be cached.
+
+    args:
+        input_file : str - relative or absolute location of input file
+        file_suffix : str - custom suffix on saved filenames, e.g.
+                corresponding to the particular replica that should be loaded
     """
 
-    def __init__(self, sim_path, input_file=None, overwrite_coltimes=False, load_method=3):
+    def __init__(self, sim_path, input_file=None, file_suffix=None,
+                 overwrite_coltimes=False, load_method=3):
         # since these are all lazily evaluated, we throw exceptions right away
         # if the files we need do not exist, to prevent long running programs
         # from throwing an exception midway
@@ -162,9 +168,9 @@ class Sim:
         self.data_dir = os.path.join(sim_path, 'data')
         self.coltimes_file = os.path.join(self.data_dir, 'coltimes')
         self.overwrite_coltimes = overwrite_coltimes
-        #TODO correctly set rfile base for quinn's simulations
         self._rfile_base = os.path.join(self.data_dir, 'r')
         self._ufile_base = os.path.join(self.data_dir, 'u')
+        self._file_suffix = '' if file_suffix is None else str(file_suffix)
         self.load_method = load_method
         self._has_loaded_r = False
 
@@ -199,7 +205,7 @@ class Sim:
     @cached_property
     def r0(self):
         """ Numpy array of positions of each particle pre-first time point. """
-        rfile_name = self._rfile_base + str(0)
+        rfile_name = self._rfile_base + str(0) + self._file_suffix
         r0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
         return r0.values.reshape((3, self.num_polymers, self.num_beads))
 
@@ -207,7 +213,7 @@ class Sim:
     def rend(self):
         """ Numpy array of positions of each particle pre-first time point. """
         last_saved_ti = np.max(self.rtime_idxs)
-        rfile_name = self._rfile_base + str(last_saved_ti)
+        rfile_name = self._rfile_base + str(last_saved_ti) + self._file_suffix
         rend = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
         return rend
 
@@ -220,7 +226,7 @@ class Sim:
             rend2end = np.empty((self.num_time_points, 3, self.num_polymers))
             rend2end[:] = np.nan
             for ti in self.rtime_idxs:
-                rfile_name = self._rfile_base + str(ti)
+                rfile_name = self._rfile_base + str(ti) + self._file_suffix
                 with open(rfile_name, 'rb') as f:
                     first_line = f.readline().rstrip()
                     line_len = len(first_line)
@@ -236,7 +242,7 @@ class Sim:
     @cached_property
     def u0(self):
         """ Numpy array of positions of each particle at each time point. """
-        ufile_name = self._ufile_base + str(0)
+        ufile_name = self._ufile_base + str(0) + self._file_suffix
         u0 = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
         return u0.values.reshape((3, self.num_polymers, self.num_beads))
 
@@ -246,17 +252,12 @@ class Sim:
         shape:
         r.shape == (self.num_time_points, 3, self.num_polymers, self.num_beads)
         """
-        #TODO make only load saved time points
         r = np.full((self.num_time_points, 3, self.num_polymers,
                      self.num_beads), np.nan)
-        for i in range(self.num_time_points):
-            rfile_name = self._rfile_base + str(i)
-            try:
-                ri = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
-            except OSError:
-                continue
-            r[i,:,:,:] = ri.values.T.reshape((1, 3, self.num_polymers,
-                                            self.num_beads))
+        for i in self.rtime_idxs:
+            rfile_name = self._rfile_base + str(i) + self._file_suffix
+            ri = pd.read_csv(rfile_name, delim_whitespace=True, header=None)
+            r[i,:,:,:] = ri.values[:,0:3].T.reshape((1, 3, self.num_polymers, self.num_beads))
         self._has_loaded_r = True
         return r
 
@@ -265,12 +266,9 @@ class Sim:
         """ Numpy array of positions of each particle at each time point. """
         u = np.full((self.num_time_points, 3, self.num_polymers,
                      self.num_beads), 0.0)
-        for i in range(self.num_time_points):
-            ufile_name = self._ufile_base + str(i)
-            try:
-                ui = pd.read_csv(ufile_name, delim_whitespace=True, header=None)
-            except OSError:
-                continue
+        for i in self.utime_idxs:
+            ufile_name = self._ufile_base + str(i) + self._file_suffix
+            ui = pd.read_csv(ufile_name, delim_whitespace=True, header=None)
             u[i,:,:,:] = ui.values.T.reshape((1, 3, self.num_polymers,
                                             self.num_beads))
         return u
@@ -294,18 +292,17 @@ class Sim:
 
     @cached_property
     def rtime_idxs(self):
-        rfiles = glob.glob(self._rfile_base + '*')
-        return self._time_idxs(self._rfile_base, rfiles)
+        rfiles = glob.glob(self._rfile_base + '[0-9]*' + self._file_suffix)
+        return np.sort(self._time_idxs(self._rfile_base, rfiles))
 
     @cached_property
     def utime_idxs(self):
-        ufiles = glob.glob(self._ufile_base + '*')
-        return self._time_idxs(self._ufile_base, ufiles)
+        ufiles = glob.glob(self._ufile_base + '[0-9]*' + self._file_suffix)
+        return np.sort(self._time_idxs(self._ufile_base, ufiles))
 
     def _time_idxs(self, base, file_names):
         number_from_filename = re.compile(re.escape(base) + '([0-9]+)')
-        return np.array([int(re.search(number_from_filename,
-                                       file_name).groups()[0])
+        return np.array([int(re.search(number_from_filename, file_name).groups()[0])
                          for file_name in file_names])
 
     @cached_property
@@ -407,14 +404,43 @@ class Sim:
         dr = self.params['L']/(self.params['NB'] - 1)
         coltimes['linear_distance'] = dr*np.abs(coltimes['i'] - coltimes['j'])
 
+class ReplicaSim:
+    """ReplicaSim(path).sims == [Sim(path, file_suffix=suffix)
+                                 for suffix in path's data folder]
+    """
 
-def nan_fill_coltimes(coltimes):
-    """Takes a raw coltimes pandas array from e.g. write_coltimes_csvs and puts
-    nan's where the -1.0's are, i.e. where the simulation did not go out far
-    enough."""
-    coltimes.loc[coltimes['coltime'] == -1.0, 'coltime'] = np.nan
+    known_data_prefixes = ['r', 'u', 'phi']
 
+    def __init__(self, sim_path, *args, **kwargs):
+        if 'file_suffix' in kwargs:
+            raise ValueError('Cannot pass ReplicaSim a specific file_suffix, just use Sim for this.')
+        self.dummy_sim = Sim(sim_path, *args, **kwargs)
+        self.file_suffixes = list(ReplicaSim.data_file_suffixes(self.dummy_sim.data_dir))
+        self.sims = [Sim(sim_path, *args, file_suffix=suffix, **kwargs)
+                     for suffix in self.file_suffixes]
 
+    @staticmethod
+    def data_file_suffixes(data_dir):
+        """Get file suffixes in given data_dir by looking for files that look
+        like standard data files, only looking at time points 0 and 1 for
+        speed."""
+        known_suffixes = set()
+        for base in ReplicaSim.known_data_prefixes:
+            file_name0 = glob.glob(os.path.join(data_dir, base) + '0*')
+            file_name1 = glob.glob(os.path.join(data_dir, base) + '1*')
+            file_names = itertools.chain(file_name0, file_name1)
+            suffix_from_filename = re.compile(re.escape(base) + '[01][0-9]*(.*)')
+            for file_name in file_names:
+                result = re.search(suffix_from_filename, file_name)
+                if result is None:
+                    raise LookupError('Filename ' + file_name + ' should be ' \
+                                        + 'a save file with base ' + base \
+                                        + ' but that regex failed.')
+                suffix = result.groups()[0]
+                if suffix in known_suffixes:
+                    continue
+                known_suffixes.add(suffix)
+                yield suffix
 
 class Scan:
     """Can tell you what dirs in a run_dir are simulation directories, and what
@@ -427,17 +453,13 @@ class Scan:
         self._prepend_path = lambda d: os.path.join(self.path, d)
         self._is_simdir = lambda d: Scan.is_simdir(d, self.path)
         self._is_complete = lambda d: Scan.is_complete(d, self.path)
-        # self.wlcsim_data = [Sim(folder, *args, **kwargs) for folder in
-        #                     glob.glob(os.path.join(run_dir, '*.*'))
-        #                     if os.path.isdir(folder)]
-        # self.param_names = self.wlcsim_data[0].param_names
-        # for sim in self.wlcsim_data:
-        #     sim.coltimes['run_name'] = sim.sim_dir
-        #     for param in sim.params:
-        #         sim.coltimes[param] = sim.params[param]
-        # coltimes = [sim.coltimes for sim in self.wlcsim_data]
-        # self.coltimes = pd.concat(coltimes)
-        # self.calculate_linear_distance()
+        self._sim_args = args
+        self._sim_kwargs = kwargs
+        # default to behavior that's not default for when you are only looking
+        # at an individual simulation, and specify the file save suffix
+        # explicitly
+        if not kwargs or 'file_suffix' not in kwargs:
+            self.infer_file_suffix = True
 
     @property
     def sim_dirs(self):
@@ -472,7 +494,12 @@ class Scan:
 
     @cached_property
     def sims(self):
-        return [Sim(folder) for folder in self.sim_paths]
+        for folder in self.sim_paths:
+            if self.infer_file_suffix:
+                for sim in ReplicaSim(folder, *self._sim_args, **self._sim_kwargs):
+                    yield sim
+            else:
+                yield Sim(folder, *self._sim_args, **self._sim_kwargs)
 
     @cached_property
     def inputs(self):
@@ -515,7 +542,6 @@ class Scan:
             print(i)
             rend2end[i,:,:,:] = sim.rend2end
         return rend2end
-
 
 def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):
     for folder in Scan(run_dir).sim_paths:
@@ -614,6 +640,15 @@ def combine_coltimes_csvs(run_dir, conditionals=[],
             coltimes[param] = parsed_input.params[param]
         coltimes.to_csv(os.path.join(run_dir, outfile_name),
                                      index=False, mode='a', header=False)
+
+
+def nan_fill_coltimes(coltimes):
+    """Takes a raw coltimes pandas array from e.g. write_coltimes_csvs and puts
+    nan's where the -1.0's are, i.e. where the simulation did not go out far
+    enough."""
+    coltimes.loc[coltimes['coltime'] == -1.0, 'coltime'] = np.nan
+
+
 
 def combine_complete_coltime_csvs(run_dir):
     combine_coltimes_csvs(run_dir, [], 'complete_coltimes.csv')
