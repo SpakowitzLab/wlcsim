@@ -42,4 +42,18 @@ def testplot4(x, y, z, **kwargs):
     """Testing4 make_axes_if_blank decorator."""
     plt.plot(x, y, axes=kwargs['axes'])
 
+@make_axes_if_blank(is_3D=True)
+def draw_sphere(x0, r, **kwargs):
+    """Draw a 3D sphere with center x0 and radius r."""
+    # how densely gridding should happen
+    longitudes = kwargs.pop('longitudes', 20)
+    longitude_count = longitudes*1j
+    latitude_count = longitude_count/2
+    u, v = np.mgrid[0:2*np.pi:longitude_count, 0:np.pi:latitude_count]
+    x = x0[0] + r*np.cos(u)*np.sin(v)
+    y = x0[1] + r*np.sin(u)*np.sin(v)
+    z = x0[2] + r*np.cos(v)
+    ax = kwargs.pop('axes', None)
+    ax.plot_wireframe(x, y, z, **kwargs)
+    return ax
 

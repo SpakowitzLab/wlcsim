@@ -142,11 +142,11 @@ def sphere_dispersal_mc(num_steps, target_density, sphere_radii, confinement_rad
 
     return sphere_centers
 
-def plot_spheres(sphere_centers, radii):
+def plot_spheres(sphere_centers, radii, **kwargs):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     palette = sns.color_palette('hls', 12)
     for i,c in enumerate(sphere_centers):
         color = palette[i % len(palette)]
-        wplot.draw_sphere(c, radii, colors=color, axes=ax)
+        wplot.draw_sphere(c, radii, colors=color, axes=ax, **kwargs)
     return ax
