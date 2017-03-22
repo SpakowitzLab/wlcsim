@@ -12,7 +12,9 @@ SMALL_NUM = 10e-8
 
 # @jit(nopython=True)
 def is_inside(x, xr, r):
-    """||x|| + xr < r ?"""
+    """is the sphere of radius xr totally inside the confining sphere of radius
+    r centered at the origin?
+    ||x|| + xr < r ?"""
     return x[0]*x[0] + x[1]*x[1] + x[2]*x[2] < (r - xr)*(r - xr)
 
 # @jit(nopython=True)
@@ -41,6 +43,12 @@ def weeks_chandler_anderson(r, sigma, epsilon=1):
 #     """E_confinement = E_WCA(r_conf - ||x||)."""
 #     r = r_conf - np.linalg.norm(x)
 
+def num_spheres_from_density(target_density, sphere_radii, confinement_radius):
+    # num_spheres*sphere_volume = target_density*confinement_volume
+    sphere_volume = volume_of_sphere(sphere_radii)
+    confinement_volume = volume_of_sphere(confinement_radius)
+    num_spheres = math.floor(target_density*confinement_volume/sphere_volume)
+    return num_spheres
 
 def initial_locations(num_spheres, sphere_radii, confinement_radius):
     """Get uniformly random initial locations for Metropolis Algorithms to
@@ -57,6 +65,58 @@ def initial_locations(num_spheres, sphere_radii, confinement_radius):
 # @jit(nopython=True)
 def volume_of_sphere(radius):
     return (4/3)*math.pi*(radius**3)
+
+def single_wca_energy(sphere_pos, sphere_idx, sphere_centers, num_spheres, sphere_radii,
+                      confinement_radius=1, energy_outside=np.inf):
+    """Return contribution to energy of a particle at position sphere_pos if it
+    replaced the particle with index sphere_idx in the list of particles
+    sphere_centers corresponding to spheres of radius sphere_radii inside of a
+    confining sphere of radius confinement_radius=1 centered at the origin.
+    Distance from confinement has an energetic contribution equal to being that
+    same distance from another sphere.
+
+    Use energy_outside=np.inf to set the energy associated with being totally
+    outside the confinement. Set energy_outside to None to honor the CWA
+    potential symmetrically outside the sphere."""
+    energy = 0
+    dist_to_bdry = confinement_radius - np.linalg.norm(sphere_pos)
+    if dist_to_bdry < 0 and energy_outside is not None:
+        energy += energy_outside
+    else:
+        # vector with correct magnitude to pass to weeks_chandler_anderson
+        vec_to_bdry = np.array([dist_to_bdry, 0, 0])
+        energy += weeks_chandler_anderson(vec_to_bdry, 2*sphere_radii)
+    for sj in range(num_spheres):
+        if sj == sphere_idx:
+            continue
+        energy += weeks_chandler_anderson(sphere_pos - sphere_centers[sj,:], 2*sphere_radii)
+    return energy
+
+# @jit(nopython=True)
+def total_wca_energy(sphere_centers, num_spheres, sphere_radii,
+                     confinement_radius=1, energy_outside=np.inf):
+    """Return total energy of particles in sphere_centers corresponding to
+    spheres of radius sphere_radii inside of a confining sphere of radius
+    confinement_radius=1 centered at the origin. Distance from confinement has an energetic
+    contribution equal to being that same distance from another sphere.
+
+    Use energy_outside=np.inf to set the energy associated with being totally
+    outside the confinement. Set energy_outside to None to honor the CWA
+    potential symmetrically outside the sphere."""
+    energy = 0
+    for si in range(num_spheres):
+        # confinement energy
+        dist_to_bdry = confinement_radius - np.linalg.norm(sphere_centers[si,:])
+        if dist_to_bdry < 0 and energy_outside is not None:
+            energy += energy_outside
+        else:
+            # vector with correct magnitude to pass to weeks_chandler_anderson
+            vec_to_bdry = np.array([dist_to_bdry, 0, 0])
+            energy += weeks_chandler_anderson(vec_to_bdry, 2*sphere_radii)
+        # interaction energy
+        for sj in range(si):
+            energy += weeks_chandler_anderson(sphere_centers[si,:] - sphere_centers[sj,:], 2*sphere_radii)
+    return energy
 
 def norm_step_mc(num_steps, sphere_centers, num_spheres, sphere_radii, confinement_radius=1,
                  step_size=None, beta_epsilon=0.665, energy_outside=np.inf):
@@ -88,80 +148,9 @@ def norm_step_mc(num_steps, sphere_centers, num_spheres, sphere_radii, confineme
         tot_energy_change += pot_diff
     return sphere_centers, tot_energy_change
 
-def single_wca_energy(sphere_pos, sphere_idx, sphere_centers, num_spheres, sphere_radii,
-                      confinement_radius=1, energy_outside=np.inf):
-    """Return contribution to energy of a particle at position sphere_pos if it
-    replaced the particle with index sphere_idx in the list of particles
-    sphere_centers corresponding to spheres of radius sphere_radii inside of a
-    confining sphere of radius confinement_radius=1 centered at the origin.
-    Distance from confinement has an energetic contribution equal to being that
-    same distance from another sphere.
-
-    Use energy_outside=np.inf to set the energy associated with being totally
-    outside the confinement. Set energy_outside to None to honor the CWA
-    potential symmetrically outside the sphere."""
-    energy = 0
-    sp = sphere_centers[sphere_idx,:]
-    dist_to_bdry = confinement_radius - np.linalg.norm(sp)
-    if dist_to_bdry < 0 and energy_outside is not None:
-        energy += energy_outside
-    else:
-        # vector with correct magnitude to pass to weeks_chandler_anderson
-        vec_to_bdry = np.array([dist_to_bdry, 0, 0])
-        energy += weeks_chandler_anderson(vec_to_bdry, sphere_radii)
-    for sj in range(num_spheres):
-        if sj == sphere_idx:
-            continue
-        energy += weeks_chandler_anderson(sphere_centers[sj,:] - sp, sphere_radii)
-    return energy
-    # old, by hand energies calculation, definitely had a bug somewhere
-    # energies = np.zeros((num_spheres,))
-        # for j in range(num_spheres):
-        #     if j == si:
-        #         energies[j] = weeks_chandler_anderson(np.array([new_dist_to_bdry,0,0]), 2*sphere_radii)
-        #     else:
-        #         energies[j] = weeks_chandler_anderson(new_pos - sphere_centers[j,:], 2*sphere_radii)
-        # new_potential = np.sum(energies)
-        # # old position energy calculations
-        # old_dist_to_bdry = confinement_radius - np.linalg.norm(sphere_centers[si,:])
-        # for j in range(num_spheres):
-        #     if j == si:
-        #         # # no self-energy contribution
-        #         # energies[j] = 0
-        #         # instead, account here for confinement energy
-        #         energies[j] = weeks_chandler_anderson(np.array([old_dist_to_bdry,0,0]), 2*sphere_radii)
-        #     else:
-        #         energies[j] = weeks_chandler_anderson(sphere_centers[si,:] - sphere_centers[j,:], 2*sphere_radii)
-        # old_potential = np.sum(energies)
-
-# @jit(nopython=True)
-def total_wca_energy(sphere_centers, num_spheres, sphere_radii,
-                     confinement_radius=1, energy_outside=np.inf):
-    """Return total energy of particles in sphere_centers corresponding to
-    spheres of radius sphere_radii inside of a confining sphere of radius
-    confinement_radius=1 centered at the origin. Distance from confinement has an energetic
-    contribution equal to being that same distance from another sphere.
-
-    Use energy_outside=np.inf to set the energy associated with being totally
-    outside the confinement. Set energy_outside to None to honor the CWA
-    potential symmetrically outside the sphere."""
-    energy = 0
-    for si in range(num_spheres):
-        # confinement energy
-        dist_to_bdry = confinement_radius - np.linalg.norm(sphere_centers[si,:])
-        if dist_to_bdry < 0 and energy_outside is not None:
-            energy += energy_outside
-        else:
-            # vector with correct magnitude to pass to weeks_chandler_anderson
-            vec_to_bdry = np.array([dist_to_bdry, 0, 0])
-            energy += weeks_chandler_anderson(vec_to_bdry, sphere_radii)
-        # interaction energy
-        for sj in range(si):
-            energy += weeks_chandler_anderson(sphere_centers[si,:] - sphere_centers[sj,:], sphere_radii)
-    return energy
-
 def sphere_dispersal_mc(num_steps, target_density, sphere_radii, confinement_radius=1,
-                        steps_per_check=1000, step_size=None, beta_epsilon=0.665):
+                        steps_per_check=1000, step_size=None,
+                        beta_epsilon=0.665, initial_centers=None):
     """Perform MCMC for num_steps after uniform position initialization of
     spheres with effective hard repulsive size sphere_radii (accomplished by
     weeks_chandler_anderson potential with barker-henderson mean collision
@@ -169,23 +158,64 @@ def sphere_dispersal_mc(num_steps, target_density, sphere_radii, confinement_rad
     confinement_radius.
 
     For now, beta_epsilon fixed to 0.665, per what Tom did in his thesis."""
-    # num_spheres*sphere_volume = target_density*confinement_volume
-    sphere_volume = volume_of_sphere(sphere_radii)
-    confinement_volume = volume_of_sphere(confinement_radius)
-    num_spheres = math.floor(target_density*confinement_volume/sphere_volume)
-    sphere_centers = initial_locations(num_spheres, sphere_radii, confinement_radius)
+    num_spheres = num_spheres_from_density(target_density, sphere_radii, confinement_radius)
+    if initial_centers is None:
+        sphere_centers = initial_locations(num_spheres, sphere_radii, confinement_radius)
+    else:
+        sphere_centers = initial_centers
     # break run into shorter sprints of 1000 steps, report energy change after
     # each 1000 steps
     num_checks = math.floor(num_steps/steps_per_check)
     energy = total_wca_energy(sphere_centers, num_spheres, sphere_radii, confinement_radius)
     for i in range(num_checks):
         # run MC, reports energy change
-        sphere_centers, d_energy = norm_step_mc(steps_per_check, sphere_centers, num_spheres,
-                                                sphere_radii, confinement_radius, step_size, beta_epsilon)
+        sphere_centers, d_energy = norm_step_mc(num_steps=steps_per_check,
+                sphere_centers=sphere_centers, num_spheres=num_spheres,
+                sphere_radii=sphere_radii, confinement_radius=confinement_radius,
+                step_size=step_size, beta_epsilon=beta_epsilon)
         print(energy + d_energy)
         energy = total_wca_energy(sphere_centers, num_spheres, sphere_radii, confinement_radius)
         print(energy)
+    return sphere_centers
 
+def mc_minimize_energy(target_density, sphere_radii, confinement_radius=1,
+                  steps_per_check=10000, step_size=None, beta_epsilon=0.665,
+                  initial_centers=None):
+    """Perform MCMC after uniform position initialization of
+    spheres with effective hard repulsive size sphere_radii (accomplished by
+    weeks_chandler_anderson potential with barker-henderson mean collision
+    diameter set to equal sigma) at target_density inside of a sphere with size
+    confinement_radius. Rerun in batches of steps_per_check MC steps until the
+    energies converge. To check if energy has converged, we do the lazy thing:
+    wait till it increases for the first time then just run one more MC batch
+    after that.
+
+    For now, beta_epsilon fixed to 0.665, per what Tom did in his thesis."""
+    num_spheres = num_spheres_from_density(target_density, sphere_radii, confinement_radius)
+    if initial_centers is None:
+        sphere_centers = initial_locations(num_spheres, sphere_radii, confinement_radius)
+    else:
+        sphere_centers = initial_centers
+    energy = total_wca_energy(sphere_centers, num_spheres, sphere_radii, confinement_radius)
+    i = 0
+    while True:
+        print("Total Energy after batch {i}: {energy: =10.8g}".format(i=i, energy=energy))
+        sphere_centers, d_energy = norm_step_mc(num_steps=steps_per_check,
+                sphere_centers=sphere_centers, num_spheres=num_spheres,
+                sphere_radii=sphere_radii, confinement_radius=confinement_radius,
+                step_size=step_size, beta_epsilon=beta_epsilon)
+        i += 1
+        energy += d_energy
+        if d_energy > 0:
+            print("Total Energy after batch {i}: {energy: =10.8g}".format(i=i, energy=energy))
+            sphere_centers, d_energy = norm_step_mc(num_steps=steps_per_check,
+                    sphere_centers=sphere_centers, num_spheres=num_spheres,
+                    sphere_radii=sphere_radii, confinement_radius=confinement_radius,
+                    step_size=step_size, beta_epsilon=beta_epsilon)
+            i += 1
+            energy += d_energy
+            print("Total Energy after batch {i}: {energy: =10.8g}".format(i=i, energy=energy))
+            break
     return sphere_centers
 
 def plot_spheres(sphere_centers, radii, **kwargs):
