@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import pandas as pd
 from .utils.utils import well_behaved_decorator, make_decorator_factory_args_optional
+from scipy import stats
 
 
 def make_standard_axes(is_3D=False):
@@ -23,7 +24,7 @@ def make_axes_if_blank(is_3D=False):
             """The plot_function wrapped by make_axes_if_blank's wrap."""
             if 'axes' not in kwargs:
                 kwargs['axes'] = make_standard_axes(is_3D)
-            plot_function(*args, **kwargs)
+            return plot_function(*args, **kwargs)
         return wrapped_f # return decorated function
     return wrap
 
@@ -56,4 +57,25 @@ def draw_sphere(x0, r, **kwargs):
     ax = kwargs.pop('axes', None)
     ax.plot_wireframe(x, y, z, **kwargs)
     return ax
+
+@make_axes_if_blank(is_3D=False)
+def locally_linear_fit(x, y, window_size=5, **kwargs):
+    if window_size % 2 == 0:
+        raise ValueError('window_size must be odd')
+    if window_size < 3:
+        raise ValueError('window_size must be at least 3, so that we have at'
+                         ' least two points to fit at endpoints of array.')
+    lenx = len(x)
+    if lenx < 2:
+        raise ValueError('Can\'t fit less than 2 points!')
+    inc = int(window_size / 2)
+    slope = np.zeros_like(x)
+    for i in range(lenx):
+        imin = np.max([0, i - inc])
+        imax = np.min([lenx, i + inc + 1])
+        slope[i], intcpt, r_val, p_val, std_err = stats.linregress(x[imin:imax], y[imin:imax])
+    ax = kwargs.pop('axes', None)
+    if ax is not None:
+        ax.plot(x, slope, **kwargs)
+    return ax, slope
 
