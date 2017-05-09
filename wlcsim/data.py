@@ -106,7 +106,9 @@ def non_overlapping_pairs(length, spacing, max_pairs=None, min_pairs=0):
     specific spacing apart, for getting statistics that aren't biased by the
     overlap between neighboring segments of the polymer."""
     # use the number of possible left endpoints to get the num possible pairs
-    num_possible_pairs = np.floor((length - spacing)/spacing).astype(int)
+    # num_possible_pairs = np.floor((length - spacing)/spacing).astype(int)
+    # jk, number possible pairs is easy
+    num_possible_pairs = np.floor(length/spacing).astype(int)
     if num_possible_pairs < min_pairs:
         raise ValueError("Requested too large of a spacing for a given minimum "
                          + "number of overlapping pairs")
@@ -114,8 +116,13 @@ def non_overlapping_pairs(length, spacing, max_pairs=None, min_pairs=0):
     if max_pairs is None or max_pairs > num_possible_pairs:
         max_pairs = num_possible_pairs
     num_leftover_indices = length - max_pairs*spacing
+    # first find skip between steps, rounded nicely, we'll use leftovers from
+    # rounding to pad the start and end
     # num skips is of course num_pairs-1, fenceposts problem
-    skip_per_step = int(num_leftover_indices/(max_pairs-1))
+    if max_pairs == 1:
+        skip_per_step = 0 # only one valid pair, so no skip between them
+    else:
+        skip_per_step = int(num_leftover_indices/(max_pairs-1))
     num_leftover_indices -= skip_per_step*(max_pairs-1)
     # the leftover indices should pad the outside of the things, so we just use
     # half of them to pad on the left
@@ -149,7 +156,7 @@ class Sim:
     """
 
     def __init__(self, sim_path, input_file=None, file_suffix=None,
-                 overwrite_coltimes=False, load_method=3):
+                 overwrite_coltimes=False, load_method=3, rfile_base='r'):
         # since these are all lazily evaluated, we throw exceptions right away
         # if the files we need do not exist, to prevent long running programs
         # from throwing an exception midway
@@ -168,7 +175,7 @@ class Sim:
         self.data_dir = os.path.join(sim_path, 'data')
         self.coltimes_file = os.path.join(self.data_dir, 'coltimes')
         self.overwrite_coltimes = overwrite_coltimes
-        self._rfile_base = os.path.join(self.data_dir, 'r')
+        self._rfile_base = os.path.join(self.data_dir, rfile_base)
         self._ufile_base = os.path.join(self.data_dir, 'u')
         self._file_suffix = '' if file_suffix is None else str(file_suffix)
         self.load_method = load_method
@@ -279,7 +286,10 @@ class Sim:
 
     @property
     def num_polymers(self):
-        return int(self.params['NP'])
+        try:
+            return int(self.params['NP'])
+        except:
+            return 1
 
     @property
     def num_beads(self):
@@ -401,7 +411,7 @@ class Sim:
 
     def add_useful_cols_to_coltimes(self, coltimes):
         """Only works on coltimes that come from combine_coltimes_csvs."""
-        dr = self.params['L']/(self.params['NB'] - 1)
+        dr = float(self.params['L'])/(float(self.params['NB']) - 1)
         coltimes['linear_distance'] = dr*np.abs(coltimes['i'] - coltimes['j'])
 
 class ReplicaSim:
@@ -416,8 +426,11 @@ class ReplicaSim:
             raise ValueError('Cannot pass ReplicaSim a specific file_suffix, just use Sim for this.')
         self.dummy_sim = Sim(sim_path, *args, **kwargs)
         self.file_suffixes = list(ReplicaSim.data_file_suffixes(self.dummy_sim.data_dir))
-        self.sims = [Sim(sim_path, *args, file_suffix=suffix, **kwargs)
-                     for suffix in self.file_suffixes]
+        if self.file_suffixes:
+            self.sims = [Sim(sim_path, *args, file_suffix=suffix, **kwargs)
+                        for suffix in self.file_suffixes]
+        else:
+            self.sims = [self.dummy_sim]
 
     @staticmethod
     def data_file_suffixes(data_dir):
@@ -460,6 +473,8 @@ class Scan:
         # explicitly
         if not kwargs or 'file_suffix' not in kwargs:
             self.infer_file_suffix = True
+        else:
+            self.infer_file_suffix = False
 
     @property
     def sim_dirs(self):
@@ -492,11 +507,13 @@ class Scan:
         complete_file = os.path.join(abs_dirname, 'complete')
         return os.path.isfile(complete_file)
 
-    @cached_property
+    # @cached_property
+    # a generator cannot be a cached property, else it can only be used once
+    @property
     def sims(self):
         for folder in self.sim_paths:
             if self.infer_file_suffix:
-                for sim in ReplicaSim(folder, *self._sim_args, **self._sim_kwargs):
+                for sim in ReplicaSim(folder, *self._sim_args, **self._sim_kwargs).sims:
                     yield sim
             else:
                 yield Sim(folder, *self._sim_args, **self._sim_kwargs)
@@ -543,24 +560,29 @@ class Scan:
             rend2end[i,:,:,:] = sim.rend2end
         return rend2end
 
-def write_coltimes_csvs(run_dir, overwrite=False, *args, **kwargs):
-    for folder in Scan(run_dir).sim_paths:
-        coltimes_file = os.path.join(folder, 'coltimes.csv')
-        if not overwrite and os.path.isfile(coltimes_file):
-            continue
-        try:
-            sim = Sim(folder, *args, **kwargs)
-        except FileNotFoundError:
-            logger.warning('write_coltimes_csvs: Unable to construct sim from' + folder)
-            continue
-        try:
-            sim.coltimes.to_csv(coltimes_file)
-        except OSError:
-            logger.warning('No coltimes file in: ' + folder)
-            continue
-        except EmptyDataError:
-            logger.warning('coltimes file is empty in: ' + folder)
-            continue
+    def write_coltimes_csvs(self, overwrite=False, print_progress=False, *args, **kwargs):
+        for folder in self.sim_paths:
+            if print_progress:
+                print(folder + ' ... ', end='')
+            coltimes_file = os.path.join(folder, 'coltimes.csv')
+            if not overwrite and os.path.isfile(coltimes_file):
+                continue
+            try:
+                sim = Sim(folder, *args, **kwargs)
+            except FileNotFoundError:
+                logger.warning('write_coltimes_csvs: Unable to construct sim from' + folder)
+                if print_progress:
+                    print('FAILED!')
+                continue
+            try:
+                sim.coltimes.to_csv(coltimes_file)
+            except OSError:
+                logger.warning('No coltimes file in: ' + folder)
+                if print_progress:
+                    print('FAILED!')
+                continue
+            if print_progress:
+                print('complete!')
 
 def write_initial_dists_csvs(run_dir, overwrite=True, *args, **kwargs):
     for folder in Scan(run_dir).sim_paths:
@@ -577,7 +599,7 @@ def write_initial_dists_csvs(run_dir, overwrite=True, *args, **kwargs):
         except OSError:
             logger.warning('r0 not found for: ' + folder)
             continue
-        except EmptyDataError:
+        except ValueError:
             logger.warning('r0 file is empty in: ' + folder)
             continue
 
@@ -592,7 +614,7 @@ def write_coltimes_pkls(run_dir, *args, **kwargs):
         except OSError:
             logger.warning('No coltimes file in: ' + folder)
             continue
-        except EmptyDataError:
+        except ValueError:
             logger.warning('coltimes file is empty in: ' + folder)
             continue
 
@@ -648,6 +670,22 @@ def nan_fill_coltimes(coltimes):
     enough."""
     coltimes.loc[coltimes['coltime'] == -1.0, 'coltime'] = np.nan
 
+def non_overlapping_coltimes(cdf):
+    """Takes a coltimes dataframe from write_coltimes_csvs/combine_coltimes_csvs
+    and retains only non-overlapping coltimes examples."""
+    L = cdf.L.unique()
+    if len(L) > 1:
+        raise ValueError('Not coded to deal with simulations of different length polymers.')
+    L = L[0]
+    # build final index by accumulating the indices that we should keep
+    # make a convenience column to use isin, make smaller index first
+    cij = pd.Series(list(zip(cdf.j, cdf.i)))
+    # start with something that's all false of the right size
+    non_overlapping_ix = cdf.linear_distance < 0
+    for ld in cdf.linear_distance.unique():
+        valid_indices = set(non_overlapping_pairs(L, ld))
+        non_overlapping_ix |= cij.isin(valid_indices)
+    return cdf.loc[non_overlapping_ix]
 
 
 def combine_complete_coltime_csvs(run_dir):
