@@ -23,17 +23,21 @@
 !  call removeBead(bin,R(13,:),13)
 !
 !  ! Get neighbors within radius of coordinate
-!  double precision coordinate(3)
-!  double precision distances(maxN)
-!  integer neighbors(maxN)
+!  double precision coordinate(3)  ! Position about which to search
+!  double precision distances(maxN) ! Returned distances
+!  integer neighbors(maxN) ! ID of neighboring beads
 !  integer nn ! number of neighbors
 !  call findNeighbors(bin,coordinate,radius,R,NT,maxN,neighbors,distances,nn)
-!
+!  
 ! ------------------------------------------------------
 Module binning
     Implicit none
-    
-    Integer, Parameter :: maxBeadsPerBin = 30 
+   
+    ! The following are optimization constants.
+    ! Their optimal values will, in general, depend on the application
+    Integer, Parameter :: maxBeadsPerBin = 20
+    Integer, Parameter :: subdivisionRatio = 4
+    Integer, Parameter :: nBeadsToTrigerBinMerge = 3
 
     Type binType
         !-----------
@@ -83,7 +87,9 @@ contains
         integer numberToTransfer
         double precision setBinSize(3) ! size of sub-bins
         double precision setMinXYZ(3) ! corners of sub-bins
-        integer, parameter :: setBinShape(3) = [5,5,5] ! How to sub-sub-divide bins
+        integer, parameter :: setBinShape(3) = [subdivisionRatio,&
+                                                subdivisionRatio,&
+                                                subdivisionRatio] ! How to sub-sub-divide bins
         ! calculate sub-bin size
         do dd=1,3
             setBinSize(dd)=bin%binSize(dd)/float(bin%binsShape(dd))
@@ -242,7 +248,7 @@ contains
             call removeBead(bin%bins(binIndex),location,beadID)
             bin%numberOfBeads=bin%numberOfBeads-1
             ! Possibly demote unneeded levels of binning
-            if (bin%numberOfBeads .lt. 5) then
+            if (bin%numberOfBeads .le. nBeadsToTrigerBinMerge) then
                 call demote(bin)
             endif
         else

@@ -21,6 +21,7 @@ integer temp
 double precision distance
 integer totalNumberOfNeighbors
 
+real :: start, finish
 
 !---------------------
 !
@@ -46,7 +47,7 @@ enddo
 !--------------------------
 setBinSize = [sideLength, sideLength, sideLength]
 setMinXYZ = [0.0,0.0,0.0]
-setBinShape = [10,10,10]
+setBinShape = [6,6,6]
 call constructBin(bin,setBinShape,setMinXYZ,setBinSize)
 
 
@@ -55,11 +56,13 @@ call constructBin(bin,setBinShape,setMinXYZ,setBinSize)
 !   Add beads to bin object
 !
 !-------------------------
-print*, 'adding beads to bin...'
+print*, 'adding',NT,' beads to bin...'
+call cpu_time(start)
 do ii=1,NT
     call addBead(bin,R,NT,ii)
 enddo
-
+call cpu_time(finish)
+print*, "Average time per addition", (finish-start)*(10**6)/NT, " microseconds"
 
 !-------------------
 !
@@ -92,13 +95,18 @@ print*, "found total of ",temp,"beads"
 !-------------------------
 print*, 'now Find neighbors...'
 totalNumberOfNeighbors=0
+call cpu_time(start)
 do ii=1,NT
     nNeighbors=0
     call findNeighbors(bin,R(ii,:),radius,R,NT,&
                           maxNeighbors,neighbors,distances,nNeighbors)
     totalNumberOfNeighbors=totalNumberOfNeighbors+nNeighbors
 enddo
-print*, "found", totalNumberOfNeighbors, "neighbors"
+print*, "found", totalNumberOfNeighbors, "neighbors. "
+print*, "Including self there are ~",totalNumberOfNeighbors/float(NT)," neighbors ber bead" 
+call cpu_time(finish)
+print*, "Average time per search point", (finish-start)*(10**6)/NT, " microseconds"
+
 
 !-------------------------------
 !
