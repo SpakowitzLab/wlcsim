@@ -1,7 +1,7 @@
 !---------------------------------------------------------------*
 
       SUBROUTINE BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
-           INTON,IDUM,PARA,SIMTYPE,HAS_COLLIDED,FPT_DIST, &
+           INTON,IDUM,PARA,SIMTYPE,COLLISION_TIME,COL_DIST, &
            COL_TYPE)
 
 !
@@ -68,8 +68,8 @@
       INTEGER SWDT
 
 !     Variable to hold time of first collisions between each bead
-      DOUBLE PRECISION HAS_COLLIDED(NT,NT)
-      DOUBLE PRECISION FPT_DIST ! l1 dist to trigger collision
+      DOUBLE PRECISION COLLISION_TIME(NT,NT)
+      DOUBLE PRECISION COL_DIST ! l1 dist to trigger collision
       INTEGER COL_TYPE ! algorithm to use for collision detection
 
 !     Load the input parameters
@@ -127,8 +127,7 @@
 
       DO WHILE (TIME.LT.TTOT)
 
-         call CHECK_COLLISIONS(R, NT, HAS_COLLIDED, FPT_DIST, TIME, COL_TYPE)
-
+         call CHECK_COLLISIONS(R, NT, COLLISION_TIME, COL_DIST, TIME, COL_TYPE)
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN=1

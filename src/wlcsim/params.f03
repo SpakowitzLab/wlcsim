@@ -33,9 +33,9 @@ module params
     integer, parameter :: inFileUnit = 51
     integer, parameter :: outFileUnit = 52
     ! number of digits in max allowed number of save points, also change below
-    integer, parameter :: MAX_LOG10_SAVES = 4
+    integer, parameter :: MAX_LOG10_SAVES = 10
     ! format string to use for num2str(save_ind)
-    character(4), parameter :: num2strFormatString = '(I4)'
+    character(5), parameter :: num2strFormatString = '(I10)'
 
     !!!     universal constants
     ! fully accurate, adaptive precision
@@ -475,6 +475,7 @@ contains
             !    2         |   rerandomize when reaching boundary, slit in z dir
             !    3         |   rerandomize when reaching boundary, cube boundary
             !    4         |   rerandomize when reaching boundary, shpere
+            !    7         |   initialize as gaussian chain, redraw if outside bdry
         case('CONFINETYPE')
             call readI(wlc_p%confinetype)
             ! confinetype  |  Discription
@@ -1524,7 +1525,7 @@ contains
         close(inFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC)
+    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC,stat)
     ! Writes R and AB to file for analysis
     ! Rx  Ry  Rz AB
         IMPLICIT NONE
@@ -1534,9 +1535,10 @@ contains
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
+        character(len=*), intent(in) :: stat
         fullName=  trim(fileName) // trim(wlc_p%repSuffix)
         fullName = trim(fullName)
-        open (unit = outFileUnit, file = fullName, status = 'NEW')
+        open (unit = outFileUnit, file = fullName, status = stat)
         IB=1
         if (repeatingBC) then
            do I=1,wlc_p%NP
@@ -1594,7 +1596,7 @@ contains
         close(outFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveU(wlc_p,wlc_d,fileName)
+    subroutine wlcsim_params_saveU(wlc_p,wlc_d,fileName,stat)
     ! Saves U to ASCII file for analisys
         IMPLICIT NONE
         integer I,J,IB  ! counters
@@ -1602,8 +1604,9 @@ contains
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
+        character(len=*), intent(in) :: stat
         fullName=  trim(fileName) // trim(wlc_p%repSuffix)
-        open (unit = outFileUnit, file = fullName, status = 'NEW')
+        open (unit = outFileUnit, file = fullName, status = stat)
         IB=1
         do I=1,wlc_p%NP
             do J=1,wlc_p%NB
@@ -1899,7 +1902,7 @@ contains
         close(inFileUnit)
     end subroutine
 
-    subroutine save_simulation_state(save_ind, wlc_d, wlc_p, outfile_base)
+    subroutine save_simulation_state(save_ind, wlc_d, wlc_p, outfile_base, stat)
         implicit none
         type(wlcsim_data), intent(in) :: wlc_d
         type(wlcsim_params), intent(in) :: wlc_p
@@ -1907,6 +1910,7 @@ contains
         character(MAX_LOG10_SAVES) :: fileind ! num2str(i)
         character(MAXFILENAMELEN) :: filename
         character(MAXFILENAMELEN) :: outfile_base
+        character(len=*) :: stat
         integer :: ind, j
 
         write (fileind,num2strFormatString) save_ind
@@ -1928,13 +1932,13 @@ contains
         if (wlc_p%saveR) then
             write(filename,num2strFormatString) save_ind
             filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
-            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.)
+            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.,stat)
         endif
 
         if (wlc_p%saveU) then
             write(filename,num2strFormatString) save_ind
             filename = trim(adjustL(outfile_base)) // 'u' // trim(adjustL(filename))
-            call wlcsim_params_saveU(wlc_p,wlc_d,filename)
+            call wlcsim_params_saveU(wlc_p,wlc_d,filename,stat)
         endif
 
         if (wlc_p%collisionDetectionType /= 0) then

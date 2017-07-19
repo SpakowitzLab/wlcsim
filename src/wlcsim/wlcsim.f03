@@ -64,30 +64,35 @@ program main
     call save_parameters(wlc_p, outfile)
 
     i = 0
-    call save_simulation_state(i, wlc_d, wlc_p, outfile)
+    call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
 
     select case (trim(adjustL(wlc_p%codeName)))
     case ('quinn', 'parallel temper continuous parameters')
         do i=1,wlc_p%numSavePoints
             call wlcsim_quinn(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile)
+            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')
         do i=1,wlc_p%numSavePoints
            call wlcsim_brad(wlc_d,wlc_p)
-           call save_simulation_state(i, wlc_d, wlc_p, outfile)
+           call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
            print *, 'i is', i
            print *, '*******************'
         enddo
     case ('bruno', 'brownian dynamics')
         do i=1,wlc_p%numSavePoints
             call wlcsim_bruno(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile)
+            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_mc', 'simple monte carlo')
         do i=1,wlc_p%numSavePoints
             call wlcsim_bruno_mc(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile)
+            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+        enddo
+    case ('bruno_loop', 'get looping events')
+        do i=1,wlc_p%numSavePoints
+            call wlcsim_bruno_looping_events(i, wlc_d, wlc_p, outfile)
+            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case default
         call stop_if_err(1, 'Invalid simulation code name specified.')
