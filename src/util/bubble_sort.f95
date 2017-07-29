@@ -1,24 +1,25 @@
 !Sort an NXM matrix by a given column using a
 !Bubble sort algorithm (slow)
 
-SUBROUTINE bubble_sort(A,N,M,isort)
+subroutine bubble_sort(A,N,M,isort)
+  use params, only : dp
 
-  INTEGER N !Number of rows
-  INTEGER M !Number of columns
-  DOUBLE PRECISION A(N,M)
-  INTEGER isort !column on which to sort rows of matrix
-  INTEGER I,J
-  DOUBLE PRECISION Temp(M)
-  DO I=1,N
-     DO J=1,N-1
-        IF (A(J,isort).GT.A(J+1,isort)) THEN
-           Temp=A(J,:)
-           A(J,:)=A(J+1,:)
-           A(J+1,:)=Temp
-        ENDIF
-     ENDDO
-  ENDDO
+  integer N !Number of rows
+  integer M !Number of columns
+  real(dp) A(N,M)
+  integer isort !column on which to sort rows of matrix
+  integer I,J
+  real(dp) Temp(M)
+  do I = 1,N
+     do J = 1,N-1
+        if (A(J,isort) > A(J + 1,isort)) then
+           Temp = A(J,:)
+           A(J,:) = A(J + 1,:)
+           A(J + 1,:) = Temp
+        ENDif
+     ENDdo
+  ENDdo
 
   RETURN
-ENDSUBROUTINE bubble_sort
+ENDsubroutine bubble_sort
 

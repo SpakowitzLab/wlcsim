@@ -32,27 +32,27 @@ program main
     type(wlcsim_params) :: wlc_p
     type(wlcsim_data)   :: wlc_d
 
-    call cli%init(progname='wlcsim.exe', &
-                  description='WLCSIM: A Mesoscopic Polymer Simulator')
-    call cli%add(switch='--input', &
-                 switch_ab='-i',   &
-                 help='Input filename (absolute or relative to CWD)', &
-                 required=.false., &
-                 act='store',      &
-                 def='input/input',&
-                 error=err)
+    call cli%init(progname = 'wlcsim.exe', &
+                  description = 'WLCSIM: A Mesoscopic Polymer Simulator')
+    call cli%add(switch = '--input', &
+                 switch_ab = '-i',   &
+                 help = 'Input filename (absolute or relative to CWD)', &
+                 required = .false., &
+                 act = 'store',      &
+                 def = 'input/input',&
+                 error = err)
     call stop_if_err(err, 'Internal argument parsing error.')
-    call cli%add(switch='--output', &
-                 switch_ab='-o',   &
-                 help='Output filename base (absolute or relative to CWD)', &
-                 required=.false., &
-                 act='store',      &
-                 def='data/',      &
-                 error=err)
+    call cli%add(switch = '--output', &
+                 switch_ab = '-o',   &
+                 help = 'Output filename base (absolute or relative to CWD)', &
+                 required = .false., &
+                 act = 'store',      &
+                 def = 'data/',      &
+                 error = err)
     call stop_if_err(err, 'Internal argument parsing error.')
-    call cli%get(switch='-i', val=infile, error=err)
+    call cli%get(switch = '-i', val = infile, error = err)
     call stop_if_err(err, 'Unable to parse input file name.')
-    call cli%get(switch='-o', val=outfile, error=err)
+    call cli%get(switch = '-o', val = outfile, error = err)
     call stop_if_err(err, 'Unable to parse output file base.')
 
     call setup_runtime_floats()
@@ -69,29 +69,29 @@ program main
 
     select case (trim(adjustL(wlc_p%codeName)))
     case ('quinn', 'parallel temper continuous parameters')
-        do i=1,wlc_p%numSavePoints
+        do i = 1,wlc_p%numSavePoints
             call wlcsim_quinn(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')
-        do i=1,wlc_p%numSavePoints
+        do i = 1,wlc_p%numSavePoints
            call wlcsim_brad(wlc_d,wlc_p)
            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
            print *, 'i is', i
            print *, '*******************'
         enddo
     case ('bruno', 'brownian dynamics')
-        do i=1,wlc_p%numSavePoints
+        do i = 1,wlc_p%numSavePoints
             call wlcsim_bruno(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_mc', 'simple monte carlo')
-        do i=1,wlc_p%numSavePoints
+        do i = 1,wlc_p%numSavePoints
             call wlcsim_bruno_mc(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_loop', 'get looping events')
-        do i=1,wlc_p%numSavePoints
+        do i = 1,wlc_p%numSavePoints
             call wlcsim_bruno_looping_events(i, wlc_d, wlc_p, outfile)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo

@@ -1,361 +1,361 @@
-MODULE INPUTPARAMS
+module inPUTPARAMS
   ! various subroutines for reading input from a parameter file
 
-  IMPLICIT NONE
-  INTEGER, PARAMETER :: MAXLINELEN = 500 ! maximum length of an input line
+  implicit none
+  integer, PARAMETER :: MAXLinELEN = 500 ! maximum length of an input line
   ! current line read in from the input file
-  CHARACTER(LEN=MAXLINELEN) :: CURLINE
-  INTEGER :: CURPOS ! current position in that line
+  CHARACTER(LEN = MAXLinELEN) :: CURLinE
+  integer :: CURPOS ! current position in that line
 
   ! special characters
   CHARACTER, PARAMETER :: SPACE = ' ', COMMENT = '#'
 
   ! special strings
-  CHARACTER(LEN=26), PARAMETER :: UPLETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  CHARACTER(LEN=26), PARAMETER :: LOWLETTERS = 'abcdefghijklmnopqrstuvwxyz'
+  CHARACTER(LEN = 26), PARAMETER :: UPLETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  CHARACTER(LEN = 26), PARAMETER :: LOWLETTERS = 'abcdefghijklmnopqrstuvwxyz'
 
-CONTAINS
+contains
 
-  SUBROUTINE READLINE(FILEUNIT,FILEEND,NITEMS)
+  subroutine READLinE(FILEUNIT,FILEEND,NITEMS)
     ! read a line from the given file unit
-    ! store it in the global variable CURLINE for access by all subroutines in this module
-    ! Returns END=.true. if end-of-file is hit
+    ! store it in the global variable CURLinE for access by all subroutines in this module
+    ! Returns END = .true. if end-of-file is hit
     ! Also returns the number of items (delimited by spaces) on the line
 
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: FILEUNIT
-    LOGICAL, INTENT(OUT) :: FILEEND
-    INTEGER, INTENT(OUT) :: NITEMS
-    INTEGER :: IOS, SPACEIND, ADDLEN, LINELEN
-    CHARACTER (LEN=MAXLINELEN) :: ADDLINE
+    implicit none
+    integer, intent(in) :: FILEUNIT
+    LOGICAL, intent(out) :: FILEEND
+    integer, intent(out) :: NITEMS
+    integer :: IOS, SPACEinD, ADDLEN, LinELEN
+    CHARACTER (LEN = MAXLinELEN) :: ADDLinE
 
     FILEEND = .FALSE.
 
-    CURLINE = ''
-    LINELEN = 0
-    DO WHILE (LINELEN.LT.MAXLINELEN) ! read until no longer hit line continuation
-       READ(FILEUNIT,'(A)',IOSTAT=IOS) ADDLINE
-       IF (IOS.GT.0) THEN
-          PRINT*, 'ERROR IN READLINE: some problem with reading in line from input file. IOS = ', IOS
+    CURLinE = ''
+    LinELEN = 0
+    do while (LinELEN < MAXLinELEN) ! read until no longer hit line continuation
+       READ(FILEUNIT,'(A)',IOSTAT = IOS) ADDLinE
+       if (IOS > 0) then
+          PRinT*, 'ERROR in READLinE: some problem with reading in line from input file. IOS = ', IOS
           STOP 1
-       ELSEIF (IOS.LT.0) THEN
+       elseif (IOS < 0) then
           FILEEND= .TRUE.
           EXIT
-       ENDIF
+       ENDif
 
        ! Check for line continuation, then add on the line
-       ADDLEN = LEN(TRIM(ADDLINE))
+       ADDLEN = LEN(TRIM(ADDLinE))
 
-       IF (ADDLEN.GT.2) THEN
-          IF (ADDLINE(ADDLEN-2:ADDLEN).EQ.'+++') THEN
-             CURLINE = CURLINE(1:LINELEN) // ADDLINE(1:ADDLEN-3)
-             LINELEN = LINELEN + ADDLEN-3
-          ELSE
-             CURLINE = CURLINE(1:LINELEN) // ADDLINE(1:ADDLEN)
-             LINELEN = LINELEN + ADDLEN
+       if (ADDLEN > 2) then
+          if (ADDLinE(ADDLEN-2:ADDLEN) == ' + + + ') then
+             CURLinE = CURLinE(1:LinELEN) // ADDLinE(1:ADDLEN-3)
+             LinELEN = LinELEN + ADDLEN-3
+          else
+             CURLinE = CURLinE(1:LinELEN) // ADDLinE(1:ADDLEN)
+             LinELEN = LinELEN + ADDLEN
              EXIT
-          ENDIF
-       ELSE
-          CURLINE = CURLINE(1:LINELEN) // ADDLINE(1:ADDLEN)
-          LINELEN = LINELEN + ADDLEN
+          ENDif
+       else
+          CURLinE = CURLinE(1:LinELEN) // ADDLinE(1:ADDLEN)
+          LinELEN = LinELEN + ADDLEN
           EXIT
-       ENDIF
+       ENDif
 
-    ENDDO
+    ENDdo
 
     NITEMS = 0
     CURPOS = 1
     CALL ADVANCECURPOS
-    DO WHILE (CURPOS.LE.MAXLINELEN)
+    do while (CURPOS <= MAXLinELEN)
        NITEMS = NITEMS + 1 ! found an item
 
        ! index of subsequent space
-       SPACEIND = INDEX(CURLINE(CURPOS:MAXLINELEN),SPACE,.FALSE.)
-       IF (SPACEIND.EQ.0) THEN
+       SPACEinD = inDEX(CURLinE(CURPOS:MAXLinELEN),SPACE,.FALSE.)
+       if (SPACEinD == 0) then
           ! no more spaces; this was last item
           EXIT
-       ELSE
-          CURPOS = SPACEIND+CURPOS-1
+       else
+          CURPOS = SPACEinD + CURPOS-1
           CALL ADVANCECURPOS
-       ENDIF
-    ENDDO
+       ENDif
+    ENDdo
 
     ! reset current position, ignore all initial spaces
     CURPOS = 1
     CALL ADVANCECURPOS
 
-  END SUBROUTINE READLINE
+  END subroutine READLinE
 
-  SUBROUTINE ADVANCECURPOS
+  subroutine ADVANCECURPOS
     ! advance the current position in the current line to the next character that is not a space
-    ! if everything from curpos onwards is spaces, then curpos becomes maxlinelen+1
-    IMPLICIT NONE
+    ! if everything from curpos onwards is spaces, then curpos becomes maxlinelen + 1
+    implicit none
     CHARACTER :: CHAR
 
-    CHAR = CURLINE(CURPOS:CURPOS)
-    DO WHILE (CHAR.EQ.SPACE)
+    CHAR = CURLinE(CURPOS:CURPOS)
+    do while (CHAR == SPACE)
        CURPOS = CURPOS + 1
-       IF (CURPOS.GT.MAXLINELEN) RETURN
-       CHAR = CURLINE(CURPOS:CURPOS)
-    ENDDO
-  END SUBROUTINE ADVANCECURPOS
+       if (CURPOS > MAXLinELEN) RETURN
+       CHAR = CURLinE(CURPOS:CURPOS)
+    ENDdo
+  END subroutine ADVANCECURPOS
 
-  SUBROUTINE READA(STR, CASESET)
+  subroutine READA(STR, CASESET)
     ! read in a string from the current position on the current line, up until the next space
-    ! if CASESET is supplied then CASESET=-1 converts to lowercase
-    ! and CASESET=1 converts to uppercase
+    ! if CASESET is supplied then CASESET = -1 converts to lowercase
+    ! and CASESET = 1 converts to uppercase
 
-    IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(OUT) :: STR
-    INTEGER, INTENT(IN) , OPTIONAL :: CASESET
-    INTEGER :: SPACEIND
+    implicit none
+    CHARACTER(LEN = *), intent(out) :: STR
+    integer, intent(in) , OPTIONAL :: CASESET
+    integer :: SPACEinD
 
     ! index of next space
-    SPACEIND = INDEX(CURLINE(CURPOS:MAXLINELEN),' ',.FALSE.)
-    SPACEIND = SPACEIND+CURPOS-1
+    SPACEinD = inDEX(CURLinE(CURPOS:MAXLinELEN),' ',.FALSE.)
+    SPACEinD = SPACEinD + CURPOS-1
 
-    STR = CURLINE(CURPOS:SPACEIND-1)
+    STR = CURLinE(CURPOS:SPACEinD-1)
 
     STR = ADJUSTL(STR)
 
     ! move current position to next non-space character
-    CURPOS = SPACEIND
+    CURPOS = SPACEinD
     CALL ADVANCECURPOS
 
-    IF (PRESENT(CASESET)) THEN
-       IF (CASESET.LT.0) THEN
+    if (PRESENT(CASESET)) then
+       if (CASESET < 0) then
           ! convert to lowercase
           CALL LOWERCASE(STR)
-       ELSEIF (CASESET.GT.0) THEN
+       elseif (CASESET > 0) then
           ! convert to uppercase
           CALL UPPERCASE(STR)
-       ENDIF
-    ENDIF
-  END SUBROUTINE READA
+       ENDif
+    ENDif
+  END subroutine READA
 
-  SUBROUTINE READU(STR)
+  subroutine READU(STR)
     ! uppercase read-in routine for backwards compatibility to old input code
-    IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(OUT) :: STR
+    implicit none
+    CHARACTER(LEN = *), intent(out) :: STR
 
-    CALL READA(STR,CASESET=1)
-  END SUBROUTINE READU
+    CALL READA(STR,CASESET = 1)
+  END subroutine READU
 
- SUBROUTINE READL(STR)
+ subroutine READL(STR)
     ! uppercase read-in routine for backwards compatibility to old input code
-    IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(OUT) :: STR
+    implicit none
+    CHARACTER(LEN = *), intent(out) :: STR
 
-    CALL READA(STR,CASESET=-1)
-  END SUBROUTINE READL
+    CALL READA(STR,CASESET = -1)
+  END subroutine READL
 
-  SUBROUTINE LOWERCASE(STR)
+  subroutine LOWERCASE(STR)
     ! convert all uppercase characters in a string to lowercase
-    IMPLICIT NONE
+    implicit none
 
-    CHARACTER(LEN=*), INTENT(INOUT) :: STR
-    INTEGER :: LSTR, I, LETIND
+    CHARACTER(LEN = *), intent(inout) :: STR
+    integer :: LSTR, I, LETinD
 
     LSTR = LEN(TRIM(STR))
-    DO I = 1,LSTR
+    do I = 1,LSTR
        ! is this character present in the uppercase letters? If so where?
-       LETIND = INDEX(UPLETTERS, STR(I:I),.FALSE.)
-       IF (LETIND.GT.0) THEN
-          STR(I:I) = LOWLETTERS(LETIND:LETIND)
-       ENDIF
-    ENDDO
-  END SUBROUTINE LOWERCASE
+       LETinD = inDEX(UPLETTERS, STR(I:I),.FALSE.)
+       if (LETinD > 0) then
+          STR(I:I) = LOWLETTERS(LETinD:LETinD)
+       ENDif
+    ENDdo
+  END subroutine LOWERCASE
 
-  SUBROUTINE UPPERCASE(STR)
+  subroutine UPPERCASE(STR)
     ! convert all lowercase characters in a string to uppercase
-    IMPLICIT NONE
+    implicit none
 
-    CHARACTER(LEN=*), INTENT(INOUT) :: STR
-    INTEGER :: LSTR, I, LETIND
+    CHARACTER(LEN = *), intent(inout) :: STR
+    integer :: LSTR, I, LETinD
 
     LSTR = LEN(TRIM(STR))
-    DO I = 1,LSTR
+    do I = 1,LSTR
        ! is this character present in the lowercase letters? If so where?
-       LETIND = INDEX(LOWLETTERS, STR(I:I),.FALSE.)
-       IF (LETIND.GT.0) THEN
-          STR(I:I) = UPLETTERS(LETIND:LETIND)
-       ENDIF
-    ENDDO
-  END SUBROUTINE UPPERCASE
+       LETinD = inDEX(LOWLETTERS, STR(I:I),.FALSE.)
+       if (LETinD > 0) then
+          STR(I:I) = UPLETTERS(LETinD:LETinD)
+       ENDif
+    ENDdo
+  END subroutine UPPERCASE
 
-  SUBROUTINE READF(ANS)
+  subroutine READF(ANS)
     ! read in a double-precision floating point number
-    ! exponential notation (1e0, 2d-1,3D+08, 4.5E-01) is allowed
+    ! exponential notation (1e0, 2d-1,3D + 08, 4.5E-01) is allowed
 
-    IMPLICIT NONE
-    DOUBLE PRECISION, INTENT(OUT) :: ANS
+    implicit none
+    real(dp), intent(out) :: ANS
     CHARACTER*100 :: BASESTR, EXPSTR, STR, FMTSTR, FMTSTR1, FMTSTR2
-    INTEGER :: EXPIND, PTIND, STRLEN, EXPNUM, err
-    DOUBLE PRECISION :: BASENUM
+    integer :: EXPinD, PTinD, STRLEN, EXPNUM, err
+    real(dp) :: BASENUM
 
     ! read in as a string, making exponential designators uppercase
-    CALL READA(STR,CASESET=1)
+    CALL READA(STR,CASESET = 1)
 
     ! find index of exponential designator
-    EXPIND = INDEX(STR,'D',.FALSE.)
-    IF (EXPIND.EQ.0) THEN
-       EXPIND = INDEX(STR,'E',.FALSE.)
-    ENDIF
+    EXPinD = inDEX(STR,'D',.FALSE.)
+    if (EXPinD == 0) then
+       EXPinD = inDEX(STR,'E',.FALSE.)
+    ENDif
 
     ! get the base number (without the exponential part)
     ! and the exponential part separately
-    IF (EXPIND.EQ.0) THEN
+    if (EXPinD == 0) then
        BASESTR= STR
        EXPSTR = '0'
-    ELSE
-       BASESTR = STR(1:EXPIND-1)
-       EXPSTR = STR(EXPIND+1:LEN(STR))
-    ENDIF
+    else
+       BASESTR = STR(1:EXPinD-1)
+       EXPSTR = STR(EXPinD + 1:LEN(STR))
+    ENDif
 
     ! find decimal point in base number
-    PTIND = INDEX(BASESTR,'.',.FALSE.)
+    PTinD = inDEX(BASESTR,'.',.FALSE.)
 
     ! format specifier for reading in decimal base number
     STRLEN = LEN(TRIM(BASESTR))
     WRITE(FMTSTR1,'(I10)') STRLEN
-    IF (PTIND.GT.0) THEN
-       WRITE(FMTSTR2,'(I10)')  STRLEN-PTIND
-    ELSE
+    if (PTinD > 0) then
+       WRITE(FMTSTR2,'(I10)')  STRLEN-PTinD
+    else
        FMTSTR2 = '0'
-    ENDIF
+    ENDif
 
     FMTSTR = '(F' // TRIM(ADJUSTL(FMTSTR1))// '.' // TRIM(ADJUSTL(FMTSTR2)) // ')'
 
     ! read in the base number
-    READ(BASESTR,FMTSTR,IOSTAT=ERR) BASENUM
+    READ(BASESTR,FMTSTR,IOSTAT = ERR) BASENUM
 
-    IF (ERR.NE.0) THEN
-       PRINT*, 'ERROR IN READF: something wrong with reading base number  as float:.'
-       PRINT*, 'attempted to read: ', BASESTR
-       PRINT*, 'ERROR CODE:', ERR
+    if (ERR /= 0) then
+       PRinT*, 'ERROR in READF: something wrong with reading base number  as float:.'
+       PRinT*, 'attempted to read: ', BASESTR
+       PRinT*, 'ERROR CODE:', ERR
        STOP 1
-    ENDIF
+    ENDif
 
     ! read in the exponential number
     STRLEN = LEN(TRIM(EXPSTR))
     WRITE(FMTSTR1,'(I10)') STRLEN
     FMTSTR = '(I'//TRIM(ADJUSTL(FMTSTR1))//')'
 
-    READ(EXPSTR,FMTSTR,IOSTAT=ERR) EXPNUM
+    READ(EXPSTR,FMTSTR,IOSTAT = ERR) EXPNUM
 
-    IF (ERR.NE.0) THEN
-       PRINT*, 'ERROR IN READF: something wrong with reading exponent as integer:.'
-       PRINT*, 'attempted to read: ', EXPSTR
-       PRINT*, 'ERROR CODE:', ERR
+    if (ERR /= 0) then
+       PRinT*, 'ERROR in READF: something wrong with reading exponent as integer:.'
+       PRinT*, 'attempted to read: ', EXPSTR
+       PRinT*, 'ERROR CODE:', ERR
        STOP 1
-    ENDIF
+    ENDif
 
     ANS = BASENUM*10D0**(EXPNUM)
 
-  END SUBROUTINE READF
+  END subroutine READF
 
-  SUBROUTINE READI(ANS)
+  subroutine READI(ANS)
     ! read in an integer
     ! exponential notation (2D5, -1D3) is allowed
     ! returns error if number is too large to fit in integer kind
 
-    IMPLICIT NONE
-    INTEGER, INTENT(OUT) :: ANS
+    implicit none
+    integer, intent(out) :: ANS
     CHARACTER*100 :: BASESTR, EXPSTR, STR, FMTSTR, FMTSTR1, FMTSTR2
-    INTEGER :: EXPIND, STRLEN, BASENUM,EXPNUM, err
-    DOUBLE PRECISION :: EXPLIM
+    integer :: EXPinD, STRLEN, BASENUM,EXPNUM, err
+    real(dp) :: EXPLIM
 
     ! read in as a string, making exponential designators uppercase
-    CALL READA(STR,CASESET=1)
+    CALL READA(STR,CASESET = 1)
 
     ! find index of exponential designator
-    EXPIND = INDEX(STR,'D',.FALSE.)
-    IF (EXPIND.EQ.0) THEN
-       EXPIND = INDEX(STR,'E',.FALSE.)
-    ENDIF
+    EXPinD = inDEX(STR,'D',.FALSE.)
+    if (EXPinD == 0) then
+       EXPinD = inDEX(STR,'E',.FALSE.)
+    ENDif
 
     ! get the base number (without the exponential part)
     ! and the exponential part separately
-    IF (EXPIND.EQ.0) THEN
+    if (EXPinD == 0) then
        BASESTR= STR
        EXPSTR = '0'
-    ELSE
-       BASESTR = STR(1:EXPIND-1)
-       EXPSTR = STR(EXPIND+1:LEN(STR))
-    ENDIF
+    else
+       BASESTR = STR(1:EXPinD-1)
+       EXPSTR = STR(EXPinD + 1:LEN(STR))
+    ENDif
 
      ! read in the base number
     STRLEN = LEN(TRIM(BASESTR))
     WRITE(FMTSTR1,'(I10)') STRLEN
     FMTSTR = '(I'//TRIM(ADJUSTL(FMTSTR1))//')'
-    READ(BASESTR,FMTSTR,IOSTAT=ERR) BASENUM
+    READ(BASESTR,FMTSTR,IOSTAT = ERR) BASENUM
 
-    IF (ERR.NE.0) THEN
-       PRINT*, 'ERROR IN READI: something wrong with reading base number as integer:.'
-       PRINT*, 'attempted to read: ', BASESTR
-       PRINT*, 'ERROR CODE:', ERR
+    if (ERR /= 0) then
+       PRinT*, 'ERROR in READI: something wrong with reading base number as integer:.'
+       PRinT*, 'attempted to read: ', BASESTR
+       PRinT*, 'ERROR CODE:', ERR
        STOP 1
-    ENDIF
+    ENDif
 
     ! read in the exponent
     STRLEN = LEN(TRIM(EXPSTR))
     WRITE(FMTSTR1,'(I10)') STRLEN
     FMTSTR = '(I'//TRIM(ADJUSTL(FMTSTR1))//')'
-    READ(EXPSTR,FMTSTR,IOSTAT=ERR) EXPNUM
+    READ(EXPSTR,FMTSTR,IOSTAT = ERR) EXPNUM
 
-    IF (ERR.NE.0) THEN
-       PRINT*, 'ERROR IN READI: something wrong with reading exponent as integer:.'
-       PRINT*, 'attempted to read: ', EXPSTR
-       PRINT*, 'ERROR CODE:', ERR
+    if (ERR /= 0) then
+       PRinT*, 'ERROR in READI: something wrong with reading exponent as integer:.'
+       PRinT*, 'attempted to read: ', EXPSTR
+       PRinT*, 'ERROR CODE:', ERR
        STOP 1
-    ENDIF
+    ENDif
 
     ! cannot have negative exponent
-    IF(EXPNUM.LT.0) THEN
-       PRINT*, 'ERROR IN READI: negative exponents not allowed for integer input'
-       PRINT*, 'Attempted to read as integer: ', TRIM(STR)
+    if(EXPNUM < 0) then
+       PRinT*, 'ERROR in READI: negative exponents not allowed for integer input'
+       PRinT*, 'Attempted to read as integer: ', TRIM(STR)
        STOP 1
-    ENDIF
+    ENDif
 
-    IF (ABS(BASENUM).GT.0) THEN
+    if (ABS(BASENUM) > 0) then
        ! double check that the number is not too big to fit as integer
        ! and that the exponent is not negative
        EXPLIM = DBLE(HUGE(ANS))/DBLE(ABS(BASENUM))
        EXPLIM = LOG(EXPLIM)/LOG(10D0)
-       IF (EXPNUM.GT.FLOOR(EXPLIM)) THEN
-          PRINT*, 'ERROR IN READI: number is too big to fit as integer.'
-          PRINT*, 'Attempted to read as integer: ', TRIM(STR)
+       if (EXPNUM > FLOOR(EXPLIM)) then
+          PRinT*, 'ERROR in READI: number is too big to fit as integer.'
+          PRinT*, 'Attempted to read as integer: ', TRIM(STR)
           STOP 1
-       ENDIF
-    ENDIF
+       ENDif
+    ENDif
 
     ANS = BASENUM*10**(EXPNUM)
 
-  END SUBROUTINE READI
+  END subroutine READI
 
-  SUBROUTINE READO(ANS)
+  subroutine REAdo(ANS)
     ! read in a logical argument
     ! must be either T, F, TRUE, FALSE, '1', or '0' (1 for true, 0 for false)
     ! not case sensitive
     ! returns error if some other input does not match one of these strings
 
-    IMPLICIT NONE
-    LOGICAL, INTENT(OUT) :: ANS
+    implicit none
+    LOGICAL, intent(out) :: ANS
     CHARACTER*100 :: STR
 
     ! read in as a string, making uppercase
-    CALL READA(STR,CASESET=1)
+    CALL READA(STR,CASESET = 1)
 
-    IF (STR.EQ.'T'.OR.STR.EQ.'1'.OR.STR.EQ.'TRUE') THEN
+    if (STR == 'T'.OR.STR == '1'.OR.STR == 'TRUE') then
        ANS = .TRUE.
-    ELSEIF (STR.EQ.'F'.OR.STR.EQ.'0'.OR.STR.EQ.'FALSE')  THEN
+    elseif (STR == 'F'.OR.STR == '0'.OR.STR == 'FALSE')  then
        ANS = .FALSE.
-    ELSE
-       PRINT*, 'ERROR IN READO: failed to read string as logical. Logical string must be T, F, TRUE, FALSE, 0, or 1'
+    else
+       PRinT*, 'ERROR in REAdo: failed to read string as logical. Logical string must be T, F, TRUE, FALSE, 0, or 1'
        print*, 'Attempted to read in: ', str
        stop 1
-    ENDIF
+    ENDif
 
-  END SUBROUTINE READO
+  END subroutine REAdo
 
-END MODULE INPUTPARAMS
+END module inPUTPARAMS

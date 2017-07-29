@@ -33,7 +33,7 @@ integer NUM_POSSIBLE_COLLISIONS
 ! Exit early if all first passage times have been recorded and the relevant flag is set
 if (wlc_p%collisionDetectionType /= 0 .AND. wlc_p%exitWhenCollided) then
     NUM_POSSIBLE_COLLISIONS = wlc_p%NT*wlc_p%NT - wlc_p%NT
-    if (COUNT(wlc_d%coltimes.NE.-1.0d+0) == NUM_POSSIBLE_COLLISIONS) then
+    if (COUNT(wlc_d%coltimes /= -1.0d+0) == NUM_POSSIBLE_COLLISIONS) then
         ! we've already exited this function previously, giving us the
         ! opportunity to save, and are now reentering it, so we can just quit
         stop
@@ -53,15 +53,15 @@ call MCsim(wlc_p, wlc_d, wlc_p%stepsPerSave)
 call VerifyEnergiesFromScratch(wlc_p, wlc_d)
 
 call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, &
-            pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
+            pack_as_para(wlc_p), wlc_p%inTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, wlc_p%NB, &
-             wlc_p%NP, pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
+             wlc_p%NP, pack_as_para(wlc_p), wlc_p%inTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 
 call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
                  wlc_p%NP, pack_as_para(wlc_p), wlc_p%ring, wlc_p%twist, &
                  wlc_p%lk, wlc_p%lt, wlc_p%l)
-EPONP=0.
-if (wlc_p%INTERP_BEAD_LENNARD_JONES) then
+EPONP = 0.
+if (wlc_p%inTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me
     call energy_self_chain(EPONP, wlc_d%R, wlc_p%NT, wlc_p%NB, &
                      pack_as_para(wlc_p), .FALSE.)

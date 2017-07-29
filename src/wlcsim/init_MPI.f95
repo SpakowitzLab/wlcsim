@@ -30,10 +30,10 @@ subroutine init_mpi(wlc_d)
 
   ! give each replica a different suffix to append to files
   write(iostrg,"(I4)") wlc_d%id
-  iostrg=adjustL(iostrg)
-  iostrg=trim(iostrg)
-  iostrg="v"//trim(iostrg)
-  iostrg=trim(iostrg)
-  wlc_d%repSuffix=iostrg
+  iostrg = adjustL(iostrg)
+  iostrg = trim(iostrg)
+  iostrg = "v"//trim(iostrg)
+  iostrg = trim(iostrg)
+  wlc_d%repSuffix = iostrg
 end subroutine
 #endif

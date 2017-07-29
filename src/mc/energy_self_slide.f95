@@ -19,64 +19,65 @@
 
 
 
-SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
+subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
+  use params, only : dp
 
-  IMPLICIT NONE
-  INTEGER N,NT,NP            ! Current number of beads
-  DOUBLE PRECISION R(NT,3)   ! Bead positions
-  DOUBLE PRECISION EPONP ! Self-interaction force
-  DOUBLE PRECISION FMAG     ! Mag of force
-  DOUBLE PRECISION RIJ      ! Interbead dist
-  DOUBLE PRECISION EIJ(3)   ! Interbead unit vector
-  INTEGER I, J              ! Index holders
-  INTEGER SKIP              ! Bead skip index
+  implicit none
+  integer N,NT,NP            ! Current number of beads
+  real(dp) R(NT,3)   ! Bead positions
+  real(dp) EPONP ! Self-interaction force
+  real(dp) FMAG     ! Mag of force
+  real(dp) RIJ      ! Interbead dist
+  real(dp) EIJ(3)   ! Interbead unit vector
+  integer I, J              ! Index holders
+  integer SKIP              ! Bead skip index
 
   !     Variables for the calculation
 
-  DOUBLE PRECISION U1(3),U2(3),U1U2
-  DOUBLE PRECISION D1,D2
-  DOUBLE PRECISION R12(3),D12,E12(3),R12T(3),R12C1(3),R12C2(3)
-  DOUBLE PRECISION S1,S2
-  DOUBLE PRECISION GI(3)
-  INTEGER I1,J1,I2,J2
-  INTEGER IB1,IB2,IB1P1,IB2P1
-  INTEGER IO,II,IS1,IS2,IOP1,IIP1,IS1P1,IS2P1
-  INTEGER DIO,DII,DIB
+  real(dp) U1(3),U2(3),U1U2
+  real(dp) D1,D2
+  real(dp) R12(3),D12,E12(3),R12T(3),R12C1(3),R12C2(3)
+  real(dp) S1,S2
+  real(dp) GI(3)
+  integer I1,J1,I2,J2
+  integer IB1,IB2,IB1P1,IB2P1
+  integer IO,II,IS1,IS2,IOP1,IIP1,IS1P1,IS2P1
+  integer DIO,DII,DIB
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)
-  DOUBLE PRECISION LHC      ! HC length
-  DOUBLE PRECISION SIGP     ! HC diameter
-  DOUBLE PRECISION VHC 	! Potential strengths
-  DOUBLE PRECISION GAM
-  DOUBLE PRECISION LBOX     ! Box edge length
-  DOUBLE PRECISION SUM
-  DOUBLE PRECISION DT
-  DOUBLE PRECISION XIR
-  DOUBLE PRECISION XIU
-  DOUBLE PRECISION ETA
-  DOUBLE PRECISION EPAR
-  DOUBLE PRECISION EPERP
-  DOUBLE PRECISION EB
-  logical RING              ! Is polymer a ring?
-  INTEGER NMAX
+  real(dp) PARA(10)
+  real(dp) LHC      ! HC length
+  real(dp) SIGP     ! HC diameter
+  real(dp) VHC 	! Potential strengths
+  real(dp) GAM
+  real(dp) LBOX     ! Box edge length
+  real(dp) SUM
+  real(dp) DT
+  real(dp) XIR
+  real(dp) XIU
+  real(dp) ETA
+  real(dp) EPAR
+  real(dp) EPERP
+  real(dp) EB
+  logical RinG              ! Is polymer a ring?
+  integer NMAX
 
-  DOUBLE PRECISION D12MIN,FMAGMIN
+  real(dp) D12Min,FMAGMin
 
-  EB=PARA(1)
-  EPAR=PARA(2)
-  EPERP=PARA(3)
-  GAM=PARA(4)
-  ETA=PARA(5)
-  XIR=PARA(6)
-  XIU=PARA(7)
-  LBOX=PARA(8)
-  LHC=PARA(9)
-  VHC=PARA(10)
+  EB = PARA(1)
+  EPAR = PARA(2)
+  EPERP = PARA(3)
+  GAM = PARA(4)
+  ETA = PARA(5)
+  XIR = PARA(6)
+  XIU = PARA(7)
+  LBOX = PARA(8)
+  LHC = PARA(9)
+  VHC = PARA(10)
 
 
-  EPONP=0.
+  EPONP = 0.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -86,12 +87,12 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  IF (IB2.GE.IB1) THEN
-     DIB=IB2-IB1
-  ELSE
-     DIB=(N-IB1)+IB2
-  ENDIF
-  DIO=N-DIB-2
+  if (IB2 >= IB1) then
+     DIB = IB2-IB1
+  else
+     DIB = (N-IB1) + IB2
+  ENDif
+  DIO = N-DIB-2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !The two segments immediately on the outside of the
@@ -103,22 +104,22 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 
 
 
-  IS1P1=IB1                               ! Index of first stretched (or compressed) segment (not inside beads moved)
-  IS2=IB2                                  ! Index of second stretched (or compressed) segment (not inside beads moved)
+  IS1P1 = IB1                               ! Index of first stretched (or compressed) segment (not inside beads moved)
+  IS2 = IB2                                  ! Index of second stretched (or compressed) segment (not inside beads moved)
 
-  IF (IS1P1.EQ.1) THEN
-     IS1=N
-  ELSE
-     IS1=IS1P1-1
-  ENDIF
+  if (IS1P1 == 1) then
+     IS1 = N
+  else
+     IS1 = IS1P1-1
+  ENDif
 
-  IF (IS2.EQ.N) THEN
-     IS2P1=1
-  ELSE
-     IS2P1=IS2+1
-  ENDIF
+  if (IS2 == N) then
+     IS2P1 = 1
+  else
+     IS2P1 = IS2 + 1
+  ENDif
 
-  II=IB1
+  II = IB1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -129,38 +130,38 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  IF (IB1.NE.IB2) then
+  if (IB1 /= IB2) then
      !Sum over segments inside segment slid (inner segments)
-     DO  I=1,DIB
+     do  I = 1,DIB
 
-        IF (II.EQ.N.AND.RING) THEN
-           IIP1=1
-        ELSEIF (II.EQ.N+1) THEN
-           II=1
-           IIP1=II+1
-        ELSE
-           IIP1=II+1
-        ENDIF
-        IO=IB2+1
+        if (II == N.AND.RinG) then
+           IIP1 = 1
+        elseif (II == N + 1) then
+           II = 1
+           IIP1 = II + 1
+        else
+           IIP1 = II + 1
+        ENDif
+        IO = IB2 + 1
         !Sum over segments unchanged by slide (outer segments)
-        DO J=1,DIO
+        do J = 1,DIO
 
-           IF (IO.EQ.N.AND.RING) THEN
-              IOP1=1
-           ELSEIF (IO.EQ.N.AND.(.not.RING))THEN
-              IO=0
+           if (IO == N.AND.RinG) then
+              IOP1 = 1
+           elseif (IO == N.AND.(.not.RinG))then
+              IO = 0
               GOTO 110
-           ELSEIF (IO.EQ.N+1) THEN
-              IO=1
-              IOP1=IO+1
-           ELSE
-              IOP1=IO+1
-           ENDIF
+           elseif (IO == N + 1) then
+              IO = 1
+              IOP1 = IO + 1
+           else
+              IOP1 = IO + 1
+           ENDif
 
            !Skip this pair if the segments are adjacent
-           IF (IIP1.EQ.IO.OR.IOP1.EQ.II) THEN
+           if (IIP1 == IO.OR.IOP1 == II) then
               GOTO 70
-           ENDIF
+           ENDif
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -170,187 +171,187 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-           R12(1)=R(IO,1)-R(II,1)
-           R12(2)=R(IO,2)-R(II,2)
-           R12(3)=R(IO,3)-R(II,3)
+           R12(1) = R(IO,1)-R(II,1)
+           R12(2) = R(IO,2)-R(II,2)
+           R12(3) = R(IO,3)-R(II,3)
            !Periodic Bounary conditions. Not used for single chains
 
-           ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-           ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-           ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+           ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+           ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+           ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-           D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+           D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-           U1(1)=R(IIP1,1)-R(II,1)
-           U1(2)=R(IIP1,2)-R(II,2)
-           U1(3)=R(IIP1,3)-R(II,3)
-           D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-           U1(1)=U1(1)/D1
-           U1(2)=U1(2)/D1
-           U1(3)=U1(3)/D1
+           U1(1) = R(IIP1,1)-R(II,1)
+           U1(2) = R(IIP1,2)-R(II,2)
+           U1(3) = R(IIP1,3)-R(II,3)
+           D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+           U1(1) = U1(1)/D1
+           U1(2) = U1(2)/D1
+           U1(3) = U1(3)/D1
 
-           U2(1)=R(IOP1,1)-R(IO,1)
-           U2(2)=R(IOP1,2)-R(IO,2)
-           U2(3)=R(IOP1,3)-R(IO,3)
-           D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-           U2(1)=U2(1)/D2
-           U2(2)=U2(2)/D2
-           U2(3)=U2(3)/D2
+           U2(1) = R(IOP1,1)-R(IO,1)
+           U2(2) = R(IOP1,2)-R(IO,2)
+           U2(3) = R(IOP1,3)-R(IO,3)
+           D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+           U2(1) = U2(1)/D2
+           U2(2) = U2(2)/D2
+           U2(3) = U2(3)/D2
 
-           U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-           if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-              D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+           U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+           if (U1U2 == 1..OR.U1U2 == -1.) then
+              D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
               GOTO 60
            endif
 
-           GI(1)=U1(1)-U1U2*U2(1)
-           GI(2)=U1(2)-U1U2*U2(2)
-           GI(3)=U1(3)-U1U2*U2(3)
+           GI(1) = U1(1)-U1U2*U2(1)
+           GI(2) = U1(2)-U1U2*U2(2)
+           GI(3) = U1(3)-U1U2*U2(3)
 
-           S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+           S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-           if (S1.GT.D1.OR.S1.LT.0.) then
-              R12T=R(IOP1,:)-R(IIP1,:)
-              R12C1=R(IOP1,:)-R(II,:)
-              R12C2=R(IIP1,:)-R(IO,:)
-              D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                   & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           if (S1 > D1.OR.S1 < 0.) then
+              R12T = R(IOP1,:)-R(IIP1,:)
+              R12C1 = R(IOP1,:)-R(II,:)
+              R12C2 = R(IIP1,:)-R(IO,:)
+              D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                   & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
               GOTO 60
            endif
 
-           GI(1)=U2(1)-U1U2*U1(1)
-           GI(2)=U2(2)-U1U2*U1(2)
-           GI(3)=U2(3)-U1U2*U1(3)
+           GI(1) = U2(1)-U1U2*U1(1)
+           GI(2) = U2(2)-U1U2*U1(2)
+           GI(3) = U2(3)-U1U2*U1(3)
 
-           S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+           S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-           if (S2.GT.D2.OR.S2.LT.0.) then
-              R12T=R(IOP1,:)-R(IIP1,:)
-              R12C1=R(IOP1,:)-R(II,:)
-              R12C2=R(IIP1,:)-R(IO,:)
-              D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                   & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           if (S2 > D2.OR.S2 < 0.) then
+              R12T = R(IOP1,:)-R(IIP1,:)
+              R12C1 = R(IOP1,:)-R(II,:)
+              R12C2 = R(IIP1,:)-R(IO,:)
+              D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                   & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
               GOTO 60
            endif
 
-           R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-           R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-           R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+           R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+           R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+           R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-           D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+           D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-60         if (D12.GT.LHC) then
+60         if (D12 > LHC) then
               goto 70
            endif
 
-           FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+           FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-           EPONP=EPONP+FMAG
+           EPONP = EPONP + FMAG
 
-70         CONTINUE
+70         continue
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
            !Calculate the interaction between this outer segment and the
            !two stretched segments. Only do this once.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-           IF (I.EQ.1) THEN
+           if (I == 1) then
 
               !Skip this pair if the segments are adjacent
-              IF (IS1.EQ.IOP1.OR.IO.EQ.IS1P1) THEN
+              if (IS1 == IOP1.OR.IO == IS1P1) then
                  GOTO 90
-              ENDIF
+              ENDif
 
-              !If the chain is linear and IS1P1.EQ.1 then there is no first 'stretched' segment
-              IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
+              !If the chain is linear and IS1P1 == 1 then there is no first 'stretched' segment
+              if (IS1P1 == 1.AND.(.not.RinG)) then
                  GOTO 90
-              ENDIF
+              ENDif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               !Calculate interaction between outer segment and first stretched
               !segment.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              R12(1)=R(IS1,1)-R(IO,1)
-              R12(2)=R(IS1,2)-R(IO,2)
-              R12(3)=R(IS1,3)-R(IO,3)
+              R12(1) = R(IS1,1)-R(IO,1)
+              R12(2) = R(IS1,2)-R(IO,2)
+              R12(3) = R(IS1,3)-R(IO,3)
               !Periodic Bounary conditions. Not used for single chains
 
-              ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-              ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-              ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+              ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+              ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+              ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-              D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+              D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-              U1(1)=R(IOP1,1)-R(IO,1)
-              U1(2)=R(IOP1,2)-R(IO,2)
-              U1(3)=R(IOP1,3)-R(IO,3)
-              D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-              U1(1)=U1(1)/D1
-              U1(2)=U1(2)/D1
-              U1(3)=U1(3)/D1
+              U1(1) = R(IOP1,1)-R(IO,1)
+              U1(2) = R(IOP1,2)-R(IO,2)
+              U1(3) = R(IOP1,3)-R(IO,3)
+              D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+              U1(1) = U1(1)/D1
+              U1(2) = U1(2)/D1
+              U1(3) = U1(3)/D1
 
-              U2(1)=R(IS1P1,1)-R(IS1,1)
-              U2(2)=R(IS1P1,2)-R(IS1,2)
-              U2(3)=R(IS1P1,3)-R(IS1,3)
-              D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-              U2(1)=U2(1)/D2
-              U2(2)=U2(2)/D2
-              U2(3)=U2(3)/D2
+              U2(1) = R(IS1P1,1)-R(IS1,1)
+              U2(2) = R(IS1P1,2)-R(IS1,2)
+              U2(3) = R(IS1P1,3)-R(IS1,3)
+              D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+              U2(1) = U2(1)/D2
+              U2(2) = U2(2)/D2
+              U2(3) = U2(3)/D2
 
-              U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-              if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-                 D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+              U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+              if (U1U2 == 1..OR.U1U2 == -1.) then
+                 D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
                  GOTO 80
               endif
 
-              GI(1)=U1(1)-U1U2*U2(1)
-              GI(2)=U1(2)-U1U2*U2(2)
-              GI(3)=U1(3)-U1U2*U2(3)
+              GI(1) = U1(1)-U1U2*U2(1)
+              GI(2) = U1(2)-U1U2*U2(2)
+              GI(3) = U1(3)-U1U2*U2(3)
 
-              S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+              S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-              if (S1.GT.D1.OR.S1.LT.0.) then
+              if (S1 > D1.OR.S1 < 0.) then
 
-                 R12T=R(IOP1,:)-R(IS1P1,:)
-                 R12C1=R(IOP1,:)-R(IS1,:)
-                 R12C2=R(IS1P1,:)-R(IO,:)
+                 R12T = R(IOP1,:)-R(IS1P1,:)
+                 R12C1 = R(IOP1,:)-R(IS1,:)
+                 R12C2 = R(IS1P1,:)-R(IO,:)
 
-                 D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                      & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+                 D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                      & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
                  GOTO 80
               endif
 
-              GI(1)=U2(1)-U1U2*U1(1)
-              GI(2)=U2(2)-U1U2*U1(2)
-              GI(3)=U2(3)-U1U2*U1(3)
+              GI(1) = U2(1)-U1U2*U1(1)
+              GI(2) = U2(2)-U1U2*U1(2)
+              GI(3) = U2(3)-U1U2*U1(3)
 
-              S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+              S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-              if (S2.GT.D2.OR.S2.LT.0.) then
+              if (S2 > D2.OR.S2 < 0.) then
 
-                 R12T=R(IOP1,:)-R(IS1P1,:)
-                 R12C1=R(IOP1,:)-R(IS1,:)
-                 R12C2=R(IS1P1,:)-R(IO,:)
+                 R12T = R(IOP1,:)-R(IS1P1,:)
+                 R12C1 = R(IOP1,:)-R(IS1,:)
+                 R12C2 = R(IS1P1,:)-R(IO,:)
 
-                 D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                      & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+                 D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                      & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
                  GOTO 80
               endif
 
-              R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-              R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-              R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+              R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+              R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+              R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-              D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+              D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-80            if (D12.GT.LHC) then
+80            if (D12 > LHC) then
                  goto 90
               endif
 
-              FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+              FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-              EPONP=EPONP+FMAG
-90            CONTINUE
+              EPONP = EPONP + FMAG
+90            continue
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -359,102 +360,102 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
               !Skip this pair if the segments are adjacent
-              IF (IS2P1.EQ.IO.OR.IOP1.EQ.IS2) THEN
+              if (IS2P1 == IO.OR.IOP1 == IS2) then
                  GOTO 110
-              ENDIF
+              ENDif
 
-              !If the chain is linear and IS2=N, then there is no second 'stretched' segment
-              IF (IS2.EQ.N.AND.(.not.RING)) THEN
+              !If the chain is linear and IS2 = N, then there is no second 'stretched' segment
+              if (IS2 == N.AND.(.not.RinG)) then
                  GOTO 110
-              ENDIF
+              ENDif
 
-              R12(1)=R(IS2,1)-R(IO,1)
-              R12(2)=R(IS2,2)-R(IO,2)
-              R12(3)=R(IS2,3)-R(IO,3)
+              R12(1) = R(IS2,1)-R(IO,1)
+              R12(2) = R(IS2,2)-R(IO,2)
+              R12(3) = R(IS2,3)-R(IO,3)
               !Periodic Bounary conditions. Not used for single chains
 
-              ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-              ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-              ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+              ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+              ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+              ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-              D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+              D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-              U1(1)=R(IOP1,1)-R(IO,1)
-              U1(2)=R(IOP1,2)-R(IO,2)
-              U1(3)=R(IOP1,3)-R(IO,3)
-              D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-              U1(1)=U1(1)/D1
-              U1(2)=U1(2)/D1
-              U1(3)=U1(3)/D1
+              U1(1) = R(IOP1,1)-R(IO,1)
+              U1(2) = R(IOP1,2)-R(IO,2)
+              U1(3) = R(IOP1,3)-R(IO,3)
+              D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+              U1(1) = U1(1)/D1
+              U1(2) = U1(2)/D1
+              U1(3) = U1(3)/D1
 
-              U2(1)=R(IS2P1,1)-R(IS2,1)
-              U2(2)=R(IS2P1,2)-R(IS2,2)
-              U2(3)=R(IS2P1,3)-R(IS2,3)
-              D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-              U2(1)=U2(1)/D2
-              U2(2)=U2(2)/D2
-              U2(3)=U2(3)/D2
+              U2(1) = R(IS2P1,1)-R(IS2,1)
+              U2(2) = R(IS2P1,2)-R(IS2,2)
+              U2(3) = R(IS2P1,3)-R(IS2,3)
+              D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+              U2(1) = U2(1)/D2
+              U2(2) = U2(2)/D2
+              U2(3) = U2(3)/D2
 
-              U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-              if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-                 D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+              U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+              if (U1U2 == 1..OR.U1U2 == -1.) then
+                 D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
                  GOTO 100
               endif
 
-              GI(1)=U1(1)-U1U2*U2(1)
-              GI(2)=U1(2)-U1U2*U2(2)
-              GI(3)=U1(3)-U1U2*U2(3)
+              GI(1) = U1(1)-U1U2*U2(1)
+              GI(2) = U1(2)-U1U2*U2(2)
+              GI(3) = U1(3)-U1U2*U2(3)
 
-              S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+              S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-              if (S1.GT.D1.OR.S1.LT.0.) then
+              if (S1 > D1.OR.S1 < 0.) then
 
-                 R12T=R(IOP1,:)-R(IS2P1,:)
-                 R12C1=R(IOP1,:)-R(IS2,:)
-                 R12C2=R(IS2P1,:)-R(IO,:)
+                 R12T = R(IOP1,:)-R(IS2P1,:)
+                 R12C1 = R(IOP1,:)-R(IS2,:)
+                 R12C2 = R(IS2P1,:)-R(IO,:)
 
-                 D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                      & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+                 D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                      & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
                  GOTO 100
               endif
 
-              GI(1)=U2(1)-U1U2*U1(1)
-              GI(2)=U2(2)-U1U2*U1(2)
-              GI(3)=U2(3)-U1U2*U1(3)
+              GI(1) = U2(1)-U1U2*U1(1)
+              GI(2) = U2(2)-U1U2*U1(2)
+              GI(3) = U2(3)-U1U2*U1(3)
 
-              S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+              S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-              if (S2.GT.D2.OR.S2.LT.0.) then
-                 R12T=R(IOP1,:)-R(IS2P1,:)
-                 R12C1=R(IOP1,:)-R(IS2,:)
-                 R12C2=R(IS2P1,:)-R(IO,:)
-                 D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                      & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+              if (S2 > D2.OR.S2 < 0.) then
+                 R12T = R(IOP1,:)-R(IS2P1,:)
+                 R12C1 = R(IOP1,:)-R(IS2,:)
+                 R12C2 = R(IS2P1,:)-R(IO,:)
+                 D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                      & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
                  GOTO 100
               endif
 
-              R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-              R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-              R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+              R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+              R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+              R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-              D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+              D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-100           if (D12.GT.LHC) then
+100           if (D12 > LHC) then
                  goto 110
               endif
 
-              FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+              FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
 
 
-              EPONP=EPONP+FMAG
+              EPONP = EPONP + FMAG
 
 
-           ENDIF
+           ENDif
            !step to next outer segment
-110        CONTINUE
-           IO=IO+1
-        ENDDO
+110        continue
+           IO = IO + 1
+        ENDdo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Calculate the interaction between the inner segment and the first stretched
@@ -462,94 +463,94 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         !Skip this pair if the segments are adjacent
-        IF (IS1.EQ.IIP1.OR.II.EQ.IS1P1) THEN
+        if (IS1 == IIP1.OR.II == IS1P1) then
            GOTO 130
-        ENDIF
+        ENDif
 
-        !If the chain is linear and  IS1P1=1 there is no first "stretched" segment
-        IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
+        !If the chain is linear and  IS1P1 = 1 there is no first "stretched" segment
+        if (IS1P1 == 1.AND.(.not.RinG)) then
            GOTO 130
-        ENDIF
+        ENDif
 
-        R12(1)=R(IS1,1)-R(II,1)
-        R12(2)=R(IS1,2)-R(II,2)
-        R12(3)=R(IS1,3)-R(II,3)
+        R12(1) = R(IS1,1)-R(II,1)
+        R12(2) = R(IS1,2)-R(II,2)
+        R12(3) = R(IS1,3)-R(II,3)
         !Periodic Bounary conditions. Not used for single chains
 
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1)=R(IIP1,1)-R(II,1)
-        U1(2)=R(IIP1,2)-R(II,2)
-        U1(3)=R(IIP1,3)-R(II,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = R(IIP1,1)-R(II,1)
+        U1(2) = R(IIP1,2)-R(II,2)
+        U1(3) = R(IIP1,3)-R(II,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=R(IS1P1,1)-R(IS1,1)
-        U2(2)=R(IS1P1,2)-R(IS1,2)
-        U2(3)=R(IS1P1,3)-R(IS1,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = R(IS1P1,1)-R(IS1,1)
+        U2(2) = R(IS1P1,2)-R(IS1,2)
+        U2(3) = R(IS1P1,3)-R(IS1,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 120
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
-           R12T=R(IS1P1,:)-R(IIP1,:)
-           R12C1=R(IS1P1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IS1,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S1 > D1.OR.S1 < 0.) then
+           R12T = R(IS1P1,:)-R(IIP1,:)
+           R12C1 = R(IS1P1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IS1,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 120
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
+        if (S2 > D2.OR.S2 < 0.) then
 
-           R12T=R(IS1P1,:)-R(IIP1,:)
-           R12C1=R(IS1P1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IS1,:)
+           R12T = R(IS1P1,:)-R(IIP1,:)
+           R12C1 = R(IS1P1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IS1,:)
 
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 120
         endif
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-120     if (D12.GT.LHC) then
+120     if (D12 > LHC) then
            goto 130
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-        EPONP=EPONP+FMAG
-130     CONTINUE
+        EPONP = EPONP + FMAG
+130     continue
 
 
 
@@ -557,99 +558,99 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
         !Calculate interaction between inner segment and second stretched segment
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        IF (IS2.EQ.IIP1.OR.II.EQ.IS2P1) THEN
+        if (IS2 == IIP1.OR.II == IS2P1) then
            GOTO 150
-        ENDIF
+        ENDif
 
-        !If the chain is linear and IS2=N, there is no second "stretched" segment
-        IF (IS2.EQ.N.AND.(.not.RING)) THEN
+        !If the chain is linear and IS2 = N, there is no second "stretched" segment
+        if (IS2 == N.AND.(.not.RinG)) then
            GOTO 150
-        ENDIF
+        ENDif
 
-        R12(1)=R(IS2,1)-R(II,1)
-        R12(2)=R(IS2,2)-R(II,2)
-        R12(3)=R(IS2,3)-R(II,3)
+        R12(1) = R(IS2,1)-R(II,1)
+        R12(2) = R(IS2,2)-R(II,2)
+        R12(3) = R(IS2,3)-R(II,3)
         !Periodic Bounary conditions. Not used for single chains
 
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1)=R(IIP1,1)-R(II,1)
-        U1(2)=R(IIP1,2)-R(II,2)
-        U1(3)=R(IIP1,3)-R(II,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = R(IIP1,1)-R(II,1)
+        U1(2) = R(IIP1,2)-R(II,2)
+        U1(3) = R(IIP1,3)-R(II,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=R(IS2P1,1)-R(IS2,1)
-        U2(2)=R(IS2P1,2)-R(IS2,2)
-        U2(3)=R(IS2P1,3)-R(IS2,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = R(IS2P1,1)-R(IS2,1)
+        U2(2) = R(IS2P1,2)-R(IS2,2)
+        U2(3) = R(IS2P1,3)-R(IS2,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 140
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
-           R12T=R(IS2P1,:)-R(IIP1,:)
-           R12C1=R(IS2P1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IS2,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S1 > D1.OR.S1 < 0.) then
+           R12T = R(IS2P1,:)-R(IIP1,:)
+           R12C1 = R(IS2P1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IS2,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 140
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
-           R12T=R(IS2P1,:)-R(IIP1,:)
-           R12C1=R(IS2P1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IS2,:)
+        if (S2 > D2.OR.S2 < 0.) then
+           R12T = R(IS2P1,:)-R(IIP1,:)
+           R12C1 = R(IS2P1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IS2,:)
 
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 140
         endif
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-140     if (D12.GT.LHC) then
+140     if (D12 > LHC) then
            goto 150
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-        EPONP=EPONP+FMAG
-150     CONTINUE
+        EPONP = EPONP + FMAG
+150     continue
 
 
 
-        II=II+1
-     ENDDO
-  ENDIF
+        II = II + 1
+     ENDdo
+  ENDif
 
 
 
@@ -659,337 +660,337 @@ SUBROUTINE ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RING,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  R12(1)=R(IS2,1)-R(IS1,1)
-  R12(2)=R(IS2,2)-R(IS1,2)
-  R12(3)=R(IS2,3)-R(IS1,3)
+  R12(1) = R(IS2,1)-R(IS1,1)
+  R12(2) = R(IS2,2)-R(IS1,2)
+  R12(3) = R(IS2,3)-R(IS1,3)
 
 
-  IF (IS1.EQ.IS2P1.OR.IS1P1.EQ.IS2) THEN
+  if (IS1 == IS2P1.OR.IS1P1 == IS2) then
      GOTO 170
-  ENDIF
+  ENDif
 
-  !If the chain is linear and IS1P1=1 or IS2=N, then there is no
+  !If the chain is linear and IS1P1 = 1 or IS2 = N, then there is no
   !first segment or second stretched segment
 
-  IF (IS1P1.EQ.1.OR.IS2.EQ.N) THEN
+  if (IS1P1 == 1.OR.IS2 == N) then
      GOTO 170
-  ENDIF
+  ENDif
 
   !Periodic Bounary conditions. Not used for single chains
 
-  ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-  ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-  ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+  ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+  ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+  ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-  D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+  D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-  U1(1)=R(IS1P1,1)-R(IS1,1)
-  U1(2)=R(IS1P1,2)-R(IS1,2)
-  U1(3)=R(IS1P1,3)-R(IS1,3)
-  D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-  U1(1)=U1(1)/D1
-  U1(2)=U1(2)/D1
-  U1(3)=U1(3)/D1
+  U1(1) = R(IS1P1,1)-R(IS1,1)
+  U1(2) = R(IS1P1,2)-R(IS1,2)
+  U1(3) = R(IS1P1,3)-R(IS1,3)
+  D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+  U1(1) = U1(1)/D1
+  U1(2) = U1(2)/D1
+  U1(3) = U1(3)/D1
 
-  U2(1)=R(IS2P1,1)-R(IS2,1)
-  U2(2)=R(IS2P1,2)-R(IS2,2)
-  U2(3)=R(IS2P1,3)-R(IS2,3)
-  D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-  U2(1)=U2(1)/D2
-  U2(2)=U2(2)/D2
-  U2(3)=U2(3)/D2
+  U2(1) = R(IS2P1,1)-R(IS2,1)
+  U2(2) = R(IS2P1,2)-R(IS2,2)
+  U2(3) = R(IS2P1,3)-R(IS2,3)
+  D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+  U2(1) = U2(1)/D2
+  U2(2) = U2(2)/D2
+  U2(3) = U2(3)/D2
 
-  U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-  if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-     D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+  U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+  if (U1U2 == 1..OR.U1U2 == -1.) then
+     D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
      GOTO 160
   endif
 
-  GI(1)=U1(1)-U1U2*U2(1)
-  GI(2)=U1(2)-U1U2*U2(2)
-  GI(3)=U1(3)-U1U2*U2(3)
+  GI(1) = U1(1)-U1U2*U2(1)
+  GI(2) = U1(2)-U1U2*U2(2)
+  GI(3) = U1(3)-U1U2*U2(3)
 
-  S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+  S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-  if (S1.GT.D1.OR.S1.LT.0.) then
-     R12T=R(IS2P1,:)-R(IS1P1,:)
-     R12C1=R(IS2P1,:)-R(IS1,:)
-     R12C2=R(IS1P1,:)-R(IS2,:)
-     D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-          & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+  if (S1 > D1.OR.S1 < 0.) then
+     R12T = R(IS2P1,:)-R(IS1P1,:)
+     R12C1 = R(IS2P1,:)-R(IS1,:)
+     R12C2 = R(IS1P1,:)-R(IS2,:)
+     D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+          & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
      GOTO 160
   endif
 
-  GI(1)=U2(1)-U1U2*U1(1)
-  GI(2)=U2(2)-U1U2*U1(2)
-  GI(3)=U2(3)-U1U2*U1(3)
+  GI(1) = U2(1)-U1U2*U1(1)
+  GI(2) = U2(2)-U1U2*U1(2)
+  GI(3) = U2(3)-U1U2*U1(3)
 
-  S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+  S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-  if (S2.GT.D2.OR.S2.LT.0.) then
-     R12T=R(IS2P1,:)-R(IS1P1,:)
-     R12C1=R(IS2P1,:)-R(IS1,:)
-     R12C2=R(IS1P1,:)-R(IS2,:)
-     D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-          & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+  if (S2 > D2.OR.S2 < 0.) then
+     R12T = R(IS2P1,:)-R(IS1P1,:)
+     R12C1 = R(IS2P1,:)-R(IS1,:)
+     R12C2 = R(IS1P1,:)-R(IS2,:)
+     D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+          & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
      GOTO 160
   endif
 
-  R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-  R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-  R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+  R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+  R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+  R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-  D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+  D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-160 if (D12.GT.LHC) then
+160 if (D12 > LHC) then
      goto 170
   endif
 
-  FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+  FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-  EPONP=EPONP+FMAG
+  EPONP = EPONP + FMAG
 
 
-170 CONTINUE
+170 continue
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !If only one bead was slid (IB1.EQ.IB2) then calculate the interaction between the
+  !If only one bead was slid (IB1 == IB2) then calculate the interaction between the
   !portion of the chain unaffected by the move and the two segments stretched/compressed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  IF (IB1.EQ.IB2) THEN
-     !If IB1.EQ.IB2, Get interaction between segment unaffected by move and two segments affected
+  if (IB1 == IB2) then
+     !If IB1 == IB2, Get interaction between segment unaffected by move and two segments affected
 
-     IO=IB1+1
+     IO = IB1 + 1
      !Sum over segments unchanged by slide (outer segments)
-     DO J=1,DIO
+     do J = 1,DIO
 
-        IF (IO.EQ.N.AND.RING) THEN
-           IOP1=1
-        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
-           IO=0
+        if (IO == N.AND.RinG) then
+           IOP1 = 1
+        elseif (IO == N.AND.(.not.RinG)) then
+           IO = 0
            GOTO 210
-        ELSEIF (IO.EQ.N+1) THEN
-           IO=1
-           IOP1=IO+1
-        ELSE
-           IOP1=IO+1
-        ENDIF
+        elseif (IO == N + 1) then
+           IO = 1
+           IOP1 = IO + 1
+        else
+           IOP1 = IO + 1
+        ENDif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Calculate interaction between outer segment and first stretched segment
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        IF (IS1.EQ.IOP1.OR.IO.EQ.IS1P1) THEN
+        if (IS1 == IOP1.OR.IO == IS1P1) then
            GOTO 190
-        ENDIF
+        ENDif
 
-        !If the chain is linear and IP1P1=1, there is no first "stretched" segment
-        IF (IS1P1.EQ.1.AND.(.not.RING)) THEN
+        !If the chain is linear and IP1P1 = 1, there is no first "stretched" segment
+        if (IS1P1 == 1.AND.(.not.RinG)) then
            GOTO 190
-        ENDIF
+        ENDif
 
-        R12(1)=R(IS1,1)-R(IO,1)
-        R12(2)=R(IS1,2)-R(IO,2)
-        R12(3)=R(IS1,3)-R(IO,3)
+        R12(1) = R(IS1,1)-R(IO,1)
+        R12(2) = R(IS1,2)-R(IO,2)
+        R12(3) = R(IS1,3)-R(IO,3)
         !Periodic Bounary conditions. Not used for single chains
 
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1)=R(IOP1,1)-R(IO,1)
-        U1(2)=R(IOP1,2)-R(IO,2)
-        U1(3)=R(IOP1,3)-R(IO,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = R(IOP1,1)-R(IO,1)
+        U1(2) = R(IOP1,2)-R(IO,2)
+        U1(3) = R(IOP1,3)-R(IO,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=R(IS1P1,1)-R(IS1,1)
-        U2(2)=R(IS1P1,2)-R(IS1,2)
-        U2(3)=R(IS1P1,3)-R(IS1,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = R(IS1P1,1)-R(IS1,1)
+        U2(2) = R(IS1P1,2)-R(IS1,2)
+        U2(3) = R(IS1P1,3)-R(IS1,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 180
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
 
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
+        if (S1 > D1.OR.S1 < 0.) then
 
-           R12T=R(IOP1,:)-R(IS1P1,:)
-           R12C1=R(IOP1,:)-R(IS1,:)
-           R12C2=R(IS1P1,:)-R(IO,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           R12T = R(IOP1,:)-R(IS1P1,:)
+           R12C1 = R(IOP1,:)-R(IS1,:)
+           R12C2 = R(IS1P1,:)-R(IO,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 180
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
+        if (S2 > D2.OR.S2 < 0.) then
 
-           R12T=R(IOP1,:)-R(IS1P1,:)
-           R12C1=R(IOP1,:)-R(IS1,:)
-           R12C2=R(IS1P1,:)-R(IO,:)
+           R12T = R(IOP1,:)-R(IS1P1,:)
+           R12C1 = R(IOP1,:)-R(IS1,:)
+           R12C2 = R(IS1P1,:)-R(IO,:)
 
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 180
         endif
 
 
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
 
-180     if (D12.GT.LHC) then
+180     if (D12 > LHC) then
            goto 190
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-        EPONP=EPONP+FMAG
+        EPONP = EPONP + FMAG
 
-190     CONTINUE
+190     continue
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !Calculate the interaction between outer segment and second stretched segment
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        IF (IS2.EQ.IOP1.OR.IO.EQ.IS2P1) THEN
+        if (IS2 == IOP1.OR.IO == IS2P1) then
            GOTO 210
-        ENDIF
+        ENDif
 
-        !If the chain is linear and IS2=N, then there is no second "stretched" segment
+        !If the chain is linear and IS2 = N, then there is no second "stretched" segment
 
-        IF (IS2.EQ.N.AND.(.not.RING)) THEN
+        if (IS2 == N.AND.(.not.RinG)) then
            GOTO 210
-        ENDIF
+        ENDif
 
-        R12(1)=R(IS2,1)-R(IO,1)
-        R12(2)=R(IS2,2)-R(IO,2)
-        R12(3)=R(IS2,3)-R(IO,3)
+        R12(1) = R(IS2,1)-R(IO,1)
+        R12(2) = R(IS2,2)-R(IO,2)
+        R12(3) = R(IS2,3)-R(IO,3)
 
 
         !Periodic Bounary conditions. Not used for single chains
 
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1)=R(IOP1,1)-R(IO,1)
-        U1(2)=R(IOP1,2)-R(IO,2)
-        U1(3)=R(IOP1,3)-R(IO,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = R(IOP1,1)-R(IO,1)
+        U1(2) = R(IOP1,2)-R(IO,2)
+        U1(3) = R(IOP1,3)-R(IO,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=R(IS2P1,1)-R(IS2,1)
-        U2(2)=R(IS2P1,2)-R(IS2,2)
-        U2(3)=R(IS2P1,3)-R(IS2,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = R(IS2P1,1)-R(IS2,1)
+        U2(2) = R(IS2P1,2)-R(IS2,2)
+        U2(3) = R(IS2P1,3)-R(IS2,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 200
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
-           R12T=R(IOP1,:)-R(IS2P1,:)
-           R12C1=R(IOP1,:)-R(IS2,:)
-           R12C2=R(IS2P1,:)-R(IO,:)
+        if (S1 > D1.OR.S1 < 0.) then
+           R12T = R(IOP1,:)-R(IS2P1,:)
+           R12C1 = R(IOP1,:)-R(IS2,:)
+           R12C2 = R(IS2P1,:)-R(IO,:)
 
 
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 200
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
-           R12T=R(IOP1,:)-R(IS2P1,:)
-           R12C1=R(IOP1,:)-R(IS2,:)
-           R12C2=R(IS2P1,:)-R(IO,:)
+        if (S2 > D2.OR.S2 < 0.) then
+           R12T = R(IOP1,:)-R(IS2P1,:)
+           R12C1 = R(IOP1,:)-R(IS2,:)
+           R12C2 = R(IS2P1,:)-R(IO,:)
 
 
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 200
         endif
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-200     if (D12.GT.LHC) then
+200     if (D12 > LHC) then
            goto 210
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
-        EPONP=EPONP+FMAG
-210     CONTINUE
+        EPONP = EPONP + FMAG
+210     continue
 
 
-        IO=IO+1
-     ENDDO
-  ENDIF
+        IO = IO + 1
+     ENDdo
+  ENDif
 
 
   RETURN
-ENDSUBROUTINE ENERGY_SELF_SLIDE
+ENDsubroutine ENERGY_SELF_SLIDE
 
 !---------------------------------------------------------------*
 

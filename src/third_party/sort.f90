@@ -8,7 +8,7 @@ subroutine sortp_string(array_size,index,string)
   integer, parameter :: QSORT_THRESHOLD = 32
   integer, intent(in) :: array_size
   integer, intent(out) :: index(array_size)
-  character(len=*), intent(in) :: string(array_size)
+  character(len = *), intent(in) :: string(array_size)
   include "qsort_inline.inc"
 contains
   include "qsort_inline_index.inc"
@@ -36,7 +36,7 @@ contains
   logical &
   function less_than(a,b)
     integer, intent(in) :: a,b
-    real(dp), parameter :: small=1.0e-15
+    real(dp), parameter :: small = 1.0e-15
     if ( abs(value(index(a))-value(index(b))) < small ) then
       less_than = index(a) < index(b)
     else
@@ -57,7 +57,7 @@ contains
   logical &
   function less_than(a,b)
     integer, intent(in) :: a,b
-    real(4), parameter :: small=1.0e-6
+    real(4), parameter :: small = 1.0e-6
     if ( abs(value(index(a))-value(index(b))) < small ) then
       less_than = index(a) < index(b)
     else
@@ -87,13 +87,13 @@ contains
   subroutine swap(a,b)
     integer, intent(in) :: a,b
     integer :: hold
-    hold=i1(a); i1(a)=i1(b); i1(b)=hold
+    hold = i1(a); i1(a) = i1(b); i1(b) = hold
   end subroutine swap
 ! circular shift-right by one:
   subroutine rshift(left,right)
     integer, intent(in) :: left, right
     integer :: hold
-    hold=i1(right); i1(left+1:right)=i1(left:right-1); i1(left)=hold
+    hold = i1(right); i1(left + 1:right) = i1(left:right-1); i1(left) = hold
   end subroutine rshift
 end subroutine sort_1i
 !---------------------------------------------------------------

@@ -36,4 +36,4 @@ end function
     ! integer, dimension(rank) :: sizes
 
     ! sizes = shape(arr)
-    ! do i=1,
+    ! do i = 1,

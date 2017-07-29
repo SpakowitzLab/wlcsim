@@ -2,8 +2,8 @@
 !
 !
 ! This subroutine calculates the field Hamiltonian from the phi values.
-! It puts the output in: md%dx_chi, md%dx_chi, md%dx_couple, md%dx_couple, md%dx_Kap, md%dx_Kap, md%DEChi,md%dx_chi, md%DECouple,
-! md%dx_couple, md%DEKap, md%dx_Kap, md%DEField, md%dx_Field
+! It puts the output in: wlc_d%dx_chi, wlc_d%dx_chi, wlc_d%dx_couple, wlc_d%dx_couple, wlc_d%dx_Kap, wlc_d%dx_Kap, wlc_d%DEChi,wlc_d%dx_chi, wlc_d%DECouple,
+! wlc_d%dx_couple, wlc_d%DEKap, wlc_d%dx_Kap, wlc_d%DEField, wlc_d%dx_Field
 !      by Quinn MacPherson based on code from Shifan Mao
 !       Made a separate function on 7/8/16
 !
@@ -11,96 +11,96 @@
 !   Otherwise calcualte only specified bins.
 !-------------------------------------------------------------------
 
-subroutine hamiltonian(mc,md,initialize)
+subroutine hamiltonian(wlc_p,wlc_d,initialize)
 use params
 implicit none
-TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
-TYPE(wlcsim_data), intent(inout) :: md
+TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
+TYPE(wlcsim_data), intent(inout) :: wlc_d
 logical, intent(in) :: initialize ! Need to do all beads
-double precision PHIPoly ! fraction polymer
-double precision phi_A ! demsotu of A
-double precision phi_B ! density of B
-double precision phi_h ! strength of field
-double precision VV ! volume of bin
+real(dp) PHIPoly ! fraction polymer
+real(dp) phi_A ! demsotu of A
+real(dp) phi_B ! density of B
+real(dp) phi_h ! strength of field
+real(dp) VV ! volume of bin
 integer I,J ! for looping
 
 
-md%dx_Chi=0.0_dp
-md%Dx_Couple=0.0_dp
-md%Dx_Kap=0.0_dp
-md%Dx_Field=0.0_dp
+wlc_d%dx_Chi = 0.0_dp
+wlc_d%Dx_Couple = 0.0_dp
+wlc_d%Dx_Kap = 0.0_dp
+wlc_d%Dx_Field = 0.0_dp
 if (initialize) then  ! calculate absolute energy
-    if (mc%solType.eq.0) then ! Melt Hamiltonian
-        do I=1,mc%NBIN
-            VV=md%Vol(I)
+    if (wlc_p%solType.eq.0) then ! Melt Hamiltonian
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
-            md%Dx_Chi=md%Dx_Chi+(VV/mc%beadVolume)*(md%PHIA(I)*md%PHIB(I))
-            md%Dx_Kap=md%dx_Kap+(VV/mc%beadVolume)*((md%PHIA(I)+md%PHIB(I)-1.0_dp)**2)
-            md%Dx_Field=md%dx_Field-md%PHIH(I)*md%PHIA(I)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
+            wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/wlc_p%beadVolume)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
+            wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
         enddo
-    elseif(mc%solType.eq.1) then ! Chromatin Hamiltonian
-        do I=1,mc%NBIN
-            VV=md%Vol(I)
+    elseif(wlc_p%solType.eq.1) then ! Chromatin Hamiltonian
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
-            PHIPoly=md%PHIA(I)+md%PHIB(I)
-            md%Dx_Chi=md%Dx_Chi+(VV/mc%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
-            md%Dx_Couple=md%Dx_Couple+VV*(md%PHIA(I))**2
-            if(PHIPoly.GT.1.0_dp) then
-                md%Dx_Kap=md%Dx_Kap+(VV/mc%beadVolume)*(PHIPoly-1.0_dp)**2
+            PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
+            wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(I))**2
+            if(PHIPoly > 1.0_dp) then
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
         enddo
     else
-        print*, "Error in MC_int, solType",mc%solType, &
+        print*, "Error in MC_int, solType",wlc_p%solType, &
                 " notdefined"
     endif
 else ! Calculate change in energy
-    if (mc%solType.eq.0) then ! Melt Hamiltonian
-        do I=1,md%NPHI
-            J=md%INDPHI(I)
-            VV=md%Vol(J)
+    if (wlc_p%solType.eq.0) then ! Melt Hamiltonian
+        do I = 1,wlc_d%NPHI
+            J = wlc_d%inDPHI(I)
+            VV = wlc_d%Vol(J)
             if (VV.le.0.1_dp) CYCLE
             ! new
-            phi_A=md%PHIA(J)+md%DPHIA(I)
-            phi_B=md%PHIB(J)+md%DPHIB(I)
-            phi_h=md%PHIH(J)
-            md%Dx_Chi=md%Dx_Chi+(VV/mc%beadVolume)*phi_A*phi_B
-            md%Dx_Kap=md%Dx_Kap+(VV/mc%beadVolume)*((phi_A+phi_B-1.0_dp)**2)
-            md%Dx_Field=md%Dx_Field-phi_h*phi_A
+            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
+            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
+            phi_h = wlc_d%PHIH(J)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*phi_A*phi_B
+            wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*((phi_A + phi_B-1.0_dp)**2)
+            wlc_d%Dx_Field = wlc_d%Dx_Field-phi_h*phi_A
             ! minus old
-            md%Dx_Chi=md%Dx_Chi-(VV/mc%beadVolume)*(md%PHIA(J)*md%PHIB(J))
-            md%Dx_Kap=md%Dx_Kap-(VV/mc%beadVolume)*((md%PHIA(J)+md%PHIB(J)-1.0_dp)**2)
-            md%Dx_Field=md%Dx_Field+phi_h*md%PHIA(J)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/wlc_p%beadVolume)*(wlc_d%PHIA(J)*wlc_d%PHIB(J))
+            wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
+            wlc_d%Dx_Field = wlc_d%Dx_Field + phi_h*wlc_d%PHIA(J)
         enddo
-    elseif(mc%solType.eq.1) then ! Chromatin Hamiltonian
-        do I=1,md%NPHI
-            J=md%INDPHI(I)
-            VV=md%Vol(J)
+    elseif(wlc_p%solType.eq.1) then ! Chromatin Hamiltonian
+        do I = 1,wlc_d%NPHI
+            J = wlc_d%inDPHI(I)
+            VV = wlc_d%Vol(J)
             if (VV.le.0.1_dp) CYCLE
             ! new ...
-            PHIPoly=md%PHIA(J)+md%DPHIA(I)+md%PHIB(J)+md%DPHIB(I)
-            md%Dx_Chi=md%Dx_Chi+(VV/mc%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
-            md%Dx_Couple=md%Dx_Couple+VV*(md%PHIA(J)+md%DPHIA(I))**2
-            if(PHIPoly.GT.1.0_dp) then
-               md%Dx_Kap=md%Dx_Kap+(VV/mc%beadVolume)*(PHIPoly-1.0_dp)**2
+            PHIPoly = wlc_d%PHIA(J) + wlc_d%DPHIA(I) + wlc_d%PHIB(J) + wlc_d%DPHIB(I)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
+            wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(J) + wlc_d%DPHIA(I))**2
+            if(PHIPoly > 1.0_dp) then
+               wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
             ! minus old
-            PHIPoly=md%PHIA(J)+md%PHIB(J)
-            md%Dx_Chi=md%Dx_Chi-(VV/mc%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
-            md%Dx_Couple=md%Dx_Couple-VV*(md%PHIA(J))**2
-            if(PHIPoly.GT.1.0_dp) then
-               md%Dx_Kap=md%Dx_Kap-(VV/mc%beadVolume)*(PHIPoly-1.0_dp)**2
+            PHIPoly = wlc_d%PHIA(J) + wlc_d%PHIB(J)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/wlc_p%beadVolume)*PHIPoly*(1.0_dp-PHIPoly)
+            wlc_d%Dx_Couple = wlc_d%Dx_Couple-VV*(wlc_d%PHIA(J))**2
+            if(PHIPoly > 1.0_dp) then
+               wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
         enddo
     endif
 endif
-md%dx_chi=md%dx_chi*mc%CHI_ON
-md%dx_couple=md%dx_couple*mc%Couple_ON
-md%dx_Kap=md%dx_Kap*mc%KAP_ON
+wlc_d%dx_chi = wlc_d%dx_chi*wlc_p%CHI_ON
+wlc_d%dx_couple = wlc_d%dx_couple*wlc_p%Couple_ON
+wlc_d%dx_Kap = wlc_d%dx_Kap*wlc_p%KAP_ON
 
-md%DEChi=mc%Chi*        md%dx_chi
-md%DECouple=mc%HP1_Bind*md%dx_couple
-md%DEKap=mc%Kap*        md%dx_Kap
-md%DEField=mc%hA*       md%dx_Field
+wlc_d%DEChi = wlc_p%Chi*        wlc_d%dx_chi
+wlc_d%DECouple = wlc_p%HP1_Bind*wlc_d%dx_couple
+wlc_d%DEKap = wlc_p%Kap*        wlc_d%dx_Kap
+wlc_d%DEField = wlc_p%hA*       wlc_d%dx_Field
 RETURN
 END subroutine
 

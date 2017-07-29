@@ -16,66 +16,67 @@
 !     chain is not calculated.
 
 
-SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
+subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
+  use params, only : dp
 
-  IMPLICIT NONE
-  INTEGER N,NT,NP            ! Current number of beads
-  DOUBLE PRECISION R(NT,3)   ! Bead positions
-  DOUBLE PRECISION RP(NT,3)  ! Test bead positions
-  DOUBLE PRECISION DE       ! Change in self-energy
-  DOUBLE PRECISION E        ! Self-energy before move
-  DOUBLE PRECISION EP       ! Self-energy of test polymer
-  DOUBLE PRECISION FMAG     ! Mag of force
-  DOUBLE PRECISION RIJ      ! Interbead dist
-  DOUBLE PRECISION EIJ(3)   ! Interbead unit vector
-  INTEGER I, J              ! Index holders
-  INTEGER SKIP              ! Bead skip index
+  implicit none
+  integer N,NT,NP            ! Current number of beads
+  real(dp) R(NT,3)   ! Bead positions
+  real(dp) RP(NT,3)  ! Test bead positions
+  real(dp) DE       ! Change in self-energy
+  real(dp) E        ! Self-energy before move
+  real(dp) EP       ! Self-energy of test polymer
+  real(dp) FMAG     ! Mag of force
+  real(dp) RIJ      ! Interbead dist
+  real(dp) EIJ(3)   ! Interbead unit vector
+  integer I, J              ! Index holders
+  integer SKIP              ! Bead skip index
 
   !     Variables for the calculation
 
-  DOUBLE PRECISION U1(3),U2(3),U1U2
-  DOUBLE PRECISION D1,D2
-  DOUBLE PRECISION R12(3),D12,E12(3),R12T(3),R12C1(3),R12C2(3)
-  DOUBLE PRECISION S1,S2
-  DOUBLE PRECISION GI(3)
-  INTEGER I1,J1,I2,J2
-  INTEGER IB1,IB2
-  INTEGER IO,II,IOP1,IIP1
-  INTEGER DIO,DII
+  real(dp) U1(3),U2(3),U1U2
+  real(dp) D1,D2
+  real(dp) R12(3),D12,E12(3),R12T(3),R12C1(3),R12C2(3)
+  real(dp) S1,S2
+  real(dp) GI(3)
+  integer I1,J1,I2,J2
+  integer IB1,IB2
+  integer IO,II,IOP1,IIP1
+  integer DIO,DII
 
   !     Parameters in the simulation
 
-  DOUBLE PRECISION PARA(10)
-  DOUBLE PRECISION LHC      ! HC length
-  DOUBLE PRECISION VHC 	! Potential strengths
-  DOUBLE PRECISION GAM
-  DOUBLE PRECISION LBOX     ! Box edge length
-  DOUBLE PRECISION SUM
-  DOUBLE PRECISION DT
-  logical RING              ! Is polymer a ring?
-  INTEGER NMAX
+  real(dp) PARA(10)
+  real(dp) LHC      ! HC length
+  real(dp) VHC 	! Potential strengths
+  real(dp) GAM
+  real(dp) LBOX     ! Box edge length
+  real(dp) SUM
+  real(dp) DT
+  logical RinG              ! Is polymer a ring?
+  integer NMAX
 
-  DOUBLE PRECISION D12MIN,FMAGMIN
+  real(dp) D12Min,FMAGMin
 
 
-  GAM=PARA(4)
-  LBOX=PARA(8)
-  LHC=PARA(9)
-  VHC=PARA(10)
+  GAM = PARA(4)
+  LBOX = PARA(8)
+  LHC = PARA(9)
+  VHC = PARA(10)
 
 
   ! Determine number of segments inside segment moved and outside
 
-  IF (RING) THEN
-     IF (IB2.GE.IB1) THEN
-        DII=IB2-IB1
-     ELSE
-        DII=(N-IB1)+IB2
-     ENDIF
-  ELSE
-     DII=IB2-IB1
-  ENDIF
-  DIO=N-DII
+  if (RinG) then
+     if (IB2 >= IB1) then
+        DII = IB2-IB1
+     else
+        DII = (N-IB1) + IB2
+     ENDif
+  else
+     DII = IB2-IB1
+  ENDif
+  DIO = N-DII
 
 
 
@@ -87,118 +88,118 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   !////////////////////////////////////////////////////////////////////////
   !///////////////////////////////////////////////////////////////////////
 
-  E=0.
-  II=IB1
-  DO I=1,DII
-     IF (II.EQ.N.AND.RING) THEN
-        IIP1=1
-     ELSEIF (II.EQ.N+1.AND.RING) THEN
-        II=1
-        IIP1=II+1
-     ELSE
-        IIP1=II+1
-     ENDIF
-     IO=IB2
-     DO J=1,DIO
-        IF (IO.EQ.N.AND.RING) THEN
-           IOP1=1
-        ELSEIF (IO.EQ.N+1.AND.RING) THEN
-           IO=1
-           IOP1=IO+1
-        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
-           IO=0
+  E = 0.
+  II = IB1
+  do I = 1,DII
+     if (II == N.AND.RinG) then
+        IIP1 = 1
+     elseif (II == N + 1.AND.RinG) then
+        II = 1
+        IIP1 = II + 1
+     else
+        IIP1 = II + 1
+     ENDif
+     IO = IB2
+     do J = 1,DIO
+        if (IO == N.AND.RinG) then
+           IOP1 = 1
+        elseif (IO == N + 1.AND.RinG) then
+           IO = 1
+           IOP1 = IO + 1
+        elseif (IO == N.AND.(.not.RinG)) then
+           IO = 0
            GOTO 70
-        ELSE
-           IOP1=IO+1
-        ENDIF
+        else
+           IOP1 = IO + 1
+        ENDif
 
-        IF (IIP1.EQ.IO.OR.IOP1.EQ.II) THEN
+        if (IIP1 == IO.OR.IOP1 == II) then
            GOTO 70
-        ENDIF
-        R12(1)=R(IO,1)-R(II,1)
-        R12(2)=R(IO,2)-R(II,2)
-        R12(3)=R(IO,3)-R(II,3)
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ENDif
+        R12(1) = R(IO,1)-R(II,1)
+        R12(2) = R(IO,2)-R(II,2)
+        R12(3) = R(IO,3)-R(II,3)
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
-        ! if (D12.GT.(3.*GAM)) then
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
+        ! if (D12 > (3.*GAM)) then
         !    goto 70
         ! endif
 
-        U1(1)=R(IIP1,1)-R(II,1)
-        U1(2)=R(IIP1,2)-R(II,2)
-        U1(3)=R(IIP1,3)-R(II,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = R(IIP1,1)-R(II,1)
+        U1(2) = R(IIP1,2)-R(II,2)
+        U1(3) = R(IIP1,3)-R(II,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=R(IOP1,1)-R(IO,1)
-        U2(2)=R(IOP1,2)-R(IO,2)
-        U2(3)=R(IOP1,3)-R(IO,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = R(IOP1,1)-R(IO,1)
+        U2(2) = R(IOP1,2)-R(IO,2)
+        U2(3) = R(IOP1,3)-R(IO,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 60
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
-           R12T=R(IOP1,:)-R(IIP1,:)
-           R12C1=R(IOP1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IO,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S1 > D1.OR.S1 < 0.) then
+           R12T = R(IOP1,:)-R(IIP1,:)
+           R12C1 = R(IOP1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IO,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
-           R12T=R(IOP1,:)-R(IIP1,:)
-           R12C1=R(IOP1,:)-R(II,:)
-           R12C2=R(IIP1,:)-R(IO,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S2 > D2.OR.S2 < 0.) then
+           R12T = R(IOP1,:)-R(IIP1,:)
+           R12C1 = R(IOP1,:)-R(II,:)
+           R12C2 = R(IIP1,:)-R(IO,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60
         endif
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-60      if (D12.GT.LHC) then
+60      if (D12 > LHC) then
            goto 70
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
 
-        E=E+FMAG
-70      CONTINUE
-        IO=IO+1
-     ENDDO
+        E = E + FMAG
+70      continue
+        IO = IO + 1
+     ENDdo
 
-     II=II+1
-  ENDDO
+     II = II + 1
+  ENDdo
 
   !/////////////////////////////////////////////////////////////////////
   !////////////////////////////////////////////////////////////////////
@@ -206,127 +207,127 @@ SUBROUTINE DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RING,IB1,IB2)
   !Calculate only the portion of the energy that changes during the move.
   !////////////////////////////////////////////////////////////////////
   !////////////////////////////////////////////////////////////////////
-  EP=0.
-  II=IB1
-  DO I=1,DII
-     IF (II.EQ.N.AND.RING) THEN
-        IIP1=1
-     ELSEIF (II.EQ.N+1.AND.RING) THEN
-        II=1
-        IIP1=II+1
-     ELSE
-        IIP1=II+1
-     ENDIF
-     IO=IB2
-     DO J=1,DIO
-        IF (IO.EQ.N.AND.RING) THEN
-           IOP1=1
-        ELSEIF (IO.EQ.N+1.AND.RING) THEN
-           IO=1
-           IOP1=IO+1
-        ELSEIF (IO.EQ.N.AND.(.not.RING)) THEN
-           IO=0
+  EP = 0.
+  II = IB1
+  do I = 1,DII
+     if (II == N.AND.RinG) then
+        IIP1 = 1
+     elseif (II == N + 1.AND.RinG) then
+        II = 1
+        IIP1 = II + 1
+     else
+        IIP1 = II + 1
+     ENDif
+     IO = IB2
+     do J = 1,DIO
+        if (IO == N.AND.RinG) then
+           IOP1 = 1
+        elseif (IO == N + 1.AND.RinG) then
+           IO = 1
+           IOP1 = IO + 1
+        elseif (IO == N.AND.(.not.RinG)) then
+           IO = 0
            GOTO 90
-        ELSE
-           IOP1=IO+1
-        ENDIF
+        else
+           IOP1 = IO + 1
+        ENDif
 
-        IF (IIP1.EQ.IO.OR.IOP1.EQ.II) THEN
+        if (IIP1 == IO.OR.IOP1 == II) then
            GOTO 90
-        ENDIF
-        R12(1)=RP(IO,1)-RP(II,1)
-        R12(2)=RP(IO,2)-RP(II,2)
-        R12(3)=RP(IO,3)-RP(II,3)
-        ! R12(1)=R12(1)-nint(R12(1)/LBOX)*LBOX
-        ! R12(2)=R12(2)-nint(R12(2)/LBOX)*LBOX
-        ! R12(3)=R12(3)-nint(R12(3)/LBOX)*LBOX
+        ENDif
+        R12(1) = RP(IO,1)-RP(II,1)
+        R12(2) = RP(IO,2)-RP(II,2)
+        R12(3) = RP(IO,3)-RP(II,3)
+        ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
+        ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
+        ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
-        ! if (D12.GT.(3.*GAM)) then
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
+        ! if (D12 > (3.*GAM)) then
         !    goto 90
         ! endif
 
-        U1(1)=RP(IIP1,1)-RP(II,1)
-        U1(2)=RP(IIP1,2)-RP(II,2)
-        U1(3)=RP(IIP1,3)-RP(II,3)
-        D1=sqrt(U1(1)**2.+U1(2)**2.+U1(3)**2.)
-        U1(1)=U1(1)/D1
-        U1(2)=U1(2)/D1
-        U1(3)=U1(3)/D1
+        U1(1) = RP(IIP1,1)-RP(II,1)
+        U1(2) = RP(IIP1,2)-RP(II,2)
+        U1(3) = RP(IIP1,3)-RP(II,3)
+        D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
+        U1(1) = U1(1)/D1
+        U1(2) = U1(2)/D1
+        U1(3) = U1(3)/D1
 
-        U2(1)=RP(IOP1,1)-RP(IO,1)
-        U2(2)=RP(IOP1,2)-RP(IO,2)
-        U2(3)=RP(IOP1,3)-RP(IO,3)
-        D2=sqrt(U2(1)**2.+U2(2)**2.+U2(3)**2.)
-        U2(1)=U2(1)/D2
-        U2(2)=U2(2)/D2
-        U2(3)=U2(3)/D2
+        U2(1) = RP(IOP1,1)-RP(IO,1)
+        U2(2) = RP(IOP1,2)-RP(IO,2)
+        U2(3) = RP(IOP1,3)-RP(IO,3)
+        D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
+        U2(1) = U2(1)/D2
+        U2(2) = U2(2)/D2
+        U2(3) = U2(3)/D2
 
-        U1U2=U1(1)*U2(1)+U1(2)*U2(2)+U1(3)*U2(3)
-        if (U1U2.EQ.1..OR.U1U2.EQ.-1.) then
-           D12=SQRT(R12(1)**2+R12(2)**2+R12(3)**1)
+        U1U2 = U1(1)*U2(1) + U1(2)*U2(2) + U1(3)*U2(3)
+        if (U1U2 == 1..OR.U1U2 == -1.) then
+           D12 = SQRT(R12(1)**2 + R12(2)**2 + R12(3)**1)
            GOTO 80
         endif
 
-        GI(1)=U1(1)-U1U2*U2(1)
-        GI(2)=U1(2)-U1U2*U2(2)
-        GI(3)=U1(3)-U1U2*U2(3)
+        GI(1) = U1(1)-U1U2*U2(1)
+        GI(2) = U1(2)-U1U2*U2(2)
+        GI(3) = U1(3)-U1U2*U2(3)
 
-        S1=(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S1.GT.D1.OR.S1.LT.0.) then
-           R12T=RP(IOP1,:)-RP(IIP1,:)
-           R12C1=RP(IOP1,:)-RP(II,:)
-           R12C2=RP(IIP1,:)-RP(IO,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S1 > D1.OR.S1 < 0.) then
+           R12T = RP(IOP1,:)-RP(IIP1,:)
+           R12C1 = RP(IOP1,:)-RP(II,:)
+           R12C2 = RP(IIP1,:)-RP(IO,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 80
         endif
 
-        GI(1)=U2(1)-U1U2*U1(1)
-        GI(2)=U2(2)-U1U2*U1(2)
-        GI(3)=U2(3)-U1U2*U1(3)
+        GI(1) = U2(1)-U1U2*U1(1)
+        GI(2) = U2(2)-U1U2*U1(2)
+        GI(3) = U2(3)-U1U2*U1(3)
 
-        S2=-(R12(1)*GI(1)+R12(2)*GI(2)+R12(3)*GI(3))/(1.-U1U2**2.)
+        S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
-        if (S2.GT.D2.OR.S2.LT.0.) then
-           R12T=RP(IOP1,:)-RP(IIP1,:)
-           R12C1=RP(IOP1,:)-RP(II,:)
-           R12C2=RP(IIP1,:)-RP(IO,:)
-           D12=SQRT(MIN(R12(1)**2+R12(2)**2+R12(3)**2,R12T(1)**2+R12T(2)**2+R12T(3)**2,&
-                & R12C1(1)**2+R12C1(2)**2+R12C1(3)**2,R12C2(1)**2+R12C2(2)**2+R12C2(3)**2))
+        if (S2 > D2.OR.S2 < 0.) then
+           R12T = RP(IOP1,:)-RP(IIP1,:)
+           R12C1 = RP(IOP1,:)-RP(II,:)
+           R12C2 = RP(IIP1,:)-RP(IO,:)
+           D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
+                & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 80
         endif
 
-        R12(1)=R12(1)+S2*U2(1)-S1*U1(1)
-        R12(2)=R12(2)+S2*U2(2)-S1*U1(2)
-        R12(3)=R12(3)+S2*U2(3)-S1*U1(3)
+        R12(1) = R12(1) + S2*U2(1)-S1*U1(1)
+        R12(2) = R12(2) + S2*U2(2)-S1*U1(2)
+        R12(3) = R12(3) + S2*U2(3)-S1*U1(3)
 
-        D12=sqrt(R12(1)**2.+R12(2)**2.+R12(3)**2.)
+        D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-80      if (D12.GT.LHC) then
+80      if (D12 > LHC) then
            goto 90
         endif
 
-        FMAG=VHC*((LHC/D12)**12.-2.*(LHC/D12)**6.+1.)/12.
+        FMAG = VHC*((LHC/D12)**12.-2.*(LHC/D12)**6. + 1.)/12.
 
 
-        EP=EP+FMAG
-90      CONTINUE
-        IO=IO+1
-     ENDDO
+        EP = EP + FMAG
+90      continue
+        IO = IO + 1
+     ENDdo
 
-     II=II+1
-  ENDDO
+     II = II + 1
+  ENDdo
 
 
   !Get the energy difference
 
-  DE=EP-E
+  DE = EP-E
 
 
   RETURN
-ENDSUBROUTINE DE_SELF_CRANK
+ENDsubroutine DE_SELF_CRANK
 
 !---------------------------------------------------------------*
 

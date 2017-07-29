@@ -3,89 +3,90 @@
 !in the Cross matrix that change during the move. This subroutine currently only works if there
 !is one polymer
 
-SUBROUTINE alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
-  IMPLICIT NONE
-  !INPUT VARIABLES
-  INTEGER N                     ! Number of points in space curve
-  INTEGER CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
-  DOUBLE PRECISION R(N,3)       !Space curve
-  DOUBLE PRECISION Cross(CrossSize,6)        !Matrix of cross indices and coordinates
-  DOUBLE PRECISION CrossNew(CrossSize,6)
-  INTEGER Ncross                !Total number of crossings
-  INTEGER NCrossNew
-  INTEGER  IT1,IT2               !Indices of beads that bound the segment rotated during crankshaft move
-  INTEGER DIB                   !Number of segments in the segment rotated
-  INTEGER DIO                   !Number of segments outside the segment rotated
-  !OUTPUT VARIABLES
-  INTEGER  DELTA
+subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
+  use params, only : dp
+  implicit none
+  !inPUT VARIABLES
+  integer N                     ! Number of points in space curve
+  integer CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
+  real(dp) R(N,3)       !Space curve
+  real(dp) Cross(CrossSize,6)        !Matrix of cross indices and coordinates
+  real(dp) CrossNew(CrossSize,6)
+  integer Ncross                !Total number of crossings
+  integer NCrossNew
+  integer  IT1,IT2               !Indices of beads that bound the segment rotated during crankshaft move
+  integer DIB                   !Number of segments in the segment rotated
+  integer DIO                   !Number of segments outside the segment rotated
+  !outPUT VARIABLES
+  integer  DELTA
 
-  !INTERMEDIATE VARIABLES
-  INTEGER IT1N,IT2N             !New indicies for segments that bound the crankshaft move. Necessary to capture part that changes when IT1=IT2
-  INTEGER IS1,IS2,IS1P1,IS2P1   !Indices of initial beads of the two segments that are "stretched" during the slide move
-  DOUBLE PRECISION, ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t=-1
-  DOUBLE PRECISION NV(3)        ! normal vector for projection
-  DOUBLE PRECISION RP(N,3)      ! projection of R onto plane defined by NV
-  DOUBLE PRECISION RDOTN(N)        ! Dot product of R and NV
-  INTEGER Ndegen                ! number of crossings for a given segment
-  INTEGER I,J,K,IP1,JP1,KP1           ! iteration indices
-  DOUBLE PRECISION smax,tmax    ! length of segments in the projection
-  DOUBLE PRECISION ui(3),uj(3)  ! tangent vectors of segments in the projection
-  DOUBLE PRECISION udot         ! dot product of tangents in the projection
-  DOUBLE PRECISION t
-  DOUBLE PRECISION sint,tint    ! intersection coordinates for projected segments
-  DOUBLE PRECISION srmax,trmax  ! maximum true length of segment (non-projected)
-  DOUBLE PRECISION srint,trint  ! intersection coordinates in unprojected coordinates
-  DOUBLE PRECISION uri(3),urj(3) ! tangent vectors of unprojected segments
-  DOUBLE PRECISION DRI(3),DRJ(3) !Displacement vectors of unprojected segments
-  DOUBLE PRECISION thetai,thetaj ! angle between real segment and projected segment
-  INTEGER, ALLOCATABLE :: over_ind(:) !Vector of over_pass indices (index of over-pass of Nth crossing)
-  DOUBLE PRECISION delta_double ! double precision form of delta. To be converted to integer
-  INTEGER index,IND
-  INTEGER II,IO,IIP1,IOP1
+  !inTERMEDIATE VARIABLES
+  integer IT1N,IT2N             !New indicies for segments that bound the crankshaft move. Necessary to capture part that changes when IT1 = IT2
+  integer IS1,IS2,IS1P1,IS2P1   !Indices of initial beads of the two segments that are "stretched" during the slide move
+  real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
+  real(dp) NV(3)        ! normal vector for projection
+  real(dp) RP(N,3)      ! projection of R onto plane defined by NV
+  real(dp) RdoTN(N)        ! Dot product of R and NV
+  integer Ndegen                ! number of crossings for a given segment
+  integer I,J,K,IP1,JP1,KP1           ! iteration indices
+  real(dp) smax,tmax    ! length of segments in the projection
+  real(dp) ui(3),uj(3)  ! tangent vectors of segments in the projection
+  real(dp) udot         ! dot product of tangents in the projection
+  real(dp) t
+  real(dp) sint,tint    ! intersection coordinates for projected segments
+  real(dp) srmax,trmax  ! maximum true length of segment (non-projected)
+  real(dp) srint,trint  ! intersection coordinates in unprojected coordinates
+  real(dp) uri(3),urj(3) ! tangent vectors of unprojected segments
+  real(dp) DRI(3),DRJ(3) !Displacement vectors of unprojected segments
+  real(dp) thetai,thetaj ! angle between real segment and projected segment
+  integer, ALLOCATABLE :: over_ind(:) !Vector of over_pass indices (index of over-pass of Nth crossing)
+  real(dp) delta_double ! real(dp) form of delta. To be converted to integer
+  integer index,inD
+  integer II,IO,IIP1,IOP1
   LOGICAL Copy
 
   !Performance testing for development
-  DOUBLE PRECISION TIME1
-  DOUBLE PRECISION TIME2
-  DOUBLE PRECISION DT_PRUNE
-  DOUBLE PRECISION DT_INTERSECT
+  real(dp) TIME1
+  real(dp) TIME2
+  real(dp) DT_PRUNE
+  real(dp) DT_inTERSECT
 
   !Set the normal vector for the plane of projection. Currently set to parallel to z axis
-  NV=0.
-  NV(3)=1.
+  NV = 0.
+  NV(3) = 1.
 
   !Calculate the projection of R onto the projection plane
-  DO I=1,N
-     RDOTN(I)=R(I,1)*NV(1)+R(I,2)*NV(2)+R(I,3)*NV(3)
-  ENDDO
+  do I = 1,N
+     RdoTN(I) = R(I,1)*NV(1) + R(I,2)*NV(2) + R(I,3)*NV(3)
+  ENDdo
 
   !Calculate the projection of the curve into the plane with normal NV
 
-  DO I=1,N
-     RP(I,:)=R(I,:)-RDOTN(I)*NV
-  ENDDO
+  do I = 1,N
+     RP(I,:) = R(I,:)-RdoTN(I)*NV
+  ENDdo
 
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !During the slide move, two of the segments are deformed ("stretched"). These are the segments
   !immediately adjacent to the portion of the chain that is slid. Determine the indices of these beads
-  !Note that if IT1=IT2 and DIB=N, then this subroutine should not be performed. The value of delta
+  !Note that if IT1 = IT2 and DIB = N, then this subroutine should not be performed. The value of delta
   ! and the cross matrix do not change.
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  IF (IT1.EQ.1) THEN
-     IS1=N
-  ELSE
-     IS1=IT1-1
-  ENDIF
-  IS1P1=IT1
+  if (IT1 == 1) then
+     IS1 = N
+  else
+     IS1 = IT1-1
+  ENDif
+  IS1P1 = IT1
 
-  IS2=IT2
-  IF (IT2.EQ.N) THEN
-     IS2P1=1
-  ELSE
-     IS2P1=IT2+1
-  ENDIF
+  IS2 = IT2
+  if (IT2 == N) then
+     IS2P1 = 1
+  else
+     IS2P1 = IT2 + 1
+  ENDif
 
 
 
@@ -94,47 +95,47 @@ SUBROUTINE alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !slid segment and the portion not slid, and all instances that involve the two stretched segments
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
- DIO=N-DIB
- II=IT1
- IND=1
- NCrossNew=0
- CrossNew=0.
+ DIO = N-DIB
+ II = IT1
+ inD = 1
+ NCrossNew = 0
+ CrossNew = 0.
   !Copy the old cross matrix to the new cross matrix. Only copy rows in which intersections do not involve
   !one of the segments moved
 
 
 
- DO J=1,NCross
-    Copy=.TRUE.
-    IF (IT2.GT.IT1) THEN
-       IF(.NOT.(CROSS(J,2).GE.IT1.AND.Cross(J,2).LT.IT2).AND.(Cross(J,1).GE.IT1.AND.Cross(J,1).LT.IT2)) THEN
-          Copy=.FALSE.
+ do J = 1,NCross
+    Copy = .TRUE.
+    if (IT2 > IT1) then
+       if(.NOT.(CROSS(J,2) >= IT1.AND.Cross(J,2) < IT2).AND.(Cross(J,1) >= IT1.AND.Cross(J,1) < IT2)) then
+          Copy = .FALSE.
           GOTO 10
-       ELSEIF(.NOT.(CROSS(J,1).GE.IT1.AND.Cross(J,1).LT.IT2).AND.(Cross(J,2).GE.IT1.AND.Cross(J,2).LT.IT2)) THEN
-          Copy=.FALSE.
+       elseif(.NOT.(CROSS(J,1) >= IT1.AND.Cross(J,1) < IT2).AND.(Cross(J,2) >= IT1.AND.Cross(J,2) < IT2)) then
+          Copy = .FALSE.
           GOTO 10
-       ENDIF
-    ELSEIF (IT1.GT.IT2) THEN
-       IF(.NOT.(Cross(J,1).GE.IT1.OR.Cross(J,1).LT.IT2).AND.(Cross(J,2).GE.IT1.OR.Cross(J,2).LT.IT2)) THEN
-          Copy=.FALSE.
+       ENDif
+    elseif (IT1 > IT2) then
+       if(.NOT.(Cross(J,1) >= IT1.OR.Cross(J,1) < IT2).AND.(Cross(J,2) >= IT1.OR.Cross(J,2) < IT2)) then
+          Copy = .FALSE.
           GOTO 10
-       ELSEIF(.NOT.(Cross(J,2).GE.IT1.OR.Cross(J,2).LT.IT2).AND.(Cross(J,1).GE.IT1.OR.Cross(J,1).LT.IT2)) THEN
-          Copy=.FALSE.
+       elseif(.NOT.(Cross(J,2) >= IT1.OR.Cross(J,2) < IT2).AND.(Cross(J,1) >= IT1.OR.Cross(J,1) < IT2)) then
+          Copy = .FALSE.
           GOTO 10
-       ENDIF
-    ENDIF
+       ENDif
+    ENDif
 
-    IF(Cross(J,1).EQ.IS1.OR.Cross(J,1).EQ.IS2.OR.Cross(J,2).EQ.IS1.OR.Cross(J,2).EQ.IS2) THEN
-       Copy=.FALSE.
-    ENDIF
+    if(Cross(J,1) == IS1.OR.Cross(J,1) == IS2.OR.Cross(J,2) == IS1.OR.Cross(J,2) == IS2) then
+       Copy = .FALSE.
+    ENDif
 
-10  CONTINUE
-    IF (Copy) THEN
-       CrossNew(IND,:)=Cross(J,:)
-       IND=IND+1
-       NCrossNew=NCrossNew+1
-    ENDIF
- ENDDO
+10  continue
+    if (Copy) then
+       CrossNew(inD,:) = Cross(J,:)
+       inD = inD + 1
+       NCrossNew = NCrossNew + 1
+    ENDif
+ ENDdo
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !The only crossings that change during the slide move are those that involve the slid segment with the segment
@@ -142,267 +143,267 @@ SUBROUTINE alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !these pairs.First calculate the crossings between the slid segment and the portion of the chain not slid
   !(which includes the stretched segments).
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  CrossNew(:,5)=1.
-  II=IT1
-  NCross=NCrossNew
-  Cross=CrossNew
+  CrossNew(:,5) = 1.
+  II = IT1
+  NCross = NCrossNew
+  Cross = CrossNew
 
-  DO I=1,DIB
+  do I = 1,DIB
 
-     IF(II.EQ.N+1) THEN
-        II=1
-        IIP1=2
-     ELSEIF (II.EQ.N) THEN
-        IIP1=1
-     ELSE
-        IIP1=II+1
-     ENDIF
+     if(II == N + 1) then
+        II = 1
+        IIP1 = 2
+     elseif (II == N) then
+        IIP1 = 1
+     else
+        IIP1 = II + 1
+     ENDif
 
      !Loop over all segments outside of the portion of the chain that was moved
-     IO=IT2
-     DO J=1,DIO
-        IF(IO.EQ.N+1) THEN
-           IO=1
-           IOP1=2
-        ELSEIF (IO.EQ.N) THEN
-           IOP1=1
-        ELSE
-           IOP1=IO+1
-        ENDIF
+     IO = IT2
+     do J = 1,DIO
+        if(IO == N + 1) then
+           IO = 1
+           IOP1 = 2
+        elseif (IO == N) then
+           IOP1 = 1
+        else
+           IOP1 = IO + 1
+        ENDif
         !Skip calculation for adjacent segments
-        IF (II.EQ.IOP1.OR.IO.EQ.IIP1.OR.II.EQ.IO) THEN
+        if (II == IOP1.OR.IO == IIP1.OR.II == IO) then
            GOTO 20
-        ENDIF
+        ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax=SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-        tmax=SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-        ui=(RP(IIP1,:)-RP(II,:))/smax
-        uj=((RP(IOP1,:)-RP(IO,:)))/tmax
-        udot=ui(1)*uj(1)+ui(2)*uj(2)+ui(3)*uj(3)
+        smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
+        tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
+        ui = (RP(IIP1,:)-RP(II,:))/smax
+        uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+        udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
-        IF (udot.EQ.1..OR.udot.EQ.-1.) THEN
+        if (udot == 1..OR.udot == -1.) then
            GOTO 20
-        ENDIF
+        ENDif
 
         !Compute the point of intersection
-        tint=(rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint=(rp(IO,1)-rp(II,1)+uj(1)*tint)/ui(1)
+        tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
-        IF (sint.GE.0.AND.sint.LT.smax.AND.tint.GE.0.AND.tint.LT.tmax) THEN
+        if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
            !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
            !Compute lengths and tangents  of true segments (not projected)
-           srmax=SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-           trmax=SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-           DRI=R(IIP1,:)-R(II,:)
-           DRJ=R(IOP1,:)-R(IO,:)
-           uri=DRI/srmax
-           urj=DRJ/trmax
+           srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
+           trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
+           DRI = R(IIP1,:)-R(II,:)
+           DRJ = R(IOP1,:)-R(IO,:)
+           uri = DRI/srmax
+           urj = DRJ/trmax
            !Calculate the angle between the real segment and the projection
-           thetai=ATAN(DRI(3)/smax)
-           thetaj=ATAN(DRJ(3)/tmax)
+           thetai = ATAN(DRI(3)/smax)
+           thetaj = ATAN(DRJ(3)/tmax)
            !Calculate point of intersection in the projection in terms of true length
-           srint=sint/cos(thetai)
-           trint=tint/cos(thetaj)
+           srint = sint/cos(thetai)
+           trint = tint/cos(thetaj)
 
            !Determine whether this is an undercrossing or an overcrossing.
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           IF (R(II,3)+uri(3)*srint<r(IO,3)+urj(3)*trint) THEN
-              Ncross=Ncross+1
-              Cross(Ncross,1)=II;
-              Cross(Ncross,2)=IO;
-              Cross(Ncross,3)=sint;
-              Cross(Ncross,4)=tint;
-              Cross(Ncross,6)=-uj(2)*ui(1)+ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
-           ELSE
-              Ncross=Ncross+1
-              Cross(Ncross,1)=IO
-              Cross(Ncross,2)=II
-              Cross(Ncross,3)=tint
-              Cross(Ncross,4)=sint
-              Cross(Ncross,6)=-(-uj(2)*ui(1)+ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
+           if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+              Ncross = Ncross + 1
+              Cross(Ncross,1) = II;
+              Cross(Ncross,2) = IO;
+              Cross(Ncross,3) = sint;
+              Cross(Ncross,4) = tint;
+              Cross(Ncross,6) = -uj(2)*ui(1) + ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
+           else
+              Ncross = Ncross + 1
+              Cross(Ncross,1) = IO
+              Cross(Ncross,2) = II
+              Cross(Ncross,3) = tint
+              Cross(Ncross,4) = sint
+              Cross(Ncross,6) = -(-uj(2)*ui(1) + ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
 
-           ENDIF
-        ENDIF
+           ENDif
+        ENDif
 
-20      CONTINUE
-        IO=IO+1
-     ENDDO
-     II=II+1
-  ENDDO
+20      continue
+        IO = IO + 1
+     ENDdo
+     II = II + 1
+  ENDdo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !Loop over all segments of the portion of the chain that was not moved and check for
   !intersections with the two stretched segments
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  IO=IT2
+  IO = IT2
 
-  DO J=1,DIO-1
-     IF(IO.EQ.N+1) THEN
-        IO=1
-        IOP1=2
-     ELSEIF (IO.EQ.N) THEN
-        IOP1=1
-     ELSE
-        IOP1=IO+1
-     ENDIF
+  do J = 1,DIO-1
+     if(IO == N + 1) then
+        IO = 1
+        IOP1 = 2
+     elseif (IO == N) then
+        IOP1 = 1
+     else
+        IOP1 = IO + 1
+     ENDif
 
      !Check for intersections with the first stretched segment, IS1
-     II=IS1
-     IF(II.EQ.N+1) THEN
-        II=1
-        IIP1=2
-     ELSEIF (II.EQ.N) THEN
-        IIP1=1
-     ELSE
-        IIP1=II+1
-     ENDIF
+     II = IS1
+     if(II == N + 1) then
+        II = 1
+        IIP1 = 2
+     elseif (II == N) then
+        IIP1 = 1
+     else
+        IIP1 = II + 1
+     ENDif
 
      !Skip calculation for adjacent segments
-     IF (II.EQ.IOP1.OR.IO.EQ.IIP1.OR.II.EQ.IO) THEN
+     if (II == IOP1.OR.IO == IIP1.OR.II == IO) then
         GOTO 30
-     ENDIF
+     ENDif
 
      !Calculate lengths of segments in the projection and the tangents
-     smax=SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-     tmax=SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-     ui=(RP(IIP1,:)-RP(II,:))/smax
-     uj=((RP(IOP1,:)-RP(IO,:)))/tmax
-     udot=ui(1)*uj(1)+ui(2)*uj(2)+ui(3)*uj(3)
+     smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
+     tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
+     ui = (RP(IIP1,:)-RP(II,:))/smax
+     uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+     udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
      !If segments are parallel, continue to next segment
-     IF (udot.EQ.1..OR.udot.EQ.-1.) THEN
+     if (udot == 1..OR.udot == -1.) then
         GOTO 30
-     ENDIF
+     ENDif
 
      !Compute the point of intersection
-     tint=(rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-     sint=(rp(IO,1)-rp(II,1)+uj(1)*tint)/ui(1)
+     tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
+     sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
 
      !If the intersection point is within length of segments, count as an intersection
-     IF (sint.GE.0.AND.sint.LT.smax.AND.tint.GE.0.AND.tint.LT.tmax) THEN
+     if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
         !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
         !Compute lengths and tangents  of true segments (not projected)
-        srmax=SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-        trmax=SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-        DRI=R(IIP1,:)-R(II,:)
-        DRJ=R(IOP1,:)-R(IO,:)
-        uri=DRI/srmax
-        urj=DRJ/trmax
+        srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
+        trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
+        DRI = R(IIP1,:)-R(II,:)
+        DRJ = R(IOP1,:)-R(IO,:)
+        uri = DRI/srmax
+        urj = DRJ/trmax
         !Calculate the angle between the real segment and the projection
-        thetai=ATAN(DRI(3)/smax)
-        thetaj=ATAN(DRJ(3)/tmax)
+        thetai = ATAN(DRI(3)/smax)
+        thetaj = ATAN(DRJ(3)/tmax)
         !Calculate point of intersection in the projection in terms of true length
-        srint=sint/cos(thetai)
-        trint=tint/cos(thetaj)
+        srint = sint/cos(thetai)
+        trint = tint/cos(thetaj)
 
         !Determine whether this is an undercrossing or an overcrossing.
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        IF (R(II,3)+uri(3)*srint<r(IO,3)+urj(3)*trint) THEN
-           Ncross=Ncross+1
-           Cross(Ncross,1)=II;
-           Cross(Ncross,2)=IO;
-           Cross(Ncross,3)=sint;
-           Cross(Ncross,4)=tint;
-           Cross(Ncross,6)=-uj(2)*ui(1)+ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
-        ELSE
-           Ncross=Ncross+1
-           Cross(Ncross,1)=IO
-           Cross(Ncross,2)=II
-           Cross(Ncross,3)=tint
-           Cross(Ncross,4)=sint
-           Cross(Ncross,6)=-(-uj(2)*ui(1)+ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
+        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           Ncross = Ncross + 1
+           Cross(Ncross,1) = II;
+           Cross(Ncross,2) = IO;
+           Cross(Ncross,3) = sint;
+           Cross(Ncross,4) = tint;
+           Cross(Ncross,6) = -uj(2)*ui(1) + ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
+        else
+           Ncross = Ncross + 1
+           Cross(Ncross,1) = IO
+           Cross(Ncross,2) = II
+           Cross(Ncross,3) = tint
+           Cross(Ncross,4) = sint
+           Cross(Ncross,6) = -(-uj(2)*ui(1) + ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
 
-        ENDIF
-     ENDIF
+        ENDif
+     ENDif
 
-30   CONTINUE
+30   continue
 
      !Check for intersections with the first stretched segment, IS1
-     II=IS2
+     II = IS2
 
-     IF(II.EQ.N+1) THEN
-        II=1
-        IIP1=2
-     ELSEIF (II.EQ.N) THEN
-        IIP1=1
-     ELSE
-        IIP1=II+1
-     ENDIF
+     if(II == N + 1) then
+        II = 1
+        IIP1 = 2
+     elseif (II == N) then
+        IIP1 = 1
+     else
+        IIP1 = II + 1
+     ENDif
 
      !Skip calculation for adjacent segments
-     IF (II.EQ.IOP1.OR.IO.EQ.IIP1.OR.II.EQ.IO) THEN
+     if (II == IOP1.OR.IO == IIP1.OR.II == IO) then
         GOTO 40
-     ENDIF
+     ENDif
 
      !Calculate lengths of segments in the projection and the tangents
-     smax=SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-     tmax=SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-     ui=(RP(IIP1,:)-RP(II,:))/smax
-     uj=((RP(IOP1,:)-RP(IO,:)))/tmax
-     udot=ui(1)*uj(1)+ui(2)*uj(2)+ui(3)*uj(3)
+     smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
+     tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
+     ui = (RP(IIP1,:)-RP(II,:))/smax
+     uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+     udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
      !If segments are parallel, continue to next segment
-     IF (udot.EQ.1..OR.udot.EQ.-1.) THEN
+     if (udot == 1..OR.udot == -1.) then
         GOTO 40
-     ENDIF
+     ENDif
 
      !Compute the point of intersection
-     tint=(rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-     sint=(rp(IO,1)-rp(II,1)+uj(1)*tint)/ui(1)
+     tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
+     sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
 
      !If the intersection point is within length of segments, count as an intersection
-     IF (sint.GE.0.AND.sint.LT.smax.AND.tint.GE.0.AND.tint.LT.tmax) THEN
+     if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
         !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
         !Compute lengths and tangents  of true segments (not projected)
-        srmax=SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-        trmax=SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-        DRI=R(IIP1,:)-R(II,:)
-        DRJ=R(IOP1,:)-R(IO,:)
-        uri=DRI/srmax
-        urj=DRJ/trmax
+        srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
+        trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
+        DRI = R(IIP1,:)-R(II,:)
+        DRJ = R(IOP1,:)-R(IO,:)
+        uri = DRI/srmax
+        urj = DRJ/trmax
         !Calculate the angle between the real segment and the projection
-        thetai=ATAN(DRI(3)/smax)
-        thetaj=ATAN(DRJ(3)/tmax)
+        thetai = ATAN(DRI(3)/smax)
+        thetaj = ATAN(DRJ(3)/tmax)
         !Calculate point of intersection in the projection in terms of true length
-        srint=sint/cos(thetai)
-        trint=tint/cos(thetaj)
+        srint = sint/cos(thetai)
+        trint = tint/cos(thetaj)
 
         !Determine whether this is an undercrossing or an overcrossing.
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        IF (R(II,3)+uri(3)*srint<r(IO,3)+urj(3)*trint) THEN
-           Ncross=Ncross+1
-           Cross(Ncross,1)=II;
-           Cross(Ncross,2)=IO;
-           Cross(Ncross,3)=sint;
-           Cross(Ncross,4)=tint;
-           Cross(Ncross,6)=-uj(2)*ui(1)+ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
-        ELSE
-           Ncross=Ncross+1
-           Cross(Ncross,1)=IO
-           Cross(Ncross,2)=II
-           Cross(Ncross,3)=tint
-           Cross(Ncross,4)=sint
-           Cross(Ncross,6)=-(-uj(2)*ui(1)+ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
+        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           Ncross = Ncross + 1
+           Cross(Ncross,1) = II;
+           Cross(Ncross,2) = IO;
+           Cross(Ncross,3) = sint;
+           Cross(Ncross,4) = tint;
+           Cross(Ncross,6) = -uj(2)*ui(1) + ui(2)*uj(1); !cross(ui,uj), + for RH, - for LH
+        else
+           Ncross = Ncross + 1
+           Cross(Ncross,1) = IO
+           Cross(Ncross,2) = II
+           Cross(Ncross,3) = tint
+           Cross(Ncross,4) = sint
+           Cross(Ncross,6) = -(-uj(2)*ui(1) + ui(2)*uj(1)); !cross(ui,uj), + for RH, - for LH
 
-        ENDIF
-     ENDIF
+        ENDif
+     ENDif
 
-40   CONTINUE
-     IO=IO+1
+40   continue
+     IO = IO + 1
 
 
-  ENDDO
+  ENDdo
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !Continue with the alexander polynomial calculation as usual. The remainder is no different
@@ -418,133 +419,133 @@ SUBROUTINE alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
 !Sort under-crossings of same segment with respect to order of occurrence (w.r.t sint)
 
-  index=1
+  index = 1
 
-  DO WHILE (index.LT.Ncross)
+  do while (index < Ncross)
      !Determine the number of degenerate crossings for the current segment index
-     Ndegen=1
-     DO WHILE (nint(Cross(index+Ndegen,1)).EQ.nint(Cross(index,1)))
-        Ndegen=Ndegen+1
-     ENDDO
-     IF (Ndegen.GT.1) THEN
-        CALL bubble_sort(Cross(index:index+Ndegen-1,:),Ndegen,6,3)
-     ENDIF
-     Cross(index:index+Ndegen-1,5)=Ndegen
-     index=index+Ndegen
+     Ndegen = 1
+     do while (nint(Cross(index + Ndegen,1)) == nint(Cross(index,1)))
+        Ndegen = Ndegen + 1
+     ENDdo
+     if (Ndegen > 1) then
+        CALL bubble_sort(Cross(index:index + Ndegen-1,:),Ndegen,6,3)
+     ENDif
+     Cross(index:index + Ndegen-1,5) = Ndegen
+     index = index + Ndegen
 
-  ENDDO
+  ENDdo
 
 
   !Construct vector of over-pass indices according to indexing described by Vologodskii
   !The element in the Nth row is the index of the segment that overpasses the Nth crossing
 
-  ALLOCATE(over_ind(Ncross))
+  allocate(over_ind(Ncross))
 
-  DO I=1,Ncross
+  do I = 1,Ncross
      !get original polymer index of overpass
-     J=Cross(I,2)
+     J = Cross(I,2)
      !Special cases: j compes before first crossing or
      !after the last crossing
-     IF (J.LT.nint(Cross(1,1))) THEN
-        over_ind(I)=1
-     ELSEIF (J.GT.nint(Cross(Ncross,1))) THEN
-        over_ind(I)=Ncross+1
-     ENDIF
+     if (J < nint(Cross(1,1))) then
+        over_ind(I) = 1
+     elseif (J > nint(Cross(Ncross,1))) then
+        over_ind(I) = Ncross + 1
+     ENDif
 
      !Sum over all crossings to determine which undercrossing this lies between
-     DO K=1,Ncross
-        !If J lies between cross K and cross K+1, then it is segment K+1
-        IF (J.GT.nint(Cross(K,1)).AND.J.LT.nint(Cross(K+1,1))) THEN
-           over_ind(I)=K+1
+     do K = 1,Ncross
+        !If J lies between cross K and cross K + 1, then it is segment K + 1
+        if (J > nint(Cross(K,1)).AND.J < nint(Cross(K + 1,1))) then
+           over_ind(I) = K + 1
            GOTO 50
-        !If J=K, then segment j contains undercrossings
+        !If J = K, then segment j contains undercrossings
         ! then need to determine where overpass lies relative to undercrossing
-        ELSEIF (J.EQ.nint(CROSS(K,1))) THEN
-           t=Cross(I,4)
-           Ndegen=Cross(K,5)
+        elseif (J == nint(CROSS(K,1))) then
+           t = Cross(I,4)
+           Ndegen = Cross(K,5)
            !Special case: t is before the first under-pass or after the last under-pass
            !of segment j
-           IF (t.LE.Cross(K,3)) THEN
-              over_ind(I)=K
+           if (t <= Cross(K,3)) then
+              over_ind(I) = K
               GOTO 50
-           ELSEIF (t.GE.Cross(K+Ndegen-1,3)) THEN
-              OVER_IND(I)=K+Ndegen
+           elseif (t >= Cross(K + Ndegen-1,3)) then
+              OVER_inD(I) = K + Ndegen
               GOTO 50
            !Otherwise, determine which under-crossings t lies between
-           ELSE
-              IND=1
+           else
+              inD = 1
               !loop over all degenerate undercrossings
-              DO WHILE (IND.LT.Ndegen)
-                 !if t lies between the s of undercrossing k+ind-1 and the next,
-                 !then this over_pass has a new index of k+ind in the re-indexing
+              do while (inD < Ndegen)
+                 !if t lies between the s of undercrossing k + ind-1 and the next,
+                 !then this over_pass has a new index of k + ind in the re-indexing
                  !scheme
-                 IF (t.GT.Cross(K+IND-1,3).AND.t.LT.CROSS(k+IND,3)) THEN
-                    over_ind(I)=K+IND
+                 if (t > Cross(K + inD-1,3).AND.t < CROSS(k + inD,3)) then
+                    over_ind(I) = K + inD
                     GOTO 50
-                 ENDIF
-                 IND=IND+1
-              ENDDO
-           ENDIF
-        ENDIF
+                 ENDif
+                 inD = inD + 1
+              ENDdo
+           ENDif
+        ENDif
 
-     ENDDO
-50   CONTINUE
+     ENDdo
+50   continue
 
-  ENDDO
+  ENDdo
 
 
- !Calculate the Alexander matrix evaluated at t=-1
+ !Calculate the Alexander matrix evaluated at t = -1
  ! Note that the Alexander matrix is correct only up to
  ! a factor of +-1. Since the alexander polynomial evaluated
- ! at t=-1 is always positive, take the absolute value of the
+ ! at t = -1 is always positive, take the absolute value of the
  ! determinant
 
 
-  ALLOCATE(A(Ncross,Ncross))
-  A=0.
+  allocate(A(Ncross,Ncross))
+  A = 0.
 
-  DO K=1,Ncross
-     KP1=K+1
-     I=over_ind(K)
+  do K = 1,Ncross
+     KP1 = K + 1
+     I = over_ind(K)
      !Periodic index conditions
-     IF (K.EQ.Ncross) THEN
-        KP1=1
-     ENDIF
+     if (K == Ncross) then
+        KP1 = 1
+     ENDif
 
-     IF (I.GE.Ncross+1) THEN
-        I=1
-     ENDIF
+     if (I >= Ncross + 1) then
+        I = 1
+     ENDif
 
      !calculate values of the matrix
-     IF (I.EQ.K.OR.I.EQ.KP1) THEN
-        A(K,K)=-1.
-        A(K,KP1)=1.
-     ELSE
-        A(K,K)=1.
-        A(K,KP1)=1.
-        A(K,I)=-2.
-     ENDIF
+     if (I == K.OR.I == KP1) then
+        A(K,K) = -1.
+        A(K,KP1) = 1.
+     else
+        A(K,K) = 1.
+        A(K,KP1) = 1.
+        A(K,I) = -2.
+     ENDif
 
-  ENDDO
+  ENDdo
 
   !Calculate the determinant of the matrix with one row and one column removed
 
 
   !If A has one crossing or less, it is the trivial knot
 
-  IF (Ncross.LE.1) THEN
-     delta_double=1.
-  ELSE
+  if (Ncross <= 1) then
+     delta_double = 1.
+  else
      CALL abs_determinant(A(1:Ncross-1,1:Ncross-1),NCross-1,delta_double)
-  ENDIF
+  ENDif
 
-  delta=nint(delta_double)
+  delta = nint(delta_double)
 
  !Deallocate Arrays
 
-  DEALLOCATE(A)
-  DEALLOCATE(over_ind)
+  DEallocate(A)
+  DEallocate(over_ind)
 
   RETURN
 
-END SUBROUTINE
+END subroutine

@@ -33,49 +33,49 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 
   !		Translate LAM and FA to probabilities
 
-  PAA=FA*(1.0_dp-LAM)+LAM
-  PBB=FA*(LAM-1.0_dp)+1.0_dp
-  PBA=1.0_dp-PAA
-  PAB=1.0_dp-PBB
+  PAA = FA*(1.0_dp-LAM) + LAM
+  PBB = FA*(LAM-1.0_dp) + 1.0_dp
+  PBA = 1.0_dp-PAA
+  PAB = 1.0_dp-PBB
 
   !		Determine the bead identities
 
-IB=1
-do I=1,NP
-    !TEST=grnd()
+IB = 1
+do I = 1,NP
+    !TEST = grnd()
     call random_number(TEST,rand_stat)
     if (dble(TEST(1)).lt.FA) then
-        AB(IB)=1
+        AB(IB) = 1
     else
-        AB(IB)=0
+        AB(IB) = 0
     endif
-    IB=IB+1
-    do K=2,G
-        AB(IB)=AB(IB-1)
-        IB=IB+1
+    IB = IB + 1
+    do K = 2,G
+        AB(IB) = AB(IB-1)
+        IB = IB + 1
     enddo
 
-    do J=2,N
-        !TEST=grnd()
+    do J = 2,N
+        !TEST = grnd()
         call random_number(TEST,rand_stat)
-        if (AB(IB-1).EQ.1) then
-           if (TEST(1).LE.PAA) then
-              AB(IB)=1
+        if (AB(IB-1) == 1) then
+           if (TEST(1) <= PAA) then
+              AB(IB) = 1
            else
-              AB(IB)=0
+              AB(IB) = 0
            endif
         else
-           if (TEST(1).LE.PAB) then
-              AB(IB)=1
+           if (TEST(1) <= PAB) then
+              AB(IB) = 1
            else
-              AB(IB)=0
+              AB(IB) = 0
            endif
         endif
-        IB=IB+1
+        IB = IB + 1
 
-        do K=2,G
-            AB(IB)=AB(IB-1)
-            IB=IB+1
+        do K = 2,G
+            AB(IB) = AB(IB-1)
+            IB = IB + 1
         enddo
     enddo
 enddo

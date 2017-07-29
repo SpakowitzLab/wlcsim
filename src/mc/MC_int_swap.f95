@@ -7,42 +7,42 @@
 !
 !     Written by Quinn in 2016 based on code from Andrew Spakowitz and Shifan
 
-SUBROUTINE MC_int_swap(mc,md,I1,I2,I3,I4)
+subroutine MC_int_swap(wlc_p,wlc_d,I1,I2,I3,I4)
 use params
-IMPLICIT NONE
+implicit none
 
-TYPE(wlcsim_params), intent(inout) :: mc   ! <---- Contains output
-TYPE(wlcsim_data), intent(inout) :: md
-INTEGER, intent(in) :: I1      ! Test bead position 1
-INTEGER, intent(in) :: I2      ! Test bead position 2
-INTEGER, intent(in) :: I3      ! Test bead, first bead of second section
-INTEGER, intent(in) :: I4      ! Test bead, second bead of second section
+TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
+TYPE(wlcsim_data), intent(inout) :: wlc_d
+integer, intent(in) :: I1      ! Test bead position 1
+integer, intent(in) :: I2      ! Test bead position 2
+integer, intent(in) :: I3      ! Test bead, first bead of second section
+integer, intent(in) :: I4      ! Test bead, second bead of second section
 
 !   Internal variables
-INTEGER I                 ! For looping over bins
-INTEGER IB                ! Bead index
-INTEGER IB2               ! Index you are swapping with
-INTEGER rrdr ! -1 if r, 1 if r+dr
-INTEGER IX(2),IY(2),IZ(2)
-DOUBLE PRECISION WX(2),WY(2),WZ(2)
-DOUBLE PRECISION WTOT       ! total weight ascribed to bin
-DOUBLE PRECISION RBIN(3)    ! bead position
-INTEGER INDBIN              ! index of bin
-INTEGER ISX,ISY,ISZ
+integer I                 ! For looping over bins
+integer IB                ! Bead index
+integer IB2               ! Index you are swapping with
+integer rrdr ! -1 if r, 1 if r + dr
+integer IX(2),IY(2),IZ(2)
+real(dp) WX(2),WY(2),WZ(2)
+real(dp) WTOT       ! total weight ascribed to bin
+real(dp) RBin(3)    ! bead position
+integer inDBin              ! index of bin
+integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
 
-! Copy so I don't have to type mc% everywhere
-INTEGER NBINX(3)
-DOUBLE PRECISION temp    !for speeding up code
-NBINX=mC%NBINX
+! Copy so I don't have to type wlc_p% everywhere
+integer NBinX(3)
+real(dp) temp    !for speeding up code
+NBinX = wlc_p%NBinX
 
 
-if (I2-I1+1.ne.mc%NB) then
-    print*, "Error in MC_int_swap. I2-I1+1.ne.NB"
+if (I2-I1 + 1.ne.wlc_p%NB) then
+    print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
-if (I4-I3+1.ne.mc%NB) then
-    print*, "Error in MC_int_swap. I2-I1+1.ne.NB"
+if (I4-I3 + 1.ne.wlc_p%NB) then
+    print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
 
@@ -52,31 +52,31 @@ endif
 !
 !--------------------------------------------------------------
 
-md%NPHI=0
-do IB=I1,I2
-  IB2=IB+I3-I1
+wlc_d%NPHI = 0
+do IB = I1,I2
+  IB2 = IB + I3-I1
   !No need to do calculation if identities are the same
-  if (md%AB(IB).eq.md%ABP(IB2)) cycle
-  do rrdr=-1,1,2
+  if (wlc_d%AB(IB).eq.wlc_d%ABP(IB2)) cycle
+  do rrdr = -1,1,2
    ! on initialize only add current position
    ! otherwise subract current and add new
    if (rrdr.eq.-1) then
-       RBIN(1)=md%R(IB,1)
-       RBIN(2)=md%R(IB,2)
-       RBIN(3)=md%R(IB,3)
-       isA=md%AB(IB).eq.1
+       RBin(1) = wlc_d%R(IB,1)
+       RBin(2) = wlc_d%R(IB,2)
+       RBin(3) = wlc_d%R(IB,3)
+       isA = wlc_d%AB(IB).eq.1
    else
-       RBIN(1)=md%RP(IB,1)
-       RBIN(2)=md%RP(IB,2)
-       RBIN(3)=md%RP(IB,3)
-       isA=md%ABP(IB).eq.1
+       RBin(1) = wlc_d%RP(IB,1)
+       RBin(2) = wlc_d%RP(IB,2)
+       RBin(3) = wlc_d%RP(IB,3)
+       isA = wlc_d%ABP(IB).eq.1
    endif
    ! --------------------------------------------------
    !
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(mc%confineType,RBIN,mc%LBOX,mc%NBINX,mc%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
@@ -87,62 +87,62 @@ do IB=I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    if (isA) then
-       do ISX=1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBINX(1)+1))) CYCLE
-          do ISY=1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBINX(2)+1))) CYCLE
-             do ISZ=1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBINX(3)+1))) cycle
-                WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
-                INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
+       do ISX = 1,2
+          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
+          do ISY = 1,2
+             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
+             do ISZ = 1,2
+                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
+                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I=md%NPHI
+                I = wlc_d%NPHI
                 do
                    if (I.eq.0) then
-                      md%NPHI=md%NPHI+1
-                      md%INDPHI(md%NPHI)=INDBIN
-                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
-                      md%DPHIA(md%NPHI)=temp
-                      md%DPHIB(md%NPHI)=-temp
+                      wlc_d%NPHI = wlc_d%NPHI + 1
+                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIA(wlc_d%NPHI) = temp
+                      wlc_d%DPHIB(wlc_d%NPHI) = -temp
                       exit
-                   elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
-                      md%DPHIA(I)=md%DPHIA(I)+temp
-                      md%DPHIB(I)=md%DPHIB(I)-temp
+                   elseif (inDBin == wlc_d%inDPHI(I)) then
+                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
                       exit
                    else
-                      I=I-1
+                      I = I-1
                    endif
                 enddo
              enddo
           enddo
        enddo
    else
-       do ISX=1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBINX(1)+1))) CYCLE
-          do ISY=1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBINX(2)+1))) CYCLE
-             do ISZ=1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBINX(3)+1))) cycle
-                WTOT=WX(ISX)*WY(ISY)*WZ(ISZ)
-                INDBIN=IX(ISX)+(IY(ISY)-1)*NBINX(1)+(IZ(ISZ)-1)*NBINX(1)*NBINX(2)
+       do ISX = 1,2
+          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
+          do ISY = 1,2
+             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
+             do ISZ = 1,2
+                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
+                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I=md%NPHI
+                I = wlc_d%NPHI
                 do
                    if (I.eq.0) then
-                      md%NPHI=md%NPHI+1
-                      md%INDPHI(md%NPHI)=INDBIN
-                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
-                      md%DPHIA(md%NPHI)=-temp
-                      md%DPHIB(md%NPHI)=temp
+                      wlc_d%NPHI = wlc_d%NPHI + 1
+                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIA(wlc_d%NPHI) = -temp
+                      wlc_d%DPHIB(wlc_d%NPHI) = temp
                       exit
-                   elseif (INDBIN.EQ.md%INDPHI(I)) then
-                      temp=rrdr*WTOT*mc%beadVolume/md%Vol(INDBIN)
-                      md%DPHIA(I)=md%DPHIA(I)-temp
-                      md%DPHIB(I)=md%DPHIB(I)+temp
+                   elseif (inDBin == wlc_d%inDPHI(I)) then
+                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I)-temp
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + temp
                       exit
                    else
-                      I=I-1
+                      I = I-1
                    endif
                 enddo
              enddo !ISZ
@@ -151,7 +151,7 @@ do IB=I1,I2
    endif
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
-call hamiltonian(mc,md,.false.)
+call hamiltonian(wlc_p,wlc_d,.false.)
 
 RETURN
 END

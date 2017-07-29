@@ -1,108 +1,109 @@
   !Calculate the portion of the writhe that changes during a crankshaft move
 
-SUBROUTINE WRITHECRANK(R,IT1,IT2,N,Wr)
-  IMPLICIT NONE
+subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
+  use params, only : dp
+  implicit none
 
-  DOUBLE PRECISION, PARAMETER :: PI=3.141592654d0 ! Value of pi
+  real(dp), PARAMETER :: PI = 3.141592654d0 ! Value of pi
 
 
-  INTEGER, INTENT(IN) :: N                 ! Number of beads
-  DOUBLE PRECISION, INTENT(IN) :: R(N,3)  ! Positions
+  integer, intent(in) :: N                 ! Number of beads
+  real(dp), intent(in) :: R(N,3)  ! Positions
   !Geometric variables
-  DOUBLE PRECISION  r1(3)                  ! Position bead 1
-  DOUBLE PRECISION  r2(3)                  ! Position bead 2
-  DOUBLE PRECISION  r12(3)                 ! Relative position vector
-  DOUBLE PRECISION  s1                     ! Length of segment 1
-  DOUBLE PRECISION  s2                     ! Length of segment 2
-  DOUBLE PRECISION  beta                   ! Angle between tangents
-  DOUBLE PRECISION  e1(3)                  ! Tangent of first segment
-  DOUBLE PRECISION  e2(3)                  ! Tangent of second segment
-  DOUBLE PRECISION  e3(3)
-  INTEGER  DIB,DIO                         !Number of segments inside section rotated,outside
+  real(dp)  r1(3)                  ! Position bead 1
+  real(dp)  r2(3)                  ! Position bead 2
+  real(dp)  r12(3)                 ! Relative position vector
+  real(dp)  s1                     ! Length of segment 1
+  real(dp)  s2                     ! Length of segment 2
+  real(dp)  beta                   ! Angle between tangents
+  real(dp)  e1(3)                  ! Tangent of first segment
+  real(dp)  e2(3)                  ! Tangent of second segment
+  real(dp)  e3(3)
+  integer  DIB,DIO                         !Number of segments inside section rotated,outside
 
 
   !Counter variables
-  INTEGER IT1,IT2                         !Indices of endpoints in segment rotated
-  INTEGER II,IO                           !Index of bead inside segment rotated,outside
-  INTEGER  I,IP1
-  INTEGER  J,JP1
+  integer IT1,IT2                         !Indices of endpoints in segment rotated
+  integer II,IO                           !Index of bead inside segment rotated,outside
+  integer  I,IP1
+  integer  J,JP1
 
-  DOUBLE PRECISION  dWr
-  DOUBLE PRECISION, INTENT(OUT) :: Wr      ! Writhe
-
-
-
-  Wr=0.
-  IF (IT2.GE.IT1) THEN
-     DIB=IT2-IT1
-  ELSE
-     DIB=(N-IT1)+IT2
-  ENDIF
-
-  DIO=N-DIB
-  II=IT1
+  real(dp)  dWr
+  real(dp), intent(out) :: Wr      ! Writhe
 
 
 
-  DO  I=1,DIB
+  Wr = 0.
+  if (IT2 >= IT1) then
+     DIB = IT2-IT1
+  else
+     DIB = (N-IT1) + IT2
+  ENDif
 
-     IF (II.EQ.N) THEN
-        IP1=1
-     ELSEIF (II.EQ.N+1) THEN
-        II=1
-        IP1=II+1
-     ELSE
-        IP1=II+1
-     ENDIF
-     IO=IT2
-     DO J=1,DIO
+  DIO = N-DIB
+  II = IT1
 
 
 
-        IF (IO.EQ.N) THEN
-           JP1=1
-        ELSEIF (IO.EQ.N+1) THEN
-           IO=1
-           JP1=IO+1
-        ELSE
-           JP1=IO+1
-        ENDIF
+  do  I = 1,DIB
+
+     if (II == N) then
+        IP1 = 1
+     elseif (II == N + 1) then
+        II = 1
+        IP1 = II + 1
+     else
+        IP1 = II + 1
+     ENDif
+     IO = IT2
+     do J = 1,DIO
 
 
 
-        r1=R(II,:)
-        r2=R(IO,:)
-        r12=r2-r1
+        if (IO == N) then
+           JP1 = 1
+        elseif (IO == N + 1) then
+           IO = 1
+           JP1 = IO + 1
+        else
+           JP1 = IO + 1
+        ENDif
 
-        s2=SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-        s1=SQRT(SUM((R(IP1,:)-R(II,:))**2))
-        e2=(R(JP1,:)-R(IO,:))/s2
-        e1=(R(IP1,:)-R(II,:))/s1
+
+
+        r1 = R(II,:)
+        r2 = R(IO,:)
+        r12 = r2-r1
+
+        s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
+        s1 = SQRT(SUM((R(IP1,:)-R(II,:))**2))
+        e2 = (R(JP1,:)-R(IO,:))/s2
+        e1 = (R(IP1,:)-R(II,:))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
-        !Wr=0 for segments in plane (Wr=NaN)
-        if (dWr.NE.dWr) then
-           dWr=0.
+        !Wr = 0 for segments in plane (Wr = NaN)
+        if (dWr /= dWr) then
+           dWr = 0.
         endif
-        !Wr=0 for adjacent segments
-        if (JP1.EQ.II.OR.IP1.EQ.IO) THEN
-           dWr=0.
+        !Wr = 0 for adjacent segments
+        if (JP1 == II.OR.IP1 == IO) then
+           dWr = 0.
         endif
 
 
-        Wr=Wr+dWr
+        Wr = Wr + dWr
 
-        IO=IO+1
+        IO = IO + 1
 
-     ENDDO
-     II=II+1
-  ENDDO
+     ENDdo
+     II = II + 1
+  ENDdo
 
 
-  Wr=2.*Wr
+  Wr = 2.*Wr
 
   RETURN
-END SUBROUTINE WRITHECRANK
+END subroutine WRITHECRANK
 
 
 

@@ -1,23 +1,25 @@
 
 subroutine insertion_sort(n,a)
+    use params, only : dp
     implicit none
     integer n,i,j
-    double precision a(n),x
-    do 30 i=2,n
-        x=a(i)
-        j=i
-10      j=j-1
+    real(dp) a(n),x
+    do 30 i = 2,n
+        x = a(i)
+        j = i
+10      j = j-1
         if (j.eq.0 .or. a(j).le.x) go to 20
-        a(j+1)=a(j)
+        a(j + 1) = a(j)
         go to 10
-20      a(j+1)=x
+20      a(j + 1) = x
 30  continue
 end
 
 subroutine get_looping_events_square(r, nt, col_dist, col_state, num_events, events)
+    use params, only : dp
     implicit none
     integer, intent(in) :: nt
-    double precision, intent(in) :: r(nt,3), col_dist
+    real(dp), intent(in) :: r(nt,3), col_dist
     integer, intent(inout) :: col_state(nt, nt)
     integer, intent(out) :: num_events(nt), events(nt, nt)
     integer :: k1, k2, colliding
@@ -44,9 +46,10 @@ subroutine get_looping_events_square(r, nt, col_dist, col_state, num_events, eve
 end subroutine get_looping_events_square
 
 subroutine get_looping_events(r, nt, col_dist, col_state, num_events, events)
+    use params, only : dp
     implicit none
     integer, intent(in) :: nt
-    double precision, intent(in) :: r(nt,3), col_dist
+    real(dp), intent(in) :: r(nt,3), col_dist
     integer, intent(inout) :: col_state(nt, nt)
     integer, intent(out) :: num_events(nt), events(nt, nt)
     integer :: k1, k2, colliding
@@ -70,11 +73,12 @@ end subroutine get_looping_events
 
 
 subroutine check_collisions(r, nt, col_time, col_dist, time, col_type)
+    use params, only : dp
     implicit none
     integer, intent(in) :: nt, col_type
-    double precision, intent(in) :: col_dist, time
-    double precision, intent(in) :: r(nt,3)
-    double precision, intent(inout) :: col_time(nt, nt)
+    real(dp), intent(in) :: col_dist, time
+    real(dp), intent(in) :: r(nt,3)
+    real(dp), intent(inout) :: col_time(nt, nt)
     if (col_type.eq.0) then
         return
     else if (col_type.eq.1) then
@@ -92,9 +96,10 @@ end
 
 subroutine check_collisions_brute(r, nt, col_time, col_dist, &
         time)
+    use params, only : dp
     integer nt
-    double precision col_dist, time
-    double precision r(nt,3), col_time(nt, nt)
+    real(dp) col_dist, time
+    real(dp) r(nt,3), col_time(nt, nt)
     !     check if the particles have collided
     do k1 = 1, nt
         do k2 = 1, nt
@@ -111,10 +116,11 @@ end
 subroutine check_collisions_kd(r, nt, col_time, col_dist, time)
     use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, &
                                 kdtree2_r_nearest_around_point
+    use params, only : dp
 
     integer nt, nfound, nalloc, k1, k2, i
-    double precision col_dist, time
-    double precision r(nt,3), col_time(nt, nt)
+    real(dp) col_dist, time
+    real(dp) r(nt,3), col_time(nt, nt)
     type(kdtree2), pointer :: col_tree
     type(kdtree2_result), allocatable :: kd_results(:)
 
@@ -144,30 +150,30 @@ subroutine check_collisions_bb(r, nt, col_time, col_dist, time)
     implicit none
 
     integer, intent(in) :: nt
-    double precision, intent(in) :: col_dist, time, r(nt,3)
-    double precision, intent(inout) :: col_time(nt, nt)
+    real(dp), intent(in) :: col_dist, time, r(nt,3)
+    real(dp), intent(inout) :: col_time(nt, nt)
 
     integer :: neighbors(nt,nt)  ! most of array won't be used, probably
         ! neighbors(1:num_neighbors(i),i) holds neighbors of bead i for each i
         ! acf: neighbors(?,i) = j iff found in all three (d == 3, neighbor_triplet_keeper(j) == 2/3)
     integer :: num_neighbors(nt) ! to prevent O(nt^2) access to neighbors
-        ! acf: num_neighbors(i)++ iff found in all three (d == 3, neighbor_triplet_keeper(j) == 2/3)
+        ! acf: num_neighbors(i) + + iff found in all three (d == 3, neighbor_triplet_keeper(j) == 2/3)
     integer :: neighbor_triplet_keeper(nt) ! O(nt)-space "hash table"
         ! every time we find that bead j is a neighbor in one of the three
         ! dimensions, then we increment neighbor_triplet_keeper(j), until we
         ! realize it's not a neighbor in one of the dimensions, or that it is
         ! in all three
-        ! acf: neighbor_triplet_keeper(j)++
+        ! acf: neighbor_triplet_keeper(j) + +
     integer :: neighbor_zeroer(nt), num_zeros ! to zero out "hash table" quickly
         ! reports that neighbor_triplet_keeper(neighbor_zeroer(1:num_zeros))
         ! should be zeroed after checking for all the neighbors of a particular
         ! bead
-        ! acf: neighbor_zeroer(++num_zeros) = j if neighbor_triplet_keeper == 0/1
+        ! acf: neighbor_zeroer( + +num_zeros) = j if neighbor_triplet_keeper == 0/1
         ! better: "" "" if d == 1 (i.e. we're adding j to triplet array)
     integer, save, allocatable, dimension(:,:) :: ind, indi
     integer, save :: is_allocated = 0 ! "static" variable, allow initial setup
     integer :: curr_indi, curr_ind, i, j, d
-    double precision :: rneighbor, rd0
+    real(dp) :: rneighbor, rd0
     ! initialize ind and indi on first pass, requires O(n log n) sort
     if (is_allocated == 0) then
         is_allocated = 1
@@ -287,9 +293,10 @@ end
 subroutine check_collisions_bin(r, nt, col_time, col_dist, &
         time)
 !TODO actually implement this function. copy/pasta of _brute for now
+    use params, only : dp
     integer nt
-    double precision col_dist, time
-    double precision r(nt,3), col_time(nt, nt)
+    real(dp) col_dist, time
+    real(dp) r(nt,3), col_time(nt, nt)
     !     check if the particles have collided
     do k1 = 1, nt
         do k2 = 1, nt

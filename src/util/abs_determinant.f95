@@ -6,32 +6,35 @@
 ! matrix using an LU factorization by LAPACK
 
 
-SUBROUTINE abs_determinant(A,N,det)
-  INTEGER N       !Size of the matrix A
-  DOUBLE PRECISION A(N,N)
-  DOUBLE PRECISION det
-  INTEGER LDA
-  INTEGER INFO
-  INTEGER I
-  DOUBLE PRECISION LU(N,N)
-  INTEGER IPIV(N,N)
+subroutine abs_determinant(A,N,det)
 
-  LDA=N
-  LWORK=N
-  LU=A
+  use params, only : dp
 
-  CALL DGETF2(N,N,A,LDA,IPIV,INFO)
+  integer N       !Size of the matrix A
+  real(dp) A(N,N)
+  real(dp) det
+  integer LDA
+  integer inFO
+  integer I
+  real(dp) LU(N,N)
+  integer IPIV(N,N)
+
+  LDA = N
+  LWORK = N
+  LU = A
+
+  CALL DGETF2(N,N,A,LDA,IPIV,inFO)
   !Returned LU  matrix contains the U matrix from the LU factorization
   !on the upper diagonal. Take the absolute value of the product of the diagonals
   !to get the absolute value of the determinant
 
-  det=1.
+  det = 1.
 
-  DO I=1,N
-     det=det*A(I,I)
-  ENDDO
-  det=ABS(det)
+  do I = 1,N
+     det = det*A(I,I)
+  ENDdo
+  det = ABS(det)
 
 
-END SUBROUTINE abs_determinant
+END subroutine abs_determinant
 

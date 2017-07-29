@@ -80,7 +80,7 @@ TSAVE = save_ind*wlc_p%stepsPerSave*wlc_p%dt
 do while (wlc_d%time < TSAVE)
     !brown always true
     call BDsim(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, wlc_d%TIME, wlc_d%time + wlc_p%dt, &
-            wlc_p%DT, .true., wlc_p%INTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMtype, &
+            wlc_p%DT, .true., wlc_p%inTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMtype, &
             wlc_d%coltimes, wlc_p%collisionRadius, wlc_p%collisionDetectionType)
     call get_looping_events(wlc_d%R, wlc_p%NT, wlc_p%collisionRadius, &
             col_state, num_events, events)
@@ -90,15 +90,15 @@ enddo
 
 
 call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, wlc_p%NP, &
-            pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
+            pack_as_para(wlc_p), wlc_p%inTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, wlc_p%NB, &
-             wlc_p%NP, pack_as_para(wlc_p), wlc_p%INTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
+             wlc_p%NP, pack_as_para(wlc_p), wlc_p%inTERP_BEAD_LENNARD_JONES, wlc_p%SIMtype)
 
 call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
                  wlc_p%NP, pack_as_para(wlc_p), wlc_p%ring, wlc_p%twist, &
                  wlc_p%lk, wlc_p%lt, wlc_p%l)
-EPONP=0.
-if (wlc_p%INTERP_BEAD_LENNARD_JONES) then
+EPONP = 0.
+if (wlc_p%inTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me
     call energy_self_chain(EPONP, wlc_d%R, wlc_p%NT, wlc_p%NB, &
                      pack_as_para(wlc_p), .FALSE.)
@@ -121,12 +121,12 @@ subroutine print_loop_events(file_name, time, nt, events, num_events)
 
     integer :: k1, k2
 
-    open(unit=outFileUnit, file=file_name, action='write', position='append')
+    open(unit = outFileUnit, file = file_name, action = 'write', position = 'append')
     do k2 = 1, nt
         do k1 = 1, num_events(k2)
             write(outFileUnit, *) events(k1,k2), k2, time
         end do
     end do
-    close(unit=outFileUnit)
+    close(unit = outFileUnit)
 end subroutine print_loop_events
 

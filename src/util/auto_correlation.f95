@@ -3,33 +3,35 @@
 !a vector of auto-correlations is generated, beginning with the auto-correlation
 !at delta_min and ending with the autocorrelation at delta_max
 
-SUBROUTINE auto_correlation(v,N,delta,auto)
+subroutine auto_correlation(v,N,delta,auto)
+
+  use params, only : dp
 
   !Input variables
-  DOUBLE PRECISION v(N) !vector
-  INTEGER N             !length of vector
-  INTEGER, INTENT(IN) :: delta         !spacing between elements
+  real(dp) v(N) !vector
+  integer N             !length of vector
+  integer, intent(in) :: delta         !spacing between elements
   !Subroutine variables
-  DOUBLE PRECISION v_avg  !average value of v
-  DOUBLE PRECISION var    !variance in v
-  DOUBLE PRECISION vv(N-delta)  !vector of products of fluctions
+  real(dp) v_avg  !average value of v
+  real(dp) var    !variance in v
+  real(dp) vv(N-delta)  !vector of products of fluctions
 
   !Output variables
-  DOUBLE PRECISION auto   !autocorrelation
+  real(dp) auto   !autocorrelation
 
- ! ALLOCATE(vv(N-delta))
+ ! allocate(vv(N-delta))
 
-  v_avg=SUM(v)/N
-  var=SUM((v-v_avg)**2)/N
+  v_avg = SUM(v)/N
+  var = SUM((v-v_avg)**2)/N
 
-  DO I=1,N-delta
-     vv(I)=(v(I)-v_avg)*(v(I+delta)-v_avg)
+  do I = 1,N-delta
+     vv(I) = (v(I)-v_avg)*(v(I + delta)-v_avg)
 
-  ENDDO
+  ENDdo
 
-  auto=SUM(vv)/((N-delta)*var)
+  auto = SUM(vv)/((N-delta)*var)
 
 RETURN
-ENDSUBROUTINE auto_correlation
+ENDsubroutine auto_correlation
 
 
