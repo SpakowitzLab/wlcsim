@@ -362,7 +362,7 @@ contains
                     !    stop
                     !endif
                     nNeighbors=nNeighbors+1
-                    distances(nNeighbors)=distance
+                    distances(nNeighbors)=sqrt(distance)
                     neighbors(nNeighbors)=bin%beads(ii)
                 endif
             enddo

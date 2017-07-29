@@ -170,7 +170,6 @@ module params
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
 
     !   parallel Tempering parameters
-        character(MAXFILENAMELEN) repSuffix    ! prefix for writing files
         logical PTON    ! whether or not to parallel temper
         logical PT_twist
         logical PT_chi
@@ -283,6 +282,8 @@ module params
         integer, allocatable, dimension(:) :: nSWAPup !number of times this replica has swapped with replica above
         integer, allocatable, dimension(:) :: nSWAPdown !number of times this replica has swapped with replica below
         integer, allocatable, dimension(:) :: nodeNUMBER !vector of replicas indices for nodes
+        character(MAXFILENAMELEN) repSuffix    ! prefix for writing files
+
 
     !   random number generator state
         type(random_stat) rand_stat
@@ -406,7 +407,6 @@ contains
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
         wlc_p%PT_mu =.False. ! don't parallel temper mu by default
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
-        wlc_p%repSuffix = '' !default no suffix
 
 
         !switches to turn on various types of moves
@@ -970,6 +970,9 @@ contains
 
 
     subroutine initialize_wlcsim_data(wlc_d, wlc_p)
+#if MPI_VERSION
+        use mpi
+#endif
         implicit none
         type(wlcsim_data), intent(inout)   :: wlc_d
         type(wlcsim_params), intent(in)    :: wlc_p
@@ -980,6 +983,11 @@ contains
         integer NT  ! total number of beads
         integer NBIN ! total number of bins
         integer i
+        integer irand
+        integer ( kind = 4 ) dest   !destination id for messages
+        integer ( kind = 4 ) source  !source id for messages
+        integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
+        integer ( kind = 4 ) error  ! error id for MIP functions
         nt = wlc_p%nt
         nbin = wlc_p%nbin
 
@@ -1064,6 +1072,37 @@ contains
             wlc_d%coltimes = -1.0_dp
         endif
 
+#if MPI_VERSION
+        ! -----------------------------------------------
+        !
+        !   Generate thread safe random number seeds
+        !
+        !--------------------------------------------
+        if (wlc_d%id .eq. 0) then ! head node
+            if (.false.) then ! set spedific seed
+                Irand=7171
+            else ! seed from clock
+                call date_and_time(datedum,timedum,zonedum,seedvalues)
+                Irand=int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
+                          -seedvalues(7)*1E3-seedvalues(8))
+                Irand=mod(Irand,10000)
+                print*, "Random Intiger seed:",Irand
+            endif
+            call random_setseed(Irand*(wlc_d%id+1),wlc_d%rand_stat) ! random seed for head node
+            do dest=1,wlc_d%numProcesses-1 ! send out the others
+                call MPI_Send (Irand,1, MPI_integer, dest,   0, &
+                                MPI_COMM_WORLD,error )
+            enddo
+        else ! worker node
+            source = 0
+            call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
+                            MPI_COMM_WORLD, status, error )
+            call random_setseed(Irand*(wlc_d%id+1),wlc_d%rand_stat)
+            !if (wlc_d%restart) then
+            !    call pt_restart(wlc_p,wlc_d)
+            !endif
+        endif
+#else
         if (.false.) then ! if you wanted to set specific seed
             wlc_d%rand_seed=7171
         else ! seed from clock
@@ -1076,7 +1115,7 @@ contains
         endif
 
         call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
-
+#endif
         call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, wlc_p%NB, &
             wlc_p%NP, wlc_p%frmfile, pack_as_para(wlc_p), wlc_p%lbox, &
             wlc_p%initCondType, wlc_d%rand_stat, wlc_p%ring, wlc_p)
@@ -1134,6 +1173,8 @@ contains
         wlc_d%time = 0
         wlc_d%time_ind = 0
         wlc_d%mc_ind = 0
+
+
 
     end subroutine initialize_wlcsim_data
 
@@ -1536,7 +1577,7 @@ contains
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
         character(len=*), intent(in) :: stat
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName = trim(fileName) // trim(wlc_d%repSuffix)
         fullName = trim(fullName)
         open (unit = outFileUnit, file = fullName, status = stat)
         IB=1
@@ -1588,7 +1629,7 @@ contains
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_d%repSuffix)
         open (unit = outFileUnit, file = fullName, status = 'NEW')
         do I=1,wlc_p%NBIN
             write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
@@ -1605,7 +1646,7 @@ contains
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
         character(len=*), intent(in) :: stat
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_d%repSuffix)
         open (unit = outFileUnit, file = fullName, status = stat)
         IB=1
         do I=1,wlc_p%NP
@@ -1618,13 +1659,11 @@ contains
     end subroutine
 
     subroutine save_parameters(wlc_p,fileName)
-    ! Write a number of parameters ASCII variables to file for reccords
+        ! Write a number of parameters ASCII variables to file for reccords
         IMPLICIT NONE
         type(wlcsim_params), intent(in) :: wlc_p
         character(MAXFILENAMELEN), intent(in) :: fileName
-        character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // "params"//trim(wlc_p%repSuffix)
-        open (unit =outFileUnit, file = fullName, status = 'NEW')
+        open (unit =outFileUnit, file = fileName, status = 'NEW')
             write(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
             write(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
             write(outFileUnit,"(I8)") wlc_p%NB ! 3 Number of beads in a polymer
@@ -1655,7 +1694,7 @@ contains
         character(MAXFILENAMELEN), intent(in) :: fileName
         LOGICAL isfile
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_d%repSuffix)
         inquire(file = fullName, exist=isfile)
         if (isfile) then
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")
@@ -1683,7 +1722,7 @@ contains
         LOGICAL isfile
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        fullName=  trim(fileName) // trim(wlc_p%repSuffix)
+        fullName=  trim(fileName) // trim(wlc_d%repSuffix)
         inquire(file = fullName, exist=isfile)
         if (isfile) then
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION="append")

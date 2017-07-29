@@ -191,7 +191,7 @@ subroutine pt_restart(mc,md)
     iostrg=trim(iostrg)
     iostrg="v"//trim(iostrg)
     iostrg=trim(iostrg)
-    mc%repSuffix=trim(iostrg)
+    md%repSuffix=trim(iostrg)
 
     ! keep track of which thread you are
     md%id=int(id)
