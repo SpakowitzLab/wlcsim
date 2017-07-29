@@ -2,11 +2,11 @@
 ! MPI. Thus, only compiled if MPI is available.
 #if MPI_VERSION
 
-subroutine PT_override(mc,md)
+subroutine startWorker(mc,md)
 use params
 use mpi
 ! Override initialization with parallel setup parameters
-!  In particualar it changes: mc%AB, mc%rep, mc%mu, mc%repSuffix
+!  In particualar it changes: mc%AB, mc%rep, mc%mu, md%repSuffix
     Implicit none
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
@@ -21,8 +21,12 @@ use mpi
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
+    if (md%id .ne. id) then
+        print*, "ID mismatch in PT_override!"
+        stop
+    endif
     if (nThreads.lt.3) then
-        mc%repSuffix="v1"
+        md%repSuffix="v1"
         md%rep=1
         md%id=int(id)
         print*, "No PT_override. Input values used."
@@ -35,7 +39,7 @@ use mpi
     !     Copy from replica 1 to others.
     !
     !----------------------------------------------
-    if (id.eq.1) then
+    if (md%id.eq.1) then
         do dest=2,nThreads-1
             if(mc%bind_On) then
                 call MPI_Send (md%METH,mc%NT, MPI_integer, dest,   0, &
@@ -45,7 +49,7 @@ use mpi
                                MPI_COMM_WORLD,error )
             endif
         enddo
-    else
+    elseif (md%id.gt.1) then
         source=1
         if(mc%bind_On) then
             call MPI_Recv (md%METH, mc%NT, MPI_integer, source, 0, &
@@ -83,7 +87,9 @@ use mpi
     iostrg=trim(iostrg)
     iostrg="v"//trim(iostrg)
     iostrg=trim(iostrg)
-    mc%repSuffix=iostrg
+    md%repSuffix=iostrg
+
+    print*, "Hi all -------------------------------"
 
     ! keep track of which thread you are
     md%id=int(id)
@@ -209,7 +215,7 @@ use mpi
     iostr=trim(iostr)
     iostr="v"//trim(iostr)
     iostr=trim(iostr)
-    mc%repSuffix=iostr
+    md%repSuffix=iostr
 
 
     ! keep track of which thread you are

@@ -52,10 +52,6 @@ subroutine head_node(mc,md,p)
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
-    integer, allocatable :: nodeNumber(:)  ! list of which nodes are which
-    real(dp), allocatable :: xMtrx(:,:)  ! sum of bound states
-    real(dp), allocatable :: cofMtrx(:,:) ! mu or chi or whatever
-    real(dp), allocatable :: s_vals(:) ! path parameter
 
     !   variable for random number generator seeding
     type(random_stat) rand_stat  ! state of random number chain
@@ -82,45 +78,26 @@ subroutine head_node(mc,md,p)
     double precision h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
     integer nPTReplicas
 
-    id=0 ! head node
-    nPTReplicas=p-1
-    ! -----------------------------------------------
-    !
-    !   Generate thread safe random number seeds
-    !
-    !--------------------------------------------
-    if (.false.) then ! set spedific seed
-        Irand=7171
-    else ! seed from clock
-        call date_and_time(datedum,timedum,zonedum,seedvalues)
-        Irand=int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
-                  -seedvalues(7)*1E3-seedvalues(8))
-        Irand=mod(Irand,10000)
-        print*, "Random Intiger seed:",Irand
-    endif
-    call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
-    do dest=1,nPTReplicas ! send out the others
-        call MPI_Send (Irand,1, MPI_integer, dest,   0, &
-                        MPI_COMM_WORLD,error )
-    enddo
-    ! -------------------------
-    !
-    !   innitialize
-    !
-    ! --------------------------
-    nPTReplicas = p-1;
+    !   Quinn's parallel tempering head node variables
+    integer, allocatable :: nodeNumber(:)  ! list of which nodes are which
+    real(dp), allocatable :: xMtrx(:,:)  ! sum of bound states
+    real(dp), allocatable :: cofMtrx(:,:) ! mu or chi or whatever
+    real(dp), allocatable :: s_vals(:) ! path parameter
 
+    ! Allocate the head node variables for keeping track of which node is which
     allocate( xMtrx(nPTReplicas,nTerms))
     allocate( cofMtrx(nPTReplicas,nTerms))
     allocate( nodeNumber(nPTReplicas))
     allocate( s_vals(nPTReplicas))
 
+    ! Keep track of up and down successes (head node only needs this)
     do rep=1,nPTReplicas
         upSuccess(rep)=0
         downSuccess(rep)=0
         s_vals(rep)=mc%INITIAL_MAX_S*dble(rep)/dble(nPTReplicas)
     enddo
 
+    ! Set initial values for parrallel tempering values
     do rep=1,nPTReplicas
         if (mc%PT_chi) then
             cofMtrx(rep,1)=chi_path(s_vals(rep))
@@ -330,10 +307,8 @@ subroutine worker_node(mc,md)
     use mpi
     use params
     use mersenne_twister
-    integer ( kind = 4 ) dest   !destination id for messages
-    integer ( kind = 4 ) source  !source id for messages
     integer ( kind = 4 ), save :: id = -1     ! which processor I am
-    integer ( kind = 4 ) ierror  ! error id for MIP functions
+    integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: mc
     type(wlcsim_data), intent(inout) :: md
@@ -342,26 +317,15 @@ subroutine worker_node(mc,md)
     logical system_has_been_changed
     system_has_been_changed=.False.
     if (id == -1) then
-        call MPI_Comm_rank(MPI_COMM_WORLD, id, ierror)
+        call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
     endif
-
-    source = 0
-    dest = 0
-    ! -----------------------------------------------
-    !
-    !   Generate thread safe random number chain: rand_stat
-    !
-    !--------------------------------------------
     if (md%mc_ind==1) then
-        call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
-                        MPI_COMM_WORLD, status, ierror )
-        call random_setseed(Irand*(id+1),md%rand_stat) 
-        if (mc%restart) then
-            call pt_restart(mc,md)
+        if (mc%PT_chi .or. mc%PT_h .or. mc%PT_kap .or. mc%PT_mu .or. mc%PT_couple) then
+            call startWorker(mc,md)
         endif
-        system_has_been_changed=.TRUE.
     endif
+
     ! ------------------------------
     !
     ! Different instructions for each save point

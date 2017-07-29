@@ -61,7 +61,8 @@ program main
 
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
-    call save_parameters(wlc_p, outfile)
+    call save_parameters(wlc_p, &
+        trim(outfile) // 'params' // trim(adjustL(wlc_d%repSuffix)))
 
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
