@@ -356,7 +356,7 @@ subroutine worker_node(mc,md)
     if (md%mc_ind==1) then
         call MPI_Recv ( Irand, 1, MPI_integer, source, 0, &
                         MPI_COMM_WORLD, status, ierror )
-        call random_setseed(Irand*(id+1),rand_stat) ! random seed for head node
+        call random_setseed(Irand*(id+1),mc%rand_stat) 
         if (mc%restart) then
             call pt_restart(mc,md)
         endif
