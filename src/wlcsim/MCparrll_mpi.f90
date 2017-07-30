@@ -28,7 +28,7 @@ use mpi
     if (nThreads.lt.3) then
         wlc_d%repSuffix = "v1"
         wlc_d%rep = 1
-        wlc_d%id = int(id)
+        !wlc_d%id = int(id)
         print*, "No PT_override. Input values used."
         return
     endif
@@ -89,10 +89,6 @@ use mpi
     iostrg = trim(iostrg)
     wlc_d%repSuffix = iostrg
 
-    print*, "Hi all -------------------------------"
-
-    ! keep track of which thread you are
-    wlc_d%id = int(id)
 end subroutine
 subroutine replicaExchange(wlc_p, wlc_d)
 ! This checks in with the mpi head node to
@@ -217,9 +213,6 @@ use mpi
     iostr = trim(iostr)
     wlc_d%repSuffix = iostr
 
-
-    ! keep track of which thread you are
-    wlc_d%id = int(id)
 end subroutine
 
 #endif

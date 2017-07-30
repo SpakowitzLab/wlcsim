@@ -14,6 +14,7 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
     wlc_d%mc_ind = save_ind
 
 
+
 #if MPI_VERSION
     if (wlc_d%numProcesses == 1) then
         call onlyNode(wlc_p, wlc_d)
@@ -23,7 +24,7 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
         call worker_node(wlc_p, wlc_d)
     endif
 #else
-    call onlyNode(wlc_p, md)
+    call onlyNode(wlc_p, wlc_d)
 #endif
 
 
@@ -38,13 +39,13 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
 end subroutine wlcsim_quinn
 
 #if MPI_VERSION
-subroutine head_node(wlc_p, wlc_d,p)
+subroutine head_node(wlc_p, wlc_d,process)
     use mersenne_twister
     use mpi
     use params
 !   MPI variables
     implicit none
-    integer, intent(in) :: p ! number of therads
+    integer, intent(in) :: process ! number of therads
     integer ( kind = 4 ) dest   !destination id for messages
     integer ( kind = 4 ) source  !source id for messages
     integer ( kind = 4 ) id     ! which processor I am
@@ -70,8 +71,8 @@ subroutine head_node(wlc_p, wlc_d,p)
     real(dp) x(nTerms) ! slice of xMtrx
     real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
-    integer upSuccess(p-1)  ! number of successes since last average
-    integer downSuccess(p-1) ! number of successes since last average
+    integer upSuccess(process-1)  ! number of successes since last average
+    integer downSuccess(process-1) ! number of successes since last average
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
@@ -83,8 +84,8 @@ subroutine head_node(wlc_p, wlc_d,p)
     real(dp), allocatable :: xMtrx(:,:)  ! sum of bound states
     real(dp), allocatable :: cofMtrx(:,:) ! mu or chi or whatever
     real(dp), allocatable :: s_vals(:) ! path parameter
-    
-    nPTReplicas=p-1
+
+    nPTReplicas=process-1
 
     ! Allocate the head node variables for keeping track of which node is which
     allocate( xMtrx(nPTReplicas,nTerms))
@@ -309,12 +310,14 @@ subroutine worker_node(wlc_p, wlc_d)
     use mpi
     use params
     use mersenne_twister
+    implicit none
     integer ( kind = 4 ), save :: id = -1     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
     type(random_stat) rand_stat  ! state of random number chain
+    integer i
 
     logical system_has_been_changed
     system_has_been_changed = .False.
@@ -388,7 +391,7 @@ subroutine worker_node(wlc_p, wlc_d)
             wlc_d%x_mu    =0.0_dp
         endif
     else
-        call VerifyEnergiesFromScratch(wlc_p, md)
+        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
     endif
 
     ! ------------------------------
@@ -411,9 +414,10 @@ end subroutine worker_node
 
 subroutine onlyNode(wlc_p, wlc_d)
     use params
+    implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
     !   * Perform a MC simulation *
-    call VerifyEnergiesFromScratch(wlc_p, md)
+    call VerifyEnergiesFromScratch(wlc_p, wlc_d)
     call MCsim(wlc_p, wlc_d,wlc_p%nReplicaExchangePerSavePoint*wlc_p%stepsPerExchange)
 end subroutine onlyNode
