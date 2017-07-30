@@ -83,6 +83,8 @@ subroutine head_node(wlc_p, wlc_d,p)
     real(dp), allocatable :: xMtrx(:,:)  ! sum of bound states
     real(dp), allocatable :: cofMtrx(:,:) ! mu or chi or whatever
     real(dp), allocatable :: s_vals(:) ! path parameter
+    
+    nPTReplicas=p-1
 
     ! Allocate the head node variables for keeping track of which node is which
     allocate( xMtrx(nPTReplicas,nTerms))

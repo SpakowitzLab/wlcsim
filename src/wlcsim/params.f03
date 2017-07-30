@@ -1003,6 +1003,7 @@ contains
         !if statements deep inside mc_move. which is fine, but I would want to
         !check with quinn *exactly* in which cases they're needed if i do that
         if (wlc_p%field_int_on) then
+            print*, "allocating AB with NT=",NT
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
             allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
             allocate(wlc_d%PHIA(NBin))
@@ -1660,7 +1661,7 @@ contains
         ! Write a number of parameters ASCII variables to file for reccords
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
-        character(MAXFILENAMELEN), intent(in) :: fileName
+        character(len=*), intent(in) :: fileName
         open (unit =outFileUnit, file = fileName, status = 'NEW')
             write(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
             write(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
