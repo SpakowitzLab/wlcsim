@@ -1,85 +1,85 @@
 ! -------------------------------------------------------------------
 !
 !  Calculate Binding energies and x values from scratch
-!  Puts output in md%DEElas, md%DE_... and md%dx_...
+!  Puts output in wlc_d%DEElas, wlc_d%DE_... and wlc_d%dx_...
 ! -------------------------------------------------------------------
-subroutine CalculateEnergiesFromScratch(mc, md)
+subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     use params
     use iso_fortran_env
     implicit none
     integer IT1, IT2, I
     real(dp) phiTot
-    type(wlcsim_params), intent(in) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(in) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
     integer Delta !transh
 
-    if (mc%bind_on) then
-        do I=1,mc%NBIN
-            md%ABP(i)=0 ! set entire array to zero
+    if (wlc_p%bind_on) then
+        do I = 1,wlc_p%NBin
+            wlc_d%ABP(i) = 0 ! set entire array to zero
         enddo
         !  Notide that ABP and AB are intensionally swapped below
-        IT1=1; IT2=mc%NT
-        call MC_bind(mc%NT,mc%nBpM,IT1,IT2,md%ABP,md%AB,md%METH, &
-                     mc%EU,mc%EM,md%DEBind,mc%mu,md%dx_mu)
+        IT1 = 1; IT2 = wlc_p%NT
+        call MC_bind(wlc_p%NT,wlc_p%nBpM,IT1,IT2,wlc_d%ABP,wlc_d%AB,wlc_d%METH, &
+                     wlc_p%EU,wlc_p%EM,wlc_d%DEBind,wlc_p%mu,wlc_d%dx_mu)
     endif
 
-    call energy_elas(md%DEELAS,md%R,md%U,mc%NT,mc%NB,mc%NP,pack_as_para(mc),&
-                     mc%Ring,mc%TWIST,mc%lk,mc%lt,mc%L)
+    call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,wlc_p%NT,wlc_p%NB,wlc_p%NP,pack_as_para(wlc_p),&
+                     wlc_p%Ring,wlc_p%TWIST,wlc_p%lk,wlc_p%lt,wlc_p%L)
 
     ! --- Interaction Energy ---
-    if (mc%field_int_on) then
+    if (wlc_p%field_int_on) then
         ! initialize phi
-        call MC_int_initialize(mc,md)
-        do I=1,mc%NBIN
-            phiTot=phiTot+(md%PHIA(I)+md%PHIB(I))*md%Vol(I)
+        call MC_int_initialize(wlc_p, wlc_d)
+        do I = 1,wlc_p%NBin
+            phiTot = phiTot + (wlc_d%PHIA(I) + wlc_d%PHIB(I))*wlc_d%Vol(I)
         enddo
-        print*, "phiTot", phiTot," NT:",mc%NT
+        print*, "phiTot", phiTot," NT:",wlc_p%NT
     endif
-  IF (mc%RING) then
+  if (wlc_p%RinG) then
      ! --- Initial Writhe
-     call WRITHE(md%R,mc%NB,md%Wr)
+     call WRITHE(wlc_d%R,wlc_p%NB,wlc_d%Wr)
 
      !     Get initial value of Alexander polynomial and Cross matrix
-     CALL ALEXANDERP(md%R,mc%NB,DELTA,md%Cross,md%CrossSize,md%NCross)
+     CALL ALEXANDERP(wlc_d%R,wlc_p%NB,DELTA,wlc_d%Cross,wlc_d%CrossSize,wlc_d%NCross)
      !     Begin Monte Carlo simulation
 
      print*, "Inside CalculateEnergiesFromScratch"
      print*, "Did I do the correct thing with Delta, NCross, Wr, ...?"
      print*, "Add the correct checks to VerifyEnergiesFromScratch"
      stop 1
-  ENDIF
+  ENDif
 
 end subroutine
 
-subroutine InitializeEnergiesForVerifier(mc, md)
+subroutine InitializeEnergiesForVerifier(wlc_p, wlc_d)
     use params
     implicit none
-    type(wlcsim_params), intent(in) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(in) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
     ! identical to VerifyEnergiesFromScratch, but instead of checkign if they
     ! match previous values, the values are simply updated
-    call CalculateEnergiesFromScratch(mc, md)
-    md%EBind=md%DEBind
-    md%x_mu=md%dx_mu
-    md%EElas=md%DEElas ! copy array
+    call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+    wlc_d%EBind = wlc_d%DEBind
+    wlc_d%x_mu = wlc_d%dx_mu
+    wlc_d%EElas = wlc_d%DEElas ! copy array
     ! --- Interaction Energy ---
-    if (mc%field_int_on) then
-        md%EChi=md%DEChi
-        md%x_chi=md%dx_chi
-        md%ECouple=md%DECouple
-        md%x_Couple=md%dx_couple
-        md%EKap=md%DEKap
-        md%x_Kap=md%dx_Kap
-        md%EField=md%DEField
-        md%x_Field=md%dx_Field
+    if (wlc_p%field_int_on) then
+        wlc_d%EChi = wlc_d%DEChi
+        wlc_d%x_chi = wlc_d%dx_chi
+        wlc_d%ECouple = wlc_d%DECouple
+        wlc_d%x_Couple = wlc_d%dx_couple
+        wlc_d%EKap = wlc_d%DEKap
+        wlc_d%x_Kap = wlc_d%dx_Kap
+        wlc_d%EField = wlc_d%DEField
+        wlc_d%x_Field = wlc_d%dx_Field
     endif
 end subroutine
 
-subroutine VerifyEnergiesFromScratch(mc, md)
+subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
     use params
     implicit none
-    type(wlcsim_params), intent(in) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(in) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
 ! -------------------------------------
 !
 !   recalculate all energies from scratch, check them against the values they've
@@ -89,59 +89,59 @@ subroutine VerifyEnergiesFromScratch(mc, md)
     ! to save RAM...
     ! after this call, the DE's will hold the true values of the energies
     ! currently. we can then compare these to the E's
-   call CalculateEnergiesFromScratch(mc, md)
+   call CalculateEnergiesFromScratch(wlc_p, wlc_d)
 
     ! --- Binding Energy ---
-    if(abs(md%EBind-md%DEBind).gt.0.00001) then
+    if(abs(wlc_d%EBind-wlc_d%DEBind).gt.0.00001) then
         write(ERROR_UNIT,*) "Warning. Integrated binding enrgy:", &
-                md%EBind," while absolute binding energy:", &
-                md%DEBind," save point mc_ind=",md%mc_ind
+                wlc_d%EBind," while absolute binding energy:", &
+                wlc_d%DEBind," save point mc_ind = ",wlc_d%mc_ind
     endif
-    md%EBind=md%DEBind
-    md%x_mu=md%dx_mu
+    wlc_d%EBind = wlc_d%DEBind
+    wlc_d%x_mu = wlc_d%dx_mu
 
     ! --- Elastic Energy ---
-    if(abs((md%EElas(1)+  md%EElas(2)+ md%EElas(3))-&
-           (md%DEElas(1)+md%DEElas(2)+md%DEElas(3))).gt.0.0001) then
+    if(abs((wlc_d%EElas(1)+  wlc_d%EElas(2)+ wlc_d%EElas(3))-&
+           (wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3))).gt.0.0001) then
         write(ERROR_UNIT,*) "Warning. Integrated elastic enrgy:", &
-                (md%EElas(1)+md%EElas(2)+md%EElas(3)),&
+                (wlc_d%EElas(1) + wlc_d%EElas(2) + wlc_d%EElas(3)),&
                 " while absolute elastic energy:", &
-                (md%DEElas(1)+md%DEElas(2)+md%DEElas(3))
-        write(ERROR_UNIT,*) " save point mc_ind=",md%mc_ind
+                (wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3))
+        write(ERROR_UNIT,*) " save point mc_ind = ",wlc_d%mc_ind
     endif
-    md%EElas=md%DEElas ! copy array
+    wlc_d%EElas = wlc_d%DEElas ! copy array
 
     ! --- Interaction Energy ---
-    if (mc%field_int_on) then
+    if (wlc_p%field_int_on) then
         ! test to see if sum of changes are same as calculating from scratch
-        if(abs(md%EChi-md%DEChi).gt. 0.0001_dp) then
+        if(abs(wlc_d%EChi-wlc_d%DEChi).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated chi energy:", &
-                     md%EChi,"  while absolute chi energy:", &
-                     md%DEChi," save point mc_ind=",md%mc_ind
+                     wlc_d%EChi,"  while absolute chi energy:", &
+                     wlc_d%DEChi," save point mc_ind = ",wlc_d%mc_ind
         endif
-        md%EChi=md%DEChi
-        md%x_chi=md%dx_chi
-        if(abs(md%ECouple-md%DECouple).gt. 0.0001_dp) then
+        wlc_d%EChi = wlc_d%DEChi
+        wlc_d%x_chi = wlc_d%dx_chi
+        if(abs(wlc_d%ECouple-wlc_d%DECouple).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated couple energy:", &
-                     md%ECouple,"  while absolute couple energy:", &
-                     md%DECouple," save point mc_ind=",md%mc_ind
+                     wlc_d%ECouple,"  while absolute couple energy:", &
+                     wlc_d%DECouple," save point mc_ind = ",wlc_d%mc_ind
         endif
-        md%ECouple=md%DECouple
-        md%x_Couple=md%dx_couple
-        if(abs(md%EKap-md%DEKap).gt. 0.0001_dp) then
+        wlc_d%ECouple = wlc_d%DECouple
+        wlc_d%x_Couple = wlc_d%dx_couple
+        if(abs(wlc_d%EKap-wlc_d%DEKap).gt. 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated Kap energy:", &
-                     md%EKap,"  while absolute Kap energy:", &
-                     md%DEKap," save point mc_ind=",md%mc_ind
+                     wlc_d%EKap,"  while absolute Kap energy:", &
+                     wlc_d%DEKap," save point mc_ind = ",wlc_d%mc_ind
         endif
-        md%EKap=md%DEKap
-        md%x_Kap=md%dx_Kap
+        wlc_d%EKap = wlc_d%DEKap
+        wlc_d%x_Kap = wlc_d%dx_Kap
 
-        if(abs(md%EField-md%DEField).gt.0.00001) then
+        if(abs(wlc_d%EField-wlc_d%DEField).gt.0.00001) then
             write(ERROR_UNIT,*) "Warning. Integrated field enrgy:", &
-                    md%EField," while absolute field energy:", &
-                    md%DEField," save point mc_ind=",md%mc_ind
+                    wlc_d%EField," while absolute field energy:", &
+                    wlc_d%DEField," save point mc_ind = ",wlc_d%mc_ind
         endif
-        md%EField=md%DEField
-        md%x_Field=md%dx_Field
+        wlc_d%EField = wlc_d%DEField
+        wlc_d%x_Field = wlc_d%dx_Field
     endif
 end subroutine

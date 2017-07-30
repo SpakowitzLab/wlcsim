@@ -19,11 +19,7 @@ codeName bruno
 LP 1.0
 
 # chain length, set length unit
-L 10.0
-
-# Box edge length - for initialization MC box sizes
-# initialization using MC not currently tested.
-#LBOX 10.
+L 250.0
 
 # Include polymer interactions? - space exlusion
 interpBeadLennardJones 0
@@ -36,16 +32,16 @@ VHC 0.
 LHC 0.
 
 # Number of beads
-NB 51
+NB 501
 
 # Number of polymers - won't interact unless interaction code added
-NP 10
+NP 1
 
 # Total number of save points
-numSavePoints 100
+numSavePoints 1000
 
 # time steps between save points
-stepsPerSave 100
+stepsPerSave 1000
 
 # timestep for integration, set time units
 DT 0.1
@@ -59,10 +55,18 @@ frmFile 0
 # e.g. 40beads@rigid@2000poly => 4e6
 # Quinn has a there's a script to check if you're OK by comparing
 # end-to-end distribution with analytical results.
-#nInitMCSteps    10000
+nInitMCSteps    1000
+
+# Box edge length - for initialization MC box sizes
+# initialization using MC not currently tested.
+LBOX 10.
+
+# which algorithm to use to initialize bead positions before initialization
+# monte carlo. 7 -> directly sample analogous gaussian chain
+initCondType 7
 
 # l1 distance triggering a "collision" between beads
-collisionRadius        1
+collisionRadius        0.1
 
 # Algorithm for collision detection: 0) NONE 1) brute force, 2) k-d tree,
 # 3) Bruno's O(n) v1, 4) bin-based detection, recentering using center of mass
@@ -74,7 +78,7 @@ nColBin        5
 # Whether to save the positions/momentums at each time point, or only most
 # recent time point
 saveR 1
-saveU 0
+saveU 1
 
 # Whether to terminate simulation when all collisions finish
 exitWhenCollided 1

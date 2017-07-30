@@ -43,27 +43,27 @@
 !     call random_setseed(4357) ! set default seed
 !   The full generator state can be set via the standard interface random_seed,
 !   but it is recommended to use this method only to restore saved states, e.g.
-!     call random_seed(size=lsave)  ! get size of generator state seed array
+!     call random_seed(size = lsave)  ! get size of generator state seed array
 !     allocate isave(lsave)         ! allocate seed array
-!     call random_seed(get=isave)   ! fill seed array (then maybe save to disk)
-!     call random_seed(put=isave)   ! restore state (after read from disk maybe)
+!     call random_seed(get = isave)   ! fill seed array (then maybe save to disk)
+!     call random_seed(put = isave)   ! restore state (after read from disk maybe)
 !   Locally kept generator states can also be saved in a seed array, e.g.
 !     type(random_stat):: stat
-!     call random_seed(get=isave,stat=stat)  ! fill seed array
-!     call random_seed(put=isave,stat=stat)  ! restore state
+!     call random_seed(get = isave,stat = stat)  ! fill seed array
+!     call random_seed(put = isave,stat = stat)  ! restore state
 !   To generate random numbers in a threaded region, the "thread-safe" mode
 !   must be used where generator states of type random_state are passed, e.g.
 !     type(random_stat):: stat(8)
-!     do i=1,8                               ! threadable loop
+!     do i = 1,8                               ! threadable loop
 !       call random_setseed(7171*i,stat(i))  ! thread-safe call
 !     enddo
-!     do i=1,8                               ! threadable loop
+!     do i = 1,8                               ! threadable loop
 !       call random_number(harvest,stat(i))  ! thread-safe call
 !     enddo
-!     do i=1,8                               ! threadable loop
+!     do i = 1,8                               ! threadable loop
 !       call random_gauss(harvest,stat(i))   ! thread-safe call
 !     enddo
-!     do i=1,8                               ! threadable loop
+!     do i = 1,8                               ! threadable loop
 !       call random_index(n,iharvest,stat(i))! thread-safe call
 !     enddo
 !   There is also a relatively inefficient "interactive" mode available, where
@@ -136,8 +136,8 @@
 !     version 2 of the License, or (at your option) any later
 !     version.
 !     This library is distributed in the hope that it will be useful,
-!     but WITHOUT ANY WARRANTY; without even the implied warranty of
-!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+!     but WITHout ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS for A PARTICULAR PURPOSE.
 !     See the GNU Library General Public License for more details.
 !     You should have received a copy of the GNU Library General
 !     Public License along with this library; if not, write to the
@@ -170,21 +170,21 @@
         public random_index
         public random_index_f
 !  Parameters
-        integer,parameter:: n=624
-        integer,parameter:: m=397
-        integer,parameter:: mata=-1727483681 ! constant vector a
+        integer,parameter:: n = 624
+        integer,parameter:: m = 397
+        integer,parameter:: mata = -1727483681 ! constant vector a
         ! the below line was changed by Quinn, it was -2147483648
-        integer,parameter:: umask=-2147483647 ! most significant w-r bits
+        integer,parameter:: umask = -2147483647 ! most significant w-r bits
         integer,parameter:: lmask =2147483647 ! least significant r bits
-        integer,parameter:: tmaskb=-1658038656 ! tempering parameter
-        integer,parameter:: tmaskc=-272236544 ! tempering parameter
-        integer,parameter:: mag01(0:1)=(/0,mata/)
-        integer,parameter:: iseed=4357
-        integer,parameter:: nrest=n+6
+        integer,parameter:: tmaskb = -1658038656 ! tempering parameter
+        integer,parameter:: tmaskc = -272236544 ! tempering parameter
+        integer,parameter:: mag01(0:1) = (/0,mata/)
+        integer,parameter:: iseed = 4357
+        integer,parameter:: nrest = n + 6
 !  Defined types
         type random_stat
           private
-          integer:: mti=n+1
+          integer:: mti = n + 1
           integer:: mt(0:n-1)
           integer:: iset
           real:: gset
@@ -223,45 +223,45 @@
           type(random_stat),intent(inout),optional:: stat
           if(present(size)) then     ! return size of seed array
 !     if(present(put).or.present(get))&
-!      call errmsg('RANDOM_SEED: more than one option set - some ignored')
-            size=nrest
+!      call errmsg('RANdoM_SEED: more than one option set - some ignored')
+            size = nrest
           elseif(present(put)) then  ! restore from seed array
 !     if(present(get))&
-!      call errmsg('RANDOM_SEED: more than one option set - some ignored')
+!      call errmsg('RANdoM_SEED: more than one option set - some ignored')
             if(present(stat)) then
-              stat%mti=put(1)
-              stat%mt=put(2:n+1)
-              stat%iset=put(n+2)
-              stat%gset=transfer(put(n+3:nrest),stat%gset)
+              stat%mti = put(1)
+              stat%mt = put(2:n + 1)
+              stat%iset = put(n + 2)
+              stat%gset = transfer(put(n + 3:nrest),stat%gset)
               if(stat%mti.lt.0.or.stat%mti.gt.n.or.any(stat%mt.eq.0).or. &
               stat%iset.lt.0.or.stat%iset.gt.1) then
                 call random_setseed_t(iseed,stat)
-!         call errmsg('RANDOM_SEED: invalid seeds put - default seeds used')
+!         call errmsg('RANdoM_SEED: invalid seeds put - default seeds used')
               endif
             else
-              sstat%mti=put(1)
-              sstat%mt=put(2:n+1)
-              sstat%iset=put(n+2)
-              sstat%gset=transfer(put(n+3:nrest),sstat%gset)
+              sstat%mti = put(1)
+              sstat%mt = put(2:n + 1)
+              sstat%iset = put(n + 2)
+              sstat%gset = transfer(put(n + 3:nrest),sstat%gset)
               if(sstat%mti.lt.0.or.sstat%mti.gt.n.or.any(sstat%mt.eq.0) &
               .or.sstat%iset.lt.0.or.sstat%iset.gt.1) then
                 call random_setseed_t(iseed,sstat)
-!         call errmsg('RANDOM_SEED: invalid seeds put - default seeds used')
+!         call errmsg('RANdoM_SEED: invalid seeds put - default seeds used')
               endif
             endif
           elseif(present(get)) then  ! save to seed array
             if(present(stat)) then
-              if(stat%mti.eq.n+1) call random_setseed_t(iseed,stat)
-              get(1)=stat%mti
-              get(2:n+1)=stat%mt
-              get(n+2)=stat%iset
-              get(n+3:nrest)=transfer(stat%gset,get,nrest-(n+3)+1)
+              if(stat%mti.eq.n + 1) call random_setseed_t(iseed,stat)
+              get(1) = stat%mti
+              get(2:n + 1) = stat%mt
+              get(n + 2) = stat%iset
+              get(n + 3:nrest) = transfer(stat%gset,get,nrest-(n + 3) + 1)
             else
-              if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
-              get(1)=sstat%mti
-              get(2:n+1)=sstat%mt
-              get(n+2)=sstat%iset
-              get(n+3:nrest)=transfer(sstat%gset,get,nrest-(n+3)+1)
+              if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
+              get(1) = sstat%mti
+              get(2:n + 1) = sstat%mt
+              get(n + 2) = sstat%iset
+              get(n + 3:nrest) = transfer(sstat%gset,get,nrest-(n + 3) + 1)
             endif
           else                       ! reset default seed
             if(present(stat)) then
@@ -285,15 +285,15 @@
           integer,intent(in):: inseed
           type(random_stat),intent(out):: stat
           integer ii,mti
-          ii=inseed
-          if(ii.eq.0) ii=iseed
-          stat%mti=n
-          stat%mt(0)=iand(ii,-1)
-          do mti=1,n-1
-            stat%mt(mti)=iand(69069*stat%mt(mti-1),-1)
+          ii = inseed
+          if(ii.eq.0) ii = iseed
+          stat%mti = n
+          stat%mt(0) = iand(ii,-1)
+          do mti = 1,n-1
+            stat%mt(mti) = iand(69069*stat%mt(mti-1),-1)
           enddo
-          stat%iset=0
-          stat%gset=0.
+          stat%iset = 0
+          stat%gset = 0.
         end subroutine
 !  Subprogram random_number_f
 !  Generates random numbers in functional mode.
@@ -301,9 +301,9 @@
           implicit none
           real:: harvest
           real h(1)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_number_t(h,sstat)
-          harvest=h(1)
+          harvest = h(1)
         end function
 !  Subprogram random_number_i
 !  Generates random numbers in interactive mode.
@@ -320,55 +320,55 @@
         subroutine random_number_s(harvest)
           implicit none
           real,intent(out):: harvest(:)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_number_t(harvest,sstat)
         end subroutine
 !  Subprogram random_number_t
 !  Generates random numbers in thread-safe mode.
         subroutine random_number_t(harvest,stat)
           implicit none
-          real, parameter  :: twop32=2.0**32
-          real, parameter  :: twop32m1i=1.0/(twop32-1.0)
+          real, parameter  :: twop32 = 2.0**32
+          real, parameter  :: twop32m1i = 1.0/(twop32-1.0)
           real,intent(out):: harvest(:)
           type(random_stat),intent(inout):: stat
           integer j,kk,y
           integer tshftu,tshfts,tshftt,tshftl
-          tshftu(y)=ishft(y,-11)
-          tshfts(y)=ishft(y,7)
-          tshftt(y)=ishft(y,15)
-          tshftl(y)=ishft(y,-18)
-          do j=1,size(harvest)
+          tshftu(y) = ishft(y,-11)
+          tshfts(y) = ishft(y,7)
+          tshftt(y) = ishft(y,15)
+          tshftl(y) = ishft(y,-18)
+          do j = 1,size(harvest)
             if(stat%mti.ge.n) then
-              do kk=0,n-m-1
-                y=ior(iand(stat%mt(kk),umask),iand(stat%mt(kk+1),lmask))
-                stat%mt(kk)=ieor(ieor(stat%mt(kk+m),ishft(y,-1)), &
+              do kk = 0,n-m-1
+                y = ior(iand(stat%mt(kk),umask),iand(stat%mt(kk + 1),lmask))
+                stat%mt(kk) = ieor(ieor(stat%mt(kk + m),ishft(y,-1)), &
          mag01(iand(y,1)))
               enddo
-              do kk=n-m,n-2
-                y=ior(iand(stat%mt(kk),umask),iand(stat%mt(kk+1),lmask))
-                stat%mt(kk)=ieor(ieor(stat%mt(kk+(m-n)),ishft(y,-1)), &
+              do kk = n-m,n-2
+                y = ior(iand(stat%mt(kk),umask),iand(stat%mt(kk + 1),lmask))
+                stat%mt(kk) = ieor(ieor(stat%mt(kk + (m-n)),ishft(y,-1)), &
          mag01(iand(y,1)))
               enddo
-              y=ior(iand(stat%mt(n-1),umask),iand(stat%mt(0),lmask))
-              stat%mt(n-1)=ieor(ieor(stat%mt(m-1),ishft(y,-1)), &
+              y = ior(iand(stat%mt(n-1),umask),iand(stat%mt(0),lmask))
+              stat%mt(n-1) = ieor(ieor(stat%mt(m-1),ishft(y,-1)), &
          mag01(iand(y,1)))
-              stat%mti=0
+              stat%mti = 0
             endif
-            y=stat%mt(stat%mti)
-            y=ieor(y,tshftu(y))
-            y=ieor(y,iand(tshfts(y),tmaskb))
-            y=ieor(y,iand(tshftt(y),tmaskc))
-            y=ieor(y,tshftl(y))
+            y = stat%mt(stat%mti)
+            y = ieor(y,tshftu(y))
+            y = ieor(y,iand(tshfts(y),tmaskb))
+            y = ieor(y,iand(tshftt(y),tmaskc))
+            y = ieor(y,tshftl(y))
             if(y.lt.0) then
-              harvest(j)=(real(y)+twop32)*twop32m1i
+              harvest(j) = (real(y) + twop32)*twop32m1i
             else
-              harvest(j)=real(y)*twop32m1i
+              harvest(j) = real(y)*twop32m1i
             endif
-            stat%mti=stat%mti+1
+            stat%mti = stat%mti + 1
             if(harvest(j).lt.0.000000001) then
-                harvest(j)=0.000000001
+                harvest(j) = 0.000000001
             elseif (harvest(j).gt.0.999999) then
-                harvest(j)=0.9999999
+                harvest(j) = 0.9999999
             endif
           enddo
         end subroutine
@@ -378,9 +378,9 @@
           implicit none
           real:: harvest
           real h(1)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_gauss_t(h,sstat)
-          harvest=h(1)
+          harvest = h(1)
         end function
 !  Subprogram random_gauss_i
 !  Generates Gaussian random numbers in interactive mode.
@@ -397,7 +397,7 @@
         subroutine random_gauss_s(harvest)
           implicit none
           real,intent(out):: harvest(:)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_gauss_t(harvest,sstat)
         end subroutine
 !  Subprogram random_gauss_t
@@ -408,23 +408,23 @@
           type(random_stat),intent(inout):: stat
           integer mx,my,mz,j
           real r2(2),r,g1,g2
-          mz=size(harvest)
+          mz = size(harvest)
           if(mz.le.0) return
-          mx=0
+          mx = 0
           if(stat%iset.eq.1) then
-            mx=1
-            harvest(1)=stat%gset
-            stat%iset=0
+            mx = 1
+            harvest(1) = stat%gset
+            stat%iset = 0
           endif
-          my=(mz-mx)/2*2+mx
+          my = (mz-mx)/2*2 + mx
           do
-            call random_number_t(harvest(mx+1:my),stat)
-            do j=mx,my-2,2
-              call rgauss(harvest(j+1),harvest(j+2),r,g1,g2)
+            call random_number_t(harvest(mx + 1:my),stat)
+            do j = mx,my-2,2
+              call rgauss(harvest(j + 1),harvest(j + 2),r,g1,g2)
               if(r.lt.1.) then
-                harvest(mx+1)=g1
-                harvest(mx+2)=g2
-                mx=mx+2
+                harvest(mx + 1) = g1
+                harvest(mx + 2) = g2
+                mx = mx + 2
               endif
             enddo
             if(mx.eq.my) exit
@@ -435,9 +435,9 @@
               call rgauss(r2(1),r2(2),r,g1,g2)
               if(r.lt.1.) exit
             enddo
-            harvest(mz)=g1
-            stat%gset=g2
-            stat%iset=1
+            harvest(mz) = g1
+            stat%gset = g2
+            stat%iset = 1
           endif
         contains
 !  Numerical Recipes algorithm to generate Gaussian random numbers.
@@ -445,13 +445,13 @@
             real,intent(in):: r1,r2
             real,intent(out):: r,g1,g2
             real v1,v2,fac
-            v1=2.*r1-1.
-            v2=2.*r2-1.
-            r=v1**2+v2**2
+            v1 = 2.*r1-1.
+            v2 = 2.*r2-1.
+            r = v1**2 + v2**2
             if(r.lt.1.) then
-              fac=sqrt(-2.*log(r)/r)
-              g1=v1*fac
-              g2=v2*fac
+              fac = sqrt(-2.*log(r)/r)
+              g1 = v1*fac
+              g2 = v2*fac
             endif
           end subroutine
         end subroutine
@@ -462,9 +462,9 @@
           integer,intent(in):: imax
           integer:: iharvest
           integer ih(1)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_index_t(imax,ih,sstat)
-          iharvest=ih(1)
+          iharvest = ih(1)
         end function
 !  Subprogram random_index_i
 !  Generates random indices in interactive mode.
@@ -483,7 +483,7 @@
           implicit none
           integer,intent(in):: imax
           integer,intent(out):: iharvest(:)
-          if(sstat%mti.eq.n+1) call random_setseed_t(iseed,sstat)
+          if(sstat%mti.eq.n + 1) call random_setseed_t(iseed,sstat)
           call random_index_t(imax,iharvest,sstat)
         end subroutine
 !  Subprogram random_index_t
@@ -493,14 +493,14 @@
           integer,intent(in):: imax
           integer,intent(out):: iharvest(:)
           type(random_stat),intent(inout):: stat
-          integer,parameter:: mh=n
+          integer,parameter:: mh = n
           integer i1,i2,mz
           real h(mh)
-          mz=size(iharvest)
-          do i1=1,mz,mh
-            i2=min((i1-1)+mh,mz)
+          mz = size(iharvest)
+          do i1 = 1,mz,mh
+            i2 = min((i1-1) + mh,mz)
             call random_number_t(h(:i2-(i1-1)),stat)
-            iharvest(i1:i2)=max(ceiling(h(:i2-(i1-1))*imax),1)
+            iharvest(i1:i2) = max(ceiling(h(:i2-(i1-1))*imax),1)
           enddo
         end subroutine
       end module

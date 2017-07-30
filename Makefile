@@ -33,7 +33,7 @@ INCLUDE_DIRS = -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party
 DEBUGFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp
 FASTFLAGS = -O3 -Jsrc ${INCLUDE_DIRS} -cpp
 PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising # need instrincis because need sizeof (if you don't have sizeof, just comment out read/writeBinary in params.f03), Wno-surprising to enforce Werror even though gfortran has a bug https://gcc.gnu.org/ml/fortran/2013-08/msg00050.html
-FCFLAGS = ${FASTFLAGS}
+FCFLAGS = ${PEDANTICFLAGS}
 
 # link flags
 FLFLAGS = -L/usr/lib/lapack -llapack

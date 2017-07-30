@@ -23,8 +23,8 @@
 ! under the terms of the GNU Library General Public License as published by
 ! the Free Software Foundation; either version 2 of the License, or (at your
 ! option) any later version.   This library is distributed in the hope that
-! it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-! warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+! it will be useful, but WITHout ANY WARRANTY; without even the implied
+! warranty of MERCHANTABILITY or FITNESS for A PARTICULAR PURPOSE.
 ! See the GNU Library General Public License for more details.
 ! You should have received a copy of the GNU Library General Public License
 ! along with this library; if not, write to the Free Foundation, Inc.,
@@ -37,7 +37,7 @@
 !***********************************************************************
 ! Fortran translation by Hiroshi Takano.  Jan. 13, 1999.
 
-!   genrand()      -> double precision function grnd()
+!   genrand()      -> real(dp) function grnd()
 !   sgenrand(seed) -> subroutine sgrnd(seed)
 !                     integer seed
 
@@ -50,81 +50,81 @@
 
 !***********************************************************************
 
-MODULE mt19937
-IMPLICIT NONE
-INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12, 60)
+module mt19937
+implicit none
+integer, PARAMETER :: dp = SELECTED_REAL_KinD(12, 60)
 
 ! Period parameters
-INTEGER, PARAMETER :: n = 624, n1 = n+1, m = 397, mata = -1727483681
+integer, PARAMETER :: n = 624, n1 = n + 1, m = 397, mata = -1727483681
 !                                    constant vector a
-INTEGER, PARAMETER :: umask = -2147483647 - 1
+integer, PARAMETER :: umask = -2147483647 - 1
 !                                    most significant w-r bits
-INTEGER, PARAMETER :: lmask =  2147483647
+integer, PARAMETER :: lmask =  2147483647
 !                                    least significant r bits
 ! Tempering parameters
-INTEGER, PARAMETER :: tmaskb= -1658038656, tmaskc= -272236544
+integer, PARAMETER :: tmaskb= -1658038656, tmaskc= -272236544
 
 !                     the array for the state vector
-INTEGER, SAVE      :: mt(0:n-1), mti = n1
-!                     mti==N+1 means mt[N] is not initialized
+integer, SAVE      :: mt(0:n-1), mti = n1
+!                     mti = =N + 1 means mt[N] is not initialized
 LOGICAL, SAVE :: RNORMRESTART = .FALSE.
 REAL, SAVE :: RNORMVSAVE, RNORMSLNSAVE
 
-PRIVATE
+private
 PUBLIC :: dp, sgrnd, grnd, init_genrand, rnorm, MT,mti
 ! efk: global variables to allow restarting of rnorm() calculation from savefile
 PUBLIC :: RNORMRESTART, RNORMSLNSAVE, RNORMVSAVE
 
-CONTAINS
+contains
 
 
-SUBROUTINE sgrnd(seed)
+subroutine sgrnd(seed)
 ! This is the original version of the seeding routine.
 ! It was replaced in the Japanese version in C on 26 January 2002
 ! It is recommended that routine init_genrand is used instead.
 
-INTEGER, INTENT(IN)   :: seed
+integer, intent(in)   :: seed
 
 !    setting initial seeds to mt[N] using the generator Line 25 of Table 1 in
 !    [KNUTH 1981, The Art of Computer Programming Vol. 2 (2nd Ed.), pp102]
 
 mt(0)= IAND(seed, -1)
-DO  mti=1,n-1
+do  mti = 1,n-1
   mt(mti) = IAND(69069 * mt(mti-1), -1)
-END DO
+END do
 
 RETURN
-END SUBROUTINE sgrnd
+END subroutine sgrnd
 !***********************************************************************
 
-SUBROUTINE init_genrand(seed)
+subroutine init_genrand(seed)
 ! This initialization is based upon the multiplier given on p.106 of the
 ! 3rd edition of Knuth, The Art of Computer Programming Vol. 2.
 
 ! This version assumes that integer overflow does NOT cause a crash.
 
-INTEGER, INTENT(IN)  :: seed
+integer, intent(in)  :: seed
 
-INTEGER  :: latest
+integer  :: latest
 
 mt(0) = seed
 latest = seed
-DO mti = 1, n-1
+do mti = 1, n-1
   latest = IEOR( latest, ISHFT( latest, -30 ) )
   latest = latest * 1812433253 + mti
   mt(mti) = latest
-END DO
+END do
 
 RETURN
-END SUBROUTINE init_genrand
+END subroutine init_genrand
 !***********************************************************************
 
 FUNCTION grndORIG() RESULT(fn_val)
 REAL (dp) :: fn_val
 
-INTEGER, SAVE :: mag01(0:1) = (/ 0, mata /)
-!                        mag01(x) = x * MATA for x=0,1
-INTEGER       :: kk, y
+integer, SAVE :: mag01(0:1) = (/ 0, mata /)
+!                        mag01(x) = x * MATA for x = 0,1
+integer       :: kk, y
 
 ! These statement functions have been replaced with separate functions
 ! tshftu(y) = ISHFT(y,-11)
@@ -132,26 +132,26 @@ INTEGER       :: kk, y
 ! tshftt(y) = ISHFT(y,15)
 ! tshftl(y) = ISHFT(y,-18)
 
-IF(mti >= n) THEN
+if(mti >= n) then
 !                       generate N words at one time
-  IF(mti == n+1) THEN
+  if(mti == n + 1) then
 !                            if sgrnd() has not been called,
     CALL sgrnd(4357)
 !                              a default initial seed is used
-  END IF
+  END if
   
-  DO  kk = 0, n-m-1
-    y = IOR(IAND(mt(kk),umask), IAND(mt(kk+1),lmask))
-    mt(kk) = IEOR(IEOR(mt(kk+m), ISHFT(y,-1)),mag01(IAND(y,1)))
-  END DO
-  DO  kk = n-m, n-2
-    y = IOR(IAND(mt(kk),umask), IAND(mt(kk+1),lmask))
-    mt(kk) = IEOR(IEOR(mt(kk+(m-n)), ISHFT(y,-1)),mag01(IAND(y,1)))
-  END DO
+  do  kk = 0, n-m-1
+    y = IOR(IAND(mt(kk),umask), IAND(mt(kk + 1),lmask))
+    mt(kk) = IEOR(IEOR(mt(kk + m), ISHFT(y,-1)),mag01(IAND(y,1)))
+  END do
+  do  kk = n-m, n-2
+    y = IOR(IAND(mt(kk),umask), IAND(mt(kk + 1),lmask))
+    mt(kk) = IEOR(IEOR(mt(kk + (m-n)), ISHFT(y,-1)),mag01(IAND(y,1)))
+  END do
   y = IOR(IAND(mt(n-1),umask), IAND(mt(0),lmask))
   mt(n-1) = IEOR(IEOR(mt(m-1), ISHFT(y,-1)),mag01(IAND(y,1)))
   mti = 0
-END IF
+END if
 
 y = mt(mti)
 mti = mti + 1
@@ -160,19 +160,19 @@ y = IEOR(y, IAND(tshfts(y),tmaskb))
 y = IEOR(y, IAND(tshftt(y),tmaskc))
 y = IEOR(y, tshftl(y))
 
-IF(y < 0) THEN
+if(y < 0) then
   fn_val = (DBLE(y) + 2.0D0**32) / (2.0D0**32 - 1.0D0)
-ELSE
+else
   fn_val = DBLE(y) / (2.0D0**32 - 1.0D0)
-END IF
+END if
 
 RETURN
 END FUNCTION grndORIG
 
 
 FUNCTION tshftu(y) RESULT(fn_val)
-INTEGER, INTENT(IN) :: y
-INTEGER             :: fn_val
+integer, intent(in) :: y
+integer             :: fn_val
 
 fn_val = ISHFT(y,-11)
 RETURN
@@ -180,8 +180,8 @@ END FUNCTION tshftu
 
 
 FUNCTION tshfts(y) RESULT(fn_val)
-INTEGER, INTENT(IN) :: y
-INTEGER             :: fn_val
+integer, intent(in) :: y
+integer             :: fn_val
 
 fn_val = ISHFT(y,7)
 RETURN
@@ -189,8 +189,8 @@ END FUNCTION tshfts
 
 
 FUNCTION tshftt(y) RESULT(fn_val)
-INTEGER, INTENT(IN) :: y
-INTEGER             :: fn_val
+integer, intent(in) :: y
+integer             :: fn_val
 
 fn_val = ISHFT(y,15)
 RETURN
@@ -198,8 +198,8 @@ END FUNCTION tshftt
 
 
 FUNCTION tshftl(y) RESULT(fn_val)
-INTEGER, INTENT(IN) :: y
-INTEGER             :: fn_val
+integer, intent(in) :: y
+integer             :: fn_val
 
 fn_val = ISHFT(y,-18)
 RETURN
@@ -212,7 +212,7 @@ FUNCTION rnorm() RESULT( fn_val )
 !   Reference: Marsaglia,G. & Bray,T.A. 'A convenient method for generating
 !              normal variables', Siam Rev., vol.6, 260-264, 1964.
 
-IMPLICIT NONE
+implicit none
 REAL  :: fn_val
 
 ! Local variables
@@ -220,37 +220,37 @@ REAL  :: fn_val
 REAL            :: u, sum
 REAL, SAVE      :: v, sln
 LOGICAL, SAVE   :: second = .FALSE.
-REAL, PARAMETER :: one = 1.0, vsmall = TINY( one )
+REAL, PARAMETER :: one = 1.0, vsmall = TinY( one )
 
 !print*, 'testx0:', second, rnormrestart, v, sln, rnormvsave, rnormslnsave
  
-IF (second) THEN
+if (second) then
 ! If second, use the second random number generated on last call
 
   second = .false.
   fn_val = v*sln
 
-ELSE IF (RNORMRESTART) THEN
+else if (RNORMRESTART) then
    ! efk: restart from global variables in save file
    SECOND = .FALSE.
    v = rnormvsave; sln = rnormslnsave
    FN_Val = v*sln
    RNORMRESTART = .FALSE.
-ELSE
+else
 ! First call; generate a pair of random normals
 
   second = .true.
-  DO
+  do
     U = GRND( )
     V = GRND()
     u = SCALE( u, 1 ) - one
     v = SCALE( v, 1 ) - one
     sum = u*u + v*v + vsmall         ! vsmall added to prevent LOG(zero) / zero
-    IF(sum < one) EXIT
-  END DO
+    if(sum < one) EXIT
+  END do
   sln = SQRT(- SCALE( LOG(sum), 1 ) / sum)
   fn_val = u*sln
-END IF
+END if
 
 RNORMVSAVE = V; RNORMSLNSAVE = SLN; RNORMRESTART = SECOND
 
@@ -262,12 +262,12 @@ FUNCTION grnd() RESULT(fn_val)
   REAL (dp) :: fn_val
   
   FN_VAL = 0D0
-  DO WHILE (FN_VAL.EQ.0D0.OR.FN_VAL.EQ.1D0)
-     FN_VAL = GRNDORIG()     
-  ENDDO
+  do while (FN_VAL == 0D0.OR.FN_VAL == 1D0)
+     FN_VAL = GRNdoRIG()     
+  ENDdo
 END FUNCTION grnd
 
-END MODULE mt19937
+END module mt19937
 
 
 

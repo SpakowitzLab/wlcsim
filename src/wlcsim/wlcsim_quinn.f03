@@ -1,44 +1,44 @@
 
-subroutine wlcsim_quinn(save_ind, md, mc)
+subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
 #if MPI_VERSION
     use mpi
 #endif
     use params
     implicit none
     integer, intent(in) :: save_ind ! 1, 2, ...
-    type(wlcsim_params), intent(inout) :: mc
-    type(wlcsim_data), intent(inout) :: md
-    integer (kind=4) error
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
+    integer (kind = 4) error
 
     ! to minimize code rewriting, we use our old name for save_ind internally
-    md%mc_ind=save_ind
+    wlc_d%mc_ind = save_ind
 
 
 #if MPI_VERSION
-    if (md%numProcesses == 1) then
-        call onlyNode(mc,md)
-    elseif (md%id == 0) then
-        call head_node(mc,md,md%numProcesses)
+    if (wlc_d%numProcesses == 1) then
+        call onlyNode(wlc_p, wlc_d)
+    elseif (wlc_d%id == 0) then
+        call head_node(wlc_p, wlc_d,wlc_d%numProcesses)
     else
-        call worker_node(mc,md)
+        call worker_node(wlc_p, wlc_d)
     endif
 #else
-    call onlyNode(mc, md)
+    call onlyNode(wlc_p, md)
 #endif
 
 
 
     print*, '________________________________________'
-    print*, 'Time point ',save_ind, ' out of', mc%numSavePoints, 'Thread id', md%id
-    call printEnergies(md)
-    call printWindowStats(mc,md)
-    call printWindowStats(mc, md)
-    !call wlcsim_params_printPhi(mc,md)
+    print*, 'Time point ',save_ind, ' out of', wlc_p%numSavePoints, 'Thread id', wlc_d%id
+    call printEnergies(wlc_d)
+    call printWindowStats(wlc_p, wlc_d)
+    call printWindowStats(wlc_p, wlc_d)
+    !call wlcsim_params_printPhi(wlc_p, wlc_d)
 
 end subroutine wlcsim_quinn
 
 #if MPI_VERSION
-subroutine head_node(mc,md,p)
+subroutine head_node(wlc_p, wlc_d,p)
     use mersenne_twister
     use mpi
     use params
@@ -50,8 +50,8 @@ subroutine head_node(mc,md,p)
     integer ( kind = 4 ) id     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    type(wlcsim_params), intent(inout) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
 
     !   variable for random number generator seeding
     type(random_stat) rand_stat  ! state of random number chain
@@ -66,16 +66,16 @@ subroutine head_node(mc,md,p)
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms=8  ! number of energy terms
-    double precision x(nTerms) ! slice of xMtrx
-    double precision cof(nTerms) ! slice of cofMtrx
+    integer, parameter :: nTerms = 8  ! number of energy terms
+    real(dp) x(nTerms) ! slice of xMtrx
+    real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
     integer upSuccess(p-1)  ! number of successes since last average
     integer downSuccess(p-1) ! number of successes since last average
     integer nExchange ! total number of exchanges attemted
-    double precision energy ! for deciding to accept exchange
+    real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    double precision h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -91,151 +91,151 @@ subroutine head_node(mc,md,p)
     allocate( s_vals(nPTReplicas))
 
     ! Keep track of up and down successes (head node only needs this)
-    do rep=1,nPTReplicas
-        upSuccess(rep)=0
-        downSuccess(rep)=0
-        s_vals(rep)=mc%INITIAL_MAX_S*dble(rep)/dble(nPTReplicas)
+    do rep = 1,nPTReplicas
+        upSuccess(rep) = 0
+        downSuccess(rep) = 0
+        s_vals(rep) = wlc_p%inITIAL_MAX_S*dble(rep)/dble(nPTReplicas)
     enddo
 
     ! Set initial values for parrallel tempering values
-    do rep=1,nPTReplicas
-        if (mc%PT_chi) then
-            cofMtrx(rep,1)=chi_path(s_vals(rep))
+    do rep = 1,nPTReplicas
+        if (wlc_p%PT_chi) then
+            cofMtrx(rep,1) = chi_path(s_vals(rep))
         else
-            cofMtrx(rep,1)=mc%chi
+            cofMtrx(rep,1) = wlc_p%chi
         endif
-        if (mc%PT_mu) then
-            cofMtrx(rep,2)=mu_path(s_vals(rep))
+        if (wlc_p%PT_mu) then
+            cofMtrx(rep,2) = mu_path(s_vals(rep))
         else
-            cofMtrx(rep,2)=mc%mu
+            cofMtrx(rep,2) = wlc_p%mu
         endif
-        if (mc%PT_h) then
-            cofMtrx(rep,3)=h_path(s_vals(rep))
+        if (wlc_p%PT_h) then
+            cofMtrx(rep,3) = h_path(s_vals(rep))
         else
-            cofMtrx(rep,3)=mc%hA
+            cofMtrx(rep,3) = wlc_p%hA
         endif
-        if (mc%PT_couple) then
-            cofMtrx(rep,4)=HP1_Bind_path(s_vals(rep))
+        if (wlc_p%PT_couple) then
+            cofMtrx(rep,4) = HP1_Bind_path(s_vals(rep))
         else
-            cofMtrx(rep,4)=mc%HP1_Bind
+            cofMtrx(rep,4) = wlc_p%HP1_Bind
         endif
-        if (mc%PT_Kap) then
-            cofMtrx(rep,5)=kap_path(s_vals(rep))
+        if (wlc_p%PT_Kap) then
+            cofMtrx(rep,5) = kap_path(s_vals(rep))
         else
-            cofMtrx(rep,5)=mc%KAP
+            cofMtrx(rep,5) = wlc_p%KAP
         endif
-        cofMtrx(rep,6)=0
-        cofMtrx(rep,7)=0
-        cofMtrx(rep,8)=0
+        cofMtrx(rep,6) = 0
+        cofMtrx(rep,7) = 0
+        cofMtrx(rep,8) = 0
     enddo
 
-    N_average=0
+    N_average = 0
 
     ! Initially replica numbers are same as nodes
-    do rep=1,nPTReplicas
-        nodeNumber(rep)=rep
+    do rep = 1,nPTReplicas
+        nodeNumber(rep) = rep
     enddo
     !-----------------------------------------------------
     !
     !    Begin Main loop
     !
     !------------------------------------------------------
-    keepGoing=.True.
+    keepGoing = .True.
     do while(keepGoing)
         ! give workers thier jobs
-        do rep=1,nPTReplicas
-            dest=nodeNumber(rep)
+        do rep = 1,nPTReplicas
+            dest = nodeNumber(rep)
             call MPI_Send (rep,1, MPI_integer, dest,   0, &
                             MPI_COMM_WORLD,error )
-            if (mc%restart.and.md%mc_ind.eq.1) then
-                source=dest
+            if (wlc_p%restart.and.wlc_d%mc_ind.eq.1) then
+                source = dest
                 call MPI_Recv (cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
                                MPI_COMM_WORLD, status, error )
-                cofMtrx(rep,:)=cof
+                cofMtrx(rep,:) = cof
             else
-                cof=cofMtrx(rep,:)
+                cof = cofMtrx(rep,:)
                 call MPI_Send (cof,nTerms, MPI_doUBLE_PRECISION, dest,   0, &
                                 MPI_COMM_WORLD,error )
             endif
         enddo
         ! get results from workers
 
-        do rep=1,nPTReplicas
-            source=nodeNumber(rep)
+        do rep = 1,nPTReplicas
+            source = nodeNumber(rep)
             call MPI_Recv ( x, nTerms, MPI_doUBLE_PRECISION, source, 0, &
                            MPI_COMM_WORLD, status, error )
-            xMtrx(rep,:)=x
+            xMtrx(rep,:) = x
             if(isnan(x(1))) then ! endo of program
-                keepGoing=.false.
+                keepGoing = .false.
                 return
             endif
         enddo
 
-        source=1
-        call MPI_Recv (md%mc_ind, 1, MPI_integer, source, 0, &
+        source = 1
+        call MPI_Recv (wlc_d%mc_ind, 1, MPI_integer, source, 0, &
                        MPI_COMM_WORLD, status, error )
 
         ! do replica exchange
-        do rep=1,(nPTReplicas-1)
-            energy=0.0_dp
-            do term=1,nTerms
-                energy=energy-(xMtrx(rep+1,term)-xMtrx(rep,term))*&
-                              (cofMtrx(rep+1,term)-cofMtrx(rep,term))
+        do rep = 1,(nPTReplicas-1)
+            energy = 0.0_dp
+            do term = 1,nTerms
+                energy = energy-(xMtrx(rep + 1,term)-xMtrx(rep,term))*&
+                              (cofMtrx(rep + 1,term)-cofMtrx(rep,term))
             enddo
             call random_number(urand,rand_stat)
             if (exp(-1.0_dp*energy).gt.urand(1)) then
-                if (mc%PTON) then
-                    temp=nodeNumber(rep)
-                    nodeNumber(rep)=nodeNumber(rep+1)
-                    nodeNumber(rep+1)=temp
+                if (wlc_p%PTON) then
+                    temp = nodeNumber(rep)
+                    nodeNumber(rep) = nodeNumber(rep + 1)
+                    nodeNumber(rep + 1) = temp
                 endif
-                upSuccess(rep)=upSuccess(rep)+1
-                downSuccess(rep+1)=downSuccess(rep+1)+1
-                x=xMtrx(rep,:)
-                xMtrx(rep,:)=xMtrx(rep+1,:)
-                xMtrx(rep+1,:)=x
+                upSuccess(rep) = upSuccess(rep) + 1
+                downSuccess(rep + 1) = downSuccess(rep + 1) + 1
+                x = xMtrx(rep,:)
+                xMtrx(rep,:) = xMtrx(rep + 1,:)
+                xMtrx(rep + 1,:) = x
             endif
         enddo
 
 
         ! track/adapt acceptance rates
-        N_average=N_average+1
-        if (N_average.ge.mc%NRepAdapt) then
+        N_average = N_average + 1
+        if (N_average.ge.wlc_p%NRepAdapt) then
             call save_repHistory(upSuccess,downSuccess,nPTReplicas, &
                                  cofMtrx,xMtrx,nodeNumber,N_average,&
-                                 nExchange,md%mc_ind,nTerms,s_vals)
+                                 nExchange,wlc_d%mc_ind,nTerms,s_vals)
 
-            if ((md%mc_ind.ge.mc%indStartRepAdapt).and. &
-                (md%mc_ind.lt.mc%indendRepAdapt)) then ! insert input defined location here
+            if ((wlc_d%mc_ind.ge.wlc_p%indStartRepAdapt).and. &
+                (wlc_d%mc_ind.lt.wlc_p%indendRepAdapt)) then ! insert input defined location here
                 call adaptCof(downSuccess,nPTReplicas,s_vals,N_average,&
-                               mc%lowerRepExe,mc%upperRepExe,&
-                               mc%lowerCofRail,mc%upperCofRail,&
-                               mc%RepAnnealSpeed,mc%replicaBounds)
-                do rep=1,nPTReplicas
-                    if (mc%PT_chi) then
-                        cofMtrx(rep,1)=chi_path(s_vals(rep))
+                               wlc_p%lowerRepExe,wlc_p%upperRepExe,&
+                               wlc_p%lowerCofRail,wlc_p%upperCofRail,&
+                               wlc_p%RepAnnealSpeed,wlc_p%replicaBounds)
+                do rep = 1,nPTReplicas
+                    if (wlc_p%PT_chi) then
+                        cofMtrx(rep,1) = chi_path(s_vals(rep))
                     endif
-                    if (mc%PT_mu) then
-                        cofMtrx(rep,2)=mu_path(s_vals(rep))
+                    if (wlc_p%PT_mu) then
+                        cofMtrx(rep,2) = mu_path(s_vals(rep))
                     endif
-                    if (mc%PT_h) then
-                        cofMtrx(rep,3)=h_path(s_vals(rep))
+                    if (wlc_p%PT_h) then
+                        cofMtrx(rep,3) = h_path(s_vals(rep))
                     endif
-                    if (mc%PT_couple) then
-                        cofMtrx(rep,4)=HP1_Bind_path(s_vals(rep))
+                    if (wlc_p%PT_couple) then
+                        cofMtrx(rep,4) = HP1_Bind_path(s_vals(rep))
                     endif
-                    if (mc%PT_Kap) then
-                        cofMtrx(rep,5)=kap_path(s_vals(rep))
+                    if (wlc_p%PT_Kap) then
+                        cofMtrx(rep,5) = kap_path(s_vals(rep))
                     endif
                 enddo
             endif
-            N_average=0
-            do rep=1,nPTReplicas
-                upSuccess(rep)=0
-                downSuccess(rep)=0
+            N_average = 0
+            do rep = 1,nPTReplicas
+                upSuccess(rep) = 0
+                downSuccess(rep) = 0
             enddo
         endif
-        nExchange=nExchange+1
+        nExchange = nExchange + 1
     enddo
 
     deallocate(xMtrx)
@@ -253,14 +253,14 @@ function chi_path(s) result(chi)
     real(dp) chi
     real(dp) chi_max
     if (.false.) then
-        chi_max=2.00_dp
+        chi_max = 2.00_dp
         if (s.lt.0.5_dp) then
-            chi=0.0_dp
+            chi = 0.0_dp
         else
-            chi=chi_max*2.0_dp*(s-0.5_dp)
+            chi = chi_max*2.0_dp*(s-0.5_dp)
         endif
     else
-        chi=s
+        chi = s
     endif
 end function chi_path
 function h_path(s) result(h)
@@ -270,14 +270,14 @@ function h_path(s) result(h)
     real(dp) h
     real(dp) h_max
     if (.false.) then
-        h_max=10.0_dp
+        h_max = 10.0_dp
         if (s.lt.0.5_dp) then
-             h=h_max*s*2.0_dp
+             h = h_max*s*2.0_dp
         else
-             h=h_max*(1.0_dp-s)*2.0_dp
+             h = h_max*(1.0_dp-s)*2.0_dp
         endif
     else
-        h=0.0_dp
+        h = 0.0_dp
     endif
 end function h_path
 function mu_path(s) result(mu)
@@ -285,44 +285,44 @@ function mu_path(s) result(mu)
     implicit none
     real(dp), intent(in) :: s
     real(dp) mu
-    mu=s
+    mu = s
 end function mu_path
 function kap_path(s) result(kap)
     use params, only: dp
     implicit none
     real(dp), intent(in) :: s
     real(dp) kap
-    kap=s*10.0_dp
+    kap = s*10.0_dp
 end function kap_path
 function hp1_bind_path(s) result(hp1_bind)
     use params, only: dp
     implicit none
     real(dp), intent(in) :: s
     real(dp) hp1_bind
-    hp1_bind=s
+    hp1_bind = s
 end function hp1_bind_path
 
 #if MPI_VERSION
-subroutine worker_node(mc,md)
+subroutine worker_node(wlc_p, wlc_d)
     use mpi
     use params
     use mersenne_twister
     integer ( kind = 4 ), save :: id = -1     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    type(wlcsim_params), intent(inout) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
     type(random_stat) rand_stat  ! state of random number chain
 
     logical system_has_been_changed
-    system_has_been_changed=.False.
+    system_has_been_changed = .False.
     if (id == -1) then
         call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
     endif
-    if (md%mc_ind==1) then
-        if (mc%PT_chi .or. mc%PT_h .or. mc%PT_kap .or. mc%PT_mu .or. mc%PT_couple) then
-            call startWorker(mc,md)
+    if (wlc_d%mc_ind == 1) then
+        if (wlc_p%PT_chi .or. wlc_p%PT_h .or. wlc_p%PT_kap .or. wlc_p%PT_mu .or. wlc_p%PT_couple) then
+            call startWorker(wlc_p, wlc_d)
         endif
     endif
 
@@ -332,61 +332,61 @@ subroutine worker_node(mc,md)
     !
     !  --------------------------------
 
-    if (md%mc_ind.LE.mc%NNOINT) then
-        mc%field_int_on=.false.
+    if (wlc_d%mc_ind <= wlc_p%NNOinT) then
+        wlc_p%field_int_on = .false.
     else
-        if (.not.mc%field_int_on)  system_has_been_changed=.TRUE.
-        mc%field_int_on=.true.
+        if (.not.wlc_p%field_int_on)  system_has_been_changed = .TRUE.
+        wlc_p%field_int_on = .true.
     endif
-    if(md%mc_ind.lt.mc%N_KAP_ON) then
-        mc%KAP_ON=0.0_dp
+    if(wlc_d%mc_ind.lt.wlc_p%N_KAP_ON) then
+        wlc_p%KAP_ON = 0.0_dp
     else
-        if (mc%KAP_ON.eq.0.0_dp) system_has_been_changed=.TRUE.
-        mc%KAP_ON=1.0_dp
-    endif
-
-    if(md%mc_ind.lt.mc%N_CHI_ON) then
-        mc%CHI_ON=0.0_dp
-    else
-        if (mc%CHI_ON.eq.0.0_dp) system_has_been_changed=.TRUE.
-        mc%CHI_ON=1.0_dp
+        if (wlc_p%KAP_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        wlc_p%KAP_ON = 1.0_dp
     endif
 
-    if ((md%mc_ind.gt.mc%indStartRepAdapt).and. &
-        (md%mc_ind.le.mc%indendRepAdapt)) then ! addapt Cof was run
-        system_has_been_changed=.TRUE.
+    if(wlc_d%mc_ind.lt.wlc_p%N_CHI_ON) then
+        wlc_p%CHI_ON = 0.0_dp
+    else
+        if (wlc_p%CHI_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        wlc_p%CHI_ON = 1.0_dp
+    endif
+
+    if ((wlc_d%mc_ind.gt.wlc_p%indStartRepAdapt).and. &
+        (wlc_d%mc_ind.le.wlc_p%indendRepAdapt)) then ! addapt Cof was run
+        system_has_been_changed = .TRUE.
     endif
 
     if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(mc,md)
-        if (mc%field_int_on) then
-            md%ECouple =md%dECouple
-            md%EKap    =md%dEKap
-            md%ECHI    =md%dECHI
-            md%EField  =md%dEField
-            md%x_Field =md%dx_Field
-            md%x_couple=md%dx_couple
-            md%x_Kap   =md%dx_Kap
-            md%x_Chi   =md%dx_Chi
+        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        if (wlc_p%field_int_on) then
+            wlc_d%ECouple =wlc_d%dECouple
+            wlc_d%EKap    =wlc_d%dEKap
+            wlc_d%ECHI    =wlc_d%dECHI
+            wlc_d%EField  =wlc_d%dEField
+            wlc_d%x_Field =wlc_d%dx_Field
+            wlc_d%x_couple = wlc_d%dx_couple
+            wlc_d%x_Kap   =wlc_d%dx_Kap
+            wlc_d%x_Chi   =wlc_d%dx_Chi
         else
-            md%ECouple =0.0_dp
-            md%EKap    =0.0_dp
-            md%ECHI    =0.0_dp
-            md%EField  =0.0_dp
-            md%x_Field =0.0_dp
-            md%x_couple=0.0_dp
-            md%x_Kap   =0.0_dp
-            md%x_Chi   =0.0_dp
+            wlc_d%ECouple =0.0_dp
+            wlc_d%EKap    =0.0_dp
+            wlc_d%ECHI    =0.0_dp
+            wlc_d%EField  =0.0_dp
+            wlc_d%x_Field =0.0_dp
+            wlc_d%x_couple = 0.0_dp
+            wlc_d%x_Kap   =0.0_dp
+            wlc_d%x_Chi   =0.0_dp
         endif
-        if (mc%bind_On) then
-            md%ebind   =md%debind
-            md%x_mu    =md%dx_mu
+        if (wlc_p%bind_On) then
+            wlc_d%ebind   =wlc_d%debind
+            wlc_d%x_mu    =wlc_d%dx_mu
         else
-            md%ebind   =0.0_dp
-            md%x_mu    =0.0_dp
+            wlc_d%ebind   =0.0_dp
+            wlc_d%x_mu    =0.0_dp
         endif
     else
-        call VerifyEnergiesFromScratch(mc, md)
+        call VerifyEnergiesFromScratch(wlc_p, md)
     endif
 
     ! ------------------------------
@@ -395,23 +395,23 @@ subroutine worker_node(mc,md)
     !
     !  --------------------------------
 
-    do i=1,mc%nReplicaExchangePerSavePoint
+    do i = 1,wlc_p%nReplicaExchangePerSavePoint
 
         !   * Perform a MC simulation *
-        call MCsim(mc,md,mc%stepsPerExchange)
+        call MCsim(wlc_p, wlc_d,wlc_p%stepsPerExchange)
 
         !   * Replica Exchange *
-        call replicaExchange(mc)
+        call replicaExchange(wlc_p)
 
     enddo
 end subroutine worker_node
 #endif
 
-subroutine onlyNode(mc,md)
+subroutine onlyNode(wlc_p, wlc_d)
     use params
-    type(wlcsim_params), intent(inout) :: mc
-    type(wlcsim_data), intent(inout) :: md
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
     !   * Perform a MC simulation *
-    call VerifyEnergiesFromScratch(mc, md)
-    call MCsim(mc,md,mc%nReplicaExchangePerSavePoint*mc%stepsPerExchange)
+    call VerifyEnergiesFromScratch(wlc_p, md)
+    call MCsim(wlc_p, wlc_d,wlc_p%nReplicaExchangePerSavePoint*wlc_p%stepsPerExchange)
 end subroutine onlyNode

@@ -26,96 +26,96 @@ subroutine get_derived_parameters(wlc_p)
     !Calculate total number of beads
     wlc_p%nT = wlc_p%nB*wlc_p%nP
 
-    if (wlc_p%NB.EQ.1.0d0) then
+    if (wlc_p%NB == 1.0d0) then
         ! since we use "DEL" as an intermediate, we need at least two beads
-        PRINT*, 'Some intermediate calculations used require at least two beads, 1 requested.'
+        PRinT*, 'Some intermediate calculations used require at least two beads, 1 requested.'
         STOP 1
     endif
 
     ! calculate metrics that don't change between WLC, ssWLC, GC
-    IF (wlc_p%RING) THEN
-        wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB)
-    ELSE
-        wlc_p%DEL=wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
-    ENDIF
+    if (wlc_p%RinG) then
+        wlc_p%DEL = wlc_p%L/wlc_p%LP/(wlc_p%NB)
+    else
+        wlc_p%DEL = wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
+    ENDif
     ! std dev of interbead distribution of GC, used to initialize
-    wlc_p%SIGMA=sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
+    wlc_p%SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
 
 !     Load the tabulated parameters
 
-    OPEN (UNIT=5,FILE='input/dssWLCparams',STATUS='OLD')
-    DO I=1,679
+    open (UNIT = 5,FILE = 'input/dssWLCparams',STATUS = 'OLD')
+    do I = 1,679
         READ(5,*) PVEC(I,1),PVEC(I,2),PVEC(I,3),PVEC(I,4),PVEC(I,5),PVEC(I,6),PVEC(I,7),PVEC(I,8)
-    ENDDO
+    ENDdo
     CLOSE(5)
 
 
 !     Setup the parameters for WLC simulation
 
     ! if del < 0.01
-    if (wlc_p%DEL.LT.PVEC(1,1)) then
-        PRINT*, 'It has never been known if the WLC code actually works.'
-        PRINT*, 'An entire summer student (Luis Nieves) was thrown at this'
-        PRINT*, 'problem and it is still not solved.'
+    if (wlc_p%DEL < PVEC(1,1)) then
+        PRinT*, 'It has never been known if the WLC code actually works.'
+        PRinT*, 'An entire summer student (Luis Nieves) was thrown at this'
+        PRinT*, 'problem and it is still not solved.'
         stop 1
-        wlc_p%EB=wlc_p%LP/wlc_p%DEL
-        wlc_p%GAM=wlc_p%DEL
-        wlc_p%XIR=wlc_p%L/wlc_p%LP/wlc_p%NB
-        wlc_p%SIMTYPE=1
+        wlc_p%EB = wlc_p%LP/wlc_p%DEL
+        wlc_p%GAM = wlc_p%DEL
+        wlc_p%XIR = wlc_p%L/wlc_p%LP/wlc_p%NB
+        wlc_p%SIMTYPE = 1
 
 !    Setup the parameters for GC simulation
 
     ! if del > 10
-    elseif (wlc_p%DEL.GT.PVEC(679,1)) then
-        wlc_p%EPAR=1.5/wlc_p%DEL
-        wlc_p%GAM=0.0_dp
-        wlc_p%SIMTYPE=3
-        wlc_p%XIR=wlc_p%L/wlc_p%NB/wlc_p%LP
+    elseif (wlc_p%DEL > PVEC(679,1)) then
+        wlc_p%EPAR = 1.5/wlc_p%DEL
+        wlc_p%GAM = 0.0_dp
+        wlc_p%SIMTYPE = 3
+        wlc_p%XIR = wlc_p%L/wlc_p%NB/wlc_p%LP
 
 !    Setup the parameters for ssWLC simulation
     ! if 0.01 <= del <= 10
-    else !  if (DEL.GE.PVEC(1,1).AND.DEL.LE.PVEC(679,1)) then
-        wlc_p%SIMTYPE=2
+    else !  if (DEL >= PVEC(1,1).AND.DEL <= PVEC(679,1)) then
+        wlc_p%SIMTYPE = 2
 
     ! find(del < pvec, 1, 'first')
-    IND=1
-    do while (wlc_p%DEL.GT.PVEC(IND,1))
-        IND=IND+1
+    inD = 1
+    do while (wlc_p%DEL > PVEC(inD,1))
+        inD = inD + 1
     enddo
 
     !     Perform linear interpolations
-    I=2
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%EB=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 2
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%EB = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    I=3
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%GAM=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 3
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%GAM = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    I=4
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%EPAR=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 4
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%EPAR = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    I=5
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%EPERP=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 5
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%EPERP = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    I=6
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%ETA=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 6
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%ETA = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    I=7
-    M=(PVEC(IND,I)-PVEC(IND-1,I))/(PVEC(IND,1)-PVEC(IND-1,1))
-    wlc_p%XIU=M*(wlc_p%DEL-PVEC(IND,1))+PVEC(IND,I)
+    I = 7
+    M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+    wlc_p%XIU = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
-    wlc_p%EB=wlc_p%LP*wlc_p%EB/(wlc_p%DEL*wlc_p%LP)
-    wlc_p%EPAR=wlc_p%EPAR/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
-    wlc_p%EPERP=wlc_p%EPERP/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
-    wlc_p%GAM=wlc_p%DEL*wlc_p%LP*wlc_p%GAM
-    wlc_p%ETA=wlc_p%ETA/wlc_p%LP
-    wlc_p%XIU=wlc_p%XIU*wlc_p%L/wlc_p%NB/wlc_p%LP
-    wlc_p%XIR=wlc_p%L/wlc_p%LP/wlc_p%NB
-    wlc_p%DT=0.5*wlc_p%XIU/(wlc_p%EPERP*wlc_p%GAM**2.)
+    wlc_p%EB = wlc_p%LP*wlc_p%EB/(wlc_p%DEL*wlc_p%LP)
+    wlc_p%EPAR = wlc_p%EPAR/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+    wlc_p%EPERP = wlc_p%EPERP/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+    wlc_p%GAM = wlc_p%DEL*wlc_p%LP*wlc_p%GAM
+    wlc_p%ETA = wlc_p%ETA/wlc_p%LP
+    wlc_p%XIU = wlc_p%XIU*wlc_p%L/wlc_p%NB/wlc_p%LP
+    wlc_p%XIR = wlc_p%L/wlc_p%LP/wlc_p%NB
+    wlc_p%DT = 0.5*wlc_p%XIU/(wlc_p%EPERP*wlc_p%GAM**2.)
 
     wlc_p%L0 = wlc_p%GAM
     endif

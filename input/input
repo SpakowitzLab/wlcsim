@@ -1,18 +1,25 @@
 # ----------------------------------------------------
 # Example input file for polymer simulation package.
 # Used by Bruno for calculating collision time distributions.
+#
+# Comment lines must start with a ``#''.
+#
+# All other lines must be of the form
+# "paramName paramValue"
+# where paramValue is parsed directly into its target
+# datatype by Fortran, and so care must be taken to match
+# the expected input format for the relevant type. e.g. 5/2
+# will not work for 2.5. e.g. 3.0 will error if an int is
+# expected.
 
 # simulation type to use: 2 aka Bruno's aka BD
-codeName quinn
+codeName bruno
 
 # Persistence length # of DNA in same units as L
 LP 1.0
 
 # chain length, set length unit
-L 1000.0
-
-# Box edge length - for MC box sizes
-LBOX 10.
+L 250.0
 
 # Include polymer interactions? - space exlusion
 interpBeadLennardJones 0
@@ -24,8 +31,8 @@ VHC 0.
 # hard-core int radius between beads (lennard jones)
 LHC 0.
 
-# Number of beads. 100 beads/lp is max allowed
-NB 1000
+# Number of beads
+NB 501
 
 # Number of polymers - won't interact unless interaction code added
 NP 1
@@ -34,15 +41,44 @@ NP 1
 numSavePoints 1000
 
 # time steps between save points
-stepsPerSave 10000
+stepsPerSave 1000
+
+# timestep for integration, set time units
+DT 0.1
 
 # Load in the inital conf? - otherwise initialize using MC
 frmFile 0
 
-# if not loading in initial conf, how to initialize chain positions
+# number of MC steps to run starting in the configuration dictated by
+# initCondType before starting actual BD simulations.
+# Ballpark is something like 1000s times #polymers,
+# e.g. 40beads@rigid@2000poly => 4e6
+# Quinn has a there's a script to check if you're OK by comparing
+# end-to-end distribution with analytical results.
+nInitMCSteps    1000
+
+# Box edge length - for initialization MC box sizes
+# initialization using MC not currently tested.
+LBOX 10.
+
+# which algorithm to use to initialize bead positions before initialization
+# monte carlo. 7 -> directly sample analogous gaussian chain
 initCondType 7
+
+# l1 distance triggering a "collision" between beads
+collisionRadius        0.1
+
+# Algorithm for collision detection: 0) NONE 1) brute force, 2) k-d tree,
+# 3) Bruno's O(n) v1, 4) bin-based detection, recentering using center of mass
+collisionDetectionType        3
+
+# number of bins in each dimension to use in collision checker. only used if COL_TYPE == 4
+nColBin        5
 
 # Whether to save the positions/momentums at each time point, or only most
 # recent time point
 saveR 1
-saveU 0
+saveU 1
+
+# Whether to terminate simulation when all collisions finish
+exitWhenCollided 1

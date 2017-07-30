@@ -7,17 +7,17 @@
 ! Andrew Spakowitz
 ! Written 9-1-04
 
-      SUBROUTINE MINV(A,B,DET)
+      subroutine MinV(A,B,DET)
 
-      DOUBLE PRECISION A(3,3)        ! Original matrix
-      DOUBLE PRECISION B(3,3)        ! Inverse matrix
-      DOUBLE PRECISION DET        ! Determinant
-      DOUBLE PRECISION COA(3,3)        ! Cofactor of A
+      real(dp) A(3,3)        ! Original matrix
+      real(dp) B(3,3)        ! Inverse matrix
+      real(dp) DET        ! Determinant
+      real(dp) COA(3,3)        ! Cofactor of A
 
 
 ! First find the determinant
 
-      DET = A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2))+A(1,2)*(A(2,3)*A(3,1)-A(2,1)*A(3,3))+A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1))
+      DET = A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2)) + A(1,2)*(A(2,3)*A(3,1)-A(2,1)*A(3,3)) + A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1))
 
 ! Find the Cofactor of A
 

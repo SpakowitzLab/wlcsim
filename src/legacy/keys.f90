@@ -1,84 +1,84 @@
-MODULE KEYS
+module KEYS
   ! keyword parameters that are globally used in many different places in the code
-  IMPLICIT NONE
+  implicit none
 
    ! -------- Other ---------------
   CHARACTER*100 :: ACTION
-  INTEGER :: RNGSEED
+  integer :: RNGSEED
   LOGICAL :: VERBOSE
 
   ! ----------------------
   ! chain geometry and energetics
   ! ---------------------
-  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FINITEXT, USESTERICS
-  DOUBLE PRECISION :: LP, LS, EC, EPERP, EPAR, GAM, FINITSHEAR, CONSTMOD,STERRAD
-  INTEGER :: STARTNPT, MAXNPT,STERSKIP
-  DOUBLE PRECISION :: STERMOD
-  INTEGER :: NEDGESEG
-  DOUBLE PRECISION :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC
+  LOGICAL :: SHEARABLE, STRETCHABLE, COUPLED, FinITEXT, useSTERICS
+  real(dp) :: LP, LS, EC, EPERP, EPAR, GAM, FinITSHEAR, CONSTMOD,STERRAD
+  integer :: STARTNPT, MAXNPT,STERSKIP
+  real(dp) :: STERMOD
+  integer :: NEDGESEG
+  real(dp) :: EDGELS, EDGELP, EDGEGAM, EDGEEPAR, EDGEEPERP,EDGEEC
 
 
   ! --------- Output / input-------------
-  CHARACTER*100 :: OUTFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE
+  CHARACTER*100 :: outFILE, SNAPSHOTFILE, RESTARTFILE, STRESSFILE
   LOGICAL :: DUMPSNAPSHOTS, RESTART, APPENDSNAPSHOTS, STARTEQUIL
-  INTEGER :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE
+  integer :: SNAPSHOTEVERY, SKIPREAD, EQUILSAMPLETYPE
   LOGICAL :: EQUILBEADROD, PARAMFROMSNAPSHOT
-  DOUBLE PRECISION :: STARTEQUILLP
+  real(dp) :: STARTEQUILLP
 
   ! Monte Carlo
-  INTEGER :: MCPRINTFREQ, MCTOTSTEPS, MCINITSTEPS, MCSTATSTEPS,MCOUTPUTFREQ, ADJUSTEVERY
-  DOUBLE PRECISION :: FACCTARGET, FACCTOL, ADJUSTSCL, INITRANGE(4)
-  LOGICAL :: DOREDISC, OUTPUTBEADWEIGHT
-  DOUBLE PRECISION :: MINSEGLEN, MAXSEGLEN
-  INTEGER :: INTUWEIGHTNPT, INTRWEIGHTNPT
+  integer :: MCPRinTFREQ, MCTOTSTEPS, MCinITSTEPS, MCSTATSTEPS,MCoutPUTFREQ, ADJUSTEVERY
+  real(dp) :: FACCTARGET, FACCTOL, ADJUSTSCL, inITRANGE(4)
+  LOGICAL :: doREDISC, outPUTBEADWEIGHT
+  real(dp) :: MinSEGLEN, MAXSEGLEN
+  integer :: inTUWEIGHTNPT, inTRWEIGHTNPT
 
   ! brownian dynamics
-  DOUBLE PRECISION :: FRICTR, FRICTU, DELTSCL
+  real(dp) :: FRICTR, FRICTU, DELTSCL
   LOGICAL :: FRICTPERLEN
-  INTEGER :: BDSTEPS, RUNGEKUTTA
+  integer :: BDSTEPS, RUNGEKUTTA
   LOGICAL :: LOGRTERM,FIXBEAD1,FIXBEADMID
-  DOUBLE PRECISION :: BDPRINTEVERY
-  LOGICAL :: BDPRINTLOG, GAUSSIANCHAIN, USEBDENERGY, DOBROWN, USEPSEUDOFORCE
-  DOUBLE PRECISION :: BRCRELAX
-  LOGICAL :: TRACKLOOPING
+  real(dp) :: BDPRinTEVERY
+  LOGICAL :: BDPRinTLOG, GAUSSIANCHAin, useBDENERGY, doBROWN, usePSEUdoforCE
+  real(dp) :: BRCRELAX
+  LOGICAL :: TRACKLOOPinG
   CHARACTER*100 :: LOOPFILE
-  DOUBLE PRECISION :: LOOPRAD
+  real(dp) :: LOOPRAD
 
   ! obstacles
-  DOUBLE PRECISION :: RADOB, MODOB, FRICTOB
+  real(dp) :: RAdoB, MOdoB, FRICTOB
 
-  double precision :: mu
+  real(dp) :: mu
 
   ! ------------ groups of chains ------------
-  INTEGER :: NFORCE, NCONNECT, NCHAIN
-  INTEGER, PARAMETER :: MAXNFORCE=100
-  INTEGER, PARAMETER :: MAXNCONNECT = 1000
-  DOUBLE PRECISION :: FORCE(MAXNFORCE,3)
-  INTEGER :: FORCEBEAD(MAXNFORCE,2)
-  INTEGER :: CONNECTIONS(MAXNCONNECT,4)
+  integer :: NforCE, NCONNECT, NCHAin
+  integer, PARAMETER :: MAXNforCE = 100
+  integer, PARAMETER :: MAXNCONNECT = 1000
+  real(dp) :: forCE(MAXNforCE,3)
+  integer :: forCEBEAD(MAXNforCE,2)
+  integer :: CONNECTIONS(MAXNCONNECT,4)
   LOGICAL :: CONNECTPOS, CONNECTUVEC, SQUARELATTICE, FIXCONNECT
-  DOUBLE PRECISION :: CONPOSMOD, CONUVECMOD
-  INTEGER :: TRACKDIST(4) ! track distance between which two points (bead&chain)?
+  real(dp) :: CONPOSMOD, CONUVECMOD
+  integer :: TRACKDIST(4) ! track distance between which two points (bead&chain)?
 
   LOGICAL :: DIAMONDLATTICE ! set up a diamon lattice
-  INTEGER :: NDIAMOND(2) ! number of diamonds across and down
-  DOUBLE PRECISION :: WIDTHDIAMOND ! Width of each diamond initially
-  INTEGER :: LENDIAMOND ! number of chain segments along diamond side
+  integer :: NDIAMOND(2) ! number of diamonds across and down
+  real(dp) :: WIDTHDIAMOND ! Width of each diamond initially
+  integer :: LENDIAMOND ! number of chain segments along diamond side
 
   ! for each fixed bead list: bead, chain, fix position, fix orientation
   ! (0 for not, >0 for yes)
-  INTEGER, PARAMETER :: MAXFIXBEAD = 100
-  INTEGER :: NFIXBEAD
-  INTEGER :: FIXBEAD(MAXFIXBEAD,4)
+  integer, PARAMETER :: MAXFIXBEAD = 100
+  integer :: NFIXBEAD
+  integer :: FIXBEAD(MAXFIXBEAD,4)
   ! fix all bead positions for top/bottom and or side boundaries
   ! 1) top/bottom fixed 2) sides fixed
   ! 3) fix positions 4) fix orientations
   LOGICAL :: FIXBOUNDARY(4)
   ! force a shear deformation
   LOGICAL :: SETSHEAR
-  DOUBLE PRECISION :: SHEARGAMMA
+  real(dp) :: SHEARGAMMA
   ! start with collapsed structure
   LOGICAL :: STARTCOLLAPSE
 
-  LOGICAL :: DOLOCALMOVES
-END MODULE KEYS
+  LOGICAL :: doLOCALMOVES
+END module KEYS
