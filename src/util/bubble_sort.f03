@@ -3,7 +3,7 @@
 
 subroutine bubble_sort(A,N,M,isort)
   use params, only : dp
-
+  implicit none
   integer N !Number of rows
   integer M !Number of columns
   real(dp) A(N,M)
@@ -22,4 +22,3 @@ subroutine bubble_sort(A,N,M,isort)
 
   RETURN
 ENDsubroutine bubble_sort
-

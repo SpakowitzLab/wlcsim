@@ -11,7 +11,7 @@
 
       subroutine MC_ex(DEEX,R,NT,N,DR,I,RAD,VCAP)
       use params, only : dp
-
+      implicit none     
       real(dp) R(NT,3)        ! Bead positions
       real(dp) DR(3)        ! Change in bead position
       real(dp) RMAG,RMAGD    ! Dist from origin

@@ -1,9 +1,8 @@
-!---------------------------------------------------------------*
+!--------------------------------------------------------------*
 
       subroutine BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
            inTON,IDUM,PARA,SIMTYPE,COLLISION_TIME,COL_DIST, &
            COL_TYPE)
-
 !
 !     External subroutine to perform a Brownian dynamics simulation.
 !
@@ -12,7 +11,7 @@
 
       use mt19937, only : rnorm
       use params, only : dp
-
+      implicit none
       real(dp) R(NT,3)  ! Bead positions
       real(dp) U(NT,3)  ! Tangent vectors
       real(dp) TIME     ! Time of BD simulation

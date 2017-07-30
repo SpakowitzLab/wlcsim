@@ -9,9 +9,9 @@
 !     Written 9-1-04
 
       subroutine stress(SIG,R,U,NT,N,NP,PARA,inTON,SIMTYPE)
-
+    
       use params, only : dp
-
+      implicit none
       real(dp) FELAS(NT,3) ! Elastic force
       real(dp) FPONP(NT,3) ! Self-interaction force
       real(dp) TELAS(NT,3) ! Elastic force

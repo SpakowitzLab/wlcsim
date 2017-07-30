@@ -14,7 +14,7 @@
 
       subroutine MC_self(DESELF,R,U,RP,UP,NT,N,NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
       use params, only : dp
-
+      implicit none
       real(dp) R(NT,3)  ! Bead positions
       real(dp) U(NT,3)  ! Tangent vectors
       real(dp) RP(NT,3)  ! Bead positions
@@ -28,7 +28,7 @@
       real(dp) R12(3),D12,E12(3)
       real(dp) S1,S2
       real(dp) GI(3)
-      integer I1,J1,I2,J2
+      integer I1,J1,I2,J2,IP,IT1,IT2
       integer IMin,IMAX
       integer IB1,IB2
       integer inD1,inD2

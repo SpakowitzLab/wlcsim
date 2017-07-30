@@ -97,7 +97,8 @@ end
 subroutine check_collisions_brute(r, nt, col_time, col_dist, &
         time)
     use params, only : dp
-    integer nt
+    implicit none
+    integer nt,k1,k2
     real(dp) col_dist, time
     real(dp) r(nt,3), col_time(nt, nt)
     !     check if the particles have collided
@@ -117,7 +118,7 @@ subroutine check_collisions_kd(r, nt, col_time, col_dist, time)
     use kdtree2_module, only : kdtree2, kdtree2_result, kdtree2_create, &
                                 kdtree2_r_nearest_around_point
     use params, only : dp
-
+    implicit none
     integer nt, nfound, nalloc, k1, k2, i
     real(dp) col_dist, time
     real(dp) r(nt,3), col_time(nt, nt)
@@ -294,7 +295,8 @@ subroutine check_collisions_bin(r, nt, col_time, col_dist, &
         time)
 !TODO actually implement this function. copy/pasta of _brute for now
     use params, only : dp
-    integer nt
+    implicit none
+    integer nt,k1,k2
     real(dp) col_dist, time
     real(dp) r(nt,3), col_time(nt, nt)
     !     check if the particles have collided
@@ -309,4 +311,3 @@ subroutine check_collisions_bin(r, nt, col_time, col_dist, &
         end do
     end do
 end
-
