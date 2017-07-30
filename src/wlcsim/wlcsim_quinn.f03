@@ -406,7 +406,7 @@ subroutine worker_node(wlc_p, wlc_d)
         call MCsim(wlc_p, wlc_d,wlc_p%stepsPerExchange)
 
         !   * Replica Exchange *
-        call replicaExchange(wlc_p)
+        call replicaExchange(wlc_p,wlc_d)
 
     enddo
 end subroutine worker_node

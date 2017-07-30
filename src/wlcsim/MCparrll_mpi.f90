@@ -12,15 +12,15 @@ use mpi
     type(wlcsim_data), intent(inout) :: wlc_d
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
-    integer (kind = 4) id, nThreads,ierror
+    integer (kind = 4) id, nThreads
     integer (kind = 4) error  ! error id for MIP functions
     character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     integer, parameter :: nTerms = 8  ! number of energy terms
     real(dp) cof(nTerms)
 
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
-    call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,id,error)
     if (wlc_d%id .ne. id) then
         print*, "ID mismatch in PT_override!"
         stop
@@ -100,7 +100,7 @@ use params
 use mpi
     implicit none
     integer, parameter :: nTerms = 8  ! number of energy terms
-    integer (kind = 4) id, ierror
+    integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
     integer i  ! working intiger
@@ -115,7 +115,7 @@ use mpi
     real(dp) test(5)
     logical isfile
 
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     if (nThreads.lt.3) return
 
     x(1) = wlc_d%x_Chi
@@ -160,20 +160,20 @@ use mpi
 
     ! send number bound to head node
     dest = 0
-    call MPI_Send(x,nTerms,MPI_doUBLE_PRECISION,dest,0,MPI_COMM_WORLD,ierror)
-    call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
+    call MPI_Send(x,nTerms,MPI_doUBLE_PRECISION,dest,0,MPI_COMM_WORLD,error)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,id,error)
     ! send ind to head node
     if (id.eq.1) then
-        call MPI_Send(wlc_d%mc_ind,1,MPI_integer,dest,0,MPI_COMM_WORLD,ierror)
+        call MPI_Send(wlc_d%mc_ind,1,MPI_integer,dest,0,MPI_COMM_WORLD,error)
     endif
     ! hear back on which replica and it's mu value
     source = 0
     ! get new replica number
     call MPI_Recv(wlc_d%rep,1,MPI_integer,source,0, &
-                  MPI_COMM_WORLD,status,ierror)
+                  MPI_COMM_WORLD,status,error)
     ! get new mu value
     call MPI_Recv(cof,nTerms,MPI_doUBLE_PRECISION,source,0,&
-                  MPI_COMM_WORLD,status,ierror)
+                  MPI_COMM_WORLD,status,error)
 
     wlc_p%chi      =cof(1)
     wlc_p%mu       =cof(2)
