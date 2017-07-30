@@ -465,7 +465,7 @@ contains
         select case(WORD) ! pick which keyword, case matchign string must be all uppercase
         case('CODENAME') ! select version of wlcsim to run
             call readA(wlc_p%codeName)
-        case('inITCONDTYPE')
+        case('INITCONDTYPE')
             call readI(wlc_p%initCondType)
             ! initCondType      |  Discription
             ! _____________|_________________________________
@@ -474,7 +474,7 @@ contains
             !    3         |   rerandomize when reaching boundary, cube boundary
             !    4         |   rerandomize when reaching boundary, shpere
             !    7         |   initialize as gaussian chain, redraw if outside bdry
-        case('CONFinETYPE')
+        case('CONFINETYPE')
             call readI(wlc_p%confinetype)
             ! confinetype  |  Discription
             ! _____________|_________________________________
@@ -497,13 +497,13 @@ contains
             call reado(wlc_p%FRMfile) ! read configuration from file
         case('TWIST')
             call reado(wlc_p%twist) ! whether to include twist energies in wlc_p
-        case('RinG')
+        case('RING')
             call reado(wlc_p%ring) ! whether polymer is a ring or not
-        case('inTERPBEADLENNARDJONES')
+        case('INTERPBEADLENNARDJONES')
             call reado(wlc_p%inTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
-        case('FIELDinTON')
+        case('FIELDINTON')
             call reado(wlc_p%field_int_on) !include field interactions
-        case('BindoN')
+        case('BINDON')
             call reado(wlc_p%bind_on) ! Whether to include a binding state model
         case('LK')
             call readi(wlc_p%lk) ! linking number
@@ -540,7 +540,7 @@ contains
             call readF(wlc_p%lt)  ! persistence length
         case('LP')
             call readF(wlc_p%lp)  ! twist persistence length
-        case('DBin')
+        case('DBIN')
             call readF(wlc_p%dbin) ! spaitial descretation length, not tested
         case('LBOX')
             call readF(wlc_p%lbox(1)) ! side length of box
@@ -552,7 +552,7 @@ contains
             call readF(wlc_p%lbox(2)) ! side length of box in y direction
         case('LBOXZ')
             call readF(wlc_p%lbox(3)) ! side length of box in z direction
-        case('NCOLBin')
+        case('NCOLBIN')
             call readI(wlc_p%nColBin) ! number of bins in each dimension
         case('NP')
             call readI(wlc_p%NP)  ! Number of polymers
@@ -560,21 +560,21 @@ contains
             call readI(wlc_p%nBpM) ! Beads per monomer
         case('NMPP')
             call readI(wlc_p%nMpP) ! Number of monomers in a polymer
-        case('NNOinT')
+        case('NNOINT')
             call readI(wlc_p%NNoInt) ! save points before turning on interaction
         case('NKAPON')
             call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
         case('NCHION')
             call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
-        case('NUMSAVEPOinTS')
+        case('NUMSAVEPOINTS')
             call readI(wlc_p%numSavePoints) ! total number of save points
-        case('NinITMCSTEPS')
+        case('NINITMCSTEPS')
             call readI(wlc_p%nInitMCSteps) ! num initial mc steps
         case('STEPSPERSAVE')
             call readI(wlc_p%stepsPerSave) ! steps per save point
         case('STEPSPEREXCHANGE')
             call readI(wlc_p%stepsPerExchange) ! number of steps between parallel tempering
-        case('NREPLICAEXCHANGEPERSAVEPOinT')
+        case('NREPLICAEXCHANGEPERSAVEPOINT')
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
         case('FPOLY')
             call readF(wlc_p%Fpoly) ! Fraction Polymer
@@ -616,31 +616,31 @@ contains
             call readI(wlc_p%MOVEON(3)) ! is Pivot move on 1/0
         case('ROTATEON')
             call readI(wlc_p%MOVEON(4)) ! is single bead rotate on 1/0
-        case('FULLCHAinROTATIONON')
+        case('FULLCHAINROTATIONON')
             call readI(wlc_p%MOVEON(5)) ! is full chain rotate on 1/0
-        case('FULLCHAinSLIDEON')
+        case('FULLCHAINSLIDEON')
             call readI(wlc_p%MOVEON(6)) ! is full chain slide on 1/0
-        case('BinDMOVEON')
+        case('BINDMOVEON')
             call readI(wlc_p%MOVEON(7)) ! is bind/unbind move on 1/0
-        case('CHAinFLIPMOVEON')
+        case('CHAINFLIPMOVEON')
             call readI(wlc_p%MOVEON(8)) ! is flip move move on 1/0
-        case('CHAinSWAPMOVEON')
+        case('CHAINSWAPMOVEON')
             call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
         case('REPTATIONMOVEON')
             call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
-        case('MinCRANKSHAFTWin')
+        case('MINCRANKSHAFTWIN')
             call readF(wlc_p%MinWindoW(1)) ! min mean window size
-        case('MinSLIDEWin')
+        case('MINSLIDEWIN')
             call readF(wlc_p%MinWindoW(2))
-        case('MinPIVOTWin')
+        case('MINPIVOTWIN')
             call readF(wlc_p%MinWindoW(3))
-        case('MinBinDWin')
+        case('MINBINDWIN')
             call readF(wlc_p%MinWindoW(7))
         case('REDUCEMOVE')
             call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
-        case('WinTYPE')
+        case('WINTYPE')
             call readI(wlc_p%winType)   ! fragment size distribution for crankshaft move
-        case('MinACCEPT')
+        case('MINACCEPT')
             call readF(wlc_p%Min_ACCEPT) ! below which moves are turned off
         case('CRANKSHAFTTARGET')
             call readF(wlc_p%winTarget(1)) ! target window size for crank shaft move
@@ -660,9 +660,9 @@ contains
             call readF(wlc_p%lowerCofRail) ! minumum acceptable Cof
         case('UPPERCOFRAIL')
             call readF(wlc_p%upperCofRail) ! maximum acceptable Cof
-        case('inDSTARTREPADAPT')
+        case('INDSTARTREPADAPT')
             call readI(wlc_p%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
-        case('inDENDREPADAPT')
+        case('INDENDREPADAPT')
             call readI(wlc_p%indendRepAdapt) ! turn off rep adapt
         case('REPANNEALSPEED')
             call readF(wlc_p%repAnnealSpeed)  ! max change in cof. every adjust
@@ -672,7 +672,7 @@ contains
             call readF(wlc_p%k_field)  ! wave mode for default field
         case('REPLICABOUNDS')
             call reado(wlc_p%replicaBounds) ! insure that 0 < s < 1
-        case('inITIALMAXS')
+        case('INITIALMAXS')
             call readF(wlc_p%inITIAL_MAX_S) ! inital s of rep with highest s
         case('PARALLELTEMPCHI')
             call reado(wlc_p%PT_chi) ! parallel temper chi
@@ -694,11 +694,11 @@ contains
             select case(WORD) ! pick which keyword
             case('RECENTER_ON')
                 call reado(wlc_p%recenter_on) ! recenter in periodic boundary
-            case('inTERP_BEAD_LENNARD_JONES')
+            case('INTERP_BEAD_LENNARD_JONES')
                 call reado(wlc_p%inTERP_BEAD_LENNARD_JONES) ! whether polymer is a ring or not
-            case('FIELD_inT_ON')
+            case('FIELD_INT_ON')
                 call reado(wlc_p%field_int_on) !include field interactions
-            case('BinD_ON')
+            case('BIND_ON')
                 call reado(wlc_p%bind_on) ! Whether to include a binding state model
             case('LK')
                 call readi(wlc_p%lk) ! linking number
@@ -740,31 +740,31 @@ contains
                 call readI(wlc_p%MOVEON(3)) ! is Pivot move on 1/0
             case('ROTATE_ON')
                 call readI(wlc_p%MOVEON(4)) ! is single bead rotate on 1/0
-            case('FULL_CHAin_ROTATION_ON')
+            case('FULL_CHAIN_ROTATION_ON')
                 call readI(wlc_p%MOVEON(5)) ! is full chain rotate on 1/0
-            case('FULL_CHAin_SLIDE_ON')
+            case('FULL_CHAIN_SLIDE_ON')
                 call readI(wlc_p%MOVEON(6)) ! is full chain slide on 1/0
-            case('BinD_MOVE_ON')
+            case('BIND_MOVE_ON')
                 call readI(wlc_p%MOVEON(7)) ! is bind/unbind move on 1/0
-            case('CHAin_FLIP_MOVE_ON')
+            case('CHAIN_FLIP_MOVE_ON')
                 call readI(wlc_p%MOVEON(8)) ! is flip move move on 1/0
-            case('CHAin_SWAP_MOVE_ON')
+            case('CHAIN_SWAP_MOVE_ON')
                 call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
             case('REPTATION_MOVE_ON')
                 call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
-            case('Min_CRANK_SHAFT_Win')
+            case('MIN_CRANK_SHAFT_WIN')
                 call readF(wlc_p%MinWindoW(1)) ! min mean window size
-            case('Min_SLIDE_Win')
+            case('MIN_SLIDE_WIN')
                 call readF(wlc_p%MinWindoW(2))
-            case('Min_PIVOT_Win')
+            case('MIN_PIVOT_WIN')
                 call readF(wlc_p%MinWindoW(3))
-            case('Min_BinD_Win')
+            case('MIN_BIND_WIN')
                 call readF(wlc_p%MinWindoW(7))
             case('REDUCE_MOVE')
                 call readI(wlc_p%reduce_move) !  only exicute unlikely movetypes every ____ cycles
-            case('Win_TYPE')
+            case('WIN_TYPE')
                 call readI(wlc_p%winType)   ! fragment size distribution for crankshaft move
-            case('Min_ACCEPT')
+            case('MIN_ACCEPT')
                 call readF(wlc_p%Min_ACCEPT) ! below which moves are turned off
             case('CRANK_SHAFT_TARGET')
                 call readF(wlc_p%winTarget(1)) ! target window size for crank shaft move
@@ -784,9 +784,9 @@ contains
                 call readF(wlc_p%lowerCofRail) ! minumum acceptable Cof
             case('UPPER_COF_RAIL')
                 call readF(wlc_p%upperCofRail) ! maximum acceptable Cof
-            case('inD_START_REP_ADAPT')
+            case('IND_START_REP_ADAPT')
                 call readI(wlc_p%indStartRepAdapt) ! ind to start rep. cof. adaptiation on
-            case('inD_END_REP_ADAPT')
+            case('IND_END_REP_ADAPT')
                 call readI(wlc_p%indendRepAdapt) ! turn off rep adapt
             case('REP_ANNEAL_SPEED')
                 call readF(wlc_p%repAnnealSpeed)  ! max change in cof. every adjust
@@ -796,7 +796,7 @@ contains
                 call readF(wlc_p%k_field)  ! wave mode for default field
             case('REPLICA_BOUNDS')
                 call reado(wlc_p%replicaBounds) ! insure that 0 < s < 1
-            case('inITIAL_MAX_S')
+            case('INITIAL_MAX_S')
                 call readF(wlc_p%inITIAL_MAX_S) ! inital s of rep with highest s
             case('PT_CHI')
                 call reado(wlc_p%PT_chi) ! parallel temper chi
