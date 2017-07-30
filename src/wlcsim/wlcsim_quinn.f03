@@ -97,7 +97,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     do rep = 1,nPTReplicas
         upSuccess(rep) = 0
         downSuccess(rep) = 0
-        s_vals(rep) = wlc_p%inITIAL_MAX_S*dble(rep)/dble(nPTReplicas)
+        s_vals(rep) = wlc_p%inITIAL_MAX_S*(dble(rep)-1.0_dp)/(dble(nPTReplicas)-1.0_dp)
     enddo
 
     ! Set initial values for parrallel tempering values
