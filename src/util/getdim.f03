@@ -5,9 +5,8 @@
 !Written 4-27-14
 
 subroutine getdim(N,NP,NT,R,RCOM,RCOMSQ,RGYRSQ,R2,R4,R6,DR)
-
   use params, only : dp
-
+  implicit none
   integer, intent(in) :: N !Number of beads per chain
   integer, intent(in) :: NP !Number of chains
   integer, intent(in) :: NT !Total number of beads

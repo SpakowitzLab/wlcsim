@@ -7,10 +7,9 @@
 !     Andrew Spakowitz
 !     Written 11-12-13
 
-      subroutine force_ponp(FPONP,R,NT,N,NP,LHC,VHC,LBOX,GAM,DT,XIR,SWDT)
-
+      subroutine force_ponp(FPONP,R,NT,N,NP,LHC,VHC,LBOX,GAM,DT,XIR,SWDT) 
       use params, only : dp
-
+      implicit none
       real(dp) R(NT,3)   ! Bead positions
       integer N,NT,NP            ! Current number of beads
       real(dp) FPONP(NT,3) ! Self-interaction force

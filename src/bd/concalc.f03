@@ -7,9 +7,8 @@
 !   Written 9-8-04
 
       subroutine concalc(R,DRDT,NT,N,NP,XI,L0,DT,RK,BROWN)
-
       use params, only : dp
-
+      implicit none
 ! Variables from the simulation
 
       real(dp) DRDT(NT,3,4)  ! Rate of change

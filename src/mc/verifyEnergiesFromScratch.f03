@@ -14,6 +14,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     integer Delta !transh
 
     if (wlc_p%bind_on) then
+        print*, 'asd'
         wlc_d%ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = wlc_p%NT
