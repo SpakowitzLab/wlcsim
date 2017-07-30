@@ -1995,6 +1995,7 @@ contains
 
     !Get Lks for parallel tempering from file
     subroutine get_LKs_from_file(wlc_d)
+    implicit none
     type(wlcsim_data), intent(inout) :: wlc_d
     integer nLKs !number of linking numbers
     integer IOstatus
