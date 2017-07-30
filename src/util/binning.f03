@@ -69,6 +69,7 @@ Module binning
 contains
 
     subroutine constructBin(bin,setBinShape,setMinXYZ,setBinSize)
+        implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: setBinShape(3)
         real(dp), intent(in) :: setBinSize(3)
@@ -82,6 +83,7 @@ contains
     end subroutine
 
     subroutine promoteBin(bin,R,NT)
+        implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
         real(dp), intent(in) :: R(NT,3)  ! locations of all beads
@@ -129,6 +131,7 @@ contains
     end subroutine
 
     recursive subroutine demote(bin)
+        implicit none
         Type(binType), intent(inout) :: bin
         integer ii
         integer numberOfMovedBeads,jj
@@ -165,6 +168,7 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
+        implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
         real(dp), intent(in) :: R(NT,3)  ! locations of all beads
@@ -213,6 +217,7 @@ contains
     end subroutine
 
     recursive subroutine countBeads(bin,numberInBin)
+        implicit none
         Type(binType), intent(in) :: bin
         integer, intent(out) :: numberInBin
         integer ii, temp
@@ -235,6 +240,7 @@ contains
     end
 
     recursive subroutine removeBead(bin,location,beadID)
+        implicit none
         Type(binType), intent(inout) :: bin
         real(dp), intent(in) :: location(3)
         integer, intent(in) :: beadID
@@ -275,6 +281,7 @@ contains
     end subroutine
 
     subroutine getBinIndex(bin,location,binIndex)
+        implicit none
         Type(binType), intent(in) :: bin
         real(dp), intent(in) :: location(3)
         integer, intent(out) :: binIndex
@@ -314,6 +321,7 @@ contains
 
     recursive subroutine findNeighbors(bin,location,radius,R,NT,&
                   maxNeighbors,neighbors,distances,nNeighbors)
+        implicit none
         Type(binType), intent(in) :: bin
         real(dp), intent(in) :: location(3) !
         real(dp), intent(in) :: radius ! cuttoff on interaction distance

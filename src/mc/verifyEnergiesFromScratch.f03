@@ -14,9 +14,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     integer Delta !transh
 
     if (wlc_p%bind_on) then
-        do I = 1,wlc_p%NBin
-            wlc_d%ABP(i) = 0 ! set entire array to zero
-        enddo
+        wlc_d%ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = wlc_p%NT
         call MC_bind(wlc_p%NT,wlc_p%nBpM,IT1,IT2,wlc_d%ABP,wlc_d%AB,wlc_d%METH, &

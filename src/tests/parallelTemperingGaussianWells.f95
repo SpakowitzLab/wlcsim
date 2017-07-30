@@ -4,8 +4,8 @@ use mersenne_twister
 use params
 implicit none
 type(random_stat), intent(inout) :: rand_stat ! state of random number generator
-Type(wlcsim_params) mc
-TYPE(MCData) md
+Type(wlcsim_params) wlc_p
+TYPE(MCData) wlc_d
 real(dp) r(8)
 real(dp) rp(8)
 integer term
@@ -19,8 +19,8 @@ real(dp) chiOld, xchiOld, EchiOld
 
 fileName = 'input/params'
 call wlcsim_params_setParams(mc,fileName)
-call wlcsim_params_allocate(mc,md)
-call PT_override(mc,md)
+call wlcsim_params_allocate(wlc_p,wlc_d)
+call PT_override(wlc_p,wlc_d)
 
 do term = 1,8
     r(term) = 0.0_dp

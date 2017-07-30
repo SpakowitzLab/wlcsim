@@ -13,6 +13,7 @@
 
     ! swap indices a,b
     subroutine swap(a,b)
+    implicit none 
     ! less_than(index(a),index(b)) will lead to a swap
         integer, intent(in) :: a,b
         integer :: hold

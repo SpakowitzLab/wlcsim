@@ -9,12 +9,12 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 !  use mt19937, only : grnd, init_genrand, rnorm, mt, mti
     use mersenne_twister
     use params, only: dp
-
+  implicit none
+  integer, intent(in) :: NT          ! Total number of beads
   integer, intent(out) :: AB(NT)     ! Chemical identity of beads
   integer, intent(in) :: N           ! Number of monomers per polymer
   integer, intent(in) :: G           ! Number of beads per monomer
   integer, intent(in) :: NP          ! Number of polymer chains
-  integer, intent(in) :: NT          ! Total number of beads
 
   integer I,J,K,IB
   real TEST(1)   ! changed to real by Quinn
@@ -27,7 +27,6 @@ subroutine initchem(AB,NT,N,G,NP,FA,LAM,rand_stat)
 
   !     idiot check
   if (NT .ne. NP*N*G) then
-      print *, "NP = " , NP, ", nMpP = ", nMpP, ", nBpM = ", nBpM
       call stop_if_err(1, "initchem: nt \= nP*nBpM*nMpP")
   endif
 

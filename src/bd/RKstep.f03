@@ -10,7 +10,7 @@
       subroutine RKstep(RS,R,US,U,DRDT,DUDT,NT,N,NP,RK,DT)
 
       use params, only : dp, pi
-
+      implicit none
       real(dp) RS(NT,3)  ! Saved bead positions
       real(dp) R(NT,3)  ! Temp bead positions
       real(dp) US(NT,3) ! Unit tangent
@@ -18,7 +18,7 @@
       real(dp) DRDT(NT,3,4) ! Change rate of beads
       real(dp) DUDT(NT,3,4) ! Change rate of beads
       real(dp) DT       ! Time step size
-      integer N,NT              ! Bead numbers
+      integer N,NT,NP              ! Bead numbers
       integer RK                ! RK number
       integer I,J,IB         ! Index number
       real(dp) MAGU

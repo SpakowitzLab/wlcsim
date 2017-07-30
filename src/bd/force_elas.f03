@@ -9,9 +9,8 @@
 !     Written 9-1-04
 
       subroutine force_elas(FELAS,TELAS,R,U,NT,N,NP, EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
-
       use params, only : dp
-
+      implicit none
       real(dp), intent(out) :: FELAS(NT,3) ! Elastic force
       real(dp), intent(out) :: TELAS(NT,3) ! Elastic force
       real(dp), intent(in) ::  R(NT,3)  ! Bead positions

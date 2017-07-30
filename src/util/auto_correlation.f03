@@ -4,12 +4,12 @@
 !at delta_min and ending with the autocorrelation at delta_max
 
 subroutine auto_correlation(v,N,delta,auto)
-
   use params, only : dp
 
   !Input variables
   real(dp) v(N) !vector
   integer N             !length of vector
+  integer I
   integer, intent(in) :: delta         !spacing between elements
   !Subroutine variables
   real(dp) v_avg  !average value of v

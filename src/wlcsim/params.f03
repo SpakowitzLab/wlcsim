@@ -1660,7 +1660,7 @@ contains
         ! Write a number of parameters ASCII variables to file for reccords
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
-        character(MAXFILENAMELEN), intent(in) :: fileName
+        character(len=*), intent(in) :: fileName
         open (unit =outFileUnit, file = fileName, status = 'NEW')
             write(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
             write(outFileUnit,"(I8)") wlc_p%nMpP  ! 2 Number of monomers in a polymer
@@ -1995,6 +1995,7 @@ contains
 
     !Get Lks for parallel tempering from file
     subroutine get_LKs_from_file(wlc_d)
+    implicit none
     type(wlcsim_data), intent(inout) :: wlc_d
     integer nLKs !number of linking numbers
     integer IOstatus
