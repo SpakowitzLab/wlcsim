@@ -213,7 +213,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           if (R(II,3) + uri(3)*srint<R(IO,3) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = II;
               Cross(Ncross,2) = IO;
@@ -306,7 +306,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+        if (R(II,3) + uri(3)*srint<R(IO,3) + urj(3)*trint) then
            Ncross = Ncross + 1
            Cross(Ncross,1) = II;
            Cross(Ncross,2) = IO;
@@ -381,7 +381,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+        if (R(II,3) + uri(3)*srint<R(IO,3) + urj(3)*trint) then
            Ncross = Ncross + 1
            Cross(Ncross,1) = II;
            Cross(Ncross,2) = IO;

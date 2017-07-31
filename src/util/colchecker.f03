@@ -19,7 +19,7 @@ subroutine get_looping_events_square(r, nt, col_dist, col_state, num_events, eve
     use params, only : dp
     implicit none
     integer, intent(in) :: nt
-    real(dp), intent(in) :: r(nt,3), col_dist
+    real(dp), intent(in) :: R(nt,3), col_dist
     integer, intent(inout) :: col_state(nt, nt)
     integer, intent(out) :: num_events(nt), events(nt, nt)
     integer :: k1, k2, colliding
@@ -28,9 +28,9 @@ subroutine get_looping_events_square(r, nt, col_dist, col_state, num_events, eve
         num_events(k2) = 0
         do k1 = 1, k2 - 1
             colliding = 0
-            if (abs(r(k1,1) - r(k2,1)) < col_dist) then
-            if (abs(r(k1,2) - r(k2,2)) < col_dist) then
-            if (abs(r(k1,3) - r(k2,3)) < col_dist) then
+            if (abs(R(k1,1) - R(k2,1)) < col_dist) then
+            if (abs(R(k1,2) - R(k2,2)) < col_dist) then
+            if (abs(R(k1,3) - R(k2,3)) < col_dist) then
                 colliding = 1
             end if
             end if
@@ -49,7 +49,7 @@ subroutine get_looping_events(r, nt, col_dist, col_state, num_events, events)
     use params, only : dp
     implicit none
     integer, intent(in) :: nt
-    real(dp), intent(in) :: r(nt,3), col_dist
+    real(dp), intent(in) :: R(nt,3), col_dist
     integer, intent(inout) :: col_state(nt, nt)
     integer, intent(out) :: num_events(nt), events(nt, nt)
     integer :: k1, k2, colliding
@@ -58,7 +58,7 @@ subroutine get_looping_events(r, nt, col_dist, col_state, num_events, events)
         num_events(k2) = 0
         do k1 = 1, k2 - 1
             colliding = 0
-            if (norm2(r(k1,:) - r(k2,:)) < col_dist) then
+            if (norm2(R(k1,:) - R(k2,:)) < col_dist) then
                 colliding = 1
             end if
             if (xor(col_state(k1, k2), colliding) /= 0) then
@@ -77,7 +77,7 @@ subroutine check_collisions(r, nt, col_time, col_dist, time, col_type)
     implicit none
     integer, intent(in) :: nt, col_type
     real(dp), intent(in) :: col_dist, time
-    real(dp), intent(in) :: r(nt,3)
+    real(dp), intent(in) :: R(nt,3)
     real(dp), intent(inout) :: col_time(nt, nt)
     if (col_type.eq.0) then
         return
@@ -100,14 +100,14 @@ subroutine check_collisions_brute(r, nt, col_time, col_dist, &
     implicit none
     integer nt,k1,k2
     real(dp) col_dist, time
-    real(dp) r(nt,3), col_time(nt, nt)
+    real(dp) R(nt,3), col_time(nt, nt)
     !     check if the particles have collided
     do k1 = 1, nt
         do k2 = 1, nt
             if (col_time(k1,k2).lt.0.0d0 .and. k1.ne.k2 &
-                .and. abs(r(k1,1) - r(k2,1)) < col_dist &
-                .and. abs(r(k1,2) - r(k2,2)) < col_dist &
-                .and. abs(r(k1,3) - r(k2,3)) < col_dist) then
+                .and. abs(R(k1,1) - R(k2,1)) < col_dist &
+                .and. abs(R(k1,2) - R(k2,2)) < col_dist &
+                .and. abs(R(k1,3) - R(k2,3)) < col_dist) then
                 col_time(k1,k2) = time
             end if
         end do
@@ -121,7 +121,7 @@ subroutine check_collisions_kd(r, nt, col_time, col_dist, time)
     implicit none
     integer nt, nfound, nalloc, k1, k2, i
     real(dp) col_dist, time
-    real(dp) r(nt,3), col_time(nt, nt)
+    real(dp) R(nt,3), col_time(nt, nt)
     type(kdtree2), pointer :: col_tree
     type(kdtree2_result), allocatable :: kd_results(:)
 
@@ -151,7 +151,7 @@ subroutine check_collisions_bb(r, nt, col_time, col_dist, time)
     implicit none
 
     integer, intent(in) :: nt
-    real(dp), intent(in) :: col_dist, time, r(nt,3)
+    real(dp), intent(in) :: col_dist, time, R(nt,3)
     real(dp), intent(inout) :: col_time(nt, nt)
 
     integer :: neighbors(nt,nt)  ! most of array won't be used, probably
@@ -185,12 +185,12 @@ subroutine check_collisions_bb(r, nt, col_time, col_dist, time)
                 ind(i,d) = i
                 indi(i,d) = i
             enddo
-            call qcolsort(nt, indi(:,d), ind(:,d), r(:,d))
+            call qcolsort(nt, indi(:,d), ind(:,d), R(:,d))
         enddo
         ! ind and indi should satisfy desired property
     else
         do d = 1, 3
-            call icolsort(nt, indi(:,d), ind(:,d), r(:,d))
+            call icolsort(nt, indi(:,d), ind(:,d), R(:,d))
         enddo
     endif
     ! initialize loop variables
@@ -207,12 +207,12 @@ subroutine check_collisions_bb(r, nt, col_time, col_dist, time)
         do d = 1, 3
             curr_indi = indi(i,d)
             curr_ind = ind(curr_indi,d)
-            rd0 = r(curr_ind,d)
+            rd0 = R(curr_ind,d)
             ! first we're going to look for particles to the "right"
             j = 1
             if (curr_indi == nt) exit
             curr_ind = ind(curr_indi + j,d)
-            rneighbor = r(curr_ind,d)
+            rneighbor = R(curr_ind,d)
             do while (rneighbor < rd0 + col_dist) ! actual collision check
 ! on the first pass, just mark that a collision happened in this coord
 ! then mark that index in the "hash table" as "needs zeroing"
@@ -298,14 +298,14 @@ subroutine check_collisions_bin(r, nt, col_time, col_dist, &
     implicit none
     integer nt,k1,k2
     real(dp) col_dist, time
-    real(dp) r(nt,3), col_time(nt, nt)
+    real(dp) R(nt,3), col_time(nt, nt)
     !     check if the particles have collided
     do k1 = 1, nt
         do k2 = 1, nt
             if (col_time(k1,k2).lt.0.0d0 .and. k1.ne.k2 &
-                .and. abs(r(k1,1) - r(k2,1)) < col_dist &
-                .and. abs(r(k1,2) - r(k2,2)) < col_dist &
-                .and. abs(r(k1,3) - r(k2,3)) < col_dist) then
+                .and. abs(R(k1,1) - R(k2,1)) < col_dist &
+                .and. abs(R(k1,2) - R(k2,2)) < col_dist &
+                .and. abs(R(k1,3) - R(k2,3)) < col_dist) then
                 col_time(k1,k2) = time
             end if
         end do

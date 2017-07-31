@@ -120,7 +120,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(i,3) + uri(3)*srint<r(j,3) + urj(3)*trint) then
+           if (R(i,3) + uri(3)*srint<R(j,3) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = i;
               Cross(Ncross,2) = j;
