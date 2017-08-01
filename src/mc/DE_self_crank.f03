@@ -21,7 +21,7 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
 
   implicit none
   integer N,NT,NP            ! Current number of beads
-  real(dp) R(NT,3)   ! Bead positions
+  real(dp) R(3,NT)   ! Bead positions
   real(dp) RP(NT,3)  ! Test bead positions
   real(dp) DE       ! Change in self-energy
   real(dp) E        ! Self-energy before move
@@ -116,9 +116,9 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
         if (IIP1 == IO.OR.IOP1 == II) then
            GOTO 70
         ENDif
-        R12(1) = R(IO,1)-R(II,1)
-        R12(2) = R(IO,2)-R(II,2)
-        R12(3) = R(IO,3)-R(II,3)
+        R12(1) = R(1,IO)-R(1,II)
+        R12(2) = R(2,IO)-R(2,II)
+        R12(3) = R(3,IO)-R(3,II)
         ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
         ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
         ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
@@ -128,17 +128,17 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
         !    goto 70
         ! endif
 
-        U1(1) = R(IIP1,1)-R(II,1)
-        U1(2) = R(IIP1,2)-R(II,2)
-        U1(3) = R(IIP1,3)-R(II,3)
+        U1(1) = R(1,IIP1)-R(1,II)
+        U1(2) = R(2,IIP1)-R(2,II)
+        U1(3) = R(3,IIP1)-R(3,II)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IOP1,1)-R(IO,1)
-        U2(2) = R(IOP1,2)-R(IO,2)
-        U2(3) = R(IOP1,3)-R(IO,3)
+        U2(1) = R(1,IOP1)-R(1,IO)
+        U2(2) = R(2,IOP1)-R(2,IO)
+        U2(3) = R(3,IOP1)-R(3,IO)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -157,9 +157,9 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
         S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S1 > D1.OR.S1 < 0.) then
-           R12T = R(IOP1,:)-R(IIP1,:)
-           R12C1 = R(IOP1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IIP1)
+           R12C1 = R(:,IOP1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IO)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60
@@ -172,9 +172,9 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
         S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S2 > D2.OR.S2 < 0.) then
-           R12T = R(IOP1,:)-R(IIP1,:)
-           R12C1 = R(IOP1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IIP1)
+           R12C1 = R(:,IOP1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IO)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60

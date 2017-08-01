@@ -9,7 +9,7 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !inPUT VARIABLES
   integer N                     ! Number of points in space curve
   integer CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
-  real(dp) R(N,3)       !Space curve
+  real(dp) R(3,N)       !Space curve
   real(dp) Cross(CrossSize,6)        !Matrix of cross indices and coordinates
   real(dp) CrossNew(CrossSize,6)
   integer Ncross                !Total number of crossings
@@ -57,13 +57,13 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
   !Calculate the projection of R onto the projection plane
   do I = 1,N
-     RdoTN(I) = R(I,1)*NV(1) + R(I,2)*NV(2) + R(I,3)*NV(3)
+     RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
   ENDdo
 
   !Calculate the projection of the curve into the plane with normal NV
 
   do I = 1,N
-     RP(I,:) = R(I,:)-RdoTN(I)*NV
+     RP(I,:) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -194,10 +194,10 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
            !Compute lengths and tangents  of true segments (not projected)
-           srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-           trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-           DRI = R(IIP1,:)-R(II,:)
-           DRJ = R(IOP1,:)-R(IO,:)
+           srmax = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+           trmax = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+           DRI = R(:,IIP1)-R(:,II)
+           DRJ = R(:,IOP1)-R(:,IO)
            uri = DRI/srmax
            urj = DRJ/trmax
            !Calculate the angle between the real segment and the projection
@@ -211,7 +211,7 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           if (R(3,II) + uri(3)*srint<r(3,IO) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = II;
               Cross(Ncross,2) = IO;
@@ -273,10 +273,10 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
            !Compute lengths and tangents  of true segments (not projected)
-           srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-           trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-           DRI = R(IIP1,:)-R(II,:)
-           DRJ = R(IOP1,:)-R(IO,:)
+           srmax = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+           trmax = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+           DRI = R(:,IIP1)-R(:,II)
+           DRJ = R(:,IOP1)-R(:,IO)
            uri = DRI/srmax
            urj = DRJ/trmax
            !Calculate the angle between the real segment and the projection
@@ -290,7 +290,7 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           if (R(3,II) + uri(3)*srint<r(3,IO) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = II;
               Cross(Ncross,2) = IO;

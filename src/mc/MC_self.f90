@@ -15,8 +15,8 @@
       subroutine MC_self(DESELF,R,U,RP,UP,NT,N,NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
       use params, only : dp
       implicit none
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(NT,3)  ! Tangent vectors
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,NT)  ! Tangent vectors
       real(dp) RP(NT,3)  ! Bead positions
       real(dp) UP(NT,3)  ! Tangent vectors
       integer N,NP,NT           ! Number of beads
@@ -75,9 +75,9 @@
 
             do 50 J2 = IMin,IMAX
                inD2 = J2 + N*(I2-1)
-               R12(1) = R(inD2,1)-R(inD1,1)
-               R12(2) = R(inD2,2)-R(inD1,2)
-               R12(3) = R(inD2,3)-R(inD1,3)
+               R12(1) = R(1,inD2)-R(1,inD1)
+               R12(2) = R(2,inD2)-R(2,inD1)
+               R12(3) = R(3,inD2)-R(3,inD1)
                R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
                R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
                R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
@@ -87,17 +87,17 @@
                   goto 70
                endif
 
-               U1(1) = R(inD1 + 1,1)-R(inD1,1)
-               U1(2) = R(inD1 + 1,2)-R(inD1,2)
-               U1(3) = R(inD1 + 1,3)-R(inD1,3)
+               U1(1) = R(1,inD1 + 1)-R(1,inD1)
+               U1(2) = R(2,inD1 + 1)-R(2,inD1)
+               U1(3) = R(3,inD1 + 1)-R(3,inD1)
                D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
                U1(1) = U1(1)/D1
                U1(2) = U1(2)/D1
                U1(3) = U1(3)/D1
 
-               U2(1) = R(inD2 + 1,1)-R(inD2,1)
-               U2(2) = R(inD2 + 1,2)-R(inD2,2)
-               U2(3) = R(inD2 + 1,3)-R(inD2,3)
+               U2(1) = R(1,inD2 + 1)-R(1,inD2)
+               U2(2) = R(2,inD2 + 1)-R(2,inD2)
+               U2(3) = R(3,inD2 + 1)-R(3,inD2)
                D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
                U2(1) = U2(1)/D2
                U2(2) = U2(2)/D2
@@ -148,9 +148,9 @@
 
             do 80 J2 = IMin,IMAX
                inD2 = J2 + N*(I2-1)
-               R12(1) = RP(inD2,1)-R(inD1,1)
-               R12(2) = RP(inD2,2)-R(inD1,2)
-               R12(3) = RP(inD2,3)-R(inD1,3)
+               R12(1) = RP(inD2,1)-R(1,inD1)
+               R12(2) = RP(inD2,2)-R(2,inD1)
+               R12(3) = RP(inD2,3)-R(3,inD1)
                R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
                R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
                R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
@@ -160,9 +160,9 @@
                   goto 90
                endif
 
-               U1(1) = R(inD1 + 1,1)-R(inD1,1)
-               U1(2) = R(inD1 + 1,2)-R(inD1,2)
-               U1(3) = R(inD1 + 1,3)-R(inD1,3)
+               U1(1) = R(1,inD1 + 1)-R(1,inD1)
+               U1(2) = R(2,inD1 + 1)-R(2,inD1)
+               U1(3) = R(3,inD1 + 1)-R(3,inD1)
                D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
                U1(1) = U1(1)/D1
                U1(2) = U1(2)/D1

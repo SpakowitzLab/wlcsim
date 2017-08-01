@@ -22,8 +22,8 @@ type(wlcsim_params), intent(in) :: wlc_p
 
 logical ring
 integer NB,NP,NT           ! Number of beads
-real(dp) R(NT,3)  ! Bead positions
-real(dp) U(NT,3)  ! Tangent vectors
+real(dp) R(3,NT)  ! Bead positions
+real(dp) U(3,NT)  ! Tangent vectors
 real(dp) GAM      ! Equil bead separation
 real(dp) LBOX(3)  ! Box edge length
 integer I,J,IB            ! Index Holders
@@ -60,17 +60,17 @@ GAM = PARA(4)
 if (FRMFILE)then
    open (UNIT = 5, FILE = 'input/r0', STATUS = 'OLD')
    Do I = 1,NT
-      READ(5,*) R(I,1),R(I,2),R(I,3)
+      READ(5,*) R(1,I),R(2,I),R(3,I)
    enddo
    CLOSE(5)
 
    open (UNIT = 5, FILE = 'input/u0', STATUS = 'OLD')
    Do I = 1,NT
-      READ(5,*) U(I,1),U(I,2),U(I,3)
-       mag = sqrt(U(I,1)**2 + U(I,2)**2 + U(I,3)**2)
-       U(I,1) = U(I,1)/mag
-       U(I,2) = U(I,2)/mag
-       U(I,3) = U(I,3)/mag
+      READ(5,*) U(1,I),U(2,I),U(3,I)
+       mag = sqrt(U(1,I)**2 + U(2,I)**2 + U(3,I)**2)
+       U(1,I) = U(1,I)/mag
+       U(2,I) = U(2,I)/mag
+       U(3,I) = U(3,I)/mag
    enddo
 
    CLOSE(5)
@@ -83,12 +83,12 @@ if (initCondType.eq.0) then
     iB = 1
     do i = 1,nP
         do j = 1,nB
-            R(iB,1) = 0.0_dp
-            R(iB,2) = gam*j
-            R(iB,3) = 0.0_dp
-            U(iB,1) = 0.0_dp
-            U(iB,2) = 1.0_dp
-            U(iB,3) = 0.0_dp
+            R(1,iB) = 0.0_dp
+            R(2,iB) = gam*j
+            R(3,iB) = 0.0_dp
+            U(1,iB) = 0.0_dp
+            U(2,iB) = 1.0_dp
+            U(3,iB) = 0.0_dp
             iB = iB + 1
         enddo
     enddo
@@ -104,12 +104,12 @@ else if (initCondType.eq.1) then
        R0(3) = urand(3)*LBOX(3)
 
        do J = 1,NB
-          R(IB,1) = R0(1)
-          R(IB,2) = R0(2) + GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
-          R(IB,3) = R0(3)
-          U(IB,1) = 0.
-          U(IB,2) = 1.
-          U(IB,3) = 0.
+          R(1,IB) = R0(1)
+          R(2,IB) = R0(2) + GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
+          R(3,IB) = R0(3)
+          U(1,IB) = 0.
+          U(2,IB) = 1.
+          U(3,IB) = 0.
           IB = IB + 1
 
        enddo
@@ -163,15 +163,15 @@ else if (initCondType.eq.2) then
                      Uold(3) = z
                 endif
            enddo
-           R(IB,1) = test(1)
-           R(IB,2) = test(2)
-           R(IB,3) = test(3)
+           R(1,IB) = test(1)
+           R(2,IB) = test(2)
+           R(3,IB) = test(3)
            Rold(1) = test(1)
            Rold(2) = test(2)
            Rold(3) = test(3)
-           U(IB,1) = Uold(1)
-           U(IB,2) = Uold(2)
-           U(IB,3) = Uold(3)
+           U(1,IB) = Uold(1)
+           U(2,IB) = Uold(2)
+           U(3,IB) = Uold(3)
 
            IB = IB + 1
         enddo
@@ -236,15 +236,15 @@ else if (initCondType.eq.3) then
                     Uold(3) = z
                endif
           enddo
-          R(IB,1) = test(1)
-          R(IB,2) = test(2)
-          R(IB,3) = test(3)
+          R(1,IB) = test(1)
+          R(2,IB) = test(2)
+          R(3,IB) = test(3)
           Rold(1) = test(1)
           Rold(2) = test(2)
           Rold(3) = test(3)
-          U(IB,1) = Uold(1)
-          U(IB,2) = Uold(2)
-          U(IB,3) = Uold(3)
+          U(1,IB) = Uold(1)
+          U(2,IB) = Uold(2)
+          U(3,IB) = Uold(3)
 
           IB = IB + 1
        enddo
@@ -292,15 +292,15 @@ else if (initCondType.eq.4) then
                     Uold(3) = z
                endif
            enddo
-           R(IB,1) = test(1)
-           R(IB,2) = test(2)
-           R(IB,3) = test(3)
+           R(1,IB) = test(1)
+           R(2,IB) = test(2)
+           R(3,IB) = test(3)
            Rold(1) = test(1)
            Rold(2) = test(2)
            Rold(3) = test(3)
-           U(IB,1) = Uold(1)
-           U(IB,2) = Uold(2)
-           U(IB,3) = Uold(3)
+           U(1,IB) = Uold(1)
+           U(2,IB) = Uold(2)
+           U(3,IB) = Uold(3)
            IB = IB + 1
        enddo ! loop to N
     enddo ! loop to np
@@ -319,12 +319,12 @@ else if (initCondType.eq.5) then
                  search = .false.
              endif
         enddo
-        R(IB,1) = test(1)
-        R(IB,2) = test(2)
-        R(IB,3) = test(3)
-        U(IB,1) = 0.00_dp
-        U(IB,2) = 0.00_dp
-        U(IB,3) = 0.00_dp
+        R(1,IB) = test(1)
+        R(2,IB) = test(2)
+        R(3,IB) = test(3)
+        U(1,IB) = 0.00_dp
+        U(2,IB) = 0.00_dp
+        U(3,IB) = 0.00_dp
     enddo
 else if (initCondType == 6) then
     IB = 1
@@ -337,19 +337,19 @@ else if (initCondType == 6) then
         R0(3) = urand(1)*LBOX(1)
         do  J = 1,NB
             if (RinG) then
-                R(IB,1) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
-                R(IB,2) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
-                R(IB,3) = 0.0_dp
-                U(IB,1) = -Sin(J*2.0_dp*PI/NB)
-                U(IB,2) = Cos(J*2.0_dp*PI/NB)
-                U(IB,3) = 0.0_dp;
+                R(1,IB) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
+                R(2,IB) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
+                R(3,IB) = 0.0_dp
+                U(1,IB) = -Sin(J*2.0_dp*PI/NB)
+                U(2,IB) = Cos(J*2.0_dp*PI/NB)
+                U(3,IB) = 0.0_dp;
             else
-                R(IB,1) = R0(1)
-                R(IB,2) = R0(2) + GAM*(J-NB/2.0_dp-0.5_dp)
-                R(IB,3) = R0(3)
-                U(IB,1) = 0.0_dp
-                U(IB,2) = 1.0_dp
-                U(IB,3) = 0.0_dp
+                R(1,IB) = R0(1)
+                R(2,IB) = R0(2) + GAM*(J-NB/2.0_dp-0.5_dp)
+                R(3,IB) = R0(3)
+                U(1,IB) = 0.0_dp
+                U(2,IB) = 1.0_dp
+                U(3,IB) = 0.0_dp
             ENDif
         IB = IB + 1
         ENDdo
@@ -359,46 +359,46 @@ else if (initCondType == 7) then
     ! initialize as if it were a gaussian chain, first bead at zero
     IB = 1
     do I = 1,NP
-        R(IB,1) = 0.0_dp
-        R(IB,2) = 0.0_dp
-        R(IB,3) = 0.0_dp
+        R(1,IB) = 0.0_dp
+        R(2,IB) = 0.0_dp
+        R(3,IB) = 0.0_dp
         IB = IB + 1
         do J = 2,NB
             call random_gauss(nrand, rand_stat)
-            R(IB,1) = R(IB-1,1) + wlc_p%sigma*nrand(1)
-            R(IB,2) = R(IB-1,2) + wlc_p%sigma*nrand(2)
-            R(IB,3) = R(IB-1,3) + wlc_p%sigma*nrand(3)
+            R(1,IB) = R(1,IB-1) + wlc_p%sigma*nrand(1)
+            R(2,IB) = R(2,IB-1) + wlc_p%sigma*nrand(2)
+            R(3,IB) = R(3,IB-1) + wlc_p%sigma*nrand(3)
             IB = IB + 1
         enddo
     enddo
     ! now initialize the orientation vectors by smoothing
     IB = 1
     do I = 1,NP
-        U(IB,1) = R(IB + 1,1) - R(IB,1)
-        U(IB,2) = R(IB + 1,2) - R(IB,2)
-        U(IB,3) = R(IB + 1,3) - R(IB,3)
-        mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
-        U(IB,1) = U(IB,1)/mag
-        U(IB,2) = U(IB,2)/mag
-        U(IB,3) = U(IB,3)/mag
+        U(1,IB) = R(1,IB + 1) - R(1,IB)
+        U(2,IB) = R(2,IB + 1) - R(2,IB)
+        U(3,IB) = R(3,IB + 1) - R(3,IB)
+        mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
+        U(1,IB) = U(1,IB)/mag
+        U(2,IB) = U(2,IB)/mag
+        U(3,IB) = U(3,IB)/mag
         IB = IB + 1
         do J = 2,NB-1
-            U(IB,1) = R(IB + 1,1) - R(IB-1,1)
-            U(IB,2) = R(IB + 1,2) - R(IB-1,2)
-            U(IB,3) = R(IB + 1,3) - R(IB-1,3)
-            mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
-            U(IB,1) = U(IB,1)/mag
-            U(IB,2) = U(IB,2)/mag
-            U(IB,3) = U(IB,3)/mag
+            U(1,IB) = R(1,IB + 1) - R(1,IB-1)
+            U(2,IB) = R(2,IB + 1) - R(2,IB-1)
+            U(3,IB) = R(3,IB + 1) - R(3,IB-1)
+            mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
+            U(1,IB) = U(1,IB)/mag
+            U(2,IB) = U(2,IB)/mag
+            U(3,IB) = U(3,IB)/mag
             IB = IB + 1
         enddo
-        U(IB,1) = R(IB,1) - R(IB-1,1)
-        U(IB,2) = R(IB,2) - R(IB-1,2)
-        U(IB,3) = R(IB,3) - R(IB-1,3)
-        mag = sqrt(U(IB,1)*U(IB,1) + U(IB,2)*U(IB,2) + U(IB,3)*U(IB,3))
-        U(IB,1) = U(IB,1)/mag
-        U(IB,2) = U(IB,2)/mag
-        U(IB,3) = U(IB,3)/mag
+        U(1,IB) = R(1,IB) - R(1,IB-1)
+        U(2,IB) = R(2,IB) - R(2,IB-1)
+        U(3,IB) = R(3,IB) - R(3,IB-1)
+        mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
+        U(1,IB) = U(1,IB)/mag
+        U(2,IB) = U(2,IB)/mag
+        U(3,IB) = U(3,IB)/mag
         IB = IB + 1
     enddo
 else

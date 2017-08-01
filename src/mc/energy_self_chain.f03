@@ -19,7 +19,7 @@ subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
     implicit none
 
   integer NB,NT            ! Current number of beads
-  real(dp) R(NT,3)   ! Bead positions
+  real(dp) R(3,NT)   ! Bead positions
   real(dp) EPONP ! Self-interaction force
   real(dp) FMAG     ! Mag of force
 
@@ -83,25 +83,25 @@ subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
         if (IT1P1 == IT2.OR.IT2P1 == IT1) then
            GOTO 70
         ENDif
-        R12(1) = R(IT2,1)-R(IT1,1)
-        R12(2) = R(IT2,2)-R(IT1,2)
-        R12(3) = R(IT2,3)-R(IT1,3)
+        R12(1) = R(1,IT2)-R(1,IT1)
+        R12(2) = R(2,IT2)-R(2,IT1)
+        R12(3) = R(3,IT2)-R(3,IT1)
         ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
         ! R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
         ! R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
 
         D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
-        U1(1) = R(IT1P1,1)-R(IT1,1)
-        U1(2) = R(IT1P1,2)-R(IT1,2)
-        U1(3) = R(IT1P1,3)-R(IT1,3)
+        U1(1) = R(1,IT1P1)-R(1,IT1)
+        U1(2) = R(2,IT1P1)-R(2,IT1)
+        U1(3) = R(3,IT1P1)-R(3,IT1)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IT2P1,1)-R(IT2,1)
-        U2(2) = R(IT2P1,2)-R(IT2,2)
-        U2(3) = R(IT2P1,3)-R(IT2,3)
+        U2(1) = R(1,IT2P1)-R(1,IT2)
+        U2(2) = R(2,IT2P1)-R(2,IT2)
+        U2(3) = R(3,IT2P1)-R(3,IT2)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -120,9 +120,9 @@ subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
         S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S1 > D1.OR.S1 < 0.) then
-           R12T = R(IT2P1,:)-R(IT1P1,:)
-           R12C1 = R(IT2P1,:)-R(IT1,:)
-           R12C2 = R(IT1P1,:)-R(IT2,:)
+           R12T = R(:,IT2P1)-R(:,IT1P1)
+           R12C1 = R(:,IT2P1)-R(:,IT1)
+           R12C2 = R(:,IT1P1)-R(:,IT2)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60
@@ -135,9 +135,9 @@ subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
         S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S2 > D2.OR.S2 < 0.) then
-           R12T = R(IT2P1,:)-R(IT1P1,:)
-           R12C1 = R(IT2P1,:)-R(IT1,:)
-           R12C2 = R(IT1P1,:)-R(IT2,:)
+           R12T = R(:,IT2P1)-R(:,IT1P1)
+           R12C1 = R(:,IT2P1)-R(:,IT1)
+           R12C2 = R(:,IT1P1)-R(:,IT2)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 60

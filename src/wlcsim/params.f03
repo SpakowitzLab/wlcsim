@@ -992,8 +992,8 @@ contains
 #if MPI_VERSION
         call init_MPI(wlc_d)
 #endif
-        allocate(wlc_d%R(NT,3))
-        allocate(wlc_d%U(NT,3))
+        allocate(wlc_d%R(3,NT))
+        allocate(wlc_d%U(3,NT))
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
             allocate(wlc_d%RP(NT,3))
             allocate(wlc_d%UP(NT,3))
@@ -1430,14 +1430,14 @@ contains
         real(dp) R0(3)  ! Offset to move by
         IB = 1
         do I = 1,wlc_p%NP
-        R0(1) = nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
-        R0(2) = nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
-        R0(3) = nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+        R0(1) = nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
+        R0(2) = nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
+        R0(3) = nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
         if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
             do J = 1,wlc_p%NB
-                wlc_d%R(IB,1) = wlc_d%R(IB,1)-R0(1)
-                wlc_d%R(IB,2) = wlc_d%R(IB,2)-R0(2)
-                wlc_d%R(IB,3) = wlc_d%R(IB,3)-R0(3)
+                wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
+                wlc_d%R(2,IB) = wlc_d%R(2,IB)-R0(2)
+                wlc_d%R(3,IB) = wlc_d%R(3,IB)-R0(3)
                 IB = IB + 1
             enddo
         endif
@@ -1584,15 +1584,15 @@ contains
               do J = 1,wlc_p%NB
                  if (wlc_p%saveAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
-                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
-                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
                          wlc_d%AB(IB)
                  else
                     write(outFileUnit,"(3f10.3)") &
-                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
-                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
-                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
                  endif
                  IB = IB + 1
               enddo
@@ -1606,10 +1606,10 @@ contains
               do J = 1,wlc_p%NB
                   if (wlc_p%saveAB) then
                      write(outFileUnit,"(3f10.3,I2)") &
-                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB)
+                            wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB),wlc_d%AB(IB)
                   else
                      write(outFileUnit,"(3f10.3)") &
-                           wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3)
+                           wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB)
                   endif
                   IB = IB + 1
               enddo
@@ -1649,7 +1649,7 @@ contains
         IB = 1
         do I = 1,wlc_p%NP
             do J = 1,wlc_p%NB
-                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(IB,1),wlc_d%U(IB,2),wlc_d%U(IB,3)
+                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(1,IB),wlc_d%U(2,IB),wlc_d%U(3,IB)
                 IB = IB + 1
             enddo
         enddo

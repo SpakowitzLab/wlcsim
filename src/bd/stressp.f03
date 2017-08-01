@@ -18,8 +18,8 @@
       real(dp) FPONP0(NT,3) ! Self-interaction force
       integer inTON             ! Include polymer interactions
       real(dp) TELAS0(NT,3) ! Elastic force
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(NT,3)  ! Tangent vectors
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,NT)  ! Tangent vectors
       real(dp) R0(NT,3)  ! Bead positions
       real(dp) U0(NT,3)  ! Tangent vectors
       real(dp) COR
@@ -78,9 +78,9 @@
          RCOM(3) = 0.
          do 20 J = 1,N
             IB = J + N*(I-1)
-            RCOM(1) = RCOM(1) + R(IB,1)/N
-            RCOM(2) = RCOM(2) + R(IB,2)/N
-            RCOM(3) = RCOM(3) + R(IB,3)/N
+            RCOM(1) = RCOM(1) + R(1,IB)/N
+            RCOM(2) = RCOM(2) + R(2,IB)/N
+            RCOM(3) = RCOM(3) + R(3,IB)/N
  20      continue
 
          SIG(1,1) = 0.
@@ -97,15 +97,15 @@
             FTOT(1) = FELAS(IB,1) + inTON*FPONP(IB,1)
             FTOT(2) = FELAS(IB,2) + inTON*FPONP(IB,2)
             FTOT(3) = FELAS(IB,3) + inTON*FPONP(IB,3)
-            SIG(1,1) = SIG(1,1)-(R(IB,1)-RCOM(1))*FTOT(1)
-            SIG(1,2) = SIG(1,2)-(R(IB,1)-RCOM(1))*FTOT(2)
-            SIG(1,3) = SIG(1,3)-(R(IB,1)-RCOM(1))*FTOT(3)
-            SIG(2,1) = SIG(2,1)-(R(IB,2)-RCOM(2))*FTOT(1)
-            SIG(2,2) = SIG(2,2)-(R(IB,2)-RCOM(2))*FTOT(2)
-            SIG(2,3) = SIG(2,3)-(R(IB,2)-RCOM(2))*FTOT(3)
-            SIG(3,1) = SIG(3,1)-(R(IB,3)-RCOM(3))*FTOT(1)
-            SIG(3,2) = SIG(3,2)-(R(IB,3)-RCOM(3))*FTOT(2)
-            SIG(3,3) = SIG(3,3)-(R(IB,3)-RCOM(3))*FTOT(3)
+            SIG(1,1) = SIG(1,1)-(R(1,IB)-RCOM(1))*FTOT(1)
+            SIG(1,2) = SIG(1,2)-(R(1,IB)-RCOM(1))*FTOT(2)
+            SIG(1,3) = SIG(1,3)-(R(1,IB)-RCOM(1))*FTOT(3)
+            SIG(2,1) = SIG(2,1)-(R(2,IB)-RCOM(2))*FTOT(1)
+            SIG(2,2) = SIG(2,2)-(R(2,IB)-RCOM(2))*FTOT(2)
+            SIG(2,3) = SIG(2,3)-(R(2,IB)-RCOM(2))*FTOT(3)
+            SIG(3,1) = SIG(3,1)-(R(3,IB)-RCOM(3))*FTOT(1)
+            SIG(3,2) = SIG(3,2)-(R(3,IB)-RCOM(3))*FTOT(2)
+            SIG(3,3) = SIG(3,3)-(R(3,IB)-RCOM(3))*FTOT(3)
  30      continue
 
          RCOM(1) = 0.

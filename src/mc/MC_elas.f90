@@ -14,8 +14,8 @@ subroutine MC_eelas(DEELAS,R,U,RP,UP,&
 use params, only: dp, pi
 implicit none
 integer, intent(in) :: NT, SIMTYPE
-real(dp), intent(in) :: R(NT,3)  ! Bead positions
-real(dp), intent(in) :: U(NT,3)  ! Tangent vectors
+real(dp), intent(in) :: R(3,NT)  ! Bead positions
+real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
 real(dp), intent(in) :: RP(NT,3)  ! Bead positions
 real(dp), intent(in) :: UP(NT,3)  ! Tangent vectors
 integer, intent(in) :: NB                ! Number of beads in a polymer
@@ -87,17 +87,17 @@ real(dp) GI(3)
              print*, "Finish implementing IT1 and IT2"
              stop 1
 
-            U0(IT1M1,1) = R(IT1,1)-R(IT1M1,1)
-            U0(IT1M1,2) = R(IT1,2)-R(IT1M1,2)
-            U0(IT1M1,3) = R(IT1,3)-R(IT1M1,3)
+            U0(IT1M1,1) = R(1,IT1)-R(1,IT1M1)
+            U0(IT1M1,2) = R(2,IT1)-R(2,IT1M1)
+            U0(IT1M1,3) = R(3,IT1)-R(3,IT1M1)
             UNORM = sqrt(U0(IT1M1,1)**2. + U0(IT1M1,2)**2. + U0(IT1M1,3)**2.)
             U0(IT1M1,1) = U0(IT1M1,1)/UNORM
             U0(IT1M1,2) = U0(IT1M1,2)/UNORM
             U0(IT1M1,3) = U0(IT1M1,3)/UNORM
 
-            U0(IT1,1) = R(IT1 + 1,1)-R(IT1,1)
-            U0(IT1,2) = R(IT1 + 1,2)-R(IT1,2)
-            U0(IT1,3) = R(IT1 + 1,3)-R(IT1,3)
+            U0(IT1,1) = R(1,IT1 + 1)-R(1,IT1)
+            U0(IT1,2) = R(2,IT1 + 1)-R(2,IT1)
+            U0(IT1,3) = R(3,IT1 + 1)-R(3,IT1)
             UNORM = sqrt(U0(IT1,1)**2. + U0(IT1,2)**2. + U0(IT1,3)**2.)
             U0(IT1,1) = U0(IT1,1)/UNORM
             U0(IT1,2) = U0(IT1,2)/UNORM
@@ -114,42 +114,42 @@ real(dp) GI(3)
             U1U2 = U0(IT1M1,1)*U0(IT1,1) + U0(IT1M1,2)*U0(IT1,2) + U0(IT1M1,3)*U0(IT1,3)
             ! only bending energy in WLC, others are init to zero, so sum in total energy calculation later will be no-op
             DEELAS(1) = DEELAS(1) + EB*U1U2
-            U1U2 = U(IT1M1,1)*UP0(IT1,1) + U(IT1M1,2)*UP(IT1,2) + U(IT1M1,3)*UP(IT1,3)
+            U1U2 = U(1,IT1M1)*UP0(IT1,1) + U(2,IT1M1)*UP(IT1,2) + U(3,IT1M1)*UP(IT1,3)
             DEELAS(1) = DEELAS(1)-EB*U1U2
 
          elseif (SIMTYPE == 2) then
 
-            DR(1) = R(IT1,1)-R(IT1M1,1)
-            DR(2) = R(IT1,2)-R(IT1M1,2)
-            DR(3) = R(IT1,3)-R(IT1M1,3)
-            DRPAR = DR(1)*U(IT1M1,1) + DR(2)*U(IT1M1,2) + DR(3)*U(IT1M1,3)
+            DR(1) = R(1,IT1)-R(1,IT1M1)
+            DR(2) = R(2,IT1)-R(2,IT1M1)
+            DR(3) = R(3,IT1)-R(3,IT1M1)
+            DRPAR = DR(1)*U(1,IT1M1) + DR(2)*U(2,IT1M1) + DR(3)*U(3,IT1M1)
 
-            DRPERP(1) = DR(1)-DRPAR*U(IT1M1,1)
-            DRPERP(2) = DR(2)-DRPAR*U(IT1M1,2)
-            DRPERP(3) = DR(3)-DRPAR*U(IT1M1,3)
-            !U1U2 = U(IT1M1,1)*U(IT1,1) + U(IT1M1,2)*U(IT1,2) + U(IT1M1,3)*U(IT1,3)
+            DRPERP(1) = DR(1)-DRPAR*U(1,IT1M1)
+            DRPERP(2) = DR(2)-DRPAR*U(2,IT1M1)
+            DRPERP(3) = DR(3)-DRPAR*U(3,IT1M1)
+            !U1U2 = U(1,IT1M1)*U(1,IT1) + U(2,IT1M1)*U(2,IT1) + U(3,IT1M1)*U(3,IT1)
 
-            GI(1) = (U(IT1,1)-U(IT1M1,1)-ETA*DRPERP(1))
-            GI(2) = (U(IT1,2)-U(IT1M1,2)-ETA*DRPERP(2))
-            GI(3) = (U(IT1,3)-U(IT1M1,3)-ETA*DRPERP(3))
+            GI(1) = (U(1,IT1)-U(1,IT1M1)-ETA*DRPERP(1))
+            GI(2) = (U(2,IT1)-U(2,IT1M1)-ETA*DRPERP(2))
+            GI(3) = (U(3,IT1)-U(3,IT1M1)-ETA*DRPERP(3))
 
             DEELAS(1) = DEELAS(1)-0.5_dp*EB*(GI(1)**2 + GI(2)**2 + GI(3)**2)
             DEELAS(2) = DEELAS(2)-0.5_dp*EPAR*(DRPAR-GAM)**2
             DEELAS(3) = DEELAS(3)-0.5_dp*EPERP*(DRPERP(1)**2 + DRPERP(2)**2. + DRPERP(3)**2)
 
-            DR(1) = RP(IT1,1)-R(IT1M1,1)
-            DR(2) = RP(IT1,2)-R(IT1M1,2)
-            DR(3) = RP(IT1,3)-R(IT1M1,3)
-            DRPAR = DR(1)*U(IT1M1,1) + DR(2)*U(IT1M1,2) + DR(3)*U(IT1M1,3)
+            DR(1) = RP(IT1,1)-R(1,IT1M1)
+            DR(2) = RP(IT1,2)-R(2,IT1M1)
+            DR(3) = RP(IT1,3)-R(3,IT1M1)
+            DRPAR = DR(1)*U(1,IT1M1) + DR(2)*U(2,IT1M1) + DR(3)*U(3,IT1M1)
 
-            DRPERP(1) = DR(1)-DRPAR*U(IT1M1,1)
-            DRPERP(2) = DR(2)-DRPAR*U(IT1M1,2)
-            DRPERP(3) = DR(3)-DRPAR*U(IT1M1,3)
-            !U1U2 = U(IT1M1,1)*UP(IT1,1) + U(IT1M1,2)*UP(IT1,2) + U(IT1M1,3)*UP(IT1,3)
+            DRPERP(1) = DR(1)-DRPAR*U(1,IT1M1)
+            DRPERP(2) = DR(2)-DRPAR*U(2,IT1M1)
+            DRPERP(3) = DR(3)-DRPAR*U(3,IT1M1)
+            !U1U2 = U(1,IT1M1)*UP(IT1,1) + U(2,IT1M1)*UP(IT1,2) + U(3,IT1M1)*UP(IT1,3)
 
-            GI(1) = (UP(IT1,1)-U(IT1M1,1)-ETA*DRPERP(1))
-            GI(2) = (UP(IT1,2)-U(IT1M1,2)-ETA*DRPERP(2))
-            GI(3) = (UP(IT1,3)-U(IT1M1,3)-ETA*DRPERP(3))
+            GI(1) = (UP(IT1,1)-U(1,IT1M1)-ETA*DRPERP(1))
+            GI(2) = (UP(IT1,2)-U(2,IT1M1)-ETA*DRPERP(2))
+            GI(3) = (UP(IT1,3)-U(3,IT1M1)-ETA*DRPERP(3))
 
             ! in ssWLC, we have, bending, parallel extension, and perpendicular extension energy, which we must sum later to get
             ! total energy
@@ -159,14 +159,14 @@ real(dp) GI(3)
 
          elseif (SIMTYPE == 3) then
 
-            DR(1) = R(IT1,1)-R(IT1M1,1)
-            DR(2) = R(IT1,2)-R(IT1M1,2)
-            DR(3) = R(IT1,3)-R(IT1M1,3)
+            DR(1) = R(1,IT1)-R(1,IT1M1)
+            DR(2) = R(2,IT1)-R(2,IT1M1)
+            DR(3) = R(3,IT1)-R(3,IT1M1)
             ! in gaussian chain, there's only parallel stretching energy. DEELAS init'd to zeros, so sum(DEELAS) == DEELAS(2) later
             DEELAS(2) = DEELAS(2)-0.5*EPAR*(DR(1)**2. + DR(2)**2. + DR(3)**2.)
-            DR(1) = RP(IT1,1)-R(IT1M1,1)
-            DR(2) = RP(IT1,2)-R(IT1M1,2)
-            DR(3) = RP(IT1,3)-R(IT1M1,3)
+            DR(1) = RP(IT1,1)-R(1,IT1M1)
+            DR(2) = RP(IT1,2)-R(2,IT1M1)
+            DR(3) = RP(IT1,3)-R(3,IT1M1)
             DEELAS(2) = DEELAS(2) + 0.5*EPAR*(DR(1)**2. + DR(2)**2. + DR(3)**2.)
 
          endif
@@ -191,17 +191,17 @@ real(dp) GI(3)
             Print*, "This section is out of date"
             print*, "The variable IT2M1 is never used!"
             stop
-            U0(IT2-1,1) = R(IT2,1)-R(IT2-1,1)
-            U0(IT2-1,2) = R(IT2,2)-R(IT2-1,2)
-            U0(IT2-1,3) = R(IT2,3)-R(IT2-1,3)
-            UNORM = sqrt(U(IT2-1,1)**2. + U(IT2-1,2)**2. + U(IT2-1,3)**2.)
+            U0(IT2-1,1) = R(1,IT2)-R(1,IT2-1)
+            U0(IT2-1,2) = R(2,IT2)-R(2,IT2-1)
+            U0(IT2-1,3) = R(3,IT2)-R(3,IT2-1)
+            UNORM = sqrt(U(1,IT2-1)**2. + U(2,IT2-1)**2. + U(3,IT2-1)**2.)
             U0(IT2-1,1) = U0(IT2-1,1)/UNORM
             U0(IT2-1,2) = U0(IT2-1,2)/UNORM
             U0(IT2-1,3) = U0(IT2-1,3)/UNORM
 
-            U0(IT2,1) = R(IT2 + 1,1)-R(IT2,1)
-            U0(IT2,2) = R(IT2 + 1,2)-R(IT2,2)
-            U0(IT2,3) = R(IT2 + 1,3)-R(IT2,3)
+            U0(IT2,1) = R(1,IT2 + 1)-R(1,IT2)
+            U0(IT2,2) = R(2,IT2 + 1)-R(2,IT2)
+            U0(IT2,3) = R(3,IT2 + 1)-R(3,IT2)
             UNORM = sqrt(U0(IT2,1)**2. + U0(IT2,2)**2. + U0(IT2,3)**2.)
             U0(IT2,1) = U0(IT2,1)/UNORM
             U0(IT2,2) = U0(IT2,2)/UNORM
@@ -222,37 +222,37 @@ real(dp) GI(3)
 
          elseif (SIMTYPE == 2) then
 
-            DR(1) = R(IT2P1,1)-R(IT2,1)
-            DR(2) = R(IT2P1,2)-R(IT2,2)
-            DR(3) = R(IT2P1,3)-R(IT2,3)
-            DRPAR = DR(1)*U(IT2,1) + DR(2)*U(IT2,2) + DR(3)*U(IT2,3)
+            DR(1) = R(1,IT2P1)-R(1,IT2)
+            DR(2) = R(2,IT2P1)-R(2,IT2)
+            DR(3) = R(3,IT2P1)-R(3,IT2)
+            DRPAR = DR(1)*U(1,IT2) + DR(2)*U(2,IT2) + DR(3)*U(3,IT2)
 
-            DRPERP(1) = DR(1)-DRPAR*U(IT2,1)
-            DRPERP(2) = DR(2)-DRPAR*U(IT2,2)
-            DRPERP(3) = DR(3)-DRPAR*U(IT2,3)
-            !U1U2 = U(IT2,1)*U(IT2 + 1,1) + U(IT2,2)*U(IT2 + 1,2) + U(IT2,3)*U(IT2 + 1,3)
+            DRPERP(1) = DR(1)-DRPAR*U(1,IT2)
+            DRPERP(2) = DR(2)-DRPAR*U(2,IT2)
+            DRPERP(3) = DR(3)-DRPAR*U(3,IT2)
+            !U1U2 = U(1,IT2)*U(1,IT2 + 1) + U(2,IT2)*U(2,IT2 + 1) + U(3,IT2)*U(3,IT2 + 1)
 
-            GI(1) = (U(IT2P1,1)-U(IT2,1)-ETA*DRPERP(1))
-            GI(2) = (U(IT2P1,2)-U(IT2,2)-ETA*DRPERP(2))
-            GI(3) = (U(IT2P1,3)-U(IT2,3)-ETA*DRPERP(3))
+            GI(1) = (U(1,IT2P1)-U(1,IT2)-ETA*DRPERP(1))
+            GI(2) = (U(2,IT2P1)-U(2,IT2)-ETA*DRPERP(2))
+            GI(3) = (U(3,IT2P1)-U(3,IT2)-ETA*DRPERP(3))
 
             DEELAS(1) = DEELAS(1)-0.5_dp*EB*(GI(1)**2. + GI(2)**2. + GI(3)**2.)
             DEELAS(2) = DEELAS(2)-0.5_dp*EPAR*(DRPAR-GAM)**2.
             DEELAS(3) = DEELAS(3)-0.5_dp*EPERP*(DRPERP(1)**2. + DRPERP(2)**2. + DRPERP(3)**2.)
 
-            DR(1) = R(IT2P1,1)-RP(IT2,1)
-            DR(2) = R(IT2P1,2)-RP(IT2,2)
-            DR(3) = R(IT2P1,3)-RP(IT2,3)
+            DR(1) = R(1,IT2P1)-RP(IT2,1)
+            DR(2) = R(2,IT2P1)-RP(IT2,2)
+            DR(3) = R(3,IT2P1)-RP(IT2,3)
             DRPAR = DR(1)*UP(IT2,1) + DR(2)*UP(IT2,2) + DR(3)*UP(IT2,3)
 
             DRPERP(1) = DR(1)-DRPAR*UP(IT2,1)
             DRPERP(2) = DR(2)-DRPAR*UP(IT2,2)
             DRPERP(3) = DR(3)-DRPAR*UP(IT2,3)
-            !U1U2 = UP(IT2,1)*U(IT2 + 1,1) + UP(IT2,2)*U(IT2 + 1,2) + UP(IT2,3)*U(IT2 + 1,3)
+            !U1U2 = UP(IT2,1)*U(1,IT2 + 1) + UP(IT2,2)*U(2,IT2 + 1) + UP(IT2,3)*U(3,IT2 + 1)
 
-            GI(1) = (U(IT2P1,1)-UP(IT2,1)-ETA*DRPERP(1))
-            GI(2) = (U(IT2P1,2)-UP(IT2,2)-ETA*DRPERP(2))
-            GI(3) = (U(IT2P1,3)-UP(IT2,3)-ETA*DRPERP(3))
+            GI(1) = (U(1,IT2P1)-UP(IT2,1)-ETA*DRPERP(1))
+            GI(2) = (U(2,IT2P1)-UP(IT2,2)-ETA*DRPERP(2))
+            GI(3) = (U(3,IT2P1)-UP(IT2,3)-ETA*DRPERP(3))
 
             DEELAS(1) = DEELAS(1) + 0.5_dp*EB*(GI(1)**2. + GI(2)**2 + GI(3)**2)
             DEELAS(2) = DEELAS(2) + 0.5_dp*EPAR*(DRPAR-GAM)**2.
@@ -260,13 +260,13 @@ real(dp) GI(3)
 
          elseif (SIMTYPE == 3) then
 
-            DR(1) = R(IT2P1,1)-R(IT2,1)
-            DR(2) = R(IT2P1,2)-R(IT2,2)
-            DR(3) = R(IT2P1,3)-R(IT2,3)
+            DR(1) = R(1,IT2P1)-R(1,IT2)
+            DR(2) = R(2,IT2P1)-R(2,IT2)
+            DR(3) = R(3,IT2P1)-R(3,IT2)
             DEELAS(2) = DEELAS(2)-0.5*EPAR*(DR(1)**2. + DR(2)**2. + DR(3)**2.)
-            DR(1) = R(IT2P1,1)-RP(IT2,1)
-            DR(2) = R(IT2P1,2)-RP(IT2,2)
-            DR(3) = R(IT2P1,3)-RP(IT2,3)
+            DR(1) = R(1,IT2P1)-RP(IT2,1)
+            DR(2) = R(2,IT2P1)-RP(IT2,2)
+            DR(3) = R(3,IT2P1)-RP(IT2,3)
             DEELAS(2) = DEELAS(2) + 0.5*EPAR*(DR(1)**2. + DR(2)**2. + DR(3)**2.)
 
          endif

@@ -8,7 +8,7 @@ subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
 
 
   integer, intent(in) :: N                 ! Number of beads
-  real(dp), intent(in) :: R(N,3)  ! Positions
+  real(dp), intent(in) :: R(3,N)  ! Positions
   !Geometric variables
   real(dp)  r1(3)                  ! Position bead 1
   real(dp)  r2(3)                  ! Position bead 2
@@ -71,14 +71,14 @@ subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
 
 
 
-        r1 = R(II,:)
-        r2 = R(IO,:)
+        r1 = R(:,II)
+        r2 = R(:,IO)
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-        s1 = SQRT(SUM((R(IP1,:)-R(II,:))**2))
-        e2 = (R(JP1,:)-R(IO,:))/s2
-        e1 = (R(IP1,:)-R(II,:))/s1
+        s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+        s1 = SQRT(SUM((R(:,IP1)-R(:,II))**2))
+        e2 = (R(:,JP1)-R(:,IO))/s2
+        e1 = (R(:,IP1)-R(:,II))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
         !Wr = 0 for segments in plane (Wr = NaN)

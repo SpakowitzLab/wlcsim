@@ -6,8 +6,8 @@
 
       subroutine r_to_erg(R,NT,N,ECOM,EBEND)
 
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(N-1,3) ! Tangent
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,N-1) ! Tangent
       real(dp) B(N-1)   ! Bond length
       integer N,NT              ! Number of beads
       integer I
@@ -45,10 +45,10 @@
 !     Setup the necessary quantities
 
       do 10 I = 1,(N-1)
-         B(I) = sqrt((R(I + 1,1)-R(I,1))**2. + (R(I + 1,2)-R(I,2))**2. + (R(I + 1,3)-R(I,3))**2.)
-         U(I,1) = (R(I + 1,1)-R(I,1))/B(I)
-         U(I,2) = (R(I + 1,2)-R(I,2))/B(I)
-         U(I,3) = (R(I + 1,3)-R(I,3))/B(I)
+         B(I) = sqrt((R(1,I + 1)-R(1,I))**2. + (R(2,I + 1)-R(2,I))**2. + (R(3,I + 1)-R(3,I))**2.)
+         U(1,I) = (R(1,I + 1)-R(1,I))/B(I)
+         U(2,I) = (R(2,I + 1)-R(2,I))/B(I)
+         U(3,I) = (R(3,I + 1)-R(3,I))/B(I)
  10   continue
 
 
@@ -62,7 +62,7 @@
 
       EBEND = 0.
       do 40 I = 1,(N-2)
-         doT = U(I + 1,1)*U(I,1) + U(I + 1,2)*U(I,2) + U(I + 1,3)*U(I,3)
+         doT = U(1,I + 1)*U(1,I) + U(2,I + 1)*U(2,I) + U(3,I + 1)*U(3,I)
          EBEND = EBEND + 1.-doT
  40   continue
       EBEND = EPS*EBEND

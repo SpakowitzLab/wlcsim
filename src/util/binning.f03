@@ -8,7 +8,7 @@
 !
 !  use binning
 !  type(binType) bin
-!  real(dp) R(NT,3) ! all bead locations
+!  real(dp) R(3,NT) ! all bead locations
 !
 !  !  Set up binning object
 !  setBinSize = [sideLength, sideLength, sideLength] ! size of bin
@@ -20,7 +20,7 @@
 !  call addBead(bin,R,NT,13)
 !
 !  ! Remove 13th bead
-!  call removeBead(bin,R(13,:),13)
+!  call removeBead(bin,R(:,13),13)
 !
 !  ! Get neighbors within radius of coordinate
 !  real(dp) coordinate(3)  ! Position about which to search
@@ -86,7 +86,7 @@ contains
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
-        real(dp), intent(in) :: R(NT,3)  ! locations of all beads
+        real(dp), intent(in) :: R(3,NT)  ! locations of all beads
         integer ii,ix,iy,iz,dd
         integer numberToTransfer
         real(dp) setBinSize(3) ! size of sub-bins
@@ -171,25 +171,25 @@ contains
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
-        real(dp), intent(in) :: R(NT,3)  ! locations of all beads
+        real(dp), intent(in) :: R(3,NT)  ! locations of all beads
         integer, intent(in) :: beadID
         integer binIndex
 
         real(dp), parameter :: eps = 0.00000001
         integer dd
         do dd = 1,3
-            if (R(beadID,dd) + eps.lt.bin%minXYZ(dd)) then
+            if (R(dd,beadID) + eps.lt.bin%minXYZ(dd)) then
                 print*, "In Add"
                 print*, "Error, location out of bin.  Under."
-                print*, "location", R(beadID,:)
+                print*, "location", R(:,beadID)
                 print*, "minXYZ", bin%minXYZ
                 print*, "maxXYZ", bin%minXYZ + bin%binSize
                 stop
             endif
-            if (R(beadID,dd)-eps-bin%binSize(dd)>bin%minXYZ(dd)) then
+            if (R(dd,beadID)-eps-bin%binSize(dd)>bin%minXYZ(dd)) then
                 print*, "In Add"
                 print*, "Error, location out of bin. Over"
-                print*, "location", R(beadID,:)
+                print*, "location", R(:,beadID)
                 print*, "minXYZ", bin%minXYZ
                 print*, "maxXYZ", bin%minXYZ + bin%binSize
                 stop
@@ -200,8 +200,8 @@ contains
             !print*, 'adding Bead to superbin minXYZ',bin%minXYZ
             !print*, 'getting index'
             !print*, 'beadID',beadID
-            !print*, 'R:',R(beadID,:)
-            call getBinIndex(bin,R(beadID,:),binIndex)
+            !print*, 'R:',R(:,beadID)
+            call getBinIndex(bin,R(:,beadID),binIndex)
             !print*, 'index', binIndex
             call addBead(bin%bins(binIndex),R,NT,beadID)
             bin%numberOfBeads = bin%numberOfBeads + 1
@@ -326,7 +326,7 @@ contains
         real(dp), intent(in) :: location(3) !
         real(dp), intent(in) :: radius ! cuttoff on interaction distance
         integer, intent(in) :: NT ! total number of beads
-        real(dp), intent(in) :: R(NT,3)  ! locations of all beads
+        real(dp), intent(in) :: R(3,NT)  ! locations of all beads
         integer, intent(in) :: maxNeighbors ! equal length of lists
         integer, intent(inout) :: nNeighbors !number of neighbors found (so far)
         integer, intent(inout):: neighbors(maxNeighbors) ! list of bead ID's
@@ -363,9 +363,9 @@ contains
             enddo
         else
             do ii = 1,bin%numberOfBeads
-                distance= (R(bin%beads(ii),1)-location(1))**2&
-                         +(R(bin%beads(ii),2)-location(2))**2&
-                         +(R(bin%beads(ii),3)-location(3))**2
+                distance= (R(1,bin%beads(ii))-location(1))**2&
+                         +(R(2,bin%beads(ii))-location(2))**2&
+                         +(R(3,bin%beads(ii))-location(3))**2
                 if (distance.le.(radius**2)) then
                     !if (nNeighbors .ge. maxNeighbors) then
                     !    print*, "Error: Too many neighbors"

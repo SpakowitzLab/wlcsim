@@ -219,21 +219,21 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                  ENDdo
              else
                  do I = IT1,IT2
-                     wlc_d%R(I,1) = wlc_d%RP(I,1)
-                     wlc_d%R(I,2) = wlc_d%RP(I,2)
-                     wlc_d%R(I,3) = wlc_d%RP(I,3)
-                     wlc_d%U(I,1) = wlc_d%UP(I,1)
-                     wlc_d%U(I,2) = wlc_d%UP(I,2)
-                     wlc_d%U(I,3) = wlc_d%UP(I,3)
+                     wlc_d%R(1,I) = wlc_d%RP(I,1)
+                     wlc_d%R(2,I) = wlc_d%RP(I,2)
+                     wlc_d%R(3,I) = wlc_d%RP(I,3)
+                     wlc_d%U(1,I) = wlc_d%UP(I,1)
+                     wlc_d%U(2,I) = wlc_d%UP(I,2)
+                     wlc_d%U(3,I) = wlc_d%UP(I,3)
                  enddo
                  if (MCTYPE == 9) then
                      do I = IT3,IT4
-                         wlc_d%R(I,1) = wlc_d%RP(I,1)
-                         wlc_d%R(I,2) = wlc_d%RP(I,2)
-                         wlc_d%R(I,3) = wlc_d%RP(I,3)
-                         wlc_d%U(I,1) = wlc_d%UP(I,1)
-                         wlc_d%U(I,2) = wlc_d%UP(I,2)
-                         wlc_d%U(I,3) = wlc_d%UP(I,3)
+                         wlc_d%R(1,I) = wlc_d%RP(I,1)
+                         wlc_d%R(2,I) = wlc_d%RP(I,2)
+                         wlc_d%R(3,I) = wlc_d%RP(I,3)
+                         wlc_d%U(1,I) = wlc_d%UP(I,1)
+                         wlc_d%U(2,I) = wlc_d%UP(I,2)
+                         wlc_d%U(3,I) = wlc_d%UP(I,3)
                      enddo
                  endif
              endif

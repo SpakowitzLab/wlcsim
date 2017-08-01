@@ -48,9 +48,9 @@ enddo
 
 wlc_d%NPHI = 0
 do IB = 1,wlc_p%NT
-   RBin(1) = wlc_d%R(IB,1)
-   RBin(2) = wlc_d%R(IB,2)
-   RBin(3) = wlc_d%R(IB,3)
+   RBin(1) = wlc_d%R(1,IB)
+   RBin(2) = wlc_d%R(2,IB)
+   RBin(3) = wlc_d%R(3,IB)
 
    isA = wlc_d%AB(IB).eq.1
    ! --------------------------------------------------
@@ -160,9 +160,9 @@ do IB = I1,I2
    ! on initialize only add current position
    ! otherwise subract current and add new
    if (rrdr.eq.-1) then
-       RBin(1) = wlc_d%R(IB,1)
-       RBin(2) = wlc_d%R(IB,2)
-       RBin(3) = wlc_d%R(IB,3)
+       RBin(1) = wlc_d%R(1,IB)
+       RBin(2) = wlc_d%R(2,IB)
+       RBin(3) = wlc_d%R(3,IB)
    else
        RBin(1) = wlc_d%RP(IB,1)
        RBin(2) = wlc_d%RP(IB,2)

@@ -4,8 +4,8 @@
 
       PARAMETER (PI = 3.141593)
 
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(NT,3)  ! Tangent vectors
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,NT)  ! Tangent vectors
       real(dp) RT(NT,3)  ! Bead positions
       real(dp) UT(NT,3)  ! Tangent vectors
       real(dp) TTOT     ! Time of BD simulation
@@ -32,12 +32,12 @@
          I = 1
          J = 1
          do while (I <= N)
-            RT(inD,1) = R(I + N*(IP-1),1)
-            RT(inD,2) = R(I + N*(IP-1),2)
-            RT(inD,3) = R(I + N*(IP-1),3)
-            UT(inD,1) = U(I + N*(IP-1),1)
-            UT(inD,2) = U(I + N*(IP-1),2)
-            UT(inD,3) = U(I + N*(IP-1),3)
+            RT(inD,1) = R(1,I + N*(IP-1))
+            RT(inD,2) = R(2,I + N*(IP-1))
+            RT(inD,3) = R(3,I + N*(IP-1))
+            UT(inD,1) = U(1,I + N*(IP-1))
+            UT(inD,2) = U(2,I + N*(IP-1))
+            UT(inD,3) = U(3,I + N*(IP-1))
             I = I + 2
             J = J + 1
             inD = inD + 1
@@ -48,12 +48,12 @@
       do 20 I = 1,NP
          do 30 J = 1,N
             inD = J + N*(I-1)
-            R(inD,1) = RT(inD,1)
-            R(inD,2) = RT(inD,2)
-            R(inD,3) = RT(inD,3)
-            U(inD,1) = UT(inD,1)
-            U(inD,2) = UT(inD,2)
-            U(inD,3) = UT(inD,3)
+            R(1,inD) = RT(inD,1)
+            R(2,inD) = RT(inD,2)
+            R(3,inD) = RT(inD,3)
+            U(1,inD) = UT(inD,1)
+            U(2,inD) = UT(inD,2)
+            U(3,inD) = UT(inD,3)
  30      continue
  20   continue
 

@@ -409,7 +409,7 @@ contains
   TYPE(QUATERNION) FUNCTION ROTMAT2QUAT(R)
     ! convert from a rotation matrix to a quaternion object
     ! following Deibel, 2006 (but with the rotation matrix transposed)
-    ! R(:,3) has the z axis after rotation is applied, etc.
+    ! R(3,:) has the z axis after rotation is applied, etc.
     ! assumes R is orthonormal
     implicit none
     real(dp) :: R(3,3)
@@ -420,36 +420,36 @@ contains
     if (R22 >= -R33.AND.R11 >= -R22.AND.R11 >= -R33) then
        TMP = SQRT(1 + R11 + R22 + R33)
        ROTMAT2QUAT%W = TMP/2
-       ROTMAT2QUAT%X = (R(3,2)-R(2,3))/(TMP*2)
-       ROTMAT2QUAT%Y = (R(1,3)-R(3,1))/(TMP*2)
-       ROTMAT2QUAT%Z = (R(2,1)-R(1,2))/(TMP*2)
+       ROTMAT2QUAT%X = (R(2,3)-R(3,2))/(TMP*2)
+       ROTMAT2QUAT%Y = (R(3,1)-R(1,3))/(TMP*2)
+       ROTMAT2QUAT%Z = (R(1,2)-R(2,1))/(TMP*2)
        !PRinT*, 'TESTX1Q'
     elseif (R22 <= -R33.AND.R11 > R22.AND.R11 > R33) then
        TMP = SQRT(1 + R11-R22-R33)
-       ROTMAT2QUAT%W = (R(3,2)-R(2,3))/(TMP*2)
+       ROTMAT2QUAT%W = (R(2,3)-R(3,2))/(TMP*2)
        ROTMAT2QUAT%X = TMP/2
-       ROTMAT2QUAT%Y = (R(2,1) + R(1,2))/(TMP*2)
-       ROTMAT2QUAT%Z = (R(1,3) + R(3,1))/(TMP*2)
+       ROTMAT2QUAT%Y = (R(1,2) + R(2,1))/(TMP*2)
+       ROTMAT2QUAT%Z = (R(3,1) + R(1,3))/(TMP*2)
        !PRinT*, 'TESTX2Q'
     elseif (R22 > R33.AND.R11 < R22.AND.R11 <= -R33) then
        TMP = SQRT(1-R11 + R22-R33)
-       ROTMAT2QUAT%W = (R(1,3)-R(3,1))/(TMP*2)
-       ROTMAT2QUAT%X = (R(2,1) + R(1,2))/(TMP*2)
+       ROTMAT2QUAT%W = (R(3,1)-R(1,3))/(TMP*2)
+       ROTMAT2QUAT%X = (R(1,2) + R(2,1))/(TMP*2)
        ROTMAT2QUAT%Y = TMP/2
-       ROTMAT2QUAT%Z = (R(3,2) + R(2,3))/(TMP*2)
+       ROTMAT2QUAT%Z = (R(2,3) + R(3,2))/(TMP*2)
        !PRinT*, 'TESTX3Q'
     elseif (R22 < R33.AND.R11 <= -R22.AND.R11 < R33) then
        TMP = SQRT(1D0-R11-R22 + R33)
-       ROTMAT2QUAT%W = (R(2,1)-R(1,2))/(TMP*2)
-       ROTMAT2QUAT%X = (R(1,3) + R(3,1))/(TMP*2)
-       ROTMAT2QUAT%Y = (R(3,2) + R(2,3))/(TMP*2)
+       ROTMAT2QUAT%W = (R(1,2)-R(2,1))/(TMP*2)
+       ROTMAT2QUAT%X = (R(3,1) + R(1,3))/(TMP*2)
+       ROTMAT2QUAT%Y = (R(2,3) + R(3,2))/(TMP*2)
        ROTMAT2QUAT%Z = TMP/2
        !PRinT*, 'TESTX4Q'
     else
        PRinT*, 'ERROR in ROTMAT2QUAT: bad rotation matrix'
-       PRinT*, R(1,:)
-       PRinT*, R(2,:)
-       PRinT*, R(3,:)
+       PRinT*, R(:,1)
+       PRinT*, R(:,2)
+       PRinT*, R(:,3)
        STOP 1
        ROTMAT2QUAT%W = 0; ROTMAT2QUAT%X = 0; ROTMAT2QUAT%Y = 0; ROTMAT2QUAT%Z = 0
     ENDif

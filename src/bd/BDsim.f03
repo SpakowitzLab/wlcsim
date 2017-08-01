@@ -12,8 +12,8 @@
       use mt19937, only : rnorm
       use params, only : dp
       implicit none
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(NT,3)  ! Tangent vectors
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,NT)  ! Tangent vectors
       real(dp) TIME     ! Time of BD simulation
       real(dp) TTOT     ! Final time of BD simulation
       integer N,NP,NT           ! Number of beads
@@ -89,12 +89,12 @@
       IB = 1
       do 10 I = 1,NP
          do 20 J = 1,N
-            RS(IB,1) = R(IB,1)
-            RS(IB,2) = R(IB,2)
-            RS(IB,3) = R(IB,3)
-            US(IB,1) = U(IB,1)
-            US(IB,2) = U(IB,2)
-            US(IB,3) = U(IB,3)
+            RS(IB,1) = R(1,IB)
+            RS(IB,2) = R(2,IB)
+            RS(IB,3) = R(3,IB)
+            US(IB,1) = U(1,IB)
+            US(IB,2) = U(2,IB)
+            US(IB,3) = U(3,IB)
             FELAS(IB,1) = 0.
             FELAS(IB,2) = 0.
             FELAS(IB,3) = 0.
@@ -168,12 +168,12 @@
                   IB = 1
                   do 60 I = 1,NP
                      do 65 J = 1,N
-                        R(IB,1) = RS(IB,1)
-                        R(IB,2) = RS(IB,2)
-                        R(IB,3) = RS(IB,3)
-                        U(IB,1) = US(IB,1)
-                        U(IB,2) = US(IB,2)
-                        U(IB,3) = US(IB,3)
+                        R(1,IB) = RS(IB,1)
+                        R(2,IB) = RS(IB,2)
+                        R(3,IB) = RS(IB,3)
+                        U(1,IB) = US(IB,1)
+                        U(2,IB) = US(IB,2)
+                        U(3,IB) = US(IB,3)
                         IB = IB + 1
  65                  continue
  60               continue
@@ -196,10 +196,10 @@
                   DUDT(IB,3,RK) = (TELAS(IB,3) + TPONP(IB,3))/XIU
 
                   if (BROWN == 0) then
-                     doTU = DUDT(IB,1,RK)*U(IB,1) + DUDT(IB,2,RK)*U(IB,2) + DUDT(IB,3,RK)*U(IB,3)
-                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(IB,1)
-                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(IB,2)
-                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(IB,3)
+                     doTU = DUDT(IB,1,RK)*U(1,IB) + DUDT(IB,2,RK)*U(2,IB) + DUDT(IB,3,RK)*U(3,IB)
+                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(1,IB)
+                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(2,IB)
+                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(3,IB)
                   endif
                   IB = IB + 1
  80            continue
@@ -216,10 +216,10 @@
                      DUDT(IB,2,RK) = DUDT(IB,2,RK) + TRAND(IB,2)/XIU
                      DUDT(IB,3,RK) = DUDT(IB,3,RK) + TRAND(IB,3)/XIU
 
-                     doTU = DUDT(IB,1,RK)*U(IB,1) + DUDT(IB,2,RK)*U(IB,2) + DUDT(IB,3,RK)*U(IB,3)
-                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(IB,1)
-                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(IB,2)
-                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(IB,3)
+                     doTU = DUDT(IB,1,RK)*U(1,IB) + DUDT(IB,2,RK)*U(2,IB) + DUDT(IB,3,RK)*U(3,IB)
+                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(1,IB)
+                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(2,IB)
+                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(3,IB)
 
                      IB = IB + 1
  100               continue
@@ -251,12 +251,12 @@
          IB = 1
          do 110 I = 1,NP
             do 120 J = 1,N
-               RS(IB,1) = R(IB,1)
-               RS(IB,2) = R(IB,2)
-               RS(IB,3) = R(IB,3)
-               US(IB,1) = U(IB,1)
-               US(IB,2) = U(IB,2)
-               US(IB,3) = U(IB,3)
+               RS(IB,1) = R(1,IB)
+               RS(IB,2) = R(2,IB)
+               RS(IB,3) = R(3,IB)
+               US(IB,1) = U(1,IB)
+               US(IB,2) = U(2,IB)
+               US(IB,3) = U(3,IB)
                IB = IB + 1
  120        continue
  110     continue

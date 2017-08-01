@@ -16,7 +16,7 @@
 
       
 
-      real(dp) R(NT,3)   ! Bead positions
+      real(dp) R(3,NT)   ! Bead positions
       integer N,NT,NP            ! Current number of beads
       real(dp) EPONP ! Self-interaction force
       real(dp) FMAG     ! Mag of force
@@ -69,26 +69,26 @@
             do 50 I2 = (I1 + 1),NP
                do 60 J2 = 1,(N-1)
                   IB2 = J2 + N*(I2-1)
-                  R12(1) = R(IB2,1)-R(IB1,1)
-                  R12(2) = R(IB2,2)-R(IB1,2)
-                  R12(3) = R(IB2,3)-R(IB1,3)
+                  R12(1) = R(1,IB2)-R(1,IB1)
+                  R12(2) = R(2,IB2)-R(2,IB1)
+                  R12(3) = R(3,IB2)-R(3,IB1)
 
                   D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
                   if (D12 > (3.*GAM)) then
                      goto 70
                   endif
 
-                  U1(1) = R(IB1 + 1,1)-R(IB1,1)
-                  U1(2) = R(IB1 + 1,2)-R(IB1,2)
-                  U1(3) = R(IB1 + 1,3)-R(IB1,3)
+                  U1(1) = R(1,IB1 + 1)-R(1,IB1)
+                  U1(2) = R(2,IB1 + 1)-R(2,IB1)
+                  U1(3) = R(3,IB1 + 1)-R(3,IB1)
                   D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
                   U1(1) = U1(1)/D1
                   U1(2) = U1(2)/D1
                   U1(3) = U1(3)/D1
 
-                  U2(1) = R(IB2 + 1,1)-R(IB2,1)
-                  U2(2) = R(IB2 + 1,2)-R(IB2,2)
-                  U2(3) = R(IB2 + 1,3)-R(IB2,3)
+                  U2(1) = R(1,IB2 + 1)-R(1,IB2)
+                  U2(2) = R(2,IB2 + 1)-R(2,IB2)
+                  U2(3) = R(3,IB2 + 1)-R(3,IB2)
                   D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
                   U2(1) = U2(1)/D2
                   U2(2) = U2(2)/D2

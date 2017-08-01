@@ -11,8 +11,8 @@
 
       subroutine find_struc(R,NT,N,RCOM,DELR)
 
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(N-1,3) ! Tangent
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,N-1) ! Tangent
       real(dp) B(N-1)   ! Bond length
       integer N,NT              ! Number of beads
       integer I
@@ -36,9 +36,9 @@
       RCOM(2) = 0.
       RCOM(3) = 0.
       do 10 I = 1,N
-         RCOM(1) = RCOM(1) + R(I,1)
-         RCOM(2) = RCOM(2) + R(I,2)
-         RCOM(3) = RCOM(3) + R(I,3)
+         RCOM(1) = RCOM(1) + R(1,I)
+         RCOM(2) = RCOM(2) + R(2,I)
+         RCOM(3) = RCOM(3) + R(3,I)
  10   continue
       RCOM(1) = RCOM(1)/N
       RCOM(2) = RCOM(2)/N
@@ -56,15 +56,15 @@
       T(3,2) = 0.
       T(3,3) = 0.
       do 20 I = 1,N
-         T(1,1) = T(1,1) + (R(I,1)-RCOM(1))*(R(I,1)-RCOM(1))
-         T(1,2) = T(1,2) + (R(I,1)-RCOM(1))*(R(I,2)-RCOM(2))
-         T(1,3) = T(1,3) + (R(I,1)-RCOM(1))*(R(I,3)-RCOM(3))
-         T(2,1) = T(2,1) + (R(I,2)-RCOM(2))*(R(I,1)-RCOM(1))
-         T(2,2) = T(2,2) + (R(I,2)-RCOM(2))*(R(I,2)-RCOM(2))
-         T(2,3) = T(2,3) + (R(I,2)-RCOM(2))*(R(I,3)-RCOM(3))
-         T(3,1) = T(3,1) + (R(I,3)-RCOM(3))*(R(I,1)-RCOM(1))
-         T(3,2) = T(3,2) + (R(I,3)-RCOM(3))*(R(I,2)-RCOM(2))
-         T(3,3) = T(3,3) + (R(I,3)-RCOM(3))*(R(I,3)-RCOM(3))
+         T(1,1) = T(1,1) + (R(1,I)-RCOM(1))*(R(1,I)-RCOM(1))
+         T(1,2) = T(1,2) + (R(1,I)-RCOM(1))*(R(2,I)-RCOM(2))
+         T(1,3) = T(1,3) + (R(1,I)-RCOM(1))*(R(3,I)-RCOM(3))
+         T(2,1) = T(2,1) + (R(2,I)-RCOM(2))*(R(1,I)-RCOM(1))
+         T(2,2) = T(2,2) + (R(2,I)-RCOM(2))*(R(2,I)-RCOM(2))
+         T(2,3) = T(2,3) + (R(2,I)-RCOM(2))*(R(3,I)-RCOM(3))
+         T(3,1) = T(3,1) + (R(3,I)-RCOM(3))*(R(1,I)-RCOM(1))
+         T(3,2) = T(3,2) + (R(3,I)-RCOM(3))*(R(2,I)-RCOM(2))
+         T(3,3) = T(3,3) + (R(3,I)-RCOM(3))*(R(3,I)-RCOM(3))
  20   continue
       T(1,1) = T(1,1)/N
       T(1,2) = T(1,2)/N

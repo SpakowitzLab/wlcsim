@@ -5,7 +5,7 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
   implicit none
 
   integer, intent(in) :: N                 ! Number of beads per polymer
-  real(dp), intent(in) :: R(N,3),RP(N,3)  ! Position
+  real(dp), intent(in) :: R(3,N),RP(N,3)  ! Position
   integer, intent(in) :: IB1,IB2,IT1,IT2   ! Bead indices for terminal points of segment moved
   integer, intent(in) :: IP                ! Test polymer index
   !Geometric variables
@@ -76,23 +76,23 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
            IOP1 = IO + 1
         ENDif
 
-        r1 = R(II,:)
-        r2 = R(IO,:)
+        r1 = R(:,II)
+        r2 = R(:,IO)
         r12 = r2-r1
 
-        if (RP(Io,1) /= R(Io,1).OR.RP(Io,2) /= R(Io,2).OR.RP(Io,3) /= R(Io,3)) then
+        if (RP(Io,1) /= R(1,Io).OR.RP(Io,2) /= R(2,Io).OR.RP(Io,3) /= R(3,Io)) then
            ! PRinT *, "POSITIONS NOT EQUAL", IO,"of", NBO
         ENDif
 
-        if (RP(IOP1,1) /= R(IOP1,1).OR.RP(IOP1,2) /= R(IOP1,2).OR.RP(IOP1,3) /= RP(IOP1,3)) then
+        if (RP(IOP1,1) /= R(1,IOP1).OR.RP(IOP1,2) /= R(2,IOP1).OR.RP(IOP1,3) /= RP(IOP1,3)) then
            !  PRinT *, "POSITIONS NOT EQUAL AT IOP1", IOP1
         endif
 
 
-        s2 = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-        s1 = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-        e2 = (R(IOP1,:)-R(IO,:))/s2
-        e1 = (R(IIP1,:)-R(II,:))/s1
+        s2 = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+        s1 = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+        e2 = (R(:,IOP1)-R(:,IO))/s2
+        e1 = (R(:,IIP1)-R(:,II))/s1
         cosB = doT_PRODUCT(e1,e2)
 
         sin2B = 1-(cosB**2)

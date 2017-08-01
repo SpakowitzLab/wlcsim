@@ -7,7 +7,7 @@ subroutine WRITHE(R,N,Wr)
 
 
   integer, intent(in) :: N                 ! Number of beads
-  real(dp), intent(in) :: R(N,3)  ! PositionS
+  real(dp), intent(in) :: R(3,N)  ! PositionS
     !Geometric variables
   real(dp)  r1(3)                  ! Position bead 1
   real(dp)  r2(3)                  ! Position bead 2
@@ -63,14 +63,14 @@ subroutine WRITHE(R,N,Wr)
 
 
 
-        r1 = R(I,:)
-        r2 = R(J,:)
+        r1 = R(:,I)
+        r2 = R(:,J)
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(JP1,:)-R(J,:))**2))
-        s1 = SQRT(SUM((R(IP1,:)-R(I,:))**2))
-        e2 = (R(JP1,:)-R(J,:))/s2
-        e1 = (R(IP1,:)-R(I,:))/s1
+        s2 = SQRT(SUM((R(:,JP1)-R(:,J))**2))
+        s1 = SQRT(SUM((R(:,IP1)-R(:,I))**2))
+        e2 = (R(:,JP1)-R(:,J))/s2
+        e1 = (R(:,IP1)-R(:,I))/s1
         cosB = doT_PRODUCT(e1,e2)
         B = ACOS(cosB)
 

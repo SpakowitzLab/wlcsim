@@ -13,10 +13,10 @@
       implicit none
       real(dp), intent(out) :: FELAS(NT,3) ! Elastic force
       real(dp), intent(out) :: TELAS(NT,3) ! Elastic force
-      real(dp), intent(in) ::  R(NT,3)  ! Bead positions
+      real(dp), intent(in) ::  R(3,NT)  ! Bead positions
       ! u will be modified iff simtype = 1, if want this to be intent(in), just
       ! modify the below to use a separate variable for this
-      real(dp), intent(inout) :: U(NT,3)  ! Tangent vectors
+      real(dp), intent(inout) :: U(3,NT)  ! Tangent vectors
       real(dp) B(NT)    ! Bond lengths
       integer I,J,IB            ! Index holders
       integer, intent(in) :: N,NT,NP  ! Number of bead
@@ -43,13 +43,13 @@
             TELAS(IB,2) = 0.
             TELAS(IB,3) = 0.
             if (SIMTYPE == 1.AND.J <= (N-1)) then
-               U(IB,1) = R(IB + 1,1)-R(IB,1)
-               U(IB,2) = R(IB + 1,2)-R(IB,2)
-               U(IB,3) = R(IB + 1,3)-R(IB,3)
-               B(IB) = sqrt(U(IB,1)**2. + U(IB,2)**2. + U(IB,3)**2.)
-               U(IB,1) = U(IB,1)/B(IB)
-               U(IB,2) = U(IB,2)/B(IB)
-               U(IB,3) = U(IB,3)/B(IB)
+               U(1,IB) = R(1,IB + 1)-R(1,IB)
+               U(2,IB) = R(2,IB + 1)-R(2,IB)
+               U(3,IB) = R(3,IB + 1)-R(3,IB)
+               B(IB) = sqrt(U(1,IB)**2. + U(2,IB)**2. + U(3,IB)**2.)
+               U(1,IB) = U(1,IB)/B(IB)
+               U(2,IB) = U(2,IB)/B(IB)
+               U(3,IB) = U(3,IB)/B(IB)
             endif
             IB = IB + 1
 
@@ -65,11 +65,11 @@
 
                if (J <= (N-2)) then
 
-                  U1U2 = U(IB,1)*U(IB + 1,1) + U(IB,2)*U(IB + 1,2) + U(IB,3)*U(IB + 1,3)
+                  U1U2 = U(1,IB)*U(1,IB + 1) + U(2,IB)*U(2,IB + 1) + U(3,IB)*U(3,IB + 1)
 
-                  GI(1) = EB*(U(IB + 1,1)-U1U2*U(IB,1))/B(IB)
-                  GI(2) = EB*(U(IB + 1,2)-U1U2*U(IB,2))/B(IB)
-                  GI(3) = EB*(U(IB + 1,3)-U1U2*U(IB,3))/B(IB)
+                  GI(1) = EB*(U(1,IB + 1)-U1U2*U(1,IB))/B(IB)
+                  GI(2) = EB*(U(2,IB + 1)-U1U2*U(2,IB))/B(IB)
+                  GI(3) = EB*(U(3,IB + 1)-U1U2*U(3,IB))/B(IB)
 
                   FELAS(IB,1) = FELAS(IB,1)-GI(1)
                   FELAS(IB,2) = FELAS(IB,2)-GI(2)
@@ -78,9 +78,9 @@
                   FELAS(IB + 1,2) = FELAS(IB + 1,2) + GI(2)
                   FELAS(IB + 1,3) = FELAS(IB + 1,3) + GI(3)
 
-                  GI(1) = EB*(U(IB,1)-U1U2*U(IB + 1,1))/B(IB + 1)
-                  GI(2) = EB*(U(IB,2)-U1U2*U(IB + 1,2))/B(IB + 1)
-                  GI(3) = EB*(U(IB,3)-U1U2*U(IB + 1,3))/B(IB + 1)
+                  GI(1) = EB*(U(1,IB)-U1U2*U(1,IB + 1))/B(IB + 1)
+                  GI(2) = EB*(U(2,IB)-U1U2*U(2,IB + 1))/B(IB + 1)
+                  GI(3) = EB*(U(3,IB)-U1U2*U(3,IB + 1))/B(IB + 1)
 
                   FELAS(IB + 1,1) = FELAS(IB + 1,1)-GI(1)
                   FELAS(IB + 1,2) = FELAS(IB + 1,2)-GI(2)
@@ -98,23 +98,23 @@
                TELAS(IB + 1,3) = 0.
 
             elseif (SIMTYPE == 2) then
-               DR(1) = R(IB + 1,1)-R(IB,1)
-               DR(2) = R(IB + 1,2)-R(IB,2)
-               DR(3) = R(IB + 1,3)-R(IB,3)
-               DRPAR = DR(1)*U(IB,1) + DR(2)*U(IB,2) + DR(3)*U(IB,3)
+               DR(1) = R(1,IB + 1)-R(1,IB)
+               DR(2) = R(2,IB + 1)-R(2,IB)
+               DR(3) = R(3,IB + 1)-R(3,IB)
+               DRPAR = DR(1)*U(1,IB) + DR(2)*U(2,IB) + DR(3)*U(3,IB)
 
-               DRPERP(1) = DR(1)-DRPAR*U(IB,1)
-               DRPERP(2) = DR(2)-DRPAR*U(IB,2)
-               DRPERP(3) = DR(3)-DRPAR*U(IB,3)
-               U1U2 = U(IB,1)*U(IB + 1,1) + U(IB,2)*U(IB + 1,2) + U(IB,3)*U(IB + 1,3)
+               DRPERP(1) = DR(1)-DRPAR*U(1,IB)
+               DRPERP(2) = DR(2)-DRPAR*U(2,IB)
+               DRPERP(3) = DR(3)-DRPAR*U(3,IB)
+               U1U2 = U(1,IB)*U(1,IB + 1) + U(2,IB)*U(2,IB + 1) + U(3,IB)*U(3,IB + 1)
 
-               GI(1) = U(IB + 1,1)-U1U2*U(IB,1)-ETA*DRPERP(1)
-               GI(2) = U(IB + 1,2)-U1U2*U(IB,2)-ETA*DRPERP(2)
-               GI(3) = U(IB + 1,3)-U1U2*U(IB,3)-ETA*DRPERP(3)
+               GI(1) = U(1,IB + 1)-U1U2*U(1,IB)-ETA*DRPERP(1)
+               GI(2) = U(2,IB + 1)-U1U2*U(2,IB)-ETA*DRPERP(2)
+               GI(3) = U(3,IB + 1)-U1U2*U(3,IB)-ETA*DRPERP(3)
 
-               FI(1) = -ETA*EB*GI(1) + EPAR*(DRPAR-GAM)*U(IB,1) + EPERP*DRPERP(1)
-               FI(2) = -ETA*EB*GI(2) + EPAR*(DRPAR-GAM)*U(IB,2) + EPERP*DRPERP(2)
-               FI(3) = -ETA*EB*GI(3) + EPAR*(DRPAR-GAM)*U(IB,3) + EPERP*DRPERP(3)
+               FI(1) = -ETA*EB*GI(1) + EPAR*(DRPAR-GAM)*U(1,IB) + EPERP*DRPERP(1)
+               FI(2) = -ETA*EB*GI(2) + EPAR*(DRPAR-GAM)*U(2,IB) + EPERP*DRPERP(2)
+               FI(3) = -ETA*EB*GI(3) + EPAR*(DRPAR-GAM)*U(3,IB) + EPERP*DRPERP(3)
 
                FELAS(IB,1) = FELAS(IB,1) + FI(1)
                FELAS(IB,2) = FELAS(IB,2) + FI(2)
@@ -123,9 +123,9 @@
                FELAS(IB + 1,2) = FELAS(IB + 1,2)-FI(2)
                FELAS(IB + 1,3) = FELAS(IB + 1,3)-FI(3)
 
-               GI(1) = U(IB + 1,1)-U(IB,1)-ETA*DRPERP(1)
-               GI(2) = U(IB + 1,2)-U(IB,2)-ETA*DRPERP(2)
-               GI(3) = U(IB + 1,3)-U(IB,3)-ETA*DRPERP(3)
+               GI(1) = U(1,IB + 1)-U(1,IB)-ETA*DRPERP(1)
+               GI(2) = U(2,IB + 1)-U(2,IB)-ETA*DRPERP(2)
+               GI(3) = U(3,IB + 1)-U(3,IB)-ETA*DRPERP(3)
 
                TI1(1) = EB*GI(1)
                TI1(2) = EB*GI(2)
@@ -144,9 +144,9 @@
 
             elseif (SIMTYPE == 3) then
 
-               DR(1) = R(IB + 1,1)-R(IB,1)
-               DR(2) = R(IB + 1,2)-R(IB,2)
-               DR(3) = R(IB + 1,3)-R(IB,3)
+               DR(1) = R(1,IB + 1)-R(1,IB)
+               DR(2) = R(2,IB + 1)-R(2,IB)
+               DR(3) = R(3,IB + 1)-R(3,IB)
 
                FELAS(IB,1) = FELAS(IB,1) + EPAR*DR(1)
                FELAS(IB,2) = FELAS(IB,2) + EPAR*DR(2)

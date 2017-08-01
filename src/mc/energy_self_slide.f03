@@ -24,7 +24,7 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
   implicit none
   integer N,NT,NP            ! Current number of beads
-  real(dp) R(NT,3)   ! Bead positions
+  real(dp) R(3,NT)   ! Bead positions
   real(dp) EPONP ! Self-interaction force
   real(dp) FMAG     ! Mag of force
   real(dp) RIJ      ! Interbead dist
@@ -171,9 +171,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-           R12(1) = R(IO,1)-R(II,1)
-           R12(2) = R(IO,2)-R(II,2)
-           R12(3) = R(IO,3)-R(II,3)
+           R12(1) = R(1,IO)-R(1,II)
+           R12(2) = R(2,IO)-R(2,II)
+           R12(3) = R(3,IO)-R(3,II)
            !Periodic Bounary conditions. Not used for single chains
 
            ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -182,17 +182,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
            D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-           U1(1) = R(IIP1,1)-R(II,1)
-           U1(2) = R(IIP1,2)-R(II,2)
-           U1(3) = R(IIP1,3)-R(II,3)
+           U1(1) = R(1,IIP1)-R(1,II)
+           U1(2) = R(2,IIP1)-R(2,II)
+           U1(3) = R(3,IIP1)-R(3,II)
            D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
            U1(1) = U1(1)/D1
            U1(2) = U1(2)/D1
            U1(3) = U1(3)/D1
 
-           U2(1) = R(IOP1,1)-R(IO,1)
-           U2(2) = R(IOP1,2)-R(IO,2)
-           U2(3) = R(IOP1,3)-R(IO,3)
+           U2(1) = R(1,IOP1)-R(1,IO)
+           U2(2) = R(2,IOP1)-R(2,IO)
+           U2(3) = R(3,IOP1)-R(3,IO)
            D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
            U2(1) = U2(1)/D2
            U2(2) = U2(2)/D2
@@ -211,9 +211,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
            if (S1 > D1.OR.S1 < 0.) then
-              R12T = R(IOP1,:)-R(IIP1,:)
-              R12C1 = R(IOP1,:)-R(II,:)
-              R12C2 = R(IIP1,:)-R(IO,:)
+              R12T = R(:,IOP1)-R(:,IIP1)
+              R12C1 = R(:,IOP1)-R(:,II)
+              R12C2 = R(:,IIP1)-R(:,IO)
               D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                    & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
               GOTO 60
@@ -226,9 +226,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
            if (S2 > D2.OR.S2 < 0.) then
-              R12T = R(IOP1,:)-R(IIP1,:)
-              R12C1 = R(IOP1,:)-R(II,:)
-              R12C2 = R(IIP1,:)-R(IO,:)
+              R12T = R(:,IOP1)-R(:,IIP1)
+              R12C1 = R(:,IOP1)-R(:,II)
+              R12C2 = R(:,IIP1)-R(:,IO)
               D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                    & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
               GOTO 60
@@ -271,9 +271,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
               !Calculate interaction between outer segment and first stretched
               !segment.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              R12(1) = R(IS1,1)-R(IO,1)
-              R12(2) = R(IS1,2)-R(IO,2)
-              R12(3) = R(IS1,3)-R(IO,3)
+              R12(1) = R(1,IS1)-R(1,IO)
+              R12(2) = R(2,IS1)-R(2,IO)
+              R12(3) = R(3,IS1)-R(3,IO)
               !Periodic Bounary conditions. Not used for single chains
 
               ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -282,17 +282,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
               D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-              U1(1) = R(IOP1,1)-R(IO,1)
-              U1(2) = R(IOP1,2)-R(IO,2)
-              U1(3) = R(IOP1,3)-R(IO,3)
+              U1(1) = R(1,IOP1)-R(1,IO)
+              U1(2) = R(2,IOP1)-R(2,IO)
+              U1(3) = R(3,IOP1)-R(3,IO)
               D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
               U1(1) = U1(1)/D1
               U1(2) = U1(2)/D1
               U1(3) = U1(3)/D1
 
-              U2(1) = R(IS1P1,1)-R(IS1,1)
-              U2(2) = R(IS1P1,2)-R(IS1,2)
-              U2(3) = R(IS1P1,3)-R(IS1,3)
+              U2(1) = R(1,IS1P1)-R(1,IS1)
+              U2(2) = R(2,IS1P1)-R(2,IS1)
+              U2(3) = R(3,IS1P1)-R(3,IS1)
               D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
               U2(1) = U2(1)/D2
               U2(2) = U2(2)/D2
@@ -312,9 +312,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
               if (S1 > D1.OR.S1 < 0.) then
 
-                 R12T = R(IOP1,:)-R(IS1P1,:)
-                 R12C1 = R(IOP1,:)-R(IS1,:)
-                 R12C2 = R(IS1P1,:)-R(IO,:)
+                 R12T = R(:,IOP1)-R(:,IS1P1)
+                 R12C1 = R(:,IOP1)-R(:,IS1)
+                 R12C2 = R(:,IS1P1)-R(:,IO)
 
                  D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                       & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -329,9 +329,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
               if (S2 > D2.OR.S2 < 0.) then
 
-                 R12T = R(IOP1,:)-R(IS1P1,:)
-                 R12C1 = R(IOP1,:)-R(IS1,:)
-                 R12C2 = R(IS1P1,:)-R(IO,:)
+                 R12T = R(:,IOP1)-R(:,IS1P1)
+                 R12C1 = R(:,IOP1)-R(:,IS1)
+                 R12C2 = R(:,IS1P1)-R(:,IO)
 
                  D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                       & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -369,9 +369,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
                  GOTO 110
               ENDif
 
-              R12(1) = R(IS2,1)-R(IO,1)
-              R12(2) = R(IS2,2)-R(IO,2)
-              R12(3) = R(IS2,3)-R(IO,3)
+              R12(1) = R(1,IS2)-R(1,IO)
+              R12(2) = R(2,IS2)-R(2,IO)
+              R12(3) = R(3,IS2)-R(3,IO)
               !Periodic Bounary conditions. Not used for single chains
 
               ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -380,17 +380,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
               D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-              U1(1) = R(IOP1,1)-R(IO,1)
-              U1(2) = R(IOP1,2)-R(IO,2)
-              U1(3) = R(IOP1,3)-R(IO,3)
+              U1(1) = R(1,IOP1)-R(1,IO)
+              U1(2) = R(2,IOP1)-R(2,IO)
+              U1(3) = R(3,IOP1)-R(3,IO)
               D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
               U1(1) = U1(1)/D1
               U1(2) = U1(2)/D1
               U1(3) = U1(3)/D1
 
-              U2(1) = R(IS2P1,1)-R(IS2,1)
-              U2(2) = R(IS2P1,2)-R(IS2,2)
-              U2(3) = R(IS2P1,3)-R(IS2,3)
+              U2(1) = R(1,IS2P1)-R(1,IS2)
+              U2(2) = R(2,IS2P1)-R(2,IS2)
+              U2(3) = R(3,IS2P1)-R(3,IS2)
               D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
               U2(1) = U2(1)/D2
               U2(2) = U2(2)/D2
@@ -410,9 +410,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
               if (S1 > D1.OR.S1 < 0.) then
 
-                 R12T = R(IOP1,:)-R(IS2P1,:)
-                 R12C1 = R(IOP1,:)-R(IS2,:)
-                 R12C2 = R(IS2P1,:)-R(IO,:)
+                 R12T = R(:,IOP1)-R(:,IS2P1)
+                 R12C1 = R(:,IOP1)-R(:,IS2)
+                 R12C2 = R(:,IS2P1)-R(:,IO)
 
                  D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                       & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -426,9 +426,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
               S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
               if (S2 > D2.OR.S2 < 0.) then
-                 R12T = R(IOP1,:)-R(IS2P1,:)
-                 R12C1 = R(IOP1,:)-R(IS2,:)
-                 R12C2 = R(IS2P1,:)-R(IO,:)
+                 R12T = R(:,IOP1)-R(:,IS2P1)
+                 R12C1 = R(:,IOP1)-R(:,IS2)
+                 R12C2 = R(:,IS2P1)-R(:,IO)
                  D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                       & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
                  GOTO 100
@@ -472,9 +472,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            GOTO 130
         ENDif
 
-        R12(1) = R(IS1,1)-R(II,1)
-        R12(2) = R(IS1,2)-R(II,2)
-        R12(3) = R(IS1,3)-R(II,3)
+        R12(1) = R(1,IS1)-R(1,II)
+        R12(2) = R(2,IS1)-R(2,II)
+        R12(3) = R(3,IS1)-R(3,II)
         !Periodic Bounary conditions. Not used for single chains
 
         ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -483,17 +483,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1) = R(IIP1,1)-R(II,1)
-        U1(2) = R(IIP1,2)-R(II,2)
-        U1(3) = R(IIP1,3)-R(II,3)
+        U1(1) = R(1,IIP1)-R(1,II)
+        U1(2) = R(2,IIP1)-R(2,II)
+        U1(3) = R(3,IIP1)-R(3,II)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IS1P1,1)-R(IS1,1)
-        U2(2) = R(IS1P1,2)-R(IS1,2)
-        U2(3) = R(IS1P1,3)-R(IS1,3)
+        U2(1) = R(1,IS1P1)-R(1,IS1)
+        U2(2) = R(2,IS1P1)-R(2,IS1)
+        U2(3) = R(3,IS1P1)-R(3,IS1)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -512,9 +512,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
         S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S1 > D1.OR.S1 < 0.) then
-           R12T = R(IS1P1,:)-R(IIP1,:)
-           R12C1 = R(IS1P1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IS1,:)
+           R12T = R(:,IS1P1)-R(:,IIP1)
+           R12C1 = R(:,IS1P1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IS1)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 120
@@ -528,9 +528,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         if (S2 > D2.OR.S2 < 0.) then
 
-           R12T = R(IS1P1,:)-R(IIP1,:)
-           R12C1 = R(IS1P1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IS1,:)
+           R12T = R(:,IS1P1)-R(:,IIP1)
+           R12C1 = R(:,IS1P1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IS1)
 
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -567,9 +567,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            GOTO 150
         ENDif
 
-        R12(1) = R(IS2,1)-R(II,1)
-        R12(2) = R(IS2,2)-R(II,2)
-        R12(3) = R(IS2,3)-R(II,3)
+        R12(1) = R(1,IS2)-R(1,II)
+        R12(2) = R(2,IS2)-R(2,II)
+        R12(3) = R(3,IS2)-R(3,II)
         !Periodic Bounary conditions. Not used for single chains
 
         ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -578,17 +578,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1) = R(IIP1,1)-R(II,1)
-        U1(2) = R(IIP1,2)-R(II,2)
-        U1(3) = R(IIP1,3)-R(II,3)
+        U1(1) = R(1,IIP1)-R(1,II)
+        U1(2) = R(2,IIP1)-R(2,II)
+        U1(3) = R(3,IIP1)-R(3,II)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IS2P1,1)-R(IS2,1)
-        U2(2) = R(IS2P1,2)-R(IS2,2)
-        U2(3) = R(IS2P1,3)-R(IS2,3)
+        U2(1) = R(1,IS2P1)-R(1,IS2)
+        U2(2) = R(2,IS2P1)-R(2,IS2)
+        U2(3) = R(3,IS2P1)-R(3,IS2)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -607,9 +607,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
         S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S1 > D1.OR.S1 < 0.) then
-           R12T = R(IS2P1,:)-R(IIP1,:)
-           R12C1 = R(IS2P1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IS2,:)
+           R12T = R(:,IS2P1)-R(:,IIP1)
+           R12C1 = R(:,IS2P1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IS2)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 140
@@ -622,9 +622,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
         S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S2 > D2.OR.S2 < 0.) then
-           R12T = R(IS2P1,:)-R(IIP1,:)
-           R12C1 = R(IS2P1,:)-R(II,:)
-           R12C2 = R(IIP1,:)-R(IS2,:)
+           R12T = R(:,IS2P1)-R(:,IIP1)
+           R12C1 = R(:,IS2P1)-R(:,II)
+           R12C2 = R(:,IIP1)-R(:,IS2)
 
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -660,9 +660,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  R12(1) = R(IS2,1)-R(IS1,1)
-  R12(2) = R(IS2,2)-R(IS1,2)
-  R12(3) = R(IS2,3)-R(IS1,3)
+  R12(1) = R(1,IS2)-R(1,IS1)
+  R12(2) = R(2,IS2)-R(2,IS1)
+  R12(3) = R(3,IS2)-R(3,IS1)
 
 
   if (IS1 == IS2P1.OR.IS1P1 == IS2) then
@@ -684,17 +684,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
   D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-  U1(1) = R(IS1P1,1)-R(IS1,1)
-  U1(2) = R(IS1P1,2)-R(IS1,2)
-  U1(3) = R(IS1P1,3)-R(IS1,3)
+  U1(1) = R(1,IS1P1)-R(1,IS1)
+  U1(2) = R(2,IS1P1)-R(2,IS1)
+  U1(3) = R(3,IS1P1)-R(3,IS1)
   D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
   U1(1) = U1(1)/D1
   U1(2) = U1(2)/D1
   U1(3) = U1(3)/D1
 
-  U2(1) = R(IS2P1,1)-R(IS2,1)
-  U2(2) = R(IS2P1,2)-R(IS2,2)
-  U2(3) = R(IS2P1,3)-R(IS2,3)
+  U2(1) = R(1,IS2P1)-R(1,IS2)
+  U2(2) = R(2,IS2P1)-R(2,IS2)
+  U2(3) = R(3,IS2P1)-R(3,IS2)
   D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
   U2(1) = U2(1)/D2
   U2(2) = U2(2)/D2
@@ -713,9 +713,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
   S1 = (R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
   if (S1 > D1.OR.S1 < 0.) then
-     R12T = R(IS2P1,:)-R(IS1P1,:)
-     R12C1 = R(IS2P1,:)-R(IS1,:)
-     R12C2 = R(IS1P1,:)-R(IS2,:)
+     R12T = R(:,IS2P1)-R(:,IS1P1)
+     R12C1 = R(:,IS2P1)-R(:,IS1)
+     R12C2 = R(:,IS1P1)-R(:,IS2)
      D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
           & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
      GOTO 160
@@ -728,9 +728,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
   S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
   if (S2 > D2.OR.S2 < 0.) then
-     R12T = R(IS2P1,:)-R(IS1P1,:)
-     R12C1 = R(IS2P1,:)-R(IS1,:)
-     R12C2 = R(IS1P1,:)-R(IS2,:)
+     R12T = R(:,IS2P1)-R(:,IS1P1)
+     R12C1 = R(:,IS2P1)-R(:,IS1)
+     R12C2 = R(:,IS1P1)-R(:,IS2)
      D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
           & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
      GOTO 160
@@ -793,9 +793,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            GOTO 190
         ENDif
 
-        R12(1) = R(IS1,1)-R(IO,1)
-        R12(2) = R(IS1,2)-R(IO,2)
-        R12(3) = R(IS1,3)-R(IO,3)
+        R12(1) = R(1,IS1)-R(1,IO)
+        R12(2) = R(2,IS1)-R(2,IO)
+        R12(3) = R(3,IS1)-R(3,IO)
         !Periodic Bounary conditions. Not used for single chains
 
         ! R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
@@ -805,17 +805,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1) = R(IOP1,1)-R(IO,1)
-        U1(2) = R(IOP1,2)-R(IO,2)
-        U1(3) = R(IOP1,3)-R(IO,3)
+        U1(1) = R(1,IOP1)-R(1,IO)
+        U1(2) = R(2,IOP1)-R(2,IO)
+        U1(3) = R(3,IOP1)-R(3,IO)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IS1P1,1)-R(IS1,1)
-        U2(2) = R(IS1P1,2)-R(IS1,2)
-        U2(3) = R(IS1P1,3)-R(IS1,3)
+        U2(1) = R(1,IS1P1)-R(1,IS1)
+        U2(2) = R(2,IS1P1)-R(2,IS1)
+        U2(3) = R(3,IS1P1)-R(3,IS1)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -837,9 +837,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         if (S1 > D1.OR.S1 < 0.) then
 
-           R12T = R(IOP1,:)-R(IS1P1,:)
-           R12C1 = R(IOP1,:)-R(IS1,:)
-           R12C2 = R(IS1P1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IS1P1)
+           R12C1 = R(:,IOP1)-R(:,IS1)
+           R12C2 = R(:,IS1P1)-R(:,IO)
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
            GOTO 180
@@ -853,9 +853,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         if (S2 > D2.OR.S2 < 0.) then
 
-           R12T = R(IOP1,:)-R(IS1P1,:)
-           R12C1 = R(IOP1,:)-R(IS1,:)
-           R12C2 = R(IS1P1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IS1P1)
+           R12C1 = R(:,IOP1)-R(:,IS1)
+           R12C2 = R(:,IS1P1)-R(:,IO)
 
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
                 & R12C1(1)**2 + R12C1(2)**2 + R12C1(3)**2,R12C2(1)**2 + R12C2(2)**2 + R12C2(3)**2))
@@ -896,9 +896,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
            GOTO 210
         ENDif
 
-        R12(1) = R(IS2,1)-R(IO,1)
-        R12(2) = R(IS2,2)-R(IO,2)
-        R12(3) = R(IS2,3)-R(IO,3)
+        R12(1) = R(1,IS2)-R(1,IO)
+        R12(2) = R(2,IS2)-R(2,IO)
+        R12(3) = R(3,IS2)-R(3,IO)
 
 
         !Periodic Bounary conditions. Not used for single chains
@@ -909,17 +909,17 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
         D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
 
-        U1(1) = R(IOP1,1)-R(IO,1)
-        U1(2) = R(IOP1,2)-R(IO,2)
-        U1(3) = R(IOP1,3)-R(IO,3)
+        U1(1) = R(1,IOP1)-R(1,IO)
+        U1(2) = R(2,IOP1)-R(2,IO)
+        U1(3) = R(3,IOP1)-R(3,IO)
         D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
         U1(1) = U1(1)/D1
         U1(2) = U1(2)/D1
         U1(3) = U1(3)/D1
 
-        U2(1) = R(IS2P1,1)-R(IS2,1)
-        U2(2) = R(IS2P1,2)-R(IS2,2)
-        U2(3) = R(IS2P1,3)-R(IS2,3)
+        U2(1) = R(1,IS2P1)-R(1,IS2)
+        U2(2) = R(2,IS2P1)-R(2,IS2)
+        U2(3) = R(3,IS2P1)-R(3,IS2)
         D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
         U2(1) = U2(1)/D2
         U2(2) = U2(2)/D2
@@ -940,9 +940,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
 
         if (S1 > D1.OR.S1 < 0.) then
-           R12T = R(IOP1,:)-R(IS2P1,:)
-           R12C1 = R(IOP1,:)-R(IS2,:)
-           R12C2 = R(IS2P1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IS2P1)
+           R12C1 = R(:,IOP1)-R(:,IS2)
+           R12C2 = R(:,IS2P1)-R(:,IO)
 
 
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
@@ -958,9 +958,9 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
         S2 = -(R12(1)*GI(1) + R12(2)*GI(2) + R12(3)*GI(3))/(1.-U1U2**2.)
 
         if (S2 > D2.OR.S2 < 0.) then
-           R12T = R(IOP1,:)-R(IS2P1,:)
-           R12C1 = R(IOP1,:)-R(IS2,:)
-           R12C2 = R(IS2P1,:)-R(IO,:)
+           R12T = R(:,IOP1)-R(:,IS2P1)
+           R12C1 = R(:,IOP1)-R(:,IS2)
+           R12C2 = R(:,IS2P1)-R(:,IO)
 
 
            D12 = SQRT(Min(R12(1)**2 + R12(2)**2 + R12(3)**2,R12T(1)**2 + R12T(2)**2 + R12T(3)**2,&
