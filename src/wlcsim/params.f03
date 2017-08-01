@@ -995,8 +995,8 @@ contains
         allocate(wlc_d%R(3,NT))
         allocate(wlc_d%U(3,NT))
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
-            allocate(wlc_d%RP(NT,3))
-            allocate(wlc_d%UP(NT,3))
+            allocate(wlc_d%RP(3,NT))
+            allocate(wlc_d%UP(3,NT))
         endif
         !TOdo these should in principle be inside the following if statement,
         !but it's not clear if that's possible without adding a bunch of dirty

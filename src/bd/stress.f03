@@ -12,9 +12,9 @@
     
       use params, only : dp
       implicit none
-      real(dp) FELAS(NT,3) ! Elastic force
-      real(dp) FPONP(NT,3) ! Self-interaction force
-      real(dp) TELAS(NT,3) ! Elastic force
+      real(dp) FELAS(3,NT) ! Elastic force
+      real(dp) FPONP(3,NT) ! Self-interaction force
+      real(dp) TELAS(3,NT) ! Elastic force
       real(dp) R(3,NT)  ! Bead positions
       real(dp) U(3,NT)  ! Tangent vectors
       real(dp) L0       ! Bead separation
@@ -83,9 +83,9 @@
 
          do 30 J = 1,N
             IB = J + N*(I-1)
-            FTOT(1) = FELAS(IB,1) + inTON*FPONP(IB,1)
-            FTOT(2) = FELAS(IB,2) + inTON*FPONP(IB,2)
-            FTOT(3) = FELAS(IB,3) + inTON*FPONP(IB,3)
+            FTOT(1) = FELAS(1,IB) + inTON*FPONP(1,IB)
+            FTOT(2) = FELAS(2,IB) + inTON*FPONP(2,IB)
+            FTOT(3) = FELAS(3,IB) + inTON*FPONP(3,IB)
             SIG(1,1) = SIG(1,1)-(R(1,IB)-RCOM(1))*FTOT(1)
             SIG(1,2) = SIG(1,2)-(R(1,IB)-RCOM(1))*FTOT(2)
             SIG(1,3) = SIG(1,3)-(R(1,IB)-RCOM(1))*FTOT(3)

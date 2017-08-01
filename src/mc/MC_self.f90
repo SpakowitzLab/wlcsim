@@ -17,8 +17,8 @@
       implicit none
       real(dp) R(3,NT)  ! Bead positions
       real(dp) U(3,NT)  ! Tangent vectors
-      real(dp) RP(NT,3)  ! Bead positions
-      real(dp) UP(NT,3)  ! Tangent vectors
+      real(dp) RP(3,NT)  ! Bead positions
+      real(dp) UP(3,NT)  ! Tangent vectors
       integer N,NP,NT           ! Number of beads
 
 !     Variables for the calculation
@@ -148,9 +148,9 @@
 
             do 80 J2 = IMin,IMAX
                inD2 = J2 + N*(I2-1)
-               R12(1) = RP(inD2,1)-R(1,inD1)
-               R12(2) = RP(inD2,2)-R(2,inD1)
-               R12(3) = RP(inD2,3)-R(3,inD1)
+               R12(1) = RP(1,inD2)-R(1,inD1)
+               R12(2) = RP(2,inD2)-R(2,inD1)
+               R12(3) = RP(3,inD2)-R(3,inD1)
                R12(1) = R12(1)-nint(R12(1)/LBOX)*LBOX
                R12(2) = R12(2)-nint(R12(2)/LBOX)*LBOX
                R12(3) = R12(3)-nint(R12(3)/LBOX)*LBOX
@@ -168,9 +168,9 @@
                U1(2) = U1(2)/D1
                U1(3) = U1(3)/D1
 
-               U2(1) = RP(inD2 + 1,1)-RP(inD2,1)
-               U2(2) = RP(inD2 + 1,2)-RP(inD2,2)
-               U2(3) = RP(inD2 + 1,3)-RP(inD2,3)
+               U2(1) = RP(1,inD2 + 1)-RP(1,inD2)
+               U2(2) = RP(2,inD2 + 1)-RP(2,inD2)
+               U2(3) = RP(3,inD2 + 1)-RP(3,inD2)
                D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
                U2(1) = U2(1)/D2
                U2(2) = U2(2)/D2

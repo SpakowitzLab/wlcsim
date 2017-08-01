@@ -15,7 +15,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
   !inTERMEDIATE VARIABLES
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(N,3)      ! projection of R onto plane defined by NV
+  real(dp) RP(3,N)      ! projection of R onto plane defined by NV
   real(dp) RdoTN(N)        ! Dot product of R and NV
   integer Ncross                ! number of crossings in projection
   integer Ndegen                ! number of crossings for a given segment
@@ -51,7 +51,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
   !Calculate the projection of the curve into the plane with normal NV
 
   do I = 1,N
-     RP(I,:) = R(:,I)-RdoTN(I)*NV
+     RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
 
@@ -83,10 +83,10 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
         ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax = SQRT(SUM((RP(IP1,:)-RP(I,:))**2))
-        tmax = SQRT(SUM((RP(JP1,:)-RP(J,:))**2))
-        ui = (RP(IP1,:)-RP(I,:))/smax
-        uj = ((RP(JP1,:)-RP(J,:)))/tmax
+        smax = SQRT(SUM((RP(:,IP1)-RP(:,I))**2))
+        tmax = SQRT(SUM((RP(:,JP1)-RP(:,J))**2))
+        ui = (RP(:,IP1)-RP(:,I))/smax
+        uj = ((RP(:,JP1)-RP(:,J)))/tmax
         udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
@@ -95,8 +95,8 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
         ENDif
 
         !Compute the point of intersection
-        tint = (rp(j,2)-rp(i,2)-(ui(2)/ui(1))*(rp(j,1)-rp(i,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint = (rp(j,1)-rp(i,1) + uj(1)*tint)/ui(1)
+        tint = (RP(2,j)-RP(2,i)-(ui(2)/ui(1))*(RP(1,j)-RP(1,i)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (RP(1,j)-RP(1,i) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
         if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then

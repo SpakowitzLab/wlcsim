@@ -5,7 +5,7 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
   implicit none
 
   integer, intent(in) :: N                 ! Number of beads per polymer
-  real(dp), intent(in) :: R(3,N),RP(N,3)  ! Position
+  real(dp), intent(in) :: R(3,N),RP(3,N)  ! Position
   integer, intent(in) :: IB1,IB2,IT1,IT2   ! Bead indices for terminal points of segment moved
   integer, intent(in) :: IP                ! Test polymer index
   !Geometric variables
@@ -80,11 +80,11 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
         r2 = R(:,IO)
         r12 = r2-r1
 
-        if (RP(Io,1) /= R(1,Io).OR.RP(Io,2) /= R(2,Io).OR.RP(Io,3) /= R(3,Io)) then
+        if (RP(1,Io) /= R(1,Io).OR.RP(2,Io) /= R(2,Io).OR.RP(3,Io) /= R(3,Io)) then
            ! PRinT *, "POSITIONS NOT EQUAL", IO,"of", NBO
         ENDif
 
-        if (RP(IOP1,1) /= R(1,IOP1).OR.RP(IOP1,2) /= R(2,IOP1).OR.RP(IOP1,3) /= RP(IOP1,3)) then
+        if (RP(1,IOP1) /= R(1,IOP1).OR.RP(2,IOP1) /= R(2,IOP1).OR.RP(3,IOP1) /= RP(3,IOP1)) then
            !  PRinT *, "POSITIONS NOT EQUAL AT IOP1", IOP1
         endif
 

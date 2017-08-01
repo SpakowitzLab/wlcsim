@@ -20,21 +20,21 @@
 
 !     Variables in the simulation
 
-      real(dp) RS(NT,3) ! R during the step
-      real(dp) US(NT,3) ! R during the step
+      real(dp) RS(3,NT) ! R during the step
+      real(dp) US(3,NT) ! R during the step
       real(dp) DT,DT0       ! Time step size
       integer RK                ! Runge-Kutta index
-      real(dp) DRDT(NT,3,4) ! Position rate of change
-      real(dp) DUDT(NT,3,4) ! Position rate of change
+      real(dp) DRDT(3,NT,4) ! Position rate of change
+      real(dp) DUDT(3,NT,4) ! Position rate of change
       integer I,J,IB            ! Index Holders
       real(dp) doTU
 
 !     Variables for use in the force calculations
 
-      real(dp) FELAS(NT,3) ! Elastic force
-      real(dp) FPONP(NT,3) ! self-int force
-      real(dp) TELAS(NT,3) ! Elastic force
-      real(dp) TPONP(NT,3) ! self-int force
+      real(dp) FELAS(3,NT) ! Elastic force
+      real(dp) FPONP(3,NT) ! self-int force
+      real(dp) TELAS(3,NT) ! Elastic force
+      real(dp) TPONP(3,NT) ! self-int force
       real(dp) FORCE    ! External force
 
 !     Variables in the simulation
@@ -50,8 +50,8 @@
 
 !     Variables used for the Brownian forces
 
-      real(dp) FRAND(NT,3) ! Random force
-      real(dp) TRAND(NT,3) ! Random force
+      real(dp) FRAND(3,NT) ! Random force
+      real(dp) TRAND(3,NT) ! Random force
       real(dp) MAGR,MAGU ! Mag of Brownian forces
       integer BROWN             ! Logic for BD forces
       integer inTON             ! Include polymer interactions
@@ -89,30 +89,30 @@
       IB = 1
       do 10 I = 1,NP
          do 20 J = 1,N
-            RS(IB,1) = R(1,IB)
-            RS(IB,2) = R(2,IB)
-            RS(IB,3) = R(3,IB)
-            US(IB,1) = U(1,IB)
-            US(IB,2) = U(2,IB)
-            US(IB,3) = U(3,IB)
-            FELAS(IB,1) = 0.
-            FELAS(IB,2) = 0.
-            FELAS(IB,3) = 0.
-            FRAND(IB,1) = 0.
-            FRAND(IB,2) = 0.
-            FRAND(IB,3) = 0.
-            FPONP(IB,1) = 0.
-            FPONP(IB,2) = 0.
-            FPONP(IB,3) = 0.
-            TELAS(IB,1) = 0.
-            TELAS(IB,2) = 0.
-            TELAS(IB,3) = 0.
-            TRAND(IB,1) = 0.
-            TRAND(IB,2) = 0.
-            TRAND(IB,3) = 0.
-            TPONP(IB,1) = 0.
-            TPONP(IB,2) = 0.
-            TPONP(IB,3) = 0.
+            RS(1,IB) = R(1,IB)
+            RS(2,IB) = R(2,IB)
+            RS(3,IB) = R(3,IB)
+            US(1,IB) = U(1,IB)
+            US(2,IB) = U(2,IB)
+            US(3,IB) = U(3,IB)
+            FELAS(1,IB) = 0.
+            FELAS(2,IB) = 0.
+            FELAS(3,IB) = 0.
+            FRAND(1,IB) = 0.
+            FRAND(2,IB) = 0.
+            FRAND(3,IB) = 0.
+            FPONP(1,IB) = 0.
+            FPONP(2,IB) = 0.
+            FPONP(3,IB) = 0.
+            TELAS(1,IB) = 0.
+            TELAS(2,IB) = 0.
+            TELAS(3,IB) = 0.
+            TRAND(1,IB) = 0.
+            TRAND(2,IB) = 0.
+            TRAND(3,IB) = 0.
+            TPONP(1,IB) = 0.
+            TPONP(2,IB) = 0.
+            TPONP(3,IB) = 0.
             IB = IB + 1
  20      continue
  10   continue
@@ -135,12 +135,12 @@
                IB = 1
                do 30 I = 1,NP
                   do 40 J = 1,N
-                     FRAND(IB,1) = MAGR*rnorm()
-                     FRAND(IB,2) = MAGR*rnorm()
-                     FRAND(IB,3) = MAGR*rnorm()
-                     TRAND(IB,1) = MAGU*rnorm()
-                     TRAND(IB,2) = MAGU*rnorm()
-                     TRAND(IB,3) = MAGU*rnorm()
+                     FRAND(1,IB) = MAGR*rnorm()
+                     FRAND(2,IB) = MAGR*rnorm()
+                     FRAND(3,IB) = MAGR*rnorm()
+                     TRAND(1,IB) = MAGU*rnorm()
+                     TRAND(2,IB) = MAGU*rnorm()
+                     TRAND(3,IB) = MAGU*rnorm()
                      IB = IB + 1
  40               continue
  30            continue
@@ -168,12 +168,12 @@
                   IB = 1
                   do 60 I = 1,NP
                      do 65 J = 1,N
-                        R(1,IB) = RS(IB,1)
-                        R(2,IB) = RS(IB,2)
-                        R(3,IB) = RS(IB,3)
-                        U(1,IB) = US(IB,1)
-                        U(2,IB) = US(IB,2)
-                        U(3,IB) = US(IB,3)
+                        R(1,IB) = RS(1,IB)
+                        R(2,IB) = RS(2,IB)
+                        R(3,IB) = RS(3,IB)
+                        U(1,IB) = US(1,IB)
+                        U(2,IB) = US(2,IB)
+                        U(3,IB) = US(3,IB)
                         IB = IB + 1
  65                  continue
  60               continue
@@ -188,18 +188,18 @@
             IB = 1
             do 70 I = 1,NP
                do 80 J = 1,N
-                  DRDT(IB,1,RK) = (FELAS(IB,1) + FPONP(IB,1))/XIR
-                  DRDT(IB,2,RK) = (FELAS(IB,2) + FPONP(IB,2))/XIR
-                  DRDT(IB,3,RK) = (FELAS(IB,3) + FPONP(IB,3))/XIR
-                  DUDT(IB,1,RK) = (TELAS(IB,1) + TPONP(IB,1))/XIU
-                  DUDT(IB,2,RK) = (TELAS(IB,2) + TPONP(IB,2))/XIU
-                  DUDT(IB,3,RK) = (TELAS(IB,3) + TPONP(IB,3))/XIU
+                  DRDT(1,IB,RK) = (FELAS(1,IB) + FPONP(1,IB))/XIR
+                  DRDT(2,IB,RK) = (FELAS(2,IB) + FPONP(2,IB))/XIR
+                  DRDT(3,IB,RK) = (FELAS(3,IB) + FPONP(3,IB))/XIR
+                  DUDT(1,IB,RK) = (TELAS(1,IB) + TPONP(1,IB))/XIU
+                  DUDT(2,IB,RK) = (TELAS(2,IB) + TPONP(2,IB))/XIU
+                  DUDT(3,IB,RK) = (TELAS(3,IB) + TPONP(3,IB))/XIU
 
                   if (BROWN == 0) then
-                     doTU = DUDT(IB,1,RK)*U(1,IB) + DUDT(IB,2,RK)*U(2,IB) + DUDT(IB,3,RK)*U(3,IB)
-                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(1,IB)
-                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(2,IB)
-                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(3,IB)
+                     doTU = DUDT(1,IB,RK)*U(1,IB) + DUDT(2,IB,RK)*U(2,IB) + DUDT(3,IB,RK)*U(3,IB)
+                     DUDT(1,IB,RK) = DUDT(1,IB,RK)-doTU*U(1,IB)
+                     DUDT(2,IB,RK) = DUDT(2,IB,RK)-doTU*U(2,IB)
+                     DUDT(3,IB,RK) = DUDT(3,IB,RK)-doTU*U(3,IB)
                   endif
                   IB = IB + 1
  80            continue
@@ -209,17 +209,17 @@
                IB = 1
                do 90 I = 1,NP
                   do 100 J = 1,N
-                     DRDT(IB,1,RK) = DRDT(IB,1,RK) + FRAND(IB,1)/XIR
-                     DRDT(IB,2,RK) = DRDT(IB,2,RK) + FRAND(IB,2)/XIR
-                     DRDT(IB,3,RK) = DRDT(IB,3,RK) + FRAND(IB,3)/XIR
-                     DUDT(IB,1,RK) = DUDT(IB,1,RK) + TRAND(IB,1)/XIU
-                     DUDT(IB,2,RK) = DUDT(IB,2,RK) + TRAND(IB,2)/XIU
-                     DUDT(IB,3,RK) = DUDT(IB,3,RK) + TRAND(IB,3)/XIU
+                     DRDT(1,IB,RK) = DRDT(1,IB,RK) + FRAND(1,IB)/XIR
+                     DRDT(2,IB,RK) = DRDT(2,IB,RK) + FRAND(2,IB)/XIR
+                     DRDT(3,IB,RK) = DRDT(3,IB,RK) + FRAND(3,IB)/XIR
+                     DUDT(1,IB,RK) = DUDT(1,IB,RK) + TRAND(1,IB)/XIU
+                     DUDT(2,IB,RK) = DUDT(2,IB,RK) + TRAND(2,IB)/XIU
+                     DUDT(3,IB,RK) = DUDT(3,IB,RK) + TRAND(3,IB)/XIU
 
-                     doTU = DUDT(IB,1,RK)*U(1,IB) + DUDT(IB,2,RK)*U(2,IB) + DUDT(IB,3,RK)*U(3,IB)
-                     DUDT(IB,1,RK) = DUDT(IB,1,RK)-doTU*U(1,IB)
-                     DUDT(IB,2,RK) = DUDT(IB,2,RK)-doTU*U(2,IB)
-                     DUDT(IB,3,RK) = DUDT(IB,3,RK)-doTU*U(3,IB)
+                     doTU = DUDT(1,IB,RK)*U(1,IB) + DUDT(2,IB,RK)*U(2,IB) + DUDT(3,IB,RK)*U(3,IB)
+                     DUDT(1,IB,RK) = DUDT(1,IB,RK)-doTU*U(1,IB)
+                     DUDT(2,IB,RK) = DUDT(2,IB,RK)-doTU*U(2,IB)
+                     DUDT(3,IB,RK) = DUDT(3,IB,RK)-doTU*U(3,IB)
 
                      IB = IB + 1
  100               continue
@@ -251,12 +251,12 @@
          IB = 1
          do 110 I = 1,NP
             do 120 J = 1,N
-               RS(IB,1) = R(1,IB)
-               RS(IB,2) = R(2,IB)
-               RS(IB,3) = R(3,IB)
-               US(IB,1) = U(1,IB)
-               US(IB,2) = U(2,IB)
-               US(IB,3) = U(3,IB)
+               RS(1,IB) = R(1,IB)
+               RS(2,IB) = R(2,IB)
+               RS(3,IB) = R(3,IB)
+               US(1,IB) = U(1,IB)
+               US(2,IB) = U(2,IB)
+               US(3,IB) = U(3,IB)
                IB = IB + 1
  120        continue
  110     continue

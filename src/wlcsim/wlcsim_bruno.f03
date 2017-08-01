@@ -52,8 +52,8 @@ if (save_ind == 1) then
     call InitializeEnergiesForVerifier(wlc_p, wlc_d)
     call MCsim(wlc_p, wlc_d, wlc_p%nInitMCSteps)
     call VerifyEnergiesFromScratch(wlc_p, wlc_d)
-    allocate(R0(wlc_p%NT,3))
-    allocate(U0(wlc_p%NT,3))
+    allocate(R0(3,wlc_p%NT))
+    allocate(U0(3,wlc_p%NT))
 endif
 
 ! run brownian dynamics until next save point

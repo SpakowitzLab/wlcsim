@@ -24,7 +24,7 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   integer IT1N,IT2N             !New indicies for segments that bound the crankshaft move. Necessary to capture part that changes when IT1 = IT2
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(N,3)      ! projection of R onto plane defined by NV
+  real(dp) RP(3,N)      ! projection of R onto plane defined by NV
   real(dp) RdoTN(N)        ! Dot product of R and NV
   integer Ndegen                ! number of crossings for a given segment
   integer I,J,K,IP1,JP1,KP1           ! iteration indices
@@ -63,7 +63,7 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !Calculate the projection of the curve into the plane with normal NV
 
   do I = 1,N
-     RP(I,:) = R(:,I)-RdoTN(I)*NV
+     RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -174,10 +174,10 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-        tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-        ui = (RP(IIP1,:)-RP(II,:))/smax
-        uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+        smax = SQRT(SUM((RP(:,IIP1)-RP(:,II))**2))
+        tmax = SQRT(SUM((RP(:,IOP1)-RP(:,IO))**2))
+        ui = (RP(:,IIP1)-RP(:,II))/smax
+        uj = ((RP(:,IOP1)-RP(:,IO)))/tmax
         udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
@@ -186,8 +186,8 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Compute the point of intersection
-        tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
+        tint = (RP(2,IO)-RP(2,II)-(ui(2)/ui(1))*(RP(1,IO)-RP(1,II)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
         if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
@@ -253,10 +253,10 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-        tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-        ui = (RP(IIP1,:)-RP(II,:))/smax
-        uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+        smax = SQRT(SUM((RP(:,IIP1)-RP(:,II))**2))
+        tmax = SQRT(SUM((RP(:,IOP1)-RP(:,IO))**2))
+        ui = (RP(:,IIP1)-RP(:,II))/smax
+        uj = ((RP(:,IOP1)-RP(:,IO)))/tmax
         udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
@@ -265,8 +265,8 @@ subroutine alexanderp_crank(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Compute the point of intersection
-        tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
+        tint = (RP(2,IO)-RP(2,II)-(ui(2)/ui(1))*(RP(1,IO)-RP(1,II)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
         if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then

@@ -25,8 +25,8 @@ integer, intent(in) :: NP     ! Number of polymers
 integer, intent(in) :: NT     ! Total beads in simulation
 real(dp), intent(in) :: R(3,NT)  ! Bead positions
 real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(NT,3)  ! Bead positions
-real(dp), intent(out) :: UP(NT,3)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
 integer, intent(in) :: BPM    ! Beads per monomer, aka G
 integer, intent(out) :: IP    ! Test polymer
 integer IP2   ! Second Test polymer if applicable
@@ -203,12 +203,12 @@ if (MCTYPE == 1) then
         if (I == (NB*IP + 1).AND.RinG) then
            I = NB*(IP-1) + 1
         endif
-        RP(I,1) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
-        RP(I,2) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
-        RP(I,3) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
-        UP(I,1) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-        UP(I,2) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-        UP(I,3) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+        RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
+        RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
+        RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
+        UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
+        UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
+        UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
         I = I + 1
 
 
@@ -217,23 +217,23 @@ if (MCTYPE == 1) then
   !  ------begining testing---------
   if(.false.) then
       ! This is a code block for testing
-      if (abs(RP(IT1,1)-R(1,IT1)).gt.0.000001) then
+      if (abs(RP(1,IT1)-R(1,IT1)).gt.0.000001) then
           print*, "error in crank-shaft move"
-          print*, RP(IT1,1), R(1,IT1)
+          print*, RP(1,IT1), R(1,IT1)
           stop 1
       endif
-      if (abs(RP(IT2,1)-R(1,IT2)).gt.0.000001) then
+      if (abs(RP(1,IT2)-R(1,IT2)).gt.0.000001) then
           print*, "error in crank-shaft move"
-          print*, RP(IT1,1), R(1,IT1)
+          print*, RP(1,IT1), R(1,IT1)
           stop 1
       endif
       if(IT1.ne.IT2) then
           d1 = (R(1,IT1 + 1)-R(1,IT1))**2 + &
              (R(2,IT1 + 1)-R(2,IT1))**2 + &
              (R(3,IT1 + 1)-R(3,IT1))**2
-          d2 = (RP(IT1 + 1,1)-RP(IT1,1))**2 + &
-             (RP(IT1 + 1,2)-RP(IT1,2))**2 + &
-             (RP(IT1 + 1,3)-RP(IT1,3))**2
+          d2 = (RP(1,IT1 + 1)-RP(1,IT1))**2 + &
+             (RP(2,IT1 + 1)-RP(2,IT1))**2 + &
+             (RP(3,IT1 + 1)-RP(3,IT1))**2
           if (abs(d1-d2).gt.0.000001) then
               print*, "error in crank-shaft move"
               print*, "distance change in 1"
@@ -244,9 +244,9 @@ if (MCTYPE == 1) then
           d1 = (R(1,IT2-1)-R(1,IT2))**2 + &
              (R(2,IT2-1)-R(2,IT2))**2 + &
              (R(3,IT2-1)-R(3,IT2))**2
-          d2 = (RP(IT2-1,1)-RP(IT2,1))**2 + &
-             (RP(IT2-1,2)-RP(IT2,2))**2 + &
-             (RP(IT2-1,3)-RP(IT2,3))**2
+          d2 = (RP(1,IT2-1)-RP(1,IT2))**2 + &
+             (RP(2,IT2-1)-RP(2,IT2))**2 + &
+             (RP(3,IT2-1)-RP(3,IT2))**2
           if (abs(d1-d2).gt.0.000001) then
               print*, "error in crank-shaft move"
               print*, "distance change in 2"
@@ -313,12 +313,12 @@ elseif (MCTYPE == 2) then
            I = NB*(IP-1) + 1
         endif
 
-        RP(I,1) = R(1,I) + DR(1)
-        RP(I,2) = R(2,I) + DR(2)
-        RP(I,3) = R(3,I) + DR(3)
-        UP(I,1) = U(1,I)
-        UP(I,2) = U(2,I)
-        UP(I,3) = U(3,I)
+        RP(1,I) = R(1,I) + DR(1)
+        RP(2,I) = R(2,I) + DR(2)
+        RP(3,I) = R(3,I) + DR(3)
+        UP(1,I) = U(1,I)
+        UP(2,I) = U(2,I)
+        UP(3,I) = U(3,I)
         I = I + 1
 
      ENDdo
@@ -384,12 +384,12 @@ elseif (MCTYPE == 3) then
    -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
    do I = IT1,IT2
-      RP(I,1) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
-      RP(I,2) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
-      RP(I,3) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
-      UP(I,1) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-      UP(I,2) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-      UP(I,3) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
+      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
+      RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
+      UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
+      UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
+      UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
    enddo
 
 !     Perform rotate move (MCTYPE 4)
@@ -428,12 +428,12 @@ elseif (MCTYPE == 4) then
    ROT(3,4) = 0.0
 
    I = IT1
-   UP(I,1) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-   UP(I,2) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-   UP(I,3) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
-   RP(I,1) = R(1,I)
-   RP(I,2) = R(2,I)
-   RP(I,3) = R(3,I)
+   UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
+   UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
+   UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+   RP(1,I) = R(1,I)
+   RP(2,I) = R(2,I)
+   RP(3,I) = R(3,I)
 
 !     Perform a full chain rotation
 
@@ -480,12 +480,12 @@ elseif (MCTYPE == 5) then
     -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
     do I = IT1,IT2
-       RP(I,1) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
-       RP(I,2) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
-       RP(I,3) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
-       UP(I,1) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-       UP(I,2) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-       UP(I,3) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+       RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
+       RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
+       RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
+       UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
+       UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
+       UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
     enddo
 
 !     Perform full chain slide move (MCTYPE 6)
@@ -504,12 +504,12 @@ elseif (MCTYPE == 6) then
    DR(3) = MCAMP(6)*(urand(3)-0.5_dp)
 
    do I = IT1,IT2
-      RP(I,1) = R(1,I) + DR(1)
-      RP(I,2) = R(2,I) + DR(2)
-      RP(I,3) = R(3,I) + DR(3)
-      UP(I,1) = U(1,I)
-      UP(I,2) = U(2,I)
-      UP(I,3) = U(3,I)
+      RP(1,I) = R(1,I) + DR(1)
+      RP(2,I) = R(2,I) + DR(2)
+      RP(3,I) = R(3,I) + DR(3)
+      UP(1,I) = U(1,I)
+      UP(2,I) = U(2,I)
+      UP(3,I) = U(3,I)
    enddo
 
 elseif (MCTYPE == 7) then
@@ -548,12 +548,12 @@ elseif (MCTYPE == 7) then
 
    !This loop may not be necessary
    do I = IT1,IT2
-      RP(I,1) = R(1,I)
-      RP(I,2) = R(2,I)
-      RP(I,3) = R(3,I)
-      UP(I,1) = U(1,I)
-      UP(I,2) = U(2,I)
-      UP(I,3) = U(3,I)
+      RP(1,I) = R(1,I)
+      RP(2,I) = R(2,I)
+      RP(3,I) = R(3,I)
+      UP(1,I) = U(1,I)
+      UP(2,I) = U(2,I)
+      UP(3,I) = U(3,I)
    ENDdo
 
 ! chain flip move
@@ -565,12 +565,12 @@ elseif (MCTYPE == 8) then
    IT1 = NB*(IP-1) + IB1
    IT2 = NB*(IP-1) + IB2
    do I = 0,NB-1
-      RP(IT1 + I,1) = R(1,IT2-I)
-      RP(IT1 + I,2) = R(2,IT2-I)
-      RP(IT1 + I,3) = R(3,IT2-I)
-      UP(IT1 + I,1) = -U(1,IT2-I)
-      UP(IT1 + I,2) = -U(2,IT2-I)
-      UP(IT1 + I,3) = -U(3,IT2-I)
+      RP(1,IT1 + I) = R(1,IT2-I)
+      RP(2,IT1 + I) = R(2,IT2-I)
+      RP(3,IT1 + I) = R(3,IT2-I)
+      UP(1,IT1 + I) = -U(1,IT2-I)
+      UP(2,IT1 + I) = -U(2,IT2-I)
+      UP(3,IT1 + I) = -U(3,IT2-I)
    ENDdo
 ! switch two chains
 elseif(MCTYPE == 9) then
@@ -590,18 +590,18 @@ elseif(MCTYPE == 9) then
    IT3 = NB*(IP2-1) + 1
    IT4 = NB*(IP2-1) + NB
    do I = 0,NB-1
-      RP(IT1 + I,1) = R(1,IT3 + I)
-      RP(IT1 + I,2) = R(2,IT3 + I)
-      RP(IT1 + I,3) = R(3,IT3 + I)
-      UP(IT1 + I,1) = U(1,IT3 + I)
-      UP(IT1 + I,2) = U(2,IT3 + I)
-      UP(IT1 + I,3) = U(3,IT3 + I)
-      RP(IT3 + I,1) = R(1,IT1 + I)
-      RP(IT3 + I,2) = R(2,IT1 + I)
-      RP(IT3 + I,3) = R(3,IT1 + I)
-      UP(IT3 + I,1) = U(1,IT1 + I)
-      UP(IT3 + I,2) = U(2,IT1 + I)
-      UP(IT3 + I,3) = U(3,IT1 + I)
+      RP(1,IT1 + I) = R(1,IT3 + I)
+      RP(2,IT1 + I) = R(2,IT3 + I)
+      RP(3,IT1 + I) = R(3,IT3 + I)
+      UP(1,IT1 + I) = U(1,IT3 + I)
+      UP(2,IT1 + I) = U(2,IT3 + I)
+      UP(3,IT1 + I) = U(3,IT3 + I)
+      RP(1,IT3 + I) = R(1,IT1 + I)
+      RP(2,IT3 + I) = R(2,IT1 + I)
+      RP(3,IT3 + I) = R(3,IT1 + I)
+      UP(1,IT3 + I) = U(1,IT1 + I)
+      UP(2,IT3 + I) = U(2,IT1 + I)
+      UP(3,IT3 + I) = U(3,IT1 + I)
    ENDdo
    IB1 = -2000000
    IB2 = -2000000
@@ -648,24 +648,24 @@ elseif(MCTYPE == 10) then
         Uvec(1) = U(1,IT2); Uvec(2) = U(2,IT2); Uvec(3) = U(3,IT2)
         call random_perp(Uvec,pDir,tDir,rand_stat)
         ! update UP and RP
-        UP(IT2,1) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
-        UP(IT2,2) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
-        UP(IT2,3) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
-        mag = sqrt(UP(IT2,1)**2 + UP(IT2,2)**2 + UP(IT2,3)**2)
-        UP(IT2,1) = UP(IT2,1)/mag
-        UP(IT2,2) = UP(IT2,2)/mag
-        UP(IT2,3) = UP(IT2,3)/mag
-        RP(IT2,1) = R(1,IT2) + Uvec(1)*r_relative(1) + pDir(1)*r_relative(2) + tDir(1)*r_relative(3)
-        RP(IT2,2) = R(2,IT2) + Uvec(2)*r_relative(1) + pDir(2)*r_relative(2) + tDir(2)*r_relative(3)
-        RP(IT2,3) = R(3,IT2) + Uvec(3)*r_relative(1) + pDir(3)*r_relative(2) + tDir(3)*r_relative(3)
+        UP(1,IT2) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
+        UP(2,IT2) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
+        UP(3,IT2) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
+        mag = sqrt(UP(1,IT2)**2 + UP(2,IT2)**2 + UP(3,IT2)**2)
+        UP(1,IT2) = UP(1,IT2)/mag
+        UP(2,IT2) = UP(2,IT2)/mag
+        UP(3,IT2) = UP(3,IT2)/mag
+        RP(1,IT2) = R(1,IT2) + Uvec(1)*r_relative(1) + pDir(1)*r_relative(2) + tDir(1)*r_relative(3)
+        RP(2,IT2) = R(2,IT2) + Uvec(2)*r_relative(1) + pDir(2)*r_relative(2) + tDir(2)*r_relative(3)
+        RP(3,IT2) = R(3,IT2) + Uvec(3)*r_relative(1) + pDir(3)*r_relative(2) + tDir(3)*r_relative(3)
 
         do I = IT1,IT2-1
-           RP(I,1) = R(1,I + 1)
-           RP(I,2) = R(2,I + 1)
-           RP(I,3) = R(3,I + 1)
-           UP(I,1) = U(1,I + 1)
-           UP(I,2) = U(2,I + 1)
-           UP(I,3) = U(3,I + 1)
+           RP(1,I) = R(1,I + 1)
+           RP(2,I) = R(2,I + 1)
+           RP(3,I) = R(3,I + 1)
+           UP(1,I) = U(1,I + 1)
+           UP(2,I) = U(2,I + 1)
+           UP(3,I) = U(3,I + 1)
         enddo
 
        ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
@@ -706,24 +706,24 @@ elseif(MCTYPE == 10) then
         Uvec(1) = U(1,IT1); Uvec(2) = U(2,IT1); Uvec(3) = U(3,IT1)
         call random_perp(Uvec,pDir,tDir,rand_stat)
         ! update UP and RP
-        UP(IT1,1) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
-        UP(IT1,2) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
-        UP(IT1,3) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
-        mag = sqrt(UP(IT1,1)**2 + UP(IT1,2)**2 + UP(IT1,3)**2)
-        UP(IT1,1) = UP(IT1,1)/mag
-        UP(IT1,2) = UP(IT1,2)/mag
-        UP(IT1,3) = UP(IT1,3)/mag
-        RP(IT1,1) = R(1,IT1)-Uvec(1)*r_relative(1)-pDir(1)*r_relative(2)-tDir(1)*r_relative(3)
-        RP(IT1,2) = R(2,IT1)-Uvec(2)*r_relative(1)-pDir(2)*r_relative(2)-tDir(2)*r_relative(3)
-        RP(IT1,3) = R(3,IT1)-Uvec(3)*r_relative(1)-pDir(3)*r_relative(2)-tDir(3)*r_relative(3)
+        UP(1,IT1) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
+        UP(2,IT1) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
+        UP(3,IT1) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
+        mag = sqrt(UP(1,IT1)**2 + UP(2,IT1)**2 + UP(3,IT1)**2)
+        UP(1,IT1) = UP(1,IT1)/mag
+        UP(2,IT1) = UP(2,IT1)/mag
+        UP(3,IT1) = UP(3,IT1)/mag
+        RP(1,IT1) = R(1,IT1)-Uvec(1)*r_relative(1)-pDir(1)*r_relative(2)-tDir(1)*r_relative(3)
+        RP(2,IT1) = R(2,IT1)-Uvec(2)*r_relative(1)-pDir(2)*r_relative(2)-tDir(2)*r_relative(3)
+        RP(3,IT1) = R(3,IT1)-Uvec(3)*r_relative(1)-pDir(3)*r_relative(2)-tDir(3)*r_relative(3)
 
         do I = IT1 + 1,IT2
-           RP(I,1) = R(1,I-1)
-           RP(I,2) = R(2,I-1)
-           RP(I,3) = R(3,I-1)
-           UP(I,1) = U(1,I-1)
-           UP(I,2) = U(2,I-1)
-           UP(I,3) = U(3,I-1)
+           RP(1,I) = R(1,I-1)
+           RP(2,I) = R(2,I-1)
+           RP(3,I) = R(3,I-1)
+           UP(1,I) = U(1,I-1)
+           UP(2,I) = U(2,I-1)
+           UP(3,I) = U(3,I-1)
         enddo
     endif
 endif
@@ -737,8 +737,8 @@ implicit none
 integer NT,IT1,IT2
 real(dp) R(3,NT)  ! Bead positions
 real(dp) U(3,NT)  ! Tangent vectors
-real(dp) RP(NT,3)  ! Bead positions
-real(dp) UP(NT,3)  ! Tangent vectors
+real(dp) RP(3,NT)  ! Bead positions
+real(dp) UP(3,NT)  ! Tangent vectors
 real(dp) RparaMag, RperpMag
 
 !defined
@@ -756,12 +756,12 @@ drOld(1) = R(1,IT1 + 1)-R(1,IT1)
 drOld(2) = R(2,IT1 + 1)-R(2,IT1)
 drOld(3) = R(3,IT1 + 1)-R(3,IT1)
 DRPAROld = DROld(1)*U(1,IT1) + DROld(2)*U(2,IT1) + DROld(3)*U(3,IT1)
-drNew(1) = RP(IT2,1)-RP(IT2-1,1)
-drNew(2) = RP(IT2,2)-RP(IT2-1,2)
-drNew(3) = RP(IT2,3)-RP(IT2-1,3)
-DRPARNew = DRNew(1)*UP(IT2-1,1) + &
-         DRNew(2)*UP(IT2-1,2) + &
-         DRNew(3)*UP(IT2-1,3)
+drNew(1) = RP(1,IT2)-RP(1,IT2-1)
+drNew(2) = RP(2,IT2)-RP(2,IT2-1)
+drNew(3) = RP(3,IT2)-RP(3,IT2-1)
+DRPARNew = DRNew(1)*UP(1,IT2-1) + &
+         DRNew(2)*UP(2,IT2-1) + &
+         DRNew(3)*UP(3,IT2-1)
 if (abs(drOld(1)**2 + drOld(2)**2 + drOld(3)**2&
       -(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)).gt.0.000001) then
       print*, "drOld",drOld, " mag^2 = ",drOld(1)**2 + drOld(2)**2 + drOld(3)**2
@@ -779,9 +779,9 @@ endif
 drPerpOld(1) = drOld(1)-drParOld*U(1,IT1)
 drPerpOld(2) = drOld(2)-drParOld*U(2,IT1)
 drPerpOld(3) = drOld(3)-drParOld*U(3,IT1)
-drPerpNew(1) = drNew(1)-drParNew*UP(IT2-1,1)
-drPerpNew(2) = drNew(2)-drParNew*UP(IT2-1,2)
-drPerpNew(3) = drNew(3)-drParNew*UP(IT2-1,3)
+drPerpNew(1) = drNew(1)-drParNew*UP(1,IT2-1)
+drPerpNew(2) = drNew(2)-drParNew*UP(2,IT2-1)
+drPerpNew(3) = drNew(3)-drParNew*UP(3,IT2-1)
 
 if (abs(drPerpOld(1)**2 + drPerpOld(2)**2 + drPerpOld(3)**2 &
       -(drPerpNew(1)**2 + drPerpNew(2)**2 + drPerpNew(3)**2)).gt.0.000001_dp) then
@@ -798,9 +798,9 @@ endif
 GIOld(1) = U(1,IT1 + 1)-U(1,IT1)-Eta*dRperpOld(1)
 GIOld(2) = U(2,IT1 + 1)-U(2,IT1)-Eta*dRperpOld(2)
 GIOld(3) = U(3,IT1 + 1)-U(3,IT1)-Eta*dRperpOld(3)
-Ginew(1) = UP(IT2,1)-UP(IT2-1,1)-Eta*dRperpNew(1)
-Ginew(2) = UP(IT2,2)-UP(IT2-1,2)-Eta*dRperpNew(2)
-Ginew(3) = UP(IT2,3)-UP(IT2-1,3)-Eta*dRperpNew(3)
+Ginew(1) = UP(1,IT2)-UP(1,IT2-1)-Eta*dRperpNew(1)
+Ginew(2) = UP(2,IT2)-UP(2,IT2-1)-Eta*dRperpNew(2)
+Ginew(3) = UP(3,IT2)-UP(3,IT2-1)-Eta*dRperpNew(3)
 
 if (abs(GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2&
       -(Ginew(1)**2 + Ginew(2)**2 + Ginew(3)**2)).gt.0.000001_dp) then

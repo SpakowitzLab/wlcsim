@@ -23,7 +23,7 @@ implicit none
 integer confineType  ! Specifier for type of confinement
 real(dp) LBox(3) ! Side length of box
 integer NT     ! Total number of beads in simulation
-real(dp) RP(NT,3)  ! Bead positions
+real(dp) RP(3,NT)  ! Bead positions
 integer IT1    ! Start test bead
 integer IT2    ! Final test bead
 integer I      ! Index of bead being compared
@@ -38,32 +38,32 @@ elseif(confineType == 1) then
     ! Confinement only in the z-direction
     ! limits: 0 and LBox
     do I = IT1,IT2
-        if(RP(I,3)<0.0_dp) then
+        if(RP(3,I)<0.0_dp) then
             ECon = 9990000.0_dp
-        elseif (RP(I,3)>LBox(3)) then
+        elseif (RP(3,I)>LBox(3)) then
             ECon = 9990000.0_dp
         endif
     ENDdo
 elseif(confineType == 2) then
     do I = IT1,IT2
-        if(RP(I,1)<0.0) then
+        if(RP(1,I)<0.0) then
             ECon = 9990000.0_dp
-        elseif(RP(I,1)>LBox(1)) then
+        elseif(RP(1,I)>LBox(1)) then
             ECon = 9990000.0_dp
-        elseif(RP(I,2)<0.0) then
+        elseif(RP(2,I)<0.0) then
             ECon = 9990000.0_dp
-        elseif(RP(I,2)>LBox(2)) then
+        elseif(RP(2,I)>LBox(2)) then
             ECon = 9990000.0
-        elseif(RP(I,3)<0.0) then
+        elseif(RP(3,I)<0.0) then
             ECon = 9990000.0_dp
-        elseif(RP(I,3)>LBox(3)) then
+        elseif(RP(3,I)>LBox(3)) then
             ECon = 9990000.0_dp
         endif
     ENDdo
 elseif(confineType == 3) then
     do I = IT1,IT2
-        if(((RP(I,1)-LBox(1)/2)**2 + (RP(I,2)-LBox(1)/2_dp)**2 + &
-           (RP(I,3)-LBox(1)/2)**2) > dble(LBox(1)*LBox(1)*0.25_dp)) then
+        if(((RP(1,I)-LBox(1)/2)**2 + (RP(2,I)-LBox(1)/2_dp)**2 + &
+           (RP(3,I)-LBox(1)/2)**2) > dble(LBox(1)*LBox(1)*0.25_dp)) then
             ECon = 9990000.0
         endif
     Enddo

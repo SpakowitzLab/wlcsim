@@ -66,9 +66,9 @@ do IB = I1,I2
        RBin(3) = wlc_d%R(3,IB)
        isA = wlc_d%AB(IB).eq.1
    else
-       RBin(1) = wlc_d%RP(IB,1)
-       RBin(2) = wlc_d%RP(IB,2)
-       RBin(3) = wlc_d%RP(IB,3)
+       RBin(1) = wlc_d%RP(1,IB)
+       RBin(2) = wlc_d%RP(2,IB)
+       RBin(3) = wlc_d%RP(3,IB)
        isA = wlc_d%ABP(IB).eq.1
    endif
    ! --------------------------------------------------

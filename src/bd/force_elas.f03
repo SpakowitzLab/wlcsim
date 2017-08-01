@@ -11,8 +11,8 @@
       subroutine force_elas(FELAS,TELAS,R,U,NT,N,NP, EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
       use params, only : dp
       implicit none
-      real(dp), intent(out) :: FELAS(NT,3) ! Elastic force
-      real(dp), intent(out) :: TELAS(NT,3) ! Elastic force
+      real(dp), intent(out) :: FELAS(3,NT) ! Elastic force
+      real(dp), intent(out) :: TELAS(3,NT) ! Elastic force
       real(dp), intent(in) ::  R(3,NT)  ! Bead positions
       ! u will be modified iff simtype = 1, if want this to be intent(in), just
       ! modify the below to use a separate variable for this
@@ -36,12 +36,12 @@
       IB = 1
       do 10 I = 1,NP
          do 20 J = 1,N
-            FELAS(IB,1) = 0.
-            FELAS(IB,2) = 0.
-            FELAS(IB,3) = 0.
-            TELAS(IB,1) = 0.
-            TELAS(IB,2) = 0.
-            TELAS(IB,3) = 0.
+            FELAS(1,IB) = 0.
+            FELAS(2,IB) = 0.
+            FELAS(3,IB) = 0.
+            TELAS(1,IB) = 0.
+            TELAS(2,IB) = 0.
+            TELAS(3,IB) = 0.
             if (SIMTYPE == 1.AND.J <= (N-1)) then
                U(1,IB) = R(1,IB + 1)-R(1,IB)
                U(2,IB) = R(2,IB + 1)-R(2,IB)
@@ -71,31 +71,31 @@
                   GI(2) = EB*(U(2,IB + 1)-U1U2*U(2,IB))/B(IB)
                   GI(3) = EB*(U(3,IB + 1)-U1U2*U(3,IB))/B(IB)
 
-                  FELAS(IB,1) = FELAS(IB,1)-GI(1)
-                  FELAS(IB,2) = FELAS(IB,2)-GI(2)
-                  FELAS(IB,3) = FELAS(IB,3)-GI(3)
-                  FELAS(IB + 1,1) = FELAS(IB + 1,1) + GI(1)
-                  FELAS(IB + 1,2) = FELAS(IB + 1,2) + GI(2)
-                  FELAS(IB + 1,3) = FELAS(IB + 1,3) + GI(3)
+                  FELAS(1,IB) = FELAS(1,IB)-GI(1)
+                  FELAS(2,IB) = FELAS(2,IB)-GI(2)
+                  FELAS(3,IB) = FELAS(3,IB)-GI(3)
+                  FELAS(1,IB + 1) = FELAS(1,IB + 1) + GI(1)
+                  FELAS(2,IB + 1) = FELAS(2,IB + 1) + GI(2)
+                  FELAS(3,IB + 1) = FELAS(3,IB + 1) + GI(3)
 
                   GI(1) = EB*(U(1,IB)-U1U2*U(1,IB + 1))/B(IB + 1)
                   GI(2) = EB*(U(2,IB)-U1U2*U(2,IB + 1))/B(IB + 1)
                   GI(3) = EB*(U(3,IB)-U1U2*U(3,IB + 1))/B(IB + 1)
 
-                  FELAS(IB + 1,1) = FELAS(IB + 1,1)-GI(1)
-                  FELAS(IB + 1,2) = FELAS(IB + 1,2)-GI(2)
-                  FELAS(IB + 1,3) = FELAS(IB + 1,3)-GI(3)
-                  FELAS(IB + 2,1) = FELAS(IB + 2,1) + GI(1)
-                  FELAS(IB + 2,2) = FELAS(IB + 2,2) + GI(2)
-                  FELAS(IB + 2,3) = FELAS(IB + 2,3) + GI(3)
+                  FELAS(1,IB + 1) = FELAS(1,IB + 1)-GI(1)
+                  FELAS(2,IB + 1) = FELAS(2,IB + 1)-GI(2)
+                  FELAS(3,IB + 1) = FELAS(3,IB + 1)-GI(3)
+                  FELAS(1,IB + 2) = FELAS(1,IB + 2) + GI(1)
+                  FELAS(2,IB + 2) = FELAS(2,IB + 2) + GI(2)
+                  FELAS(3,IB + 2) = FELAS(3,IB + 2) + GI(3)
 
                endif
-               TELAS(IB,1) = 0.
-               TELAS(IB,2) = 0.
-               TELAS(IB,3) = 0.
-               TELAS(IB + 1,1) = 0.
-               TELAS(IB + 1,2) = 0.
-               TELAS(IB + 1,3) = 0.
+               TELAS(1,IB) = 0.
+               TELAS(2,IB) = 0.
+               TELAS(3,IB) = 0.
+               TELAS(1,IB + 1) = 0.
+               TELAS(2,IB + 1) = 0.
+               TELAS(3,IB + 1) = 0.
 
             elseif (SIMTYPE == 2) then
                DR(1) = R(1,IB + 1)-R(1,IB)
@@ -116,12 +116,12 @@
                FI(2) = -ETA*EB*GI(2) + EPAR*(DRPAR-GAM)*U(2,IB) + EPERP*DRPERP(2)
                FI(3) = -ETA*EB*GI(3) + EPAR*(DRPAR-GAM)*U(3,IB) + EPERP*DRPERP(3)
 
-               FELAS(IB,1) = FELAS(IB,1) + FI(1)
-               FELAS(IB,2) = FELAS(IB,2) + FI(2)
-               FELAS(IB,3) = FELAS(IB,3) + FI(3)
-               FELAS(IB + 1,1) = FELAS(IB + 1,1)-FI(1)
-               FELAS(IB + 1,2) = FELAS(IB + 1,2)-FI(2)
-               FELAS(IB + 1,3) = FELAS(IB + 1,3)-FI(3)
+               FELAS(1,IB) = FELAS(1,IB) + FI(1)
+               FELAS(2,IB) = FELAS(2,IB) + FI(2)
+               FELAS(3,IB) = FELAS(3,IB) + FI(3)
+               FELAS(1,IB + 1) = FELAS(1,IB + 1)-FI(1)
+               FELAS(2,IB + 1) = FELAS(2,IB + 1)-FI(2)
+               FELAS(3,IB + 1) = FELAS(3,IB + 1)-FI(3)
 
                GI(1) = U(1,IB + 1)-U(1,IB)-ETA*DRPERP(1)
                GI(2) = U(2,IB + 1)-U(2,IB)-ETA*DRPERP(2)
@@ -135,12 +135,12 @@
                TI2(2) = -ETA*EB*DRPAR*GI(2) + ETA*EB*(1-U1U2)*DR(2)-EPAR*(DRPAR-GAM)*DR(2) + EPERP*DRPAR*DRPERP(2)
                TI2(3) = -ETA*EB*DRPAR*GI(3) + ETA*EB*(1-U1U2)*DR(3)-EPAR*(DRPAR-GAM)*DR(3) + EPERP*DRPAR*DRPERP(3)
 
-               TELAS(IB,1) = TELAS(IB,1) + TI1(1) + TI2(1)
-               TELAS(IB,2) = TELAS(IB,2) + TI1(2) + TI2(2)
-               TELAS(IB,3) = TELAS(IB,3) + TI1(3) + TI2(3)
-               TELAS(IB + 1,1) = TELAS(IB + 1,1)-TI1(1)
-               TELAS(IB + 1,2) = TELAS(IB + 1,2)-TI1(2)
-               TELAS(IB + 1,3) = TELAS(IB + 1,3)-TI1(3)
+               TELAS(1,IB) = TELAS(1,IB) + TI1(1) + TI2(1)
+               TELAS(2,IB) = TELAS(2,IB) + TI1(2) + TI2(2)
+               TELAS(3,IB) = TELAS(3,IB) + TI1(3) + TI2(3)
+               TELAS(1,IB + 1) = TELAS(1,IB + 1)-TI1(1)
+               TELAS(2,IB + 1) = TELAS(2,IB + 1)-TI1(2)
+               TELAS(3,IB + 1) = TELAS(3,IB + 1)-TI1(3)
 
             elseif (SIMTYPE == 3) then
 
@@ -148,19 +148,19 @@
                DR(2) = R(2,IB + 1)-R(2,IB)
                DR(3) = R(3,IB + 1)-R(3,IB)
 
-               FELAS(IB,1) = FELAS(IB,1) + EPAR*DR(1)
-               FELAS(IB,2) = FELAS(IB,2) + EPAR*DR(2)
-               FELAS(IB,3) = FELAS(IB,3) + EPAR*DR(3)
-               FELAS(IB + 1,1) = FELAS(IB + 1,1)-EPAR*DR(1)
-               FELAS(IB + 1,2) = FELAS(IB + 1,2)-EPAR*DR(2)
-               FELAS(IB + 1,3) = FELAS(IB + 1,3)-EPAR*DR(3)
+               FELAS(1,IB) = FELAS(1,IB) + EPAR*DR(1)
+               FELAS(2,IB) = FELAS(2,IB) + EPAR*DR(2)
+               FELAS(3,IB) = FELAS(3,IB) + EPAR*DR(3)
+               FELAS(1,IB + 1) = FELAS(1,IB + 1)-EPAR*DR(1)
+               FELAS(2,IB + 1) = FELAS(2,IB + 1)-EPAR*DR(2)
+               FELAS(3,IB + 1) = FELAS(3,IB + 1)-EPAR*DR(3)
 
-               TELAS(IB,1) = 0.
-               TELAS(IB,2) = 0.
-               TELAS(IB,3) = 0.
-               TELAS(IB + 1,1) = 0.
-               TELAS(IB + 1,2) = 0.
-               TELAS(IB + 1,3) = 0.
+               TELAS(1,IB) = 0.
+               TELAS(2,IB) = 0.
+               TELAS(3,IB) = 0.
+               TELAS(1,IB + 1) = 0.
+               TELAS(2,IB + 1) = 0.
+               TELAS(3,IB + 1) = 0.
 
             endif
 

@@ -11,7 +11,7 @@
       implicit none
 ! Variables from the simulation
 
-      real(dp) DRDT(NT,3,4)  ! Rate of change
+      real(dp) DRDT(3,NT,4)  ! Rate of change
       real(dp) R(3,NT)       ! Bead positions
       real(dp) U(3,N-1)      ! Unit tangent vector
       real(dp) B(N-1)         ! Bond length
@@ -134,9 +134,9 @@
             FPS(N,3) = -DETLT(N-2)*BPS(N-2)*B(N-2)*U(3,N-2)/DETER
 
             do 35 I = 1,N
-               DRDT(I + IB,1,RK) = DRDT(I + IB,1,RK) + FPS(I,1)/XI
-               DRDT(I + IB,2,RK) = DRDT(I + IB,2,RK) + FPS(I,2)/XI
-               DRDT(I + IB,3,RK) = DRDT(I + IB,3,RK) + FPS(I,3)/XI
+               DRDT(1,I + IB,RK) = DRDT(1,I + IB,RK) + FPS(I,1)/XI
+               DRDT(2,I + IB,RK) = DRDT(2,I + IB,RK) + FPS(I,2)/XI
+               DRDT(3,I + IB,RK) = DRDT(3,I + IB,RK) + FPS(I,3)/XI
  35         continue
          endif
 
@@ -144,9 +144,9 @@
 ! Setup the B component
 
          do 40 I = 1,(N-1)
-            BLAM(I) = B(I)*XI*(U(1,I)*(DRDT(I + 1 + IB,1,RK)-DRDT(I + IB,1,RK))+ &
-                 U(2,I)*(DRDT(I + 1 + IB,2,RK)-DRDT(I + IB,2,RK))+ &
-                 U(3,I)*(DRDT(I + 1 + IB,3,RK)-DRDT(I + IB,3,RK)))+ &
+            BLAM(I) = B(I)*XI*(U(1,I)*(DRDT(1,I + 1 + IB,RK)-DRDT(1,I + IB,RK))+ &
+                 U(2,I)*(DRDT(2,I + 1 + IB,RK)-DRDT(2,I + IB,RK))+ &
+                 U(3,I)*(DRDT(3,I + 1 + IB,RK)-DRDT(3,I + IB,RK)))+ &
                  XI*C*(B(I)**.2-L0**2.)
  40      continue
 
@@ -154,20 +154,20 @@
 
          call DGTSV((N-1),1,ASUB,ADIAG,ASUPER,BLAM,(N-1),inFO)
 
-         DRDT(1 + IB,1,RK) = DRDT(1 + IB,1,RK) + BLAM(1)*B(1)*U(1,1)/XI
-         DRDT(1 + IB,2,RK) = DRDT(1 + IB,2,RK) + BLAM(1)*B(1)*U(2,1)/XI
-         DRDT(1 + IB,3,RK) = DRDT(1 + IB,3,RK) + BLAM(1)*B(1)*U(3,1)/XI
+         DRDT(1,1 + IB,RK) = DRDT(1,1 + IB,RK) + BLAM(1)*B(1)*U(1,1)/XI
+         DRDT(2,1 + IB,RK) = DRDT(2,1 + IB,RK) + BLAM(1)*B(1)*U(2,1)/XI
+         DRDT(3,1 + IB,RK) = DRDT(3,1 + IB,RK) + BLAM(1)*B(1)*U(3,1)/XI
          do 50 I = 2,(N-1)
-            DRDT(I + IB,1,RK) = DRDT(I + IB,1,RK) + (BLAM(I)*B(I)*U(1,I)- &
+            DRDT(1,I + IB,RK) = DRDT(1,I + IB,RK) + (BLAM(I)*B(I)*U(1,I)- &
                  BLAM(I-1)*B(I-1)*U(1,I-1))/XI
-            DRDT(I + IB,2,RK) = DRDT(I + IB,2,RK) + (BLAM(I)*B(I)*U(2,I)- &
+            DRDT(2,I + IB,RK) = DRDT(2,I + IB,RK) + (BLAM(I)*B(I)*U(2,I)- &
                  BLAM(I-1)*B(I-1)*U(2,I-1))/XI
-            DRDT(I + IB,3,RK) = DRDT(I + IB,3,RK) + (BLAM(I)*B(I)*U(3,I)- &
+            DRDT(3,I + IB,RK) = DRDT(3,I + IB,RK) + (BLAM(I)*B(I)*U(3,I)- &
                  BLAM(I-1)*B(I-1)*U(3,I-1))/XI
  50      continue
-         DRDT(N + IB,1,RK) = DRDT(N + IB,1,RK)-BLAM(N-1)*B(N-1)*U(1,N-1)/XI
-         DRDT(N + IB,2,RK) = DRDT(N + IB,2,RK)-BLAM(N-1)*B(N-1)*U(2,N-1)/XI
-         DRDT(N + IB,3,RK) = DRDT(N + IB,3,RK)-BLAM(N-1)*B(N-1)*U(3,N-1)/XI
+         DRDT(1,N + IB,RK) = DRDT(1,N + IB,RK)-BLAM(N-1)*B(N-1)*U(1,N-1)/XI
+         DRDT(2,N + IB,RK) = DRDT(2,N + IB,RK)-BLAM(N-1)*B(N-1)*U(2,N-1)/XI
+         DRDT(3,N + IB,RK) = DRDT(3,N + IB,RK)-BLAM(N-1)*B(N-1)*U(3,N-1)/XI
 
  5    continue
 

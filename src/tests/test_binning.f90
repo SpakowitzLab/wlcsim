@@ -33,11 +33,11 @@ sideLength = 12.234
 radius = 0.4233
 seed = 86456
 call srand(seed)
-allocate(R(3,NT))
+allocate(R(NT,3))
 do ii = 1,NT
-    R(1,ii) = rand()*sideLength
-    R(2,ii) = rand()*sideLength
-    R(3,ii) = rand()*sideLength
+    R(ii,1) = rand()*sideLength
+    R(ii,2) = rand()*sideLength
+    R(ii,3) = rand()*sideLength
 enddo
 
 !-------------------------
@@ -70,10 +70,10 @@ print*, "Average time per addition", (finish-start)*(10**6)/NT, " microseconds"
 !
 !------------------
 do ii = 1,NT/2 
-    call removeBead(bin,R(:,ii),ii)
-    R(1,ii) = rand()*sideLength
-    R(2,ii) = rand()*sideLength
-    R(3,ii) = rand()*sideLength
+    call removeBead(bin,R(ii,:),ii)
+    R(ii,1) = rand()*sideLength
+    R(ii,2) = rand()*sideLength
+    R(ii,3) = rand()*sideLength
 enddo
 do ii = 1,NT/2
     call addBead(bin,R,NT,ii)
@@ -98,7 +98,7 @@ totalNumberOfNeighbors = 0
 call cpu_time(start)
 do ii = 1,NT
     nNeighbors = 0
-    call findNeighbors(bin,R(:,ii),radius,R,NT,&
+    call findNeighbors(bin,R(ii,:),radius,R,NT,&
                           maxNeighbors,neighbors,distances,nNeighbors)
     totalNumberOfNeighbors = totalNumberOfNeighbors + nNeighbors
 enddo
@@ -117,9 +117,9 @@ print*, "now brute force"
 totalNumberOfNeighbors = NT ! self interactions
 do ii = 1,NT
     do jj = ii + 1,NT
-        distance = ((R(1,ii)-R(1,jj))**2 + &
-                  (R(2,ii)-R(2,jj))**2 + &
-                  (R(3,ii)-R(3,jj))**2)
+        distance = ((R(ii,1)-R(jj,1))**2 + &
+                  (R(ii,2)-R(jj,2))**2 + &
+                  (R(ii,3)-R(jj,3))**2)
         if (distance<(radius**2)) then
             totalNumberOfNeighbors = totalNumberOfNeighbors + 2
         endif
@@ -134,7 +134,7 @@ print*, "found", totalNumberOfNeighbors, "neighbors"
 !---------------------------------
 print*, 'removing beads...'
 do ii = 1,NT
-    call removeBead(bin,R(:,ii),ii)
+    call removeBead(bin,R(ii,:),ii)
 enddo
 
 
