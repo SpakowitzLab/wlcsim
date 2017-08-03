@@ -33,7 +33,6 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
     print*, 'Time point ',save_ind, ' out of', wlc_p%numSavePoints, 'Thread id', wlc_d%id
     call printEnergies(wlc_d)
     call printWindowStats(wlc_p, wlc_d)
-    call printWindowStats(wlc_p, wlc_d)
     !call wlcsim_params_printPhi(wlc_p, wlc_d)
 
 end subroutine wlcsim_quinn
@@ -318,7 +317,6 @@ subroutine worker_node(wlc_p, wlc_d)
     type(wlcsim_data), intent(inout) :: wlc_d
     type(random_stat) rand_stat  ! state of random number chain
     integer i
-
     logical system_has_been_changed
     system_has_been_changed = .False.
     if (id == -1) then
@@ -401,7 +399,7 @@ subroutine worker_node(wlc_p, wlc_d)
     !  --------------------------------
 
     do i = 1,wlc_p%nReplicaExchangePerSavePoint
-
+        wlc_d%ind_exchange=i
         !   * Perform a MC simulation *
         call MCsim(wlc_p, wlc_d,wlc_p%stepsPerExchange)
 

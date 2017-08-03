@@ -110,6 +110,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
            else
                wlc_d%eKnot = 0.0_dp
            ENDif
+        else
+            wlc_d%eKnot=0.0_dp
         ENDif
 
 
@@ -163,8 +165,10 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                   PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
                   STOP 1
               else
-                  wlc_d%DESELF = 0.
+                  wlc_d%DESELF = 0.0
               ENDif
+          else
+              wlc_d%DESELF=0.0
           endif
 
 !   Calculate the change in the self-interaction energy (actually all
@@ -214,6 +218,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           if (TEST <= PROB) then
 
              if(MCTYPE == 7) then
+                 if (.not.ChangingChemicalIdentity) then
+                     write(error_unit,*), "Tried to change chemical Identity when you can't"
+                 endif
                  do I = IT1,IT2
                       wlc_d%AB(I) = wlc_d%ABP(I)
                  ENDdo
@@ -253,11 +260,13 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                    J = wlc_d%inDPHI(I)
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
                    wlc_d%PHIB(J) = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-                   if ((wlc_d%PHIA(J).lt.-0.000001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
+                   if ((wlc_d%PHIA(J).lt.-0.0001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
+                       print*, "IT1-4",IT1,IT2,IT3,IT4
                        print*, "Vol", wlc_d%Vol(I)
                        print*, "MCTYPE", MCTYPE
                        print*, "DPHIA ",wlc_d%DPHIA(I)," DPHIB",wlc_d%DPHIB(I)
                        print*, "PHIA(J) ", wlc_d%PHIA(J), " PHIB(J) ", wlc_d%PHIB(J)
+                       print*, "I", I,"J",J
                        print*, "Error in MCsim. Negative phi"
                        stop 1
                    endif
@@ -279,10 +288,11 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
             endif
              wlc_d%SUCCESS(MCTYPE) = wlc_d%SUCCESS(MCTYPE) + 1
           endif
+          wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
 !   Adapt the amplitude of step every NADAPT steps
 
           !amplitude and window adaptations
-          if (mod(ISTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
+          if (mod(ISTEP+wlc_d%ind_exchange*NSTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
 
              ! move each chain back if drifted though repeated BC

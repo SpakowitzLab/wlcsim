@@ -45,6 +45,11 @@ if (I4-I3 + 1.ne.wlc_p%NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
+if (.not.(min(I1,I2)>max(I3,I4) .or. min(I3,I4)>max(I1,I2))) then
+    print*, "Error in MC_int_swap. Overlappling regions"
+    print*, I1,I2,"|",I3,I4
+endif
+
 
 ! -------------------------------------------------------------
 !
@@ -56,7 +61,7 @@ wlc_d%NPHI = 0
 do IB = I1,I2
   IB2 = IB + I3-I1
   !No need to do calculation if identities are the same
-  if (wlc_d%AB(IB).eq.wlc_d%ABP(IB2)) cycle
+  if (wlc_d%AB(IB).eq.wlc_d%AB(IB2)) cycle
   do rrdr = -1,1,2
    ! on initialize only add current position
    ! otherwise subract current and add new
@@ -64,13 +69,12 @@ do IB = I1,I2
        RBin(1) = wlc_d%R(1,IB)
        RBin(2) = wlc_d%R(2,IB)
        RBin(3) = wlc_d%R(3,IB)
-       isA = wlc_d%AB(IB).eq.1
    else
        RBin(1) = wlc_d%RP(1,IB)
        RBin(2) = wlc_d%RP(2,IB)
        RBin(3) = wlc_d%RP(3,IB)
-       isA = wlc_d%ABP(IB).eq.1
    endif
+   isA = wlc_d%AB(IB).eq.1
    ! --------------------------------------------------
    !
    !  Interpolate beads into bins

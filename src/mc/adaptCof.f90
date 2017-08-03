@@ -71,8 +71,7 @@ do rep = 2,nPTReplicas
         if(newCof(rep).lt.0.0_dp) newCof(rep) = 0.0_dp
         if(newCof(rep).gt.1.0_dp) newCof(rep) = 1.0_dp
     endif
-enddo
-do rep = 1,nPTReplicas
+
     if (newcof(rep).lt.0.00001) then
         print*, "Error in adaptCof! how did that happen?"
         print*, newCof

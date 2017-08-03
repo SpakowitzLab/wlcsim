@@ -16,6 +16,8 @@ subroutine MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
 use mersenne_twister
 use params, only: dp, pi, wlcsim_data
 
+!TODO: replace R,U,RP,UP .... with wlc_d
+
 implicit none
 
 !type(wlcsim_params), intent(in) :: wlc_p
@@ -103,6 +105,8 @@ if (MCTYPE == 1) then
    elseif (winType.eq.1.and.RinG) then
        call random_number(urnd,rand_stat)
        IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
+   else
+       write(error_unit,*), "Warning: winType not recognized"
    endif
 
    IT1 = NB*(IP-1) + IB1
@@ -210,7 +214,6 @@ if (MCTYPE == 1) then
         UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
         UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
         I = I + 1
-
 
      ENDdo
 
@@ -515,7 +518,10 @@ elseif (MCTYPE == 6) then
 elseif (MCTYPE == 7) then
    ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
    ! Move amplitude is ignored for this move type
-
+   
+   if (.not.ChangingChemicalIdentity) then
+       write(error_unit,*), "MCTYPE 7 needs changing chemical identity"
+   endif
    call random_number(urand,rand_stat)
    IP = ceiling(urand(1)*NP)
    IB1 = ceiling(urand(2)*NB)

@@ -166,6 +166,7 @@ module params
                              ! uses many of the same functions as the chemical
                              ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
+        logical changingChemicalIdentity
 
     !   parallel Tempering parameters
         logical PTON    ! whether or not to parallel temper
@@ -231,6 +232,7 @@ module params
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
         real(dp) WindoW(nMoveTypes)         ! Size of window for bead selection
         integer SUCCESS(nMoveTypes)        ! Number of successes
+        integer ATTEMPTS(nMoveTypes)        ! Number of successes
         integer successTOTAL(nMoveTypes)               !Total number of successes
         real(dp) PHit(nMoveTypes) ! hit rate
 
@@ -289,6 +291,7 @@ module params
 
     !   indices
         integer mc_ind                  ! current save point index for mc
+        integer ind_exchange            ! number of exchange moves since last save point
         integer time_ind                ! current time point
         real(dp) time
     end type
@@ -368,6 +371,7 @@ contains
         wlc_p%field_int_on = .FALSE. ! no field interactions by default
         wlc_p%bind_On = .FALSE. ! no binding energy by default
         wlc_p%inTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
+        wlc_p%changingChemicalIdentity = .FALSE.
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
@@ -406,7 +410,6 @@ contains
         wlc_p%PT_mu =.False. ! don't parallel temper mu by default
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
 
-
         !switches to turn on various types of moves
         wlc_p%MOVEON(1) = 1  ! crank-shaft move
         wlc_p%MOVEON(2) = 1  ! slide move
@@ -429,6 +432,7 @@ contains
             wlc_p%NADAPT(mctype) = 1000 ! adapt after at most 1000 steps
             wlc_p%PDESIRE(mctype) = 0.5_dp ! Target
             wlc_d%SUCCESS(mctype) = 0
+            wlc_d%ATTEMPTS(mctype) = 0
             wlc_d%SUCCESStotal(mctype) = 0
             wlc_d%PHIT(mctype) = 0.0_dp
         enddo
@@ -505,6 +509,8 @@ contains
             call reado(wlc_p%field_int_on) !include field interactions
         case('BINDON')
             call reado(wlc_p%bind_on) ! Whether to include a binding state model
+        case('ChangingChemicalIdentity')
+            call reado(wlc_p%ChangingChemicalIdentity) ! Whether to include a binding state model
         case('LK')
             call readi(wlc_p%lk) ! linking number
         case('PTON')
@@ -578,6 +584,9 @@ contains
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
         case('FPOLY')
             call readF(wlc_p%Fpoly) ! Fraction Polymer
+            print*, "FPOLY is nolong used for anything"
+            print*, "You probably shouldn't include it in your input file"
+            stop 
         case('BEADVOLUME')
             call readF(wlc_p%beadVolume) ! Bead volume
         case('FA')
@@ -1166,6 +1175,8 @@ contains
         endif
         if(wlc_p%Ring) then
             wlc_d%eKnot   =1.0
+        else
+            wlc_d%eKnot = 0.0
         endif
 
         wlc_d%time = 0
@@ -1282,40 +1293,17 @@ contains
         wlc_d%MCAMP(9) = nan
         wlc_d%MCAMP(10) = nan
 
-        !switches to turn on various types of moves
-        wlc_p%MOVEON(1) = 1  ! crank-shaft move
-        wlc_p%MOVEON(2) = 1  ! slide move
-        wlc_p%MOVEON(3) = 1  ! pivot move
-        wlc_p%MOVEON(4) = 1  ! rotate move
-        wlc_p%MOVEON(5) = 1  ! full chain rotation
-        wlc_p%MOVEON(6) = 1  ! full chain slide
         ! if we're not using field interactions
         ! energies, then this should never be on
-        if (wlc_p%field_int_on) then
-            wlc_p%MOVEON(7) = 1  ! Change in Binding state
-        else
-            wlc_p%MOVEON(7) = 0
+        if ((.not. wlc_p%field_int_on) .and. wlc_p%MOVEON(9)/=0) then
+            wlc_p%MOVEON(7) = 0  ! Change in Binding state
+            print*, "turning off movetype 7, binding, becuase unneeded"
         endif
         wlc_p%MOVEON(8) = 0  ! Chain flip ! TOdo not working
         ! if number of polymers is 1, this should never be on
-        if (wlc_p%np < 2) then
+        if (wlc_p%np < 2 .and. wlc_p%moveon(9)/=0) then
             wlc_p%moveon(9) = 0
-        else
-            wlc_p%MOVEON(9) = 1  ! Chain exchange
-        endif
-        wlc_p%MOVEON(10) = 1 ! Reptation
-        if (wlc_p%codeName == 'quinn') then
-            !switches to turn on various types of moves
-            wlc_p%MOVEON(1) = 1  ! crank-shaft move
-            wlc_p%MOVEON(2) = 1  ! slide move
-            wlc_p%MOVEON(3) = 1  ! pivot move
-            wlc_p%MOVEON(4) = 1  ! rotate move
-            wlc_p%MOVEON(5) = 0  ! full chain rotation
-            wlc_p%MOVEON(6) = 0  ! full chain slide
-            wlc_p%MOVEON(7) = 1  ! Change in Binding state
-            wlc_p%MOVEON(8) = 0  ! Chain flip
-            wlc_p%MOVEON(9) = 0  ! Chain exchange
-            wlc_p%MOVEON(10) = 0 ! Reptation
+            print*, "Turning off movetype 9, chain exchange, because <2 polymers"
         endif
 
         !     Initial segment window for wlc_p moves
@@ -1467,6 +1455,24 @@ contains
         print*, "EField", wlc_d%EField
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind
+    end subroutine
+
+    subroutine calcTotalPolymerVolume(wlc_p,wlc_d,totalVpoly)
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
+        integer i
+        real(dp), intent(out) :: totalVpoly
+        real(dp) VV
+        totalVpoly=0.0
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
+            !if (VV.le.0.1_dp) cycle
+            totalVpoly = totalVpoly + VV*(wlc_d%PHIA(I) + wlc_d%PHIB(I))
+        enddo
+        print*, "Total volume of polymer from density", totalVpoly,&
+                " and from beads ",wlc_p%NT*wlc_p%beadVolume
+         
     end subroutine
 
     subroutine wlcsim_params_printPhi(wlc_p,wlc_d)
