@@ -106,7 +106,7 @@ if (MCTYPE == 1) then
        call random_number(urnd,rand_stat)
        IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
    else
-       write(error_unit,*), "Warning: winType not recognized"
+       call stop_if_err(1, "Warning: winType not recognized")
    endif
 
    IT1 = NB*(IP-1) + IB1
@@ -518,10 +518,6 @@ elseif (MCTYPE == 6) then
 elseif (MCTYPE == 7) then
    ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
    ! Move amplitude is ignored for this move type
-   
-   if (.not.ChangingChemicalIdentity) then
-       write(error_unit,*), "MCTYPE 7 needs changing chemical identity"
-   endif
    call random_number(urand,rand_stat)
    IP = ceiling(urand(1)*NP)
    IB1 = ceiling(urand(2)*NB)

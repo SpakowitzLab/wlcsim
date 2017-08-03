@@ -218,8 +218,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           if (TEST <= PROB) then
 
              if(MCTYPE == 7) then
-                 if (.not.ChangingChemicalIdentity) then
-                     write(error_unit,*), "Tried to change chemical Identity when you can't"
+                 if (.not.wlc_p%ChangingChemicalIdentity) then
+                     call stop_if_err(1, "Tried to change chemical Identity when you can't")
                  endif
                  do I = IT1,IT2
                       wlc_d%AB(I) = wlc_d%ABP(I)
