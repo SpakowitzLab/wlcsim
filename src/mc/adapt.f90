@@ -18,6 +18,7 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE))/real(wlc_d%ATTEMPTS(MCTYPE))
 
     wlc_d%SUCCESS(MCTYPE) = 0
+    wlc_d%ATTEMPTS(MCTYPE) = 0
 
     if ((MCTYPE.eq.8).or.(MCTYPE.eq.9)) then
         return

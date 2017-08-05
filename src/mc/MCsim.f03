@@ -53,6 +53,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
     integer DELTA             !Alexander polynomial evaluated at t = -1; used for knot checking
     real(dp) para(10)
+    integer m_plus3
 
     rand_stat = wlc_d%rand_stat
 
@@ -174,18 +175,15 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
           if (wlc_p%FIELD_inT_ON) then
-             if (MCTYPE == 9) then
+             if (MCTYPE == 9) then !swap move
                  !skip if doesn't do anything
                  if (abs(wlc_p%CHI_ON).lt.0.00001) CYCLE
                  call MC_int_swap(wlc_p,wlc_d,IT1,IT2,IT3,IT4)
-                 if (abs(wlc_d%DEKap).gt.0.0001) then
-                     print*, "Error in MCsim.  Kappa energy shouldn't change on move 9"
-                     print*, "DEKap", wlc_d%DEKap
-                     stop 1
-                 endif
-             elseif (MCTYPE == 10) then
+             elseif (MCTYPE == 7) then
+                 call MC_int_chem(wlc_p,wlc_d,IT1,IT2)
+             elseif (MCTYPE == 10) then ! reptation move
                  call MC_int_rep(wlc_p,wlc_d,IT1,IT2,forward)
-             else
+             else ! motion of chain
                  call MC_int_update(wlc_p,wlc_d,IT1,IT2,.false.)
              endif
           else
@@ -193,6 +191,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               wlc_d%DECouple = 0.0_dp
               wlc_d%DEChi = 0.0_dp
               wlc_d%DEField = 0.0_dp
+              wlc_d%deMaierSaupe = 0.0_dp
           endif
           if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
               print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
@@ -211,7 +210,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Change the position if appropriate
           ENERGY = wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3) &
                  +wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind + wlc_d%ECon + wlc_d%DEField &
-                 +wlc_d%eKnot
+                 +wlc_d%eKnot + wlc_d%deMaierSaupe
           PROB = exp(-ENERGY)
           call random_number(urnd,rand_stat)
           TEST = urnd(1)
@@ -258,6 +257,11 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
              if (wlc_p%FIELD_inT_ON) then
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)
+                   if (wlc_p%chi_l2_on) then
+                       do m_plus3 = 1,5
+                           wlc_d%PHI_l2(m_plus3,J) =  wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,J)
+                       enddo
+                   endif
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
                    wlc_d%PHIB(J) = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
                    if ((wlc_d%PHIA(J).lt.-0.0001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
@@ -279,6 +283,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                 wlc_d%x_kap = wlc_d%x_Kap + wlc_d%dx_kap
                 wlc_d%x_chi = wlc_d%x_chi + wlc_d%dx_chi
                 wlc_d%x_field = wlc_d%x_field + wlc_d%dx_field
+                wlc_d%x_maierSaupe = wlc_d%x_maierSaupe + wlc_d%dx_maierSaupe
 
              endif
              if (wlc_p%ring) then

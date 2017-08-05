@@ -27,6 +27,10 @@ LOGICAL isA   ! The bead is of type A
 ! Copy so I don't have to type wlc_p% everywhere
 integer NBinX(3)
 real(dp) temp
+real(dp) contribution 
+integer m_plus3
+real(dp) phi2(5)
+real(dp) AminusB ! +1 if A and -1 if B
 
 NBinX = wlc_p%NBinX
 
@@ -60,6 +64,7 @@ do IB = I1,I2
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0
    endif
+   AminusB = real(wlc_d%ABP(IB)-wlc_d%AB(IB))
 
    if (wlc_p%confineType == 0 .or. wlc_p%confineType == 4) then
        ! If periodic than you can assume that all bins are included and have a volume
@@ -78,22 +83,22 @@ do IB = I1,I2
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*(ABP(IB)-AB(IB))
-                      wlc_d%DPHIB(wlc_d%NPHI) = contribution*(AB(IB)-ABP(IB))
+                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
+                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus2 =1,5
-                              wlc_d%DPHI_l2(m_plus2,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus2,wlc_d%NPHI) +&
-                                     phi2(m_plus2)*contribution
+                          do m_plus3 =1,5
+                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) +&
+                                     AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*(ABP(IB)-AB(IB))
-                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) +  contribution*(AB(IB)-ABP(IB))
+                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
+                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus2 =1,5
-                              wlc_d%DPHI_l2(m_plus2,I) = wlc_d%DPHI_l2(m_plus2,I) + &
-                                  phi2(m_plus2)*(ABP(IB)-AB(IB))*contribution
+                          do m_plus3 =1,5
+                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
+                                  AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif
                       exit
@@ -121,22 +126,22 @@ do IB = I1,I2
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*(ABP(IB)-AB(IB))
-                      wlc_d%DPHIB(wlc_d%NPHI) = contribution*(AB(IB)-ABP(IB))
+                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
+                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus2 =1,5
-                              wlc_d%DPHI_l2(m_plus2,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus2,wlc_d%NPHI) +&
-                                  phi2(m_plus2)*contribution
+                          do m_plus3 =1,5
+                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) +&
+                                  AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*(ABP(IB)-AB(IB))
-                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) +  contribution*(AB(IB)-ABP(IB))
+                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
+                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus2 =1,5
-                              wlc_d%DPHI_l2(m_plus2,I) = wlc_d%DPHI_l2(m_plus2,I) + &
-                                  phi2(m_plus2)*(ABP(IB)-AB(IB))*contribution
+                          do m_plus3 =1,5
+                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
+                                  AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif
                       exit
@@ -148,7 +153,6 @@ do IB = I1,I2
           enddo
        enddo
     endif
- enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
 ! ---------------------------------------------------------------------
 !

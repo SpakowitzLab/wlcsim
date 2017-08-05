@@ -66,7 +66,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms = 8  ! number of energy terms
+    integer, parameter :: nTerms = 9  ! number of energy terms
     real(dp) x(nTerms) ! slice of xMtrx
     real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
@@ -75,7 +75,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path ! functions
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -129,6 +129,11 @@ subroutine head_node(wlc_p, wlc_d,process)
         cofMtrx(rep,6) = 0
         cofMtrx(rep,7) = 0
         cofMtrx(rep,8) = 0
+        if (wlc_p%PT_MaierSaupe) then
+            cofMtrx(rep,9) = maierSaupe_path(s_vals(rep))
+        else
+            cofMtrx(rep,9) = wlc_p%chi_l2
+        endif
     enddo
 
     N_average = 0
@@ -296,6 +301,13 @@ function kap_path(s) result(kap)
     real(dp) kap
     kap = s*10.0_dp
 end function kap_path
+function maierSaupe_path(s) result(output)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: s
+    real(dp) output
+    output = s*1.0_dp
+end function maierSaupe_path
 function hp1_bind_path(s) result(hp1_bind)
     use params, only: dp
     implicit none

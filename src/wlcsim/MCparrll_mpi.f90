@@ -16,7 +16,7 @@ use mpi
     integer (kind = 4) error  ! error id for MIP functions
     character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    integer, parameter :: nTerms = 8  ! number of energy terms
+    integer, parameter :: nTerms = 9  ! number of energy terms
     real(dp) cof(nTerms)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
@@ -81,6 +81,7 @@ use mpi
     !wlc_p%para(1)  =cof(6)
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
+    wlc_p%chi_l2   =cof(9)
 
     write(iostrg,"(I4)") wlc_d%rep
     iostrg = adjustL(iostrg)
@@ -99,7 +100,7 @@ subroutine replicaExchange(wlc_p, wlc_d)
 use params
 use mpi
     implicit none
-    integer, parameter :: nTerms = 8  ! number of energy terms
+    integer, parameter :: nTerms = 9  ! number of energy terms
     integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
@@ -126,6 +127,7 @@ use mpi
     x(6) = 0.0_dp !x(6) = wlc_p%EElas(1)/wlc_p%para(1)
     x(7) = 0.0_dp !x(7) = wlc_p%EElas(2)/wlc_p%para(2)
     x(8) = 0.0_dp !x(8) = wlc_p%EElas(3)/wlc_p%para(3)
+    x(9) = wlc_d%x_maierSaupe
 
     test(1) = wlc_d%EChi/wlc_p%Chi
     test(3) = wlc_d%EField/wlc_p%hA
@@ -140,6 +142,7 @@ use mpi
     cofOld(6) = 0!wlc_p%para(1)
     cofOld(7) = 0!wlc_p%para(2)
     cofOld(8) = 0!wlc_p%para(3)
+    cofOld(9) = wlc_p%chi_l2
 
     do i = 1,5
         if (i.eq.2) cycle ! doesn't work for mu
@@ -183,6 +186,7 @@ use mpi
     !wlc_p%para(1)  =cof(6)
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
+    wlc_p%chi_l2 = cof(9)
 
     if (abs(wlc_d%EChi-x(1)*CofOld(1)).gt.0.0000001_dp) then
         print*, "Error in replicaExchange"
@@ -198,6 +202,7 @@ use mpi
    ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
    ! wlc_p%EElas(2) = wlc_p%EElas(2) + x(7)*(Cof(7)-CofOld(7))
    ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
+    wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +x(9)*(Cof(5)-CofOld(5))
 
     if (abs(wlc_d%EChi-x(1)*Cof(1)).gt.0.000001_dp) then
         print*, "Error in replicaExchange"

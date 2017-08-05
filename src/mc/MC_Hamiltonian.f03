@@ -21,16 +21,45 @@ real(dp) PHIPoly ! fraction polymer
 real(dp) phi_A ! demsotu of A
 real(dp) phi_B ! density of B
 real(dp) phi_h ! strength of field
+real(dp) phi_l2 ! strength of field
 real(dp) VV ! volume of bin
-integer I,J ! for looping
-
+integer I,J,m_plus3 ! for looping
 
 wlc_d%dx_Chi = 0.0_dp
 wlc_d%Dx_Couple = 0.0_dp
 wlc_d%Dx_Kap = 0.0_dp
 wlc_d%Dx_Field = 0.0_dp
+wlc_d%dx_maierSaupe = 0.0_dp
 if (initialize) then  ! calculate absolute energy
-    if (wlc_p%solType.eq.0) then ! Melt Hamiltonian
+
+    !-------------------------------------------------------
+    !
+    !   Maier Saupe Melt Interaction
+    !
+    !-------------------------------------------------------
+    ! In this problem Kap and chi are in units of kT/(simulation units cubed)
+    ! If VV=1.0 than this is just kT/(bin volume)
+    if(.true.) then
+        VV = wlc_p%dbin**3
+        do I = 1,wlc_p%NBIN
+            do m_plus3=1,5
+                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%DPHI_l2(m_plus3,I)**2
+            enddo
+        enddo
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
+            if (VV.le.0.1_dp) CYCLE
+            wlc_d%Dx_Kap = wlc_d%dx_Kap + VV*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
+        enddo
+    endif
+
+    !------------------------------------------------------------
+    !
+    !    A-B melt hamiltonian
+    !
+    !--------------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    if (.false.) then ! Melt Hamiltonian
         do I = 1,wlc_p%NBin
             VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -38,7 +67,15 @@ if (initialize) then  ! calculate absolute energy
             wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/wlc_p%beadVolume)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
         enddo
-    elseif(wlc_p%solType.eq.1) then ! Chromatin Hamiltonian
+    endif
+
+    !---------------------------------------------------------
+    !
+    !    Chromatin Hamiltonian
+    !
+    ! ---------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    if (.false.) then
         do I = 1,wlc_p%NBin
             VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -49,12 +86,47 @@ if (initialize) then  ! calculate absolute energy
                 wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
         enddo
-    else
-        print*, "Error in MC_int, solType",wlc_p%solType, &
-                " notdefined"
     endif
+
+
 else ! Calculate change in energy
-    if (wlc_p%solType.eq.0) then ! Melt Hamiltonian
+
+    !-------------------------------------------------------
+    !
+    !   Maier Saupe Melt Interaction
+    !
+    !-------------------------------------------------------
+    ! In this problem Kap and chi are in units of kT/binVolume
+    if(.true.) then
+        VV = wlc_p%dbin**3
+        do I = 1,wlc_d%NPHI
+            J = wlc_d%inDPHI(I)
+            do m_plus3=1,5
+                ! new
+                phi_l2 = wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,I)
+                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*phi_l2**2
+                ! minus old
+                phi_l2 = wlc_d%PHI_l2(m_plus3,J)
+                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe - VV*phi_l2**2
+            enddo
+        enddo
+        do I = 1,wlc_p%NBin
+            ! new
+            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
+            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
+            wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+            ! minus old
+            wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
+        enddo
+    endif
+
+    !------------------------------------------------------------
+    !
+    !    A-B melt hamiltonian
+    !
+    !--------------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    if (.false.) then ! Melt Hamiltonian
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
             VV = wlc_d%Vol(J)
@@ -71,7 +143,14 @@ else ! Calculate change in energy
             wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%Dx_Field + phi_h*wlc_d%PHIA(J)
         enddo
-    elseif(wlc_p%solType.eq.1) then ! Chromatin Hamiltonian
+    endif
+    !---------------------------------------------------------
+    !
+    !    Chromatin Hamiltonian
+    !
+    ! ---------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    if (.false.) then ! Chromatin Hamiltonian
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
             VV = wlc_d%Vol(J)
@@ -92,6 +171,7 @@ else ! Calculate change in energy
             endif
         enddo
     endif
+
 endif
 wlc_d%dx_chi = wlc_d%dx_chi*wlc_p%CHI_ON
 wlc_d%dx_couple = wlc_d%dx_couple*wlc_p%Couple_ON
@@ -101,6 +181,7 @@ wlc_d%DEChi = wlc_p%Chi*        wlc_d%dx_chi
 wlc_d%DECouple = wlc_p%HP1_Bind*wlc_d%dx_couple
 wlc_d%DEKap = wlc_p%Kap*        wlc_d%dx_Kap
 wlc_d%DEField = wlc_p%hA*       wlc_d%dx_Field
+wlc_d%deMaierSaupe = wlc_p%chi_l2*wlc_d%dx_maierSaupe
 RETURN
 END subroutine
 

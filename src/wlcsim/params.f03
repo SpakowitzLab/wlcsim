@@ -87,6 +87,7 @@ module params
         real(dp) eps      ! number of kuhn lengths between beads
         real(dp) del      ! number of persistence lengths between beads
         real(dp) chi      ! Chi parameter value (solvent-polymer) (Flory-Huggins separation constant (how much A/B's hate each))
+        real(dp) chi_l2   ! maier saupe parameter (possibly multiplied by 4pi or something like that)
         real(dp) kap      ! Incompressibility parameter of the melt
         real(dp) collisionRadius ! radius triggering collisions to be recorded in "coltimes"
         real(dp) lhc    !TOdo something to do with intrapolymer interaction strength
@@ -167,6 +168,7 @@ module params
                              ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
         logical changingChemicalIdentity
+        logical chi_l2_on
 
     !   parallel Tempering parameters
         logical PTON    ! whether or not to parallel temper
@@ -176,6 +178,7 @@ module params
         logical PT_kap
         logical PT_mu
         logical PT_couple
+        logical PT_MaierSaupe
 
     !   Replica Dynamic Cof choice
         integer NRepAdapt ! number of exchange attemts between adapt
@@ -208,6 +211,7 @@ module params
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
+        real(dp), allocatable, dimension(:,:):: PHI_l2 ! l=2 oreientational field
         real(dp), allocatable, dimension(:):: PHIH ! Quinn's sinusoidal field for passing 1st order phase transitions
         real(dp), allocatable, dimension(:):: Vol  ! Volume fraction of A
         integer, allocatable, dimension(:):: AB    ! Chemical identity of beads
@@ -215,6 +219,7 @@ module params
         integer, allocatable, dimension(:):: METH  ! Methalation state of beads
         real(dp), allocatable, dimension(:):: DPHIA    ! Change in phi A
         real(dp), allocatable, dimension(:):: DPHIB    ! Change in phi A
+        real(dp), allocatable, dimension(:,:):: DPHI_l2 ! change in l=2 oreientational field
         integer, allocatable, dimension(:) :: indPHI   ! indices of the phi
         ! simulation times at which (i,j)th bead pair first collided
         real(dp), allocatable, dimension(:,:) :: coltimes
@@ -246,6 +251,7 @@ module params
         real(dp) eField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         real(dp) eKnot    ! 0-inf potential for if chain crossed itself
+        real(dp) eMaierSaupe ! Maier Saupe energy
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
         real(dp) x_Chi,   dx_Chi
@@ -253,6 +259,7 @@ module params
         real(dp) x_Kap,   dx_Kap
         real(dp) x_Field, dx_Field
         real(dp) x_Mu,    dx_Mu
+        real(dp) x_maierSaupe, dx_maierSaupe ! Maier Saupe energy / chi_l2
 
     !   Move Variables
         real(dp) DEELAS(4) ! Change in bending energy
@@ -264,6 +271,7 @@ module params
         real(dp) DEField  ! Change in field energy
         real(dp) DESelf   ! change in self interaction energy
         real(dp) ECon     ! Confinement Energy
+        real(dp) deMaierSaupe ! change in Maier Saupe energy
         integer NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
     !   Parallel tempering variables
@@ -372,6 +380,7 @@ contains
         wlc_p%bind_On = .FALSE. ! no binding energy by default
         wlc_p%inTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
         wlc_p%changingChemicalIdentity = .FALSE.
+        wlc_p%CHI_L2_ON = .FALSE.
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
@@ -409,6 +418,7 @@ contains
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
         wlc_p%PT_mu =.False. ! don't parallel temper mu by default
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
+        wlc_p%PT_MaierSaupe =.False. ! don't parallel temper maier Saupe by default
 
         !switches to turn on various types of moves
         wlc_p%MOVEON(1) = 1  ! crank-shaft move
@@ -509,8 +519,10 @@ contains
             call reado(wlc_p%field_int_on) !include field interactions
         case('BINDON')
             call reado(wlc_p%bind_on) ! Whether to include a binding state model
-        case('ChangingChemicalIdentity')
+        case('CHANGINGCHEMICALIDENTITY')
             call reado(wlc_p%ChangingChemicalIdentity) ! Whether to include a binding state model
+        case('CHIL2ON')
+            call reado(wlc_p%CHI_L2_ON) ! Whether to include a binding state model
         case('LK')
             call readi(wlc_p%lk) ! linking number
         case('PTON')
@@ -693,6 +705,8 @@ contains
             call reado(wlc_p%PT_mu) ! parallel temper mu
         case('PARALLELTEMPCOUPLE')
             call reado(wlc_p%PT_couple) ! parallel temper HP1_bind
+        case('PARALLELTEMPMAIERSAUPE')
+            call reado(wlc_p%PT_MaierSaupe) ! parallel temper Maier Saupe energy
         case('PARALLELTEMPTWIST')
             call reado(wlc_p%pt_twist)  ! parallel temper over linking numbers
         case('RESTART')
@@ -998,6 +1012,30 @@ contains
         nt = wlc_p%nt
         nbin = wlc_p%nbin
 
+        !-------------------------------------
+        !
+        !  Set all energies to zero in case they aren't set later
+        !
+        !--------------------------------------
+        eElas       = 0.0 ! Elastic force
+        eChi        = 0.0 ! CHI energy
+        eKap        = 0.0 ! KAP energy
+        eCouple     = 0.0 ! Coupling
+        eBind       = 0.0 ! binding energy
+        eField      = 0.0 ! Field energy
+        eSelf       = 0.0 ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
+        eKnot       = 0.0 ! 0-inf potential for if chain crossed itself
+        eMaierSaupe = 0.0 ! Maier Saupe energy
+        DEELAS      = 0.0 ! Change in bending energy
+        DECouple    = 0.0 ! Coupling energy
+        DEChi       = 0.0 ! chi interaction energy
+        DEKap       = 0.0 ! compression energy
+        Debind      = 0.0 ! Change in binding energy
+        DEField     = 0.0 ! Change in field energy
+        DESelf      = 0.0 ! change in self interaction energy
+        ECon        = 0.0 ! Confinement Energy
+        deMaierSaupe= 0.0 ! change in Maier Saupe energy
+        NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
 #if MPI_VERSION
         call init_MPI(wlc_d)
 #endif
@@ -1013,7 +1051,11 @@ contains
         !check with quinn *exactly* in which cases they're needed if i do that
         if (wlc_p%field_int_on) then
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
-            allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            if (wlc_p%changingChemicalIdentity)  allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            if (wlc_p%chi_l2_on) then
+                allocate(wlc_d%PHI_l2(5,NT))
+                allocate(wlc_d%dPHI_l2(5,NT))
+            endif
             allocate(wlc_d%PHIA(NBin))
             allocate(wlc_d%PHIB(NBin))
             allocate(wlc_d%DPHIA(NBin))
@@ -1172,6 +1214,9 @@ contains
         else
             wlc_d%ebind   =0.0_dp
             wlc_d%x_mu    =0.0_dp
+        endif
+        if (wlc_p%chi_l2_on) then
+            wlc_d%x_maierSaupe = 0.0_dp
         endif
         if(wlc_p%Ring) then
             wlc_d%eKnot   =1.0
@@ -1707,13 +1752,13 @@ contains
             write(outFileUnit,*) "ind | id |",&
                        " ebend  | eparll | EShear | ECoupl | E Kap  | E Chi  |",&
                        " EField | ebind  |  x_Mu  | Couple |  Chi   |  mu    |",&
-                       "  Kap   | Field  |"
+                       "  Kap   | Field  |  x_MS  | chi_l2 |"
         endif
-        write(outFileUnit,"(2I5, 9f9.1,5f9.4)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f9.1,5f9.4,f9.1,f9.4)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_Bind*wlc_p%Couple_on, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%mu, wlc_p%KAP*wlc_p%KAP_ON,&
-            wlc_p%hA
+            wlc_p%hA, wlc_d%x_maierSaupe, wlc_p%chi_l2
         close(outFileUnit)
     end subroutine
 

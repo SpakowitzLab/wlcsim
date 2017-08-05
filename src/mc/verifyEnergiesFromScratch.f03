@@ -90,7 +90,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
    call CalculateEnergiesFromScratch(wlc_p, wlc_d)
 
     ! --- Binding Energy ---
-    if(abs(wlc_d%EBind-wlc_d%DEBind).gt.0.00001) then
+    if(abs(wlc_d%EBind-wlc_d%DEBind) > 0.00001) then
         write(ERROR_UNIT,*) "Warning. Integrated binding enrgy:", &
                 wlc_d%EBind," while absolute binding energy:", &
                 wlc_d%DEBind," save point mc_ind = ",wlc_d%mc_ind
@@ -99,7 +99,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
     wlc_d%x_mu = wlc_d%dx_mu
 
     ! --- Elastic Energy ---
-    if(abs((wlc_d%EElas(1)+  wlc_d%EElas(2)+ wlc_d%EElas(3))-&
+    if(abs((wlc_d%EElas(1) +  wlc_d%EElas(2) + wlc_d%EElas(3))-&
            (wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3))).gt.0.0001) then
         write(ERROR_UNIT,*) "Warning. Integrated elastic enrgy:", &
                 (wlc_d%EElas(1) + wlc_d%EElas(2) + wlc_d%EElas(3)),&
@@ -112,21 +112,21 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on) then
         ! test to see if sum of changes are same as calculating from scratch
-        if(abs(wlc_d%EChi-wlc_d%DEChi).gt. 0.0001_dp) then
+        if(abs(wlc_d%EChi-wlc_d%DEChi) > 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated chi energy:", &
                      wlc_d%EChi,"  while absolute chi energy:", &
                      wlc_d%DEChi," save point mc_ind = ",wlc_d%mc_ind
         endif
         wlc_d%EChi = wlc_d%DEChi
         wlc_d%x_chi = wlc_d%dx_chi
-        if(abs(wlc_d%ECouple-wlc_d%DECouple).gt. 0.0001_dp) then
+        if(abs(wlc_d%ECouple-wlc_d%DECouple) > 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated couple energy:", &
                      wlc_d%ECouple,"  while absolute couple energy:", &
                      wlc_d%DECouple," save point mc_ind = ",wlc_d%mc_ind
         endif
         wlc_d%ECouple = wlc_d%DECouple
         wlc_d%x_Couple = wlc_d%dx_couple
-        if(abs(wlc_d%EKap-wlc_d%DEKap).gt. 0.0001_dp) then
+        if(abs(wlc_d%EKap-wlc_d%DEKap) > 0.0001_dp) then
              write(ERROR_UNIT,*) "Warning. Intigrated Kap energy:", &
                      wlc_d%EKap,"  while absolute Kap energy:", &
                      wlc_d%DEKap," save point mc_ind = ",wlc_d%mc_ind
@@ -134,12 +134,20 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%EKap = wlc_d%DEKap
         wlc_d%x_Kap = wlc_d%dx_Kap
 
-        if(abs(wlc_d%EField-wlc_d%DEField).gt.0.00001) then
+        if(abs(wlc_d%EField-wlc_d%DEField) > 0.00001) then
             write(ERROR_UNIT,*) "Warning. Integrated field enrgy:", &
                     wlc_d%EField," while absolute field energy:", &
                     wlc_d%DEField," save point mc_ind = ",wlc_d%mc_ind
         endif
         wlc_d%EField = wlc_d%DEField
         wlc_d%x_Field = wlc_d%dx_Field
+
+        if(wlc_p%chi_l2_on) then
+            if(abs(wlc_d%EMaiersaupe-wlc_d%deMaierSaupe) > 0.00001) then
+                write(ERROR_UNIT,*) "Warning. Integerated Maier Saupe energy:", &
+                    wlc_d%EMaiersaupe," while absolute Maier Saupe energy:", &
+                    wlc_d%deMaierSaupe," save points mc_ind = ",wlc_d%mc_ind
+            endif
+        endif
     endif
 end subroutine

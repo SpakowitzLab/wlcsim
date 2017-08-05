@@ -6,7 +6,8 @@
 !
 !
 !     Written by Quinn in 2016 based on code from Andrew Spakowitz and Shifan
-
+!
+!---------------------------------------------------------------!
 subroutine MC_int_swap(wlc_p,wlc_d,I1,I2,I3,I4)
 use params
 implicit none
@@ -30,10 +31,12 @@ real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
-
+integer m_plus3
 ! Copy so I don't have to type wlc_p% everywhere
 integer NBinX(3)
 real(dp) temp    !for speeding up code
+real(dp) phi2(5)
+real(dp) contribution
 NBinX = wlc_p%NBinX
 
 
@@ -75,6 +78,17 @@ do IB = I1,I2
        RBin(3) = wlc_d%RP(3,IB)
    endif
    isA = wlc_d%AB(IB).eq.1
+   if (wlc_p%chi_l2_on .and. isA) then
+       if (rrdr == -1) then
+           call Y2calc(wlc_d%U(:,IB),phi2)
+       else
+           call Y2calc(wlc_d%UP(:,IB),phi2)
+       endif
+   else
+       ! You could give some MS parameter to B as well if you wanted
+       phi2=0.0
+   endif
+
    ! --------------------------------------------------
    !
    !  Interpolate beads into bins
@@ -108,6 +122,12 @@ do IB = I1,I2
                       temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
                       wlc_d%DPHIA(wlc_d%NPHI) = temp
                       wlc_d%DPHIB(wlc_d%NPHI) = -temp
+                      if(wlc_p%chi_l2_on) then
+                          do m_plus3 =1,5
+                              wlc_d%PHI_l2(m_plus3,indBin) = wlc_d%PHI_l2(m_plus3,indBin) + &
+                                          phi2(m_plus3)*contribution
+                          enddo
+                      endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
                       temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
@@ -139,6 +159,12 @@ do IB = I1,I2
                       temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
                       wlc_d%DPHIA(wlc_d%NPHI) = -temp
                       wlc_d%DPHIB(wlc_d%NPHI) = temp
+                      if(wlc_p%chi_l2_on) then
+                          do m_plus3 =1,5
+                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
+                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = 0.0
+                          enddo
+                      endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
                       temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
@@ -157,6 +183,11 @@ do IB = I1,I2
 enddo ! loop over IB  A.k.a. beads
 call hamiltonian(wlc_p,wlc_d,.false.)
 
+if (abs(wlc_d%DEKap).gt.0.0001) then
+    print*, "Error in MC_int_swap.  Kappa energy shouldn't change on move 9"
+    print*, "DEKap", wlc_d%DEKap
+    stop 1
+endif
 RETURN
 END
 
