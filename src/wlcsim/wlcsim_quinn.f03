@@ -330,7 +330,8 @@ subroutine worker_node(wlc_p, wlc_d)
     type(random_stat) rand_stat  ! state of random number chain
     integer i
     logical system_has_been_changed
-    system_has_been_changed = .False.
+    real :: start, finish
+
     if (id == -1) then
         call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
@@ -341,36 +342,7 @@ subroutine worker_node(wlc_p, wlc_d)
         endif
     endif
 
-    ! ------------------------------
-    !
-    ! Different instructions for each save point
-    !
-    !  --------------------------------
-    if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
-    if (wlc_d%mc_ind <= wlc_p%NNOinT) then
-        wlc_p%field_int_on = .false.
-    else
-        if (.not.wlc_p%field_int_on)  system_has_been_changed = .TRUE.
-        wlc_p%field_int_on = .true.
-    endif
-    if(wlc_d%mc_ind.lt.wlc_p%N_KAP_ON) then
-        wlc_p%KAP_ON = 0.0_dp
-    else
-        if (wlc_p%KAP_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
-        wlc_p%KAP_ON = 1.0_dp
-    endif
-
-    if(wlc_d%mc_ind.lt.wlc_p%N_CHI_ON) then
-        wlc_p%CHI_ON = 0.0_dp
-    else
-        if (wlc_p%CHI_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
-        wlc_p%CHI_ON = 1.0_dp
-    endif
-
-    if ((wlc_d%mc_ind.gt.wlc_p%indStartRepAdapt).and. &
-        (wlc_d%mc_ind.le.wlc_p%indendRepAdapt)) then ! addapt Cof was run
-        system_has_been_changed = .TRUE.
-    endif
+    call schedule(wlc_p, wlc_d,system_has_been_changed)
 
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
@@ -410,6 +382,7 @@ subroutine worker_node(wlc_p, wlc_d)
     !
     !  --------------------------------
 
+    call cpu_time(start)
     do i = 1,wlc_p%nReplicaExchangePerSavePoint
         wlc_d%ind_exchange=i
         !   * Perform a MC simulation *
@@ -417,8 +390,9 @@ subroutine worker_node(wlc_p, wlc_d)
 
         !   * Replica Exchange *
         call replicaExchange(wlc_p,wlc_d)
-
     enddo
+    call cpu_time(finish)
+    print*, "Save Point time", finish-start, " seconds"
 end subroutine worker_node
 #endif
 
@@ -427,7 +401,89 @@ subroutine onlyNode(wlc_p, wlc_d)
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
+    logical system_has_been_changed
+    real :: start, finish
     !   * Perform a MC simulation *
-    call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+    call schedule(wlc_p, wlc_d,system_has_been_changed)
+    if (system_has_been_changed) then
+        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        if (wlc_p%field_int_on) then
+            wlc_d%ECouple =wlc_d%dECouple
+            wlc_d%EKap    =wlc_d%dEKap
+            wlc_d%ECHI    =wlc_d%dECHI
+            wlc_d%EField  =wlc_d%dEField
+            wlc_d%x_Field =wlc_d%dx_Field
+            wlc_d%x_couple = wlc_d%dx_couple
+            wlc_d%x_Kap   =wlc_d%dx_Kap
+            wlc_d%x_Chi   =wlc_d%dx_Chi
+        else
+            wlc_d%ECouple =0.0_dp
+            wlc_d%EKap    =0.0_dp
+            wlc_d%ECHI    =0.0_dp
+            wlc_d%EField  =0.0_dp
+            wlc_d%x_Field =0.0_dp
+            wlc_d%x_couple = 0.0_dp
+            wlc_d%x_Kap   =0.0_dp
+            wlc_d%x_Chi   =0.0_dp
+        endif
+        if (wlc_p%bind_On) then
+            wlc_d%ebind   =wlc_d%debind
+            wlc_d%x_mu    =wlc_d%dx_mu
+        else
+            wlc_d%ebind   =0.0_dp
+            wlc_d%x_mu    =0.0_dp
+        endif
+    else
+        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+    endif
+    call cpu_time(start)
     call MCsim(wlc_p, wlc_d,wlc_p%nReplicaExchangePerSavePoint*wlc_p%stepsPerExchange)
+    call cpu_time(finish)
+    print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode
+subroutine schedule(wlc_p, wlc_d,system_has_been_changed)
+    use params
+    implicit none
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(in) :: wlc_d
+    logical, intent(out) :: system_has_been_changed
+
+    system_has_been_changed = .False.
+    ! ------------------------------
+    !
+    ! Different instructions for each save point
+    !
+    !  --------------------------------
+    if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
+    if (wlc_d%mc_ind <= wlc_p%NNOinT) then
+        wlc_p%field_int_on = .false.
+    else
+        if (.not.wlc_p%field_int_on)  system_has_been_changed = .TRUE.
+        wlc_p%field_int_on = .true.
+    endif
+    if(wlc_d%mc_ind.lt.wlc_p%N_KAP_ON) then
+        wlc_p%KAP_ON = 0.0_dp
+    else
+        if (wlc_p%KAP_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        wlc_p%KAP_ON = 1.0_dp
+    endif
+
+    if(wlc_d%mc_ind.lt.wlc_p%N_CHI_ON) then
+        wlc_p%CHI_ON = 0.0_dp
+    else
+        if (wlc_p%CHI_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        wlc_p%CHI_ON = 1.0_dp
+    endif
+
+    if(wlc_d%mc_ind.lt.wlc_p%N_CHI_l2_ON) then
+        wlc_p%CHI_l2_ON = .False.
+    else
+        if (.not. wlc_p%CHI_l2_ON) system_has_been_changed = .TRUE.
+        wlc_p%CHI_l2_ON = .True.
+    endif
+
+    if ((wlc_d%mc_ind.gt.wlc_p%indStartRepAdapt).and. &
+        (wlc_d%mc_ind.le.wlc_p%indendRepAdapt)) then ! addapt Cof was run
+        system_has_been_changed = .TRUE.
+    endif
+end subroutine

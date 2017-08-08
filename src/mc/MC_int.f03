@@ -48,13 +48,10 @@ do I = 1,wlc_p%NBin
     wlc_d%DPHIB(I) = 0.0_dp
     wlc_d%inDPHI(I) = 0
     if (wlc_p%chi_l2_on) then
-        do m_plus3=1,5
-            wlc_d%phi_l2 = 0.0_dp
-            wlc_d%dphi_l2 = 0.0_dp
-        enddo
+        wlc_d%phi_l2 = 0.0_dp
+        wlc_d%dphi_l2 = 0.0_dp
     endif
 enddo
-
 wlc_d%NPHI = 0
 do IB = 1,wlc_p%NT
    RBin(1) = wlc_d%R(1,IB)
@@ -210,6 +207,7 @@ do IB = I1,I2
    !   makes it faster.
    isA = wlc_d%AB(IB).eq.1
    if (wlc_p%chi_l2_on .and. isA) then
+       print*, "entering Y2"
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else

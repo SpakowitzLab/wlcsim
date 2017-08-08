@@ -42,11 +42,14 @@ if (initialize) then  ! calculate absolute energy
     ! If VV=1.0 than this is just kT/(bin volume)
     case('MaierSaupe') 
         VV = wlc_p%dbin**3
-        do I = 1,wlc_p%NBIN
-            do m_plus3=1,5
-                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%DPHI_l2(m_plus3,I)**2
+
+        if (wlc_p%chi_l2_on) then
+            do I = 1,wlc_p%NBIN
+                do m_plus3=1,5
+                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%DPHI_l2(m_plus3,I)**2
+                enddo
             enddo
-        enddo
+        endif
         do I = 1,wlc_p%NBin
             VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -97,25 +100,43 @@ else ! Calculate change in energy
     ! In this problem Kap and chi are in units of kT/binVolume
     case('MaierSaupe') 
         VV = wlc_p%dbin**3
-        do I = 1,wlc_d%NPHI
-            J = wlc_d%inDPHI(I)
-            do m_plus3=1,5
-                ! new
-                phi_l2 = wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,I)
-                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*phi_l2**2
+        if (wlc_p%chi_l2_on) then
+            do I = 1,wlc_d%NPHI
+                J = wlc_d%inDPHI(I)
                 ! minus old
-                phi_l2 = wlc_d%PHI_l2(m_plus3,J)
-                wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe - VV*phi_l2**2
+                phi_A = wlc_d%PHIA(J) 
+                phi_B = wlc_d%PHIB(J) 
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
+
+
+                ! plus new
+                phi_A = phi_A + wlc_d%DPHIA(I)
+                phi_B = phi_B + wlc_d%DPHIB(I)
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+
+                do m_plus3=1,5
+                        ! minus old
+                        phi_l2 = wlc_d%PHI_l2(m_plus3,J)
+                        wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe - VV*phi_l2**2
+                        ! plus new
+                        phi_l2 = phi_l2 + wlc_d%DPHI_l2(m_plus3,I)
+                        wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*phi_l2**2
+                enddo
             enddo
-        enddo
-        do I = 1,wlc_p%NBin
-            ! new
-            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
-            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-            wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
-            ! minus old
-            wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
-        enddo
+        else
+            do I = 1,wlc_d%NPHI
+                J = wlc_d%inDPHI(I)
+                ! minus old
+                phi_A = wlc_d%PHIA(J) 
+                phi_B = wlc_d%PHIB(J) 
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
+
+                ! plus new
+                phi_A = phi_A + wlc_d%DPHIA(I)
+                phi_B = phi_B + wlc_d%DPHIB(I)
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+            enddo
+        endif
 
     !------------------------------------------------------------
     !

@@ -149,5 +149,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
                     wlc_d%deMaierSaupe," save points mc_ind = ",wlc_d%mc_ind
             endif
         endif
+        wlc_d%EMaiersaupe = wlc_d%deMaierSaupe
+        wlc_d%x_maierSaupe = wlc_d%dx_maierSaupe
     endif
 end subroutine

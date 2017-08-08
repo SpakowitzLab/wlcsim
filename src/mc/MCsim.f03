@@ -79,7 +79,6 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     do while (ISTEP <= NSTEP)
 
        do MCTYPE = 1,wlc_p%moveTypes
-
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
@@ -279,6 +278,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                 wlc_d%EKap = wlc_d%EKap + wlc_d%DEKap
                 wlc_d%EChi = wlc_d%EChi + wlc_d%DEChi
                 wlc_d%EField = wlc_d%EField + wlc_d%DEField
+                wlc_d%EmaierSaupe = wlc_d%EmaierSaupe + wlc_d%demaierSaupe
+
                 wlc_d%x_Couple = wlc_d%x_couple + wlc_d%dx_couple
                 wlc_d%x_kap = wlc_d%x_Kap + wlc_d%dx_kap
                 wlc_d%x_chi = wlc_d%x_chi + wlc_d%dx_chi

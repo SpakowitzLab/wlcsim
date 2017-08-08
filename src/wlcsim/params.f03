@@ -946,6 +946,9 @@ contains
            err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
            call stop_if_err(err, "error in mcsim. Can't have kap without int on")
 
+           err = (wlc_p%moveon(7) /= 0 .and. (.not. wlc_p%bind_on))
+           call stop_if_err(err,"You need bindon if you have bindmove on")
+
         endif
 
 
