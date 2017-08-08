@@ -346,7 +346,7 @@ subroutine worker_node(wlc_p, wlc_d)
     ! Different instructions for each save point
     !
     !  --------------------------------
-
+    if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
     if (wlc_d%mc_ind <= wlc_p%NNOinT) then
         wlc_p%field_int_on = .false.
     else

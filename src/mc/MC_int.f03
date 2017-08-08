@@ -220,7 +220,7 @@ do IB = I1,I2
        phi2=0.0
    endif
 
-   if (wlc_p%confineType == 0 .or. wlc_p%confineType == 4) then
+   if (wlc_p%confineType == 'none' .or. wlc_p%confineType == 'periodicUnequal') then
        ! If periodic than you can assume that all bins are included and have a volume
        ! of dbin**3
        temp = rrdr*wlc_p%beadVolume/(wlc_p%dbin**3)

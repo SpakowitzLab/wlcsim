@@ -16,11 +16,10 @@
 
 subroutine MC_confine(confineType, LBox, RP, NT, IT1, IT2, ECon)
 use params, only: dp
-
-
+use inputparams, only: MAXPARAMLEN
 implicit none
 
-integer confineType  ! Specifier for type of confinement
+character(MAXPARAMLEN), intent(in) :: confineType  ! Specifier for type of confinement
 real(dp) LBox(3) ! Side length of box
 integer NT     ! Total number of beads in simulation
 real(dp) RP(3,NT)  ! Bead positions
@@ -32,9 +31,9 @@ real(dp) ECon
 ECon = 0.0_dp
 
 
-if (confineType == 0) then
+if (confineType == 'none') then
     return
-elseif(confineType == 1) then
+elseif(confineType == 'platesInZ') then
     ! Confinement only in the z-direction
     ! limits: 0 and LBox
     do I = IT1,IT2
@@ -44,7 +43,7 @@ elseif(confineType == 1) then
             ECon = 9990000.0_dp
         endif
     ENDdo
-elseif(confineType == 2) then
+elseif(confineType == 'cube') then
     do I = IT1,IT2
         if(RP(1,I)<0.0) then
             ECon = 9990000.0_dp
@@ -60,14 +59,14 @@ elseif(confineType == 2) then
             ECon = 9990000.0_dp
         endif
     ENDdo
-elseif(confineType == 3) then
+elseif(confineType == 'sphere') then
     do I = IT1,IT2
         if(((RP(1,I)-LBox(1)/2)**2 + (RP(2,I)-LBox(1)/2_dp)**2 + &
            (RP(3,I)-LBox(1)/2)**2) > dble(LBox(1)*LBox(1)*0.25_dp)) then
             ECon = 9990000.0
         endif
     Enddo
-elseif(confineType == 4) then
+elseif(confineType == 'periodicUnequal') then
     return
 else
    print*, "Undefined comfone Type"

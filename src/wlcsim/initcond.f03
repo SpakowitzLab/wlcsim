@@ -15,6 +15,7 @@ subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA,LBOX, &
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params
+use inputparams, only: MAXPARAMLEN
 
 implicit none
 
@@ -31,7 +32,7 @@ LOGICAL FRMFILE           ! Is conformation in file?
 !real(dp) RMin
 real(dp) R0(3)
 real(dp) PARA(10)
-integer initCondType           ! select what type of configurateion
+character(MAXPARAMLEN) initCondType           ! select what type of configurateion
 
 !     Varibles for type 2
 
@@ -78,7 +79,7 @@ if (FRMFILE)then
 endif
 
 !     Fix the initial condition
-if (initCondType.eq.0) then
+if (initCondType.eq.'lineInYFromOrigin') then
 ! straight line in y direction starting at origin, equilibrium bond lengths
     iB = 1
     do i = 1,nP
@@ -93,7 +94,7 @@ if (initCondType.eq.0) then
         enddo
     enddo
 
-else if (initCondType.eq.1) then
+else if (initCondType.eq.'lineInY') then
 ! staight line in y direction with random starting position
 
     IB = 1
@@ -115,7 +116,7 @@ else if (initCondType.eq.1) then
        enddo
     enddo
 
-else if (initCondType.eq.2) then
+else if (initCondType.eq.'randomLineSlitInZBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! slit boundary in z direction
@@ -176,7 +177,7 @@ else if (initCondType.eq.2) then
            IB = IB + 1
         enddo
     enddo
-else if (initCondType.eq.3) then
+else if (initCondType.eq.'randomLineCubeBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! square boundary
@@ -250,7 +251,7 @@ else if (initCondType.eq.3) then
        enddo
     enddo
 
-else if (initCondType.eq.4) then
+else if (initCondType.eq.'randomLineSphereBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! shpere boundary
@@ -304,7 +305,7 @@ else if (initCondType.eq.4) then
            IB = IB + 1
        enddo ! loop to N
     enddo ! loop to np
-else if (initCondType.eq.5) then
+else if (initCondType.eq.'randomlyDistributeBeadsInSphere') then
     ! randomly distribute beads in shereical confinement
     do IB = 1,NT
         search = .true.
@@ -326,7 +327,7 @@ else if (initCondType.eq.5) then
         U(2,IB) = 0.00_dp
         U(3,IB) = 0.00_dp
     enddo
-else if (initCondType == 6) then
+else if (initCondType == 'ring') then
     IB = 1
     do  I = 1,NP
         call random_number(urand,rand_stat)
@@ -336,26 +337,17 @@ else if (initCondType == 6) then
         call random_number(urand,rand_stat)
         R0(3) = urand(1)*LBOX(1)
         do  J = 1,NB
-            if (RinG) then
-                R(1,IB) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
-                R(2,IB) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
-                R(3,IB) = 0.0_dp
-                U(1,IB) = -Sin(J*2.0_dp*PI/NB)
-                U(2,IB) = Cos(J*2.0_dp*PI/NB)
-                U(3,IB) = 0.0_dp;
-            else
-                R(1,IB) = R0(1)
-                R(2,IB) = R0(2) + GAM*(J-NB/2.0_dp-0.5_dp)
-                R(3,IB) = R0(3)
-                U(1,IB) = 0.0_dp
-                U(2,IB) = 1.0_dp
-                U(3,IB) = 0.0_dp
-            ENDif
-        IB = IB + 1
+             R(1,IB) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
+             R(2,IB) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
+             R(3,IB) = 0.0_dp
+             U(1,IB) = -Sin(J*2.0_dp*PI/NB)
+             U(2,IB) = Cos(J*2.0_dp*PI/NB)
+             U(3,IB) = 0.0_dp;
+             IB = IB + 1
         ENDdo
     ENDdo
 
-else if (initCondType == 7) then
+else if (initCondType == 'randomWalkWithBoundary') then
     ! initialize as if it were a gaussian chain, first bead at zero
     IB = 1
     do I = 1,NP

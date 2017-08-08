@@ -20,15 +20,16 @@ subroutine MC_calcVolume(confineType,NBinX,dbin, LBox, &
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp
+use inputparams, only: MAXPARAMLEN
 implicit none
 
-integer confineType  ! Specifier for type of confinement
+character(MAXPARAMLEN), intent(in) :: confineType  ! Specifier for type of confinement
 real(dp) LBox ! Side length of box
 integer I      ! for loops
 integer ix,iy,iz      ! location of conder
 real(dp) x,y,z
 integer :: STATUS = 0
-integer NBinX  ! length of side of box as an integer number of bins
+integer, intent(in) :: NBinX  ! length of side of box as an integer number of bins
 real(dp) Rsqrd
 real(dp) Vol(NBinX**3)  ! output: volume of bins
 real(dp) V
@@ -48,19 +49,19 @@ if (abs(dbin*NBinX-LBOX).gt.0.000001_dp) then
     STOP 1
 endif
 
-if (confineType == 0) then
+if (confineType == 'none') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 1) then
+elseif(confineType == 'platesInZ') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 2) then
+elseif(confineType == 'cube') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 3) then
+elseif(confineType == 'sphere') then
     Rsqrd = (LBox/2.0_dp)**2
     Do ix = 1,NBinX
         Do iy = 1,NBinX

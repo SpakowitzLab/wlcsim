@@ -43,7 +43,7 @@ IB = 1
 do I = 1,NP
     !TEST = grnd()
     call random_number(TEST,rand_stat)
-    if (dble(TEST(1)).lt.FA) then
+    if (dble(TEST(1)) < FA) then
         AB(IB) = 1
     else
         AB(IB) = 0

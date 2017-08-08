@@ -108,6 +108,10 @@ subroutine get_derived_parameters(wlc_p)
     M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
     wlc_p%XIU = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
 
+    ! The values read in from file are all non-dimentionalized by the
+    ! persistance length.  We now re-dimentionalize them.
+    ! We also divied by DEL which is also re-dimentionalized.
+
     wlc_p%EB = wlc_p%LP*wlc_p%EB/(wlc_p%DEL*wlc_p%LP)
     wlc_p%EPAR = wlc_p%EPAR/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
     wlc_p%EPERP = wlc_p%EPERP/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
@@ -117,7 +121,7 @@ subroutine get_derived_parameters(wlc_p)
     wlc_p%XIR = wlc_p%L/wlc_p%LP/wlc_p%NB
     wlc_p%DT = 0.5*wlc_p%XIU/(wlc_p%EPERP*wlc_p%GAM**2.)
 
-    wlc_p%L0 = wlc_p%GAM
+    ! wlc_p%L0 = wlc_p%GAM  ! not sure why this was included
     endif
 
     return

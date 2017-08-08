@@ -32,6 +32,7 @@ wlc_d%Dx_Field = 0.0_dp
 wlc_d%dx_maierSaupe = 0.0_dp
 if (initialize) then  ! calculate absolute energy
 
+    select case(wlc_p%fieldInteractionType) ! pick which keyword, case matchign string must be all uppercase
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
@@ -39,7 +40,7 @@ if (initialize) then  ! calculate absolute energy
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/(simulation units cubed)
     ! If VV=1.0 than this is just kT/(bin volume)
-    if(.true.) then
+    case('MaierSaupe') 
         VV = wlc_p%dbin**3
         do I = 1,wlc_p%NBIN
             do m_plus3=1,5
@@ -51,15 +52,13 @@ if (initialize) then  ! calculate absolute energy
             if (VV.le.0.1_dp) CYCLE
             wlc_d%Dx_Kap = wlc_d%dx_Kap + VV*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
         enddo
-    endif
-
     !------------------------------------------------------------
     !
     !    A-B melt hamiltonian
     !
     !--------------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
-    if (.false.) then ! Melt Hamiltonian
+    case('ABmelt') ! Melt Hamiltonian
         do I = 1,wlc_p%NBin
             VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -67,15 +66,13 @@ if (initialize) then  ! calculate absolute energy
             wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/wlc_p%beadVolume)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
         enddo
-    endif
-
     !---------------------------------------------------------
     !
     !    Chromatin Hamiltonian
     !
     ! ---------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
-    if (.false.) then
+    case('chromatin')
         do I = 1,wlc_p%NBin
             VV = wlc_d%Vol(I)
             if (VV.le.0.1_dp) CYCLE
@@ -86,18 +83,19 @@ if (initialize) then  ! calculate absolute energy
                 wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
         enddo
-    endif
+    end select
 
 
 else ! Calculate change in energy
 
+    select case(wlc_p%fieldInteractionType) ! pick which keyword, case matchign string must be all uppercase
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
     !
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/binVolume
-    if(.true.) then
+    case('MaierSaupe') 
         VV = wlc_p%dbin**3
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
@@ -118,7 +116,6 @@ else ! Calculate change in energy
             ! minus old
             wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
         enddo
-    endif
 
     !------------------------------------------------------------
     !
@@ -126,7 +123,7 @@ else ! Calculate change in energy
     !
     !--------------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
-    if (.false.) then ! Melt Hamiltonian
+    case('ABmelt') ! Melt Hamiltonian
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
             VV = wlc_d%Vol(J)
@@ -143,14 +140,13 @@ else ! Calculate change in energy
             wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%Dx_Field + phi_h*wlc_d%PHIA(J)
         enddo
-    endif
     !---------------------------------------------------------
     !
     !    Chromatin Hamiltonian
     !
     ! ---------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
-    if (.false.) then ! Chromatin Hamiltonian
+    case('chromatin')
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
             VV = wlc_d%Vol(J)
@@ -170,8 +166,7 @@ else ! Calculate change in energy
                wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
             endif
         enddo
-    endif
-
+    end select
 endif
 wlc_d%dx_chi = wlc_d%dx_chi*wlc_p%CHI_ON
 wlc_d%dx_couple = wlc_d%dx_couple*wlc_p%Couple_ON
