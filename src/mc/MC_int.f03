@@ -207,7 +207,6 @@ do IB = I1,I2
    !   makes it faster.
    isA = wlc_d%AB(IB).eq.1
    if (wlc_p%chi_l2_on .and. isA) then
-       print*, "entering Y2"
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else

@@ -15,7 +15,6 @@ integer, intent(in) :: I2           ! Test bead position 2
 !   Internal variables
 integer I                 ! For looping over bins
 integer IB                ! Bead index
-integer rrdr ! -1 if r, 1 if r + dr
 integer IX(2),IY(2),IZ(2)
 real(dp) WX(2),WY(2),WZ(2)
 real(dp) WTOT       ! total weight ascribed to bin
@@ -55,11 +54,7 @@ do IB = I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    if (wlc_p%chi_l2_on) then
-       if (rrdr == -1) then
-           call Y2calc(wlc_d%U(:,IB),phi2)
-       else
-           call Y2calc(wlc_d%UP(:,IB),phi2)
-       endif
+       call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0
@@ -93,8 +88,8 @@ do IB = I1,I2
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
+                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
                       if(wlc_p%chi_l2_on) then
                           do m_plus3 =1,5
                               wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &

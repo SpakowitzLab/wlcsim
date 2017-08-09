@@ -139,7 +139,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Calculate the change in the binding energy
           if (MCTYPE == 7) then
               !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(wlc_p%NT,wlc_p%NB,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
+              call MC_bind(wlc_p%NT,wlc_p%NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
                           wlc_d%DEBind,wlc_p%mu,wlc_d%dx_mu)
           else
               wlc_d%DEBind = 0.0

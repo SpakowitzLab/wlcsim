@@ -1169,7 +1169,7 @@ contains
         endif
 
         if (wlc_p%bind_on) then
-            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%f_METH, wlc_p%lam_METH, wlc_d%rand_stat)
         endif
 
         ! initialize energies
