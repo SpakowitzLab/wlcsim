@@ -234,6 +234,9 @@ subroutine head_node(wlc_p, wlc_d,process)
                     if (wlc_p%PT_Kap) then
                         cofMtrx(rep,5) = kap_path(s_vals(rep))
                     endif
+                    if (wlc_p%PT_maiersaupe) then
+                        cofMtrx(rep,9) = maiersaupe_path(s_vals(rep))
+                    endif
                 enddo
             endif
             N_average = 0
@@ -351,19 +354,23 @@ subroutine worker_node(wlc_p, wlc_d)
             wlc_d%EKap    =wlc_d%dEKap
             wlc_d%ECHI    =wlc_d%dECHI
             wlc_d%EField  =wlc_d%dEField
+            wlc_d%EmaierSaupe = wlc_d%demaiersaupe
             wlc_d%x_Field =wlc_d%dx_Field
             wlc_d%x_couple = wlc_d%dx_couple
             wlc_d%x_Kap   =wlc_d%dx_Kap
             wlc_d%x_Chi   =wlc_d%dx_Chi
+            wlc_d%x_maiersaupe = wlc_d%dx_maiersaupe
         else
             wlc_d%ECouple =0.0_dp
             wlc_d%EKap    =0.0_dp
             wlc_d%ECHI    =0.0_dp
             wlc_d%EField  =0.0_dp
+            wlc_d%Emaiersaupe = 0.0_dp
             wlc_d%x_Field =0.0_dp
             wlc_d%x_couple = 0.0_dp
             wlc_d%x_Kap   =0.0_dp
             wlc_d%x_Chi   =0.0_dp
+            wlc_d%x_maiersaupe = 0.0_dp
         endif
         if (wlc_p%bind_On) then
             wlc_d%ebind   =wlc_d%debind
@@ -412,7 +419,9 @@ subroutine onlyNode(wlc_p, wlc_d)
             wlc_d%EKap    =wlc_d%dEKap
             wlc_d%ECHI    =wlc_d%dECHI
             wlc_d%EField  =wlc_d%dEField
+            wlc_d%Emaiersaupe = wlc_d%dEmaiersaupe
             wlc_d%x_Field =wlc_d%dx_Field
+            wlc_d%x_maiersaupe = wlc_d%dx_maiersaupe
             wlc_d%x_couple = wlc_d%dx_couple
             wlc_d%x_Kap   =wlc_d%dx_Kap
             wlc_d%x_Chi   =wlc_d%dx_Chi
@@ -421,10 +430,12 @@ subroutine onlyNode(wlc_p, wlc_d)
             wlc_d%EKap    =0.0_dp
             wlc_d%ECHI    =0.0_dp
             wlc_d%EField  =0.0_dp
+            wlc_d%Emaiersaupe = 0.0_dp
             wlc_d%x_Field =0.0_dp
             wlc_d%x_couple = 0.0_dp
             wlc_d%x_Kap   =0.0_dp
             wlc_d%x_Chi   =0.0_dp
+            wlc_d%x_maiersaupe = 0.0_dp
         endif
         if (wlc_p%bind_On) then
             wlc_d%ebind   =wlc_d%debind
