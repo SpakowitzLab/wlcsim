@@ -202,7 +202,7 @@ use mpi
    ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
    ! wlc_p%EElas(2) = wlc_p%EElas(2) + x(7)*(Cof(7)-CofOld(7))
    ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
-    wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +x(9)*(Cof(5)-CofOld(5))
+    wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +x(9)*(Cof(9)-CofOld(9))
 
     if (abs(wlc_d%EChi-x(1)*Cof(1)).gt.0.000001_dp) then
         print*, "Error in replicaExchange"
