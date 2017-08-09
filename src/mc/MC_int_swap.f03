@@ -123,8 +123,7 @@ do IB = I1,I2
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
                   if(wlc_p%chi_l2_on) then
                       do m_plus3 =1,5
-                          wlc_d%dPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%dPHI_l2(m_plus3,wlc_d%nphi) + &
-                                      phi2(m_plus3)*temp
+                          wlc_d%dPHI_l2(m_plus3,wlc_d%NPHI) = phi2(m_plus3)*temp
                       enddo
                   endif
                   exit

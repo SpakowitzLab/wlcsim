@@ -46,7 +46,7 @@ if (initialize) then  ! calculate absolute energy
         if (wlc_p%chi_l2_on) then
             do I = 1,wlc_p%NBIN
                 do m_plus3=1,5
-                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%DPHI_l2(m_plus3,I)**2
+                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%PHI_l2(m_plus3,I)**2
                 enddo
             enddo
         endif

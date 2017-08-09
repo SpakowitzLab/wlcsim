@@ -19,7 +19,6 @@ TYPE(wlcsim_data), intent(inout) :: wlc_d
 LOGICAL initialize   ! if true, calculate absolute energy
 
 !   Internal variables
-integer I                 ! For looping over bins
 integer IB                ! Bead index
 integer IX(2),IY(2),IZ(2)
 real(dp) WX(2),WY(2),WZ(2)
@@ -41,17 +40,16 @@ NBinX = wlc_p%NBinX
 !  Calculate change (or value if initialize) of phi for A and B
 !
 !--------------------------------------------------------------
-do I = 1,wlc_p%NBin
-    wlc_d%PHIA(I) = 0.0_dp
-    wlc_d%DPHIA(I) = 0.0_dp
-    wlc_d%PHIB(I) = 0.0_dp
-    wlc_d%DPHIB(I) = 0.0_dp
-    wlc_d%inDPHI(I) = 0
-    if (wlc_p%chi_l2_on) then
-        wlc_d%phi_l2 = 0.0_dp
-        wlc_d%dphi_l2 = 0.0_dp
-    endif
-enddo
+wlc_d%PHIA = 0.0_dp
+wlc_d%DPHIA = 0.0_dp
+wlc_d%PHIB = 0.0_dp
+wlc_d%DPHIB = 0.0_dp
+wlc_d%inDPHI = 0
+if (wlc_p%chi_l2_on) then
+    wlc_d%phi_l2 = 0.0_dp
+    wlc_d%dphi_l2 = 0.0_dp
+endif
+
 wlc_d%NPHI = 0
 do IB = 1,wlc_p%NT
    RBin(1) = wlc_d%R(1,IB)
@@ -239,7 +237,7 @@ do IB = I1,I2
                           wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
                           if(wlc_p%chi_l2_on) then
                               do m_plus3 =1,5
-                                  wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI)&
+                                  wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
                                       + phi2(m_plus3)*contribution
                               enddo
                           endif
@@ -318,7 +316,7 @@ do IB = I1,I2
                           wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
                           if(wlc_p%chi_l2_on) then
                               do m_plus3 =1,5
-                                  wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) + phi2(m_plus3)*contribution
+                                  wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = phi2(m_plus3)*contribution
                               enddo
                           endif
                           exit

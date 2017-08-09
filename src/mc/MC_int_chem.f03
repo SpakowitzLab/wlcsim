@@ -82,7 +82,7 @@ do IB = I1,I2
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
                           do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) +&
+                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
                                      AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif
@@ -125,7 +125,7 @@ do IB = I1,I2
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
                           do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) +&
+                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) =  +&
                                   AminusB*phi2(m_plus3)*contribution
                           enddo
                       endif

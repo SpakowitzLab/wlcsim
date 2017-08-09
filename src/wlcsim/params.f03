@@ -360,6 +360,7 @@ contains
         ! energy parameters
         wlc_p%EPS =0.3_dp ! TOdo: not input
         wlc_p%CHI =0.0_dp ! don't use chi by default
+        wlc_p%CHI_l2 =0.0_dp ! don't use maier Saupe by default
         wlc_p%hA =0.0_dp  ! don't use weird artificial field by default
         wlc_p%KAP =0.0_dp ! "fairly" incompressible --Quinn
         wlc_p%EU  =0.0_dp ! a function of coarse graining. This should be set by hand if needed.
@@ -625,6 +626,8 @@ contains
             call readF(wlc_p%LHC) ! hard-core lennard jones diameter
         case('CHI')
             call readF(wlc_p%CHI) ! CHI parameter (definition depends on  hamiltoniaon
+        case('CHIL2')
+            call readF(wlc_p%CHI_l2) ! (negitive) maier Saupe Parameter
         case('HA')
             call readF(wlc_p%hA) ! strength of externally applied field
         case('KAP')
@@ -1479,6 +1482,7 @@ contains
         print*, "Par compression energy", wlc_d%EELAS(2)
         print*, "Shear energy", wlc_d%EELAS(3)
         print*, "ECHI", wlc_d%ECHI
+        print*, "ECHI l=2", wlc_d%eMaierSaupe
         print*, "EField", wlc_d%EField
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind

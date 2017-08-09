@@ -258,7 +258,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                    J = wlc_d%inDPHI(I)
                    if (wlc_p%chi_l2_on) then
                        do m_plus3 = 1,5
-                           wlc_d%PHI_l2(m_plus3,J) =  wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,J)
+                           wlc_d%PHI_l2(m_plus3,J) =  wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,I)
                        enddo
                    endif
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
