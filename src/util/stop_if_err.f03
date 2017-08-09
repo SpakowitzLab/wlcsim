@@ -1,6 +1,6 @@
 subroutine stop_if_err(err, msg)
 #ifdef f2003
-    use, intrinsic :: iso_fortran_env, only: stderr = >error_unit
+    use, intrinsic :: iso_fortran_env, only: stderr => error_unit
 #else
 #define stderr 0
 #endif
