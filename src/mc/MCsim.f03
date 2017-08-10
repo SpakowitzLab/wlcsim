@@ -87,11 +87,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP, &
-                       IP,IB1,IB2,IT1,IT2,MCTYPE, &
-                       wlc_d%MCAMP,wlc_d%WindoW,wlc_p%nBpM,&
-                       rand_stat, wlc_p%winType,IT3,IT4,forward,dib,wlc_p%ring, &
-                       wlc_p%inTERP_BEAD_LENNARD_JONES,wlc_d)
+          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
 
         if (wlc_p%RinG) then
            wlc_d%CrossP = wlc_d%Cross
