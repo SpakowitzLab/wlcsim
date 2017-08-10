@@ -21,7 +21,7 @@ implicit none
 
 type(wlcsim_params), intent(in) :: wlc_p
 
-logical ring
+logical ring, is_inside_boundary
 integer NB,NP,NT           ! Number of beads
 real(dp) R(3,NT)  ! Bead positions
 real(dp) U(3,NT)  ! Tangent vectors
@@ -359,10 +359,14 @@ else if (initCondType == 'randomWalkWithBoundary') then
         R(3,IB) = 0.0_dp
         IB = IB + 1
         do J = 2,NB
-            call random_gauss(nrand, rand_stat)
-            R(1,IB) = R(1,IB-1) + wlc_p%sigma*nrand(1)
-            R(2,IB) = R(2,IB-1) + wlc_p%sigma*nrand(2)
-            R(3,IB) = R(3,IB-1) + wlc_p%sigma*nrand(3)
+            is_inside_boundary = .False.
+            do while (.not. is_inside_boundary)
+                call random_gauss(nrand, rand_stat)
+                R(1,IB) = R(1,IB-1) + wlc_p%sigma*nrand(1)
+                R(2,IB) = R(2,IB-1) + wlc_p%sigma*nrand(2)
+                R(3,IB) = R(3,IB-1) + wlc_p%sigma*nrand(3)
+                is_inside_boundary = in_confinement(R, NT, IB, IB, wlc_p)
+            enddo
             IB = IB + 1
         enddo
     enddo

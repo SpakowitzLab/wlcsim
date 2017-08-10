@@ -74,4 +74,4 @@ saveR 1
 saveU 0
 
 # initialize as if gaussian chain
-initCondType 7
+initCondType randomWalkWithBoundary

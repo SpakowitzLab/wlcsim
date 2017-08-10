@@ -53,7 +53,7 @@ if (confineType == 'none') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 'platesInZ') then
+elseif(confineType == 'platesInZperiodicXY') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1

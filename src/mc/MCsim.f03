@@ -200,8 +200,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           if ((MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
               (MCTYPE /= 9)) then
-              call MC_confine(wlc_p%confineType, wlc_p%LBox, wlc_d%RP, wlc_p%NT, &
-                              IT1,IT2,wlc_d%ECon)
+              call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
           else
               wlc_d%ECon = 0.0_dp;
           endif

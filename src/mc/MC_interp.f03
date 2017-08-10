@@ -54,7 +54,7 @@ CASE ('none') ! Box from 0-LBOX, Bins split by boundaries
     IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(NBinX(2))) * NBinX(2)
     IZ(1) = IZ(1)-floor(REAL((IZ(1)-1))/REAL(NBinX(3))) * NBinX(3)
     IZ(2) = IZ(2)-floor(REAL((IZ(2)-1))/REAL(NBinX(3))) * NBinX(3)
-CASE ('platesInZ')
+CASE ('platesInZperiodicXY')
     ! Periodic BC
     RBin(1) = RBin(1)-floor(RBin(1)/LBOX(2))*LBOX(1)
     RBin(2) = RBin(2)-floor(RBin(2)/LBOX(1))*LBOX(2)
