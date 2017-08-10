@@ -45,11 +45,6 @@ real urnd(1) ! single random number
 real(dp) P1(3)    ! Point on rotation line
 integer I
 
-!     MC adaptation variables
-
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-
-
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then

@@ -42,7 +42,6 @@ real(dp) MAG      ! Magnitude of vector
 
 
 !     MC adaptation variables
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
 real(dp) DR(3)    ! Displacement for slide move
 
 

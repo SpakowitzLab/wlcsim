@@ -8,7 +8,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
+subroutine MC_chemMove(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
                   ,WindoW,BPM,rand_stat &
                   ,ring,inTERP_BEAD_LENNARD_JONES)
 
@@ -49,9 +49,7 @@ real(dp) P1(3)    ! Point on rotation line
 
 !     MC adaptation variables
 
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-integer, intent(in) :: MCTYPE            ! Type of MC move
-real(dp), intent(in) :: WindoW(moveTypes) ! Size of window for bead selection
+real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
 
 
@@ -70,7 +68,7 @@ IP = ceiling(urand(1)*NP)
 IB1 = ceiling(urand(2)*NB)
 call random_number(urnd,rand_stat)
 IB2 = IB1 + (2*nint(urand(3))-1)* &
-        nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
+        nint(-1.0*log(urnd(1))*WindoW)
 
 if (IB2 < 1) then
    IB2 = 1

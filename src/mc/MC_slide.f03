@@ -8,7 +8,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_slide(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
+subroutine MC_slide(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat,winType &
                   ,dib,ring,inTERP_BEAD_LENNARD_JONES)
 
@@ -47,11 +47,9 @@ real(dp) P1(3)    ! Point on rotation line
 
 !     MC adaptation variables
 
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
-integer, intent(in) :: MCTYPE            ! Type of MC move
+real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer, intent(in) :: winType
-real(dp), intent(in) :: WindoW(moveTypes) ! Size of window for bead selection
+real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
 
@@ -71,14 +69,14 @@ IP = ceiling(urand(1)*NP)
 IB1 = ceiling(urand(2)*NB)
 ! again, we use a window
 if (winType.eq.0) then
-    IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW(MCTYPE) + 1.0))
+    IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW + 1.0))
 elseif (winType.eq.1.and..not.RinG) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
-            nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
+            nint(-1.0*log(urnd(1))*WindoW)
 elseif (winType.eq.1.and.RinG) then
     call random_number(urnd,rand_stat)
-    IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
+    IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW)
 
 endif
 
@@ -108,9 +106,9 @@ IT1 = NB*(IP-1) + IB1
 IT2 = NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
-DR(1) = MCAMP(2)*(urand(1)-0.5)
-DR(2) = MCAMP(2)*(urand(2)-0.5)
-DR(3) = MCAMP(2)*(urand(3)-0.5)
+DR(1) = MCAMP*(urand(1)-0.5)
+DR(2) = MCAMP*(urand(2)-0.5)
+DR(3) = MCAMP*(urand(3)-0.5)
 
 I = IT1
 do  J = 0,DIB

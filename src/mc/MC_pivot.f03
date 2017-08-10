@@ -8,7 +8,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_pivot(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
+subroutine MC_pivot(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat,winType &
                   ,ring,inTERP_BEAD_LENNARD_JONES)
 
@@ -50,11 +50,9 @@ real(dp) BETA     ! Angle of move
 
 !     MC adaptation variables
 
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
-integer, intent(in) :: MCTYPE            ! Type of MC move
+real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer, intent(in) :: winType
-real(dp), intent(in) :: WindoW(moveTypes) ! Size of window for bead selection
+real(dp), intent(in) :: WindoW ! Size of window for bead selection
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -71,7 +69,7 @@ endif
     call random_number(urnd,rand_stat)
     if (urnd(1).gt.0.5_dp) then
         call random_number(urnd,rand_stat)
-        IB2 = nint(-1.0_dp*log(urnd(1))*WindoW(MCTYPE)) + 1
+        IB2 = nint(-1.0_dp*log(urnd(1))*WindoW) + 1
         if (IB2 > NB) then
             IB2 = NB
         endif
@@ -83,7 +81,7 @@ endif
         P1(3) = R(3,IT2)
     else
         call random_number(urnd,rand_stat)
-        IB1 = NB-nint(-1.0_dp*log(urnd(1))*WindoW(MCTYPE))
+        IB1 = NB-nint(-1.0_dp*log(urnd(1))*WindoW)
         if (IB1 < 1) then
             IB1 = 1
         endif
@@ -102,7 +100,7 @@ endif
    TA(2) = sin(BETA)*sin(ALPHA)
    TA(3) = cos(BETA)
 
-   ALPHA = MCAMP(3)*(urand(3)-0.5)
+   ALPHA = MCAMP*(urand(3)-0.5)
 
    ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
    ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)

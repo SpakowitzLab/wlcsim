@@ -48,12 +48,7 @@ real(dp) ROT(4,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
 real(dp) BETA     ! Angle of move
 
-!     MC adaptation variables
-
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
-
-! Variables for change of binding state move
+real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -85,7 +80,7 @@ P1(2) = R(2,(IT1 + IT2)/2)
 P1(3) = R(3,(IT1 + IT2)/2)
 
 call random_number(urnd,rand_stat)
-ALPHA = MCAMP(5)*(urnd(1)-0.5)
+ALPHA = MCAMP*(urnd(1)-0.5)
 
 ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
 ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)

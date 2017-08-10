@@ -22,7 +22,7 @@ module params
 
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
-    integer, parameter :: nMoveTypes = 10
+    integer, parameter :: nMoveTypes = 11
 
     !!!     arbitrary technical choices
     ! used for all character buffers holding filenames
@@ -119,7 +119,6 @@ module params
         real(dp) confinementParameter(3)
 
     !   Monte Carlo Variables (for adaptation)
-        integer movetypes
         real(dp) PDesire(nMoveTypes) ! desired hit rate
         real(dp) MAXWindoW(nMoveTypes)         ! Max Size of window for bead selection
         real(dp) MinWindoW(nMoveTypes)         ! Min Size of window for bead selection
@@ -373,7 +372,6 @@ contains
 
         ! options
         wlc_p%codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
-        wlc_p%movetypes = nMoveTypes
         wlc_p%initCondType = 'randomWalkWithBoundary' ! 0 for initializing polymer in non-random straight line
         wlc_p%confineType = 'none' ! 0 for no confinement
         wlc_p%ring = .false.    ! not a ring by default
@@ -437,14 +435,15 @@ contains
         wlc_p%MOVEON(8) = 0  ! Chain flip ! TOdo not working
         wlc_p%MOVEON(9) = 1  ! Chain exchange
         wlc_p%MOVEON(10) = 1 ! Reptation
+        wlc_p%MOVEON(11) = 0 ! Super Reptation
 
         ! Balance move amplitude and number of beads
-        do mctype = 1,wlc_p%movetypes
+        do mctype = 1,nMovetypes
             wlc_p%winTarget(mctype) = 8.0_dp
             wlc_p%MinWindoW(mctype) = nan
             wlc_d%MCAMP(mctype) = nan
         enddo
-        do mctype = 1,wlc_p%movetypes
+        do mctype = 1,nMovetypes
             wlc_p%NADAPT(mctype) = 1000 ! adapt after at most 1000 steps
             wlc_p%PDESIRE(mctype) = 0.5_dp ! Target
             wlc_d%SUCCESS(mctype) = 0
@@ -672,6 +671,8 @@ contains
             call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
         case('REPTATIONMOVEON')
             call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
+        case('SUPERREPTATIONMOVEON')
+            call readI(wlc_p%MOVEON(11)) ! is super reptation move on 1/0
         case('MINCRANKSHAFTWIN')
             call readF(wlc_p%MinWindoW(1)) ! min mean window size
         case('MINSLIDEWIN')
@@ -1556,7 +1557,7 @@ contains
         integer I ! counter
         I = 0
         print*, "Succes | MCAMP | WindoW| type "
-        do I = 1,wlc_p%movetypes
+        do I = 1,nMovetypes
             if (wlc_p%MOVEON(i).eq.1) then
                 write(*,"(f8.5,2f8.2,1I8)") wlc_d%phit(i), wlc_d%MCAMP(i),  wlc_d%WindoW(i), i
             endif

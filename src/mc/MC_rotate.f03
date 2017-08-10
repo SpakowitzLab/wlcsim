@@ -49,8 +49,7 @@ real(dp) BETA     ! Angle of move
 
 !     MC adaptation variables
 
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
+real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -76,7 +75,7 @@ TA(1) = sin(BETA)*cos(ALPHA)
 TA(2) = sin(BETA)*sin(ALPHA)
 TA(3) = cos(BETA)
 
-ALPHA = MCAMP(4)*(urand(3)-0.5)
+ALPHA = MCAMP*(urand(3)-0.5)
 
 ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
 ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)

@@ -42,10 +42,7 @@ real urnd(1) ! single random number
 ! Variables for the crank-shaft move
 
 real(dp) P1(3)    ! Point on rotation line
-
-!     MC adaptation variables
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
+real(dp), intent(in) :: MCAMP ! Amplitude of random change
 real(dp) DR(3)    ! Displacement for slide move
 
 
@@ -66,9 +63,9 @@ IT1 = NB*(IP-1) + IB1
 IT2 = NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
-DR(1) = MCAMP(6)*(urand(1)-0.5_dp)
-DR(2) = MCAMP(6)*(urand(2)-0.5_dp)
-DR(3) = MCAMP(6)*(urand(3)-0.5_dp)
+DR(1) = MCAMP*(urand(1)-0.5_dp)
+DR(2) = MCAMP*(urand(2)-0.5_dp)
+DR(3) = MCAMP*(urand(3)-0.5_dp)
 
 do I = IT1,IT2
    RP(1,I) = R(1,I) + DR(1)

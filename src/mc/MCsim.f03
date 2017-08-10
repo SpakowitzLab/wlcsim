@@ -78,7 +78,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 
     do while (ISTEP <= NSTEP)
 
-       do MCTYPE = 1,wlc_p%moveTypes
+       do MCTYPE = 1,nMoveTypes
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
@@ -117,7 +117,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               (MCTYPE /= 7) .and. &
               (MCTYPE /= 8) .and. &
               (MCTYPE /= 9) .and. &
-              (MCTYPE /= 10) )then
+              (MCTYPE /= 10) .and. &
+              (MCTYPE /= 11) )then
               call MC_eelas(wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,&
                             wlc_p%NT,wlc_p%NB,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
@@ -133,7 +134,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               stop 1
           endif
 !   Calculate the change in the binding energy
-          if (MCTYPE == 7) then
+          if (MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
               call MC_bind(wlc_p%NT,wlc_p%NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
                           wlc_d%DEBind,wlc_p%mu,wlc_d%dx_mu)
@@ -178,6 +179,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                  call MC_int_chem(wlc_p,wlc_d,IT1,IT2)
              elseif (MCTYPE == 10) then ! reptation move
                  call MC_int_rep(wlc_p,wlc_d,IT1,IT2,forward)
+             elseif (MCTYPE == 11) then ! super reptation move
+                 call MC_int_super_rep(wlc_p,wlc_d,IT1,IT2,forward)
              else ! motion of chain
                  call MC_int_update(wlc_p,wlc_d,IT1,IT2,.false.)
              endif
@@ -195,7 +198,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Calculate the change in confinement energy
           if ((MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
-              (MCTYPE /= 9)) then
+              (MCTYPE /= 9).and. &
+              (MCTYPE /= 11)) then
               call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
           else
               wlc_d%ECon = 0.0_dp;
@@ -210,14 +214,15 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           TEST = urnd(1)
           if (TEST <= PROB) then
 
-             if(MCTYPE == 7) then
+             if(MCTYPE == 7 .or. MCTYPE == 11) then
                  if (.not.wlc_p%ChangingChemicalIdentity) then
                      call stop_if_err(1, "Tried to change chemical Identity when you can't")
                  endif
                  do I = IT1,IT2
                       wlc_d%AB(I) = wlc_d%ABP(I)
                  ENDdo
-             else
+             endif
+             if(MCTYPE /= 7) then
                  do I = IT1,IT2
                      wlc_d%R(1,I) = wlc_d%RP(1,I)
                      wlc_d%R(2,I) = wlc_d%RP(2,I)
