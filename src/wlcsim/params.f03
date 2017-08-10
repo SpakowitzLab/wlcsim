@@ -2107,8 +2107,8 @@ contains
         else
             wlc_p%DEL = wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
         ENDif
-        ! std dev of interbead distribution of GC, used to initialize
-        wlc_p%SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
+        ! std dev of interbead distribution of nearest possible GC, used to initialize sometimes
+        wlc_p%SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp)/(wlc_p%NB - 1)
 
     !     Load the tabulated parameters
 

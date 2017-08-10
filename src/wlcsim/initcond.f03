@@ -351,55 +351,7 @@ else if (initCondType == 'ring') then
 else if (initCondType == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 else if (initCondType == 'randomWalkWithBoundary') then
-    ! initialize as if it were a gaussian chain, first bead at zero
-    IB = 1
-    do I = 1,NP
-        R(1,IB) = 0.0_dp
-        R(2,IB) = 0.0_dp
-        R(3,IB) = 0.0_dp
-        IB = IB + 1
-        do J = 2,NB
-            is_inside_boundary = .False.
-            do while (.not. is_inside_boundary)
-                call random_gauss(nrand, rand_stat)
-                R(1,IB) = R(1,IB-1) + wlc_p%sigma*nrand(1)
-                R(2,IB) = R(2,IB-1) + wlc_p%sigma*nrand(2)
-                R(3,IB) = R(3,IB-1) + wlc_p%sigma*nrand(3)
-                is_inside_boundary = in_confinement(R, NT, IB, IB, wlc_p)
-            enddo
-            IB = IB + 1
-        enddo
-    enddo
-    ! now initialize the orientation vectors by smoothing
-    IB = 1
-    do I = 1,NP
-        U(1,IB) = R(1,IB + 1) - R(1,IB)
-        U(2,IB) = R(2,IB + 1) - R(2,IB)
-        U(3,IB) = R(3,IB + 1) - R(3,IB)
-        mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
-        U(1,IB) = U(1,IB)/mag
-        U(2,IB) = U(2,IB)/mag
-        U(3,IB) = U(3,IB)/mag
-        IB = IB + 1
-        do J = 2,NB-1
-            U(1,IB) = R(1,IB + 1) - R(1,IB-1)
-            U(2,IB) = R(2,IB + 1) - R(2,IB-1)
-            U(3,IB) = R(3,IB + 1) - R(3,IB-1)
-            mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
-            U(1,IB) = U(1,IB)/mag
-            U(2,IB) = U(2,IB)/mag
-            U(3,IB) = U(3,IB)/mag
-            IB = IB + 1
-        enddo
-        U(1,IB) = R(1,IB) - R(1,IB-1)
-        U(2,IB) = R(2,IB) - R(2,IB-1)
-        U(3,IB) = R(3,IB) - R(3,IB-1)
-        mag = sqrt(U(1,IB)*U(1,IB) + U(2,IB)*U(2,IB) + U(3,IB)*U(3,IB))
-        U(1,IB) = U(1,IB)/mag
-        U(2,IB) = U(2,IB)/mag
-        U(3,IB) = U(3,IB)/mag
-        IB = IB + 1
-    enddo
+    call gaus_init(R, U, NT, wlc_p, rand_stat)
 else
     print*, "Unknown version of chain initialization initCondType....."
     stop 1
@@ -471,7 +423,11 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
         stop 1
     end if
     IB = 1
-    NgB = ceiling(wlc_p%del/max_wlc_l0) + 1
+    if (wlc_p%del > max_wlc_l0) then
+        NgB = ceiling(wlc_p%del/max_wlc_l0) + 1
+    else
+        NgB = 1 + 1
+    endif
     allocate(tmpR(3,NgB))
     allocate(tmpU(3,NgB))
     l0 = wlc_p%del/(NgB - 1)
@@ -499,3 +455,120 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
     deallocate(tmpR)
     deallocate(tmpU)
 end subroutine effective_wormlike_chain_init
+
+subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
+    use mersenne_twister
+    use params
+    implicit none
+    integer, intent(in) :: NT
+    type(wlcsim_params), intent(in) :: wlc_p
+    real(dp), intent(out) :: R(3,NT), U(3,NT)
+    type(random_stat), intent(inout) :: rand_stat
+    real urand(3)
+    real(dp) :: init_e2e(3)
+    integer i, j, ib
+
+
+    ! init_e2e makes easy to add fixed distances between specific beads in future
+    call random_number(urand,rand_stat)
+    if (wlc_p%ring) then
+        init_e2e = 0
+        ib = 1
+        do i = 1,wlc_p%np
+            call make_rw_fix_end2end(R(:,IB:IB+wlc_p%NB-1), wlc_p%nb, wlc_p%sigma, init_e2e, wlc_p, rand_stat)
+            IB = IB + wlc_p%NB
+        enddo
+    else
+        ib = 1
+        do i = 1, wlc_p%np
+            call make_rw_with_boundary(R(:,IB:IB+wlc_p%NB-1), wlc_p%NB, wlc_p%sigma, wlc_p, rand_stat)
+            IB = IB + wlc_p%NB
+        enddo
+
+    end if
+    IB = 1
+    do I = 1,wlc_p%NP
+        U(1,IB) = R(1,IB + 1) - R(1,IB)
+        U(2,IB) = R(2,IB + 1) - R(2,IB)
+        U(3,IB) = R(3,IB + 1) - R(3,IB)
+        U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        IB = IB + 1
+        do J = 2,wlc_p%NB-1
+            U(1,IB) = R(1,IB + 1) - R(1,IB - 1)
+            U(2,IB) = R(2,IB + 1) - R(2,IB - 1)
+            U(3,IB) = R(3,IB + 1) - R(3,IB - 1)
+            U(:,IB) = U(:,IB)/norm2(U(:,IB))
+            IB = IB + 1
+        enddo
+        U(1,IB) = R(1,IB) - R(1,IB - 1)
+        U(2,IB) = R(2,IB) - R(2,IB - 1)
+        U(3,IB) = R(3,IB) - R(3,IB - 1)
+        U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        IB = IB + 1
+     enddo
+end subroutine gaus_init
+
+subroutine make_rw_fix_end2end(R, NB, sigma, e2e, wlc_p, rand_stat)
+    ! for a GC, we should have
+    ! SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
+
+    use params, only : dp, wlcsim_params
+    use mersenne_twister
+
+    implicit none
+
+    type(wlcsim_params), intent(in) :: wlc_p
+    type(random_stat) rand_stat  ! state of random number chain
+    real(dp), intent(in) :: sigma, e2e(3)
+    integer, intent(in) :: nb
+    real(dp), intent(out) :: R(3,nb)
+    integer :: ib, j
+    real(dp) :: actual_e2e(3)
+
+    call make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
+    actual_e2e = R(:,NB) - R(:,1)
+    do J = 2,NB
+        R(:,J) = R(:,J) - actual_e2e*(J-1)/(NB-1)
+        R(:,J) = R(:,J) + e2e*(J-1)/(NB-1)
+    enddo
+end subroutine
+
+subroutine make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
+    ! for a GC, we should have
+    ! SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp/wlc_p%NB)
+
+    use params, only : dp, wlcsim_params
+    use mersenne_twister
+
+    implicit none
+
+    type(wlcsim_params), intent(in) :: wlc_p
+    type(random_stat) rand_stat  ! state of random number chain
+    real(dp), intent(in) :: sigma
+    integer, intent(in) :: nb
+    real(dp), intent(out) :: R(3,nb)
+    integer :: ib, i, j
+    real(dp) :: actual_e2e(3)
+    real nrand(3)
+    logical in_confinement, is_inside_boundary
+
+
+    ! initialize as if it were a gaussian chain, first bead at zero
+    !TODO add function to src/util/confinement to make this unif in confinement
+    IB = 1
+    R(1,IB) = 0.0_dp
+    R(2,IB) = 0.0_dp
+    R(3,IB) = 0.0_dp
+    IB = IB + 1
+    do J = 2,NB
+        is_inside_boundary = .False.
+        do while (.not. is_inside_boundary)
+            call random_gauss(nrand, rand_stat)
+            R(1,IB) = R(1,IB-1) + wlc_p%sigma*nrand(1)
+            R(2,IB) = R(2,IB-1) + wlc_p%sigma*nrand(2)
+            R(3,IB) = R(3,IB-1) + wlc_p%sigma*nrand(3)
+            is_inside_boundary = in_confinement(R, NB, IB, IB, wlc_p)
+        enddo
+        IB = IB + 1
+    enddo
+end subroutine
