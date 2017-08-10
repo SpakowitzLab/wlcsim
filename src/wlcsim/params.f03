@@ -39,7 +39,7 @@ module params
 
     !!!     universal constants
     ! fully accurate, adaptive precision
-    real(dp) :: pi = 4 * atan(1.0_dp)
+    real(dp), parameter :: pi = 4 * atan(1.0_dp)
     real(dp) :: nan
     ! ! won't get optimized away by compiler, see e.g.
     ! ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680

@@ -3,10 +3,10 @@
 !     Written by Quinn MacPherson 8/4/17
 !---------------------------------------------------------------!
 subroutine Y2calc(u,Y2real)
-use params, only: dp
+use params, only: dp, pi
 implicit none
 
-real(dp), parameter :: pi=3.14159265359_dp
+!real(dp), parameter :: pi=3.14159265359_dp
 
 real(dp), intent(in) :: u(3)
 real(dp), intent(out) :: Y2real(5)
