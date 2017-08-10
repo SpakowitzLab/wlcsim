@@ -27,7 +27,7 @@ LOGICAL isA   ! The bead is of type A
 integer NBinX(3)
 real(dp) temp
 real(dp) contribution 
-integer m_plus3
+integer m_plus3 ! m from spherical harmonics
 real(dp) phi2(5)
 real(dp) AminusB ! +1 if A and -1 if B
 

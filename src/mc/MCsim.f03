@@ -53,7 +53,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
     integer DELTA             !Alexander polynomial evaluated at t = -1; used for knot checking
     real(dp) para(10)
-    integer m_plus3
+    integer m_plus3  ! m is the m from spherical harmonics (z component)
 
     rand_stat = wlc_d%rand_stat
 

@@ -34,7 +34,7 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
 real(dp) phi2(5)
-integer m_plus3
+integer m_plus3  ! m from Ylm spherical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward

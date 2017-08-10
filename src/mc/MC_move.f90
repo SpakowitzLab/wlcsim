@@ -74,7 +74,7 @@ end select
 RETURN
 END
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
-use params, only: dp
+use params, only: dp, eps
 implicit none
 ! inputs
 integer NT,IT1,IT2
@@ -106,14 +106,14 @@ DRPARNew = DRNew(1)*UP(1,IT2-1) + &
          DRNew(2)*UP(2,IT2-1) + &
          DRNew(3)*UP(3,IT2-1)
 if (abs(drOld(1)**2 + drOld(2)**2 + drOld(3)**2&
-      -(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)).gt.0.000001) then
+      -(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)).gt.eps) then
       print*, "drOld",drOld, " mag^2 = ",drOld(1)**2 + drOld(2)**2 + drOld(3)**2
       print*, "drNew",drNew, " mag^2 = ",drNew(1)**2 + drNew(2)**2 + drNew(3)**2
       print*, "Difference detected in test_equiv, 0"
       stop 1
 endif
 
-if (abs(drParOld-drParNew).gt.0.0000001_dp) then
+if (abs(drParOld-drParNew).gt.eps) then
     print*, "DRParOld",DRParOld,"DRParNew",DRParNew
     print*, "Difference detected in test_equiv, 1"
     stop 1
@@ -127,7 +127,7 @@ drPerpNew(2) = drNew(2)-drParNew*UP(2,IT2-1)
 drPerpNew(3) = drNew(3)-drParNew*UP(3,IT2-1)
 
 if (abs(drPerpOld(1)**2 + drPerpOld(2)**2 + drPerpOld(3)**2 &
-      -(drPerpNew(1)**2 + drPerpNew(2)**2 + drPerpNew(3)**2)).gt.0.000001_dp) then
+      -(drPerpNew(1)**2 + drPerpNew(2)**2 + drPerpNew(3)**2)).gt.eps) then
   print*, "drOld",sqrt(drOld(1)**2 + drOld(2)**2 + drOld(3)**2)
   print*, "drNew",sqrt(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)
   print*, "dRparOld",dRparOld,"dRparNew",drParNew
@@ -146,7 +146,7 @@ Ginew(2) = UP(2,IT2)-UP(2,IT2-1)-Eta*dRperpNew(2)
 Ginew(3) = UP(3,IT2)-UP(3,IT2-1)-Eta*dRperpNew(3)
 
 if (abs(GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2&
-      -(Ginew(1)**2 + Ginew(2)**2 + Ginew(3)**2)).gt.0.000001_dp) then
+      -(Ginew(1)**2 + Ginew(2)**2 + Ginew(3)**2)).gt.eps) then
   print*, "Difference detected in test_equiv, 3"
   print*, "GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2", &
            GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2
@@ -163,7 +163,7 @@ subroutine random_perp(u,p,t,rand_stat)
 ! The output vectors, p and t, are perpendicular to eachother and u
 ! The triad is randomly left or right handed
 use mersenne_twister
-use params, only: dp
+use params, only: dp, eps
 implicit none
 real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
 type(random_stat) rand_stat  ! status of random number generator
@@ -175,7 +175,7 @@ real(dp), intent(out) :: p(3) ! output: random perpendicular to u
 real(dp), intent(out) :: t(3) ! orthogonal to p and u
 real(dp) f
 
-if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt. 0.0000001_dp) then
+if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt.eps) then
     print*, u
     print*, "Error in random_perp, please give me a unit vector"
     stop 1

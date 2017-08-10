@@ -364,7 +364,7 @@ contains
         wlc_p%CHI =0.0_dp ! don't use chi by default
         wlc_p%CHI_l2 =0.0_dp ! don't use maier Saupe by default
         wlc_p%hA =0.0_dp  ! don't use weird artificial field by default
-        wlc_p%KAP =0.0_dp ! "fairly" incompressible --Quinn
+        wlc_p%KAP =0.0_dp ! compressible 
         wlc_p%EU  =0.0_dp ! a function of coarse graining. This should be set by hand if needed.
         wlc_p%EM  =0.0_dp ! by default, no hp1 binding energy included
         wlc_p%mu  =0.0_dp ! by default, no hp1 binding included
@@ -1274,7 +1274,7 @@ contains
         print*, " L0 = ", wlc_p%L0
         print*, " volume fraction polymer =", wlc_p%Fpoly
         print*, " bead volume V = ", wlc_p%beadVolume
-        print*, " 1/number of kuhn lengths between beads, eps ", wlc_p%eps
+        print*, " number of kuhn lengths between beads, eps ", wlc_p%eps
         print*, " "
         print*, "Energy Variables"
         print*, " elasticity EPS =", wlc_p%EPS

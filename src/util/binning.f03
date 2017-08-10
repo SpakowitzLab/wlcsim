@@ -168,6 +168,7 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
+        use params, only : eps
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
@@ -175,7 +176,6 @@ contains
         integer, intent(in) :: beadID
         integer binIndex
 
-        real(dp), parameter :: eps = 0.00000001
         integer dd
         do dd = 1,3
             if (R(dd,beadID) + eps.lt.bin%minXYZ(dd)) then
