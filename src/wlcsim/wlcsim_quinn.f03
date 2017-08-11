@@ -33,7 +33,6 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
     print*, 'Time point ',save_ind, ' out of', wlc_p%numSavePoints, 'Thread id', wlc_d%id
     call printEnergies(wlc_d)
     call printWindowStats(wlc_p, wlc_d)
-    call printWindowStats(wlc_p, wlc_d)
     !call wlcsim_params_printPhi(wlc_p, wlc_d)
 
 end subroutine wlcsim_quinn
@@ -67,7 +66,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms = 8  ! number of energy terms
+    integer, parameter :: nTerms = 9  ! number of energy terms
     real(dp) x(nTerms) ! slice of xMtrx
     real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
@@ -76,7 +75,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path ! functions
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -130,6 +129,11 @@ subroutine head_node(wlc_p, wlc_d,process)
         cofMtrx(rep,6) = 0
         cofMtrx(rep,7) = 0
         cofMtrx(rep,8) = 0
+        if (wlc_p%PT_MaierSaupe) then
+            cofMtrx(rep,9) = maierSaupe_path(s_vals(rep))
+        else
+            cofMtrx(rep,9) = wlc_p%chi_l2
+        endif
     enddo
 
     N_average = 0
@@ -230,6 +234,9 @@ subroutine head_node(wlc_p, wlc_d,process)
                     if (wlc_p%PT_Kap) then
                         cofMtrx(rep,5) = kap_path(s_vals(rep))
                     endif
+                    if (wlc_p%PT_maiersaupe) then
+                        cofMtrx(rep,9) = maiersaupe_path(s_vals(rep))
+                    endif
                 enddo
             endif
             N_average = 0
@@ -297,6 +304,13 @@ function kap_path(s) result(kap)
     real(dp) kap
     kap = s*10.0_dp
 end function kap_path
+function maierSaupe_path(s) result(output)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: s
+    real(dp) output
+    output = s*1.0_dp
+end function maierSaupe_path
 function hp1_bind_path(s) result(hp1_bind)
     use params, only: dp
     implicit none
@@ -318,9 +332,9 @@ subroutine worker_node(wlc_p, wlc_d)
     type(wlcsim_data), intent(inout) :: wlc_d
     type(random_stat) rand_stat  ! state of random number chain
     integer i
-
     logical system_has_been_changed
-    system_has_been_changed = .False.
+    real :: start, finish
+
     if (id == -1) then
         call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
@@ -331,12 +345,127 @@ subroutine worker_node(wlc_p, wlc_d)
         endif
     endif
 
+    call schedule(wlc_p, wlc_d,system_has_been_changed)
+
+    if (system_has_been_changed) then
+        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        if (wlc_p%field_int_on) then
+            wlc_d%ECouple =wlc_d%dECouple
+            wlc_d%EKap    =wlc_d%dEKap
+            wlc_d%ECHI    =wlc_d%dECHI
+            wlc_d%EField  =wlc_d%dEField
+            wlc_d%EMaierSaupe = wlc_d%deMaierSaupe
+            wlc_d%x_Field =wlc_d%dx_Field
+            wlc_d%x_couple = wlc_d%dx_couple
+            wlc_d%x_Kap   =wlc_d%dx_Kap
+            wlc_d%x_Chi   =wlc_d%dx_Chi
+            wlc_d%x_maierSaupe = wlc_d%dx_maierSaupe
+        else
+            wlc_d%ECouple =0.0_dp
+            wlc_d%EKap    =0.0_dp
+            wlc_d%ECHI    =0.0_dp
+            wlc_d%EField  =0.0_dp
+            wlc_d%EmaierSaupe = 0.0_dp
+            wlc_d%x_Field =0.0_dp
+            wlc_d%x_couple = 0.0_dp
+            wlc_d%x_Kap   =0.0_dp
+            wlc_d%x_Chi   =0.0_dp
+            wlc_d%x_maierSaupe = 0.0_dp
+        endif
+        if (wlc_p%bind_On) then
+            wlc_d%ebind   =wlc_d%debind
+            wlc_d%x_mu    =wlc_d%dx_mu
+        else
+            wlc_d%ebind   =0.0_dp
+            wlc_d%x_mu    =0.0_dp
+        endif
+    else
+        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+    endif
+
+    ! ------------------------------
+    !
+    ! call main simulation code
+    !
+    !  --------------------------------
+
+    call cpu_time(start)
+    do i = 1,wlc_p%nReplicaExchangePerSavePoint
+        wlc_d%ind_exchange=i
+        !   * Perform a MC simulation *
+        call MCsim(wlc_p, wlc_d,wlc_p%stepsPerExchange)
+
+        !   * Replica Exchange *
+        call replicaExchange(wlc_p,wlc_d)
+    enddo
+    call cpu_time(finish)
+    print*, "Save Point time", finish-start, " seconds"
+end subroutine worker_node
+#endif
+
+subroutine onlyNode(wlc_p, wlc_d)
+    use params
+    implicit none
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
+    logical system_has_been_changed
+    real :: start, finish
+    !   * Perform a MC simulation *
+    call schedule(wlc_p, wlc_d,system_has_been_changed)
+    if (system_has_been_changed) then
+        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        if (wlc_p%field_int_on) then
+            wlc_d%ECouple =wlc_d%dECouple
+            wlc_d%EKap    =wlc_d%dEKap
+            wlc_d%ECHI    =wlc_d%dECHI
+            wlc_d%EField  =wlc_d%dEField
+            wlc_d%Emaiersaupe = wlc_d%dEmaiersaupe
+            wlc_d%x_Field =wlc_d%dx_Field
+            wlc_d%x_maiersaupe = wlc_d%dx_maiersaupe
+            wlc_d%x_couple = wlc_d%dx_couple
+            wlc_d%x_Kap   =wlc_d%dx_Kap
+            wlc_d%x_Chi   =wlc_d%dx_Chi
+        else
+            wlc_d%ECouple =0.0_dp
+            wlc_d%EKap    =0.0_dp
+            wlc_d%ECHI    =0.0_dp
+            wlc_d%EField  =0.0_dp
+            wlc_d%Emaiersaupe = 0.0_dp
+            wlc_d%x_Field =0.0_dp
+            wlc_d%x_couple = 0.0_dp
+            wlc_d%x_Kap   =0.0_dp
+            wlc_d%x_Chi   =0.0_dp
+            wlc_d%x_maiersaupe = 0.0_dp
+        endif
+        if (wlc_p%bind_On) then
+            wlc_d%ebind   =wlc_d%debind
+            wlc_d%x_mu    =wlc_d%dx_mu
+        else
+            wlc_d%ebind   =0.0_dp
+            wlc_d%x_mu    =0.0_dp
+        endif
+    else
+        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+    endif
+    call cpu_time(start)
+    call MCsim(wlc_p, wlc_d,wlc_p%nReplicaExchangePerSavePoint*wlc_p%stepsPerExchange)
+    call cpu_time(finish)
+    print*, "Save Point time", finish-start, " seconds"
+end subroutine onlyNode
+subroutine schedule(wlc_p, wlc_d,system_has_been_changed)
+    use params
+    implicit none
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(in) :: wlc_d
+    logical, intent(out) :: system_has_been_changed
+
+    system_has_been_changed = .False.
     ! ------------------------------
     !
     ! Different instructions for each save point
     !
     !  --------------------------------
-
+    if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
     if (wlc_d%mc_ind <= wlc_p%NNOinT) then
         wlc_p%field_int_on = .false.
     else
@@ -357,67 +486,15 @@ subroutine worker_node(wlc_p, wlc_d)
         wlc_p%CHI_ON = 1.0_dp
     endif
 
+    if(wlc_d%mc_ind.lt.wlc_p%N_CHI_l2_ON) then
+        wlc_p%CHI_l2_ON = .False.
+    else
+        if (.not. wlc_p%CHI_l2_ON) system_has_been_changed = .TRUE.
+        wlc_p%CHI_l2_ON = .True.
+    endif
+
     if ((wlc_d%mc_ind.gt.wlc_p%indStartRepAdapt).and. &
         (wlc_d%mc_ind.le.wlc_p%indendRepAdapt)) then ! addapt Cof was run
         system_has_been_changed = .TRUE.
     endif
-
-    if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
-        if (wlc_p%field_int_on) then
-            wlc_d%ECouple =wlc_d%dECouple
-            wlc_d%EKap    =wlc_d%dEKap
-            wlc_d%ECHI    =wlc_d%dECHI
-            wlc_d%EField  =wlc_d%dEField
-            wlc_d%x_Field =wlc_d%dx_Field
-            wlc_d%x_couple = wlc_d%dx_couple
-            wlc_d%x_Kap   =wlc_d%dx_Kap
-            wlc_d%x_Chi   =wlc_d%dx_Chi
-        else
-            wlc_d%ECouple =0.0_dp
-            wlc_d%EKap    =0.0_dp
-            wlc_d%ECHI    =0.0_dp
-            wlc_d%EField  =0.0_dp
-            wlc_d%x_Field =0.0_dp
-            wlc_d%x_couple = 0.0_dp
-            wlc_d%x_Kap   =0.0_dp
-            wlc_d%x_Chi   =0.0_dp
-        endif
-        if (wlc_p%bind_On) then
-            wlc_d%ebind   =wlc_d%debind
-            wlc_d%x_mu    =wlc_d%dx_mu
-        else
-            wlc_d%ebind   =0.0_dp
-            wlc_d%x_mu    =0.0_dp
-        endif
-    else
-        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
-    endif
-
-    ! ------------------------------
-    !
-    ! call main simulation code
-    !
-    !  --------------------------------
-
-    do i = 1,wlc_p%nReplicaExchangePerSavePoint
-
-        !   * Perform a MC simulation *
-        call MCsim(wlc_p, wlc_d,wlc_p%stepsPerExchange)
-
-        !   * Replica Exchange *
-        call replicaExchange(wlc_p,wlc_d)
-
-    enddo
-end subroutine worker_node
-#endif
-
-subroutine onlyNode(wlc_p, wlc_d)
-    use params
-    implicit none
-    type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
-    !   * Perform a MC simulation *
-    call VerifyEnergiesFromScratch(wlc_p, wlc_d)
-    call MCsim(wlc_p, wlc_d,wlc_p%nReplicaExchangePerSavePoint*wlc_p%stepsPerExchange)
-end subroutine onlyNode
+end subroutine

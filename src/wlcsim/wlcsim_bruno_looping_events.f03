@@ -52,8 +52,8 @@ if (save_ind == 1) then
     call VerifyEnergiesFromScratch(wlc_p, wlc_d)
     call save_simulation_state(0, wlc_d, wlc_p, outfile_base, 'REPLACE')
     ! for BDsim
-    allocate(R0(wlc_p%NT,3))
-    allocate(U0(wlc_p%NT,3))
+    allocate(R0(3,wlc_p%NT))
+    allocate(U0(3,wlc_p%NT))
     ! for get_looping events
     loop_file_name = trim(adjustL(outfile_base)) // 'loop_times'
     allocate(events(wlc_p%NT,wlc_p%NT))
@@ -61,9 +61,9 @@ if (save_ind == 1) then
     allocate(col_state(wlc_p%NT, wlc_p%NT))
     do k2 = 1, wlc_p%NT
         do k1 = 1, k2 - 1
-            if (abs(wlc_d%r(k1,1) - wlc_d%r(k2,1)) < wlc_p%collisionRadius &
-                    .and. abs(wlc_d%r(k1,2) - wlc_d%r(k2,2)) < wlc_p%collisionRadius &
-                    .and. abs(wlc_d%r(k1,3) - wlc_d%r(k2,3)) < wlc_p%collisionRadius) then
+            if (abs(wlc_d%r(1,k1) - wlc_d%r(1,k2)) < wlc_p%collisionRadius &
+                    .and. abs(wlc_d%r(2,k1) - wlc_d%r(2,k2)) < wlc_p%collisionRadius &
+                    .and. abs(wlc_d%r(3,k1) - wlc_d%r(3,k2)) < wlc_p%collisionRadius) then
                 col_state(k1, k2) = 1
             else
                 col_state(k1, k2) = 0

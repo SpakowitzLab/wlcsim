@@ -1,17 +1,13 @@
 !---------------------------------------------------------------!
-
 !
 !     This subroutine calculates the change in the self energy for
-!     a small Monte Carlo move in the position.
+!     a super reptation move.  That is a reptation move where the 
+!     chain identities change along with position so that middle
+!     beads appear not to change.
 !
-!     Andrew Spakowitz
-!     Written 6-29-04
-!
-!     Edited by Shifan
-!
-!     Edited by Quinn in 2016
-
-subroutine MC_int_rep(wlc_p,wlc_d,I1,I2,forward)
+!     Created from MC_int_rep by Quinn on 8/10/17
+!---------------------------------------------------------------
+subroutine MC_int_super_rep(wlc_p,wlc_d,I1,I2,forward)
 use params
 implicit none
 
@@ -52,15 +48,19 @@ do II = 1,2
   if (II.eq.1) then
       IB = I1
       if (forward) then
-          rrdr = -1
+          ! moving forward I1 is removed
+          rrdr = -1 
       else
+          ! moving backward I1 is added
           rrdr = 1
       endif
   elseif (II.eq.2) then
       IB = I2
       if (forward) then
+          ! moving forward I2 is added
           rrdr = 1
       else
+          ! moving forward I1 is removed
           rrdr = -1
       endif
   else
@@ -72,12 +72,13 @@ do II = 1,2
        RBin(1) = wlc_d%R(1,IB)
        RBin(2) = wlc_d%R(2,IB)
        RBin(3) = wlc_d%R(3,IB)
+       isA = wlc_d%AB(IB).eq.1
    else
        RBin(1) = wlc_d%RP(1,IB)
        RBin(2) = wlc_d%RP(2,IB)
        RBin(3) = wlc_d%RP(3,IB)
+       isA = wlc_d%ABP(IB).eq.1
    endif
-   isA = wlc_d%AB(IB).eq.1
    if (wlc_p%chi_l2_on .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
@@ -188,93 +189,12 @@ enddo ! loop over IB  A.k.a. beads
 
 !----------------------------------------------------------
 !
-!  Now do intermediate Beads
+!  Intermediate Beads Don't change field
 !
 !-----------------------------------------------------------
-do IB = I1,I2-1
-   if (wlc_d%AB(IB).eq.wlc_d%AB(IB + 1)) CYCLE
-   if (forward) then
-       RBin(1) = wlc_d%RP(1,IB)
-       RBin(2) = wlc_d%RP(2,IB)
-       RBin(3) = wlc_d%RP(3,IB)
-       isA = wlc_d%AB(IB).eq.1
-   else
-       RBin(1) = wlc_d%R(1,IB)
-       RBin(2) = wlc_d%R(2,IB)
-       RBin(3) = wlc_d%R(3,IB)
-       isA = wlc_d%AB(IB + 1).eq.1
-   endif
-   if(isA) then
-       AminusB=1
-   else
-       AminusB=-1
-   endif
-   ! --------------------------------------------------
-   !
-   !  Interpolate beads into bins
-   !
-   ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
 
-   if (wlc_p%chi_l2_on) then
-       if (forward) then
-           call Y2calc(wlc_d%UP(:,IB),phi2)
-       else
-           call Y2calc(wlc_d%U(:,IB),phi2)
-       endif
-   else
-       ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
-   endif
-   ! -------------------------------------------------------
-   !
-   ! Count beads in bins
-   !
-   ! ------------------------------------------------------
-   !   Add or Subtract volume fraction with weighting from each bin
-   do ISX = 1,2
-      if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
-      do ISY = 1,2
-         if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
-         do ISZ = 1,2
-            if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
-            WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-            ! Generate list of which phi's change and by how much
-            I = wlc_d%NPHI
-            do
-               if (I.eq.0) then
-                  wlc_d%NPHI = wlc_d%NPHI + 1
-                  wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
-                  wlc_d%DPHIA(wlc_d%NPHI) = temp
-                  wlc_d%DPHIB(wlc_d%NPHI) = -temp
-                  if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                              + phi2(m_plus3)*temp
-                      enddo
-                  endif
-                  exit
-               elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
-                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
-                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
-                  if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) &
-                              + phi2(m_plus3)*temp
-                      enddo
-                  endif
-                  exit
-               else
-                  I = I-1
-               endif
-            enddo
-         enddo
-      enddo
-   enddo
-enddo ! loop over IB  A.k.a. beads
+! ... skipping
+
 ! ---------------------------------------------------------------------
 !
 ! Calcualte change in energy

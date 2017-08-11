@@ -8,737 +8,83 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2,MCTYPE &
-                  ,MCAMP,WindoW,BPM,rand_stat,winType &
-                  ,IT3,IT4,forward,dib,ring,inTERP_BEAD_LENNARD_JONES &
-                  ,wlc_d)
-
+subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
 use mersenne_twister
-use params, only: dp, pi, wlcsim_data
-
+use params, only: dp, pi, wlcsim_data, wlcsim_params
 implicit none
 
-!type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(inout) :: wlc_d
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(NT,3)  ! Bead positions
-real(dp), intent(in) :: U(NT,3)  ! Tangent vectors
-real(dp), intent(out) :: RP(NT,3)  ! Bead positions
-real(dp), intent(out) :: UP(NT,3)  ! Tangent vectors
-integer, intent(in) :: BPM    ! Beads per monomer, aka G
-integer, intent(out) :: IP    ! Test polymer
-integer IP2   ! Second Test polymer if applicable
-integer, intent(out) :: IB1   ! Test bead position 1
-integer, intent(out) :: IT1   ! Index of test bead 1
-integer, intent(out) :: IB2   ! Test bead position 2
-integer, intent(out) :: IT2   ! Index of test bead 2
-integer, intent(out) :: IT3   ! Test bead position 3 if applicable
-integer, intent(out) :: IT4   ! Test bead position 4 if applicable
-integer, intent(out) :: dib   ! number of beads moved by move
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
-
-integer I,J  ! Test indices
-! Things for random number generator
-type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
-real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
-real(dp) TA(3)    ! Axis of rotation
-real(dp) P1(3)    ! Point on rotation line
-real(dp) MAG      ! Magnitude of vector
-real(dp) ROT(4,4) ! Rotation matrix
-
-real(dp) ALPHA    ! Angle of move
-real(dp) BETA     ! Angle of move
-
-!     MC adaptation variables
-
-integer, PARAMETER :: moveTypes = 10 ! Number of different move types
-real(dp), intent(in) :: MCAMP(moveTypes) ! Amplitude of random change
-integer, intent(in) :: MCTYPE            ! Type of MC move
-integer, intent(in) :: winType
-real(dp), intent(in) :: WindoW(moveTypes) ! Size of window for bead selection
-real(dp) DR(3)    ! Displacement for slide move
-integer TEMP
-
-! Variables for change of binding state move
-real(dp) d1,d2  !for testing
-
-! variables for reptation move
-real(dp) Uvec(3) ! parallel component of triad
-real(dp) pDir(3) ! perp component of triad
-real(dp) tDir(3) ! twist component of triad
-real(dp) r_relative(3) ! r in new coordinate system
-real(dp) u_relative(3) ! u in new coordinate system
+integer, intent(out) :: IT1, IT2, IT3, IT4, IP, IB1, IB2, dib
+integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
-
-!TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
-    P1 = 0.0_dp
-endif
-
-!     Perform crank-shaft move (MCTYPE 1)
-
-if (MCTYPE == 1) then
-
-   call random_number(urand,rand_stat)
-   IP = ceiling(urand(1)*NP)
-   IB1 = ceiling(urand(2)*NB)
-   ! IB2 = ceiling(urand(2)*NB)
-   ! instead of the above, we now choose only one random point and an
-   ! exponentially-sized window after that point to move around, to ensure that
-   ! small enough sections of chain are moved.
-   if (winType.eq.0) then
-       IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW(MCTYPE) + 1.0))
-   elseif (winType.eq.1.and..not.RinG) then
-       call random_number(urnd,rand_stat)
-       IB2 = IB1 + (2*nint(urand(3))-1)* &
-               nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
-   elseif (winType.eq.1.and.RinG) then
-       call random_number(urnd,rand_stat)
-       IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
-   endif
-
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-
-   DIB = IB2-IB1
-   if (RinG) then                    !Polymer is a ring
-      if (IB2 > NB) then
-         IB2 = DIB-(NB-IB1)
-      ENDif
-      IT2 = NB*(IP-1) + IB2
-      if (IB1 == IB2.AND.IB1 == 1) then
-         TA(1) = R(IT1 + 1,1)-R(NB*IP,1)
-         TA(2) = R(IT1 + 1,2)-R(NB*IP,2)
-         TA(3) = R(IT1 + 1,3)-R(NB*IP,3)
-      elseif (IB1 == IB2.AND.IB1 == NB) then
-         TA(1) = R(NB*(IP-1) + 1,1)-R(IT1-1,1)
-         TA(2) = R(NB*(IP-1) + 1,2)-R(IT1-1,2)
-         TA(3) = R(NB*(IP-1) + 1,3)-R(IT1-1,3)
-      elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= NB) then
-         TA(1) = R(IT1 + 1,1)-R(IT1-1,1)
-         TA(2) = R(IT1 + 1,2)-R(IT1-1,2)
-         TA(3) = R(IT1 + 1,3)-R(IT1-1,3)
-      else
-         TA(1) = R(IT2,1)-R(IT1,1)
-         TA(2) = R(IT2,2)-R(IT1,2)
-         TA(3) = R(IT2,3)-R(IT1,3)
-      endif
-   else                                 !Polymer is not a ring
-      if (IB2 > NB) then
-         IB2 = NB
-      elseif (IB2 < 1) then
-         IB2 = 1
-      endif
-      IT2 = NB*(IP-1) + IB2
-
-      if (IT1 > IT2) then
-         TEMP = IT1
-         IT1 = IT2
-         IT2 = TEMP
-         TEMP = IB1
-         IB1 = IB2
-         IB2 = TEMP
-      endif
-      DIB = IB2-IB1
-
-      if (IB1 == IB2.AND.IB1 == 1) then
-         TA(1) = R(IT1 + 1,1)-R(IT1,1)
-         TA(2) = R(IT1 + 1,2)-R(IT1,2)
-         TA(3) = R(IT1 + 1,3)-R(IT1,3)
-      elseif (IB1 == IB2.AND.IB1 == NB) then
-         TA(1) = R(NB*IP,1)-R(NB*IP-1,1)
-         TA(2) = R(NB*IP,2)-R(NB*IP-1,2)
-         TA(3) = R(NB*IP,3)-R(NB*IP-1,3)
-      elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= NB) then
-         TA(1) = R(IT1 + 1,1)-R(IT1-1,1)
-         TA(2) = R(IT1 + 1,2)-R(IT1-1,2)
-         TA(3) = R(IT1 + 1,3)-R(IT1-1,3)
-      else
-         TA(1) = R(IT2,1)-R(IT1,1)
-         TA(2) = R(IT2,2)-R(IT1,2)
-         TA(3) = R(IT2,3)-R(IT1,3)
-      endif
-   endif
-
-
-     MAG = sqrt(TA(1)**2. + TA(2)**2. + TA(3)**2.)
-     TA(1) = TA(1)/MAG
-     TA(2) = TA(2)/MAG
-     TA(3) = TA(3)/MAG
-     P1(1) = R(IT1,1)
-     P1(2) = R(IT1,2)
-     P1(3) = R(IT1,3)
-     call random_number(urand,rand_stat)
-     ALPHA = MCAMP(1)*(urand(1)-0.5)
-
-     ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-     ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-     ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-     ROT(1,4) = (P1(1)*(1.-TA(1)**2.) &
-          -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-
-     ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-     ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-     ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-     ROT(2,4) = (P1(2)*(1.-TA(2)**2.) &
-          -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-
-     ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-     ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-     ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-     ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
-          -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
-
-     I = IT1
-
-     do  J = 0,DIB
-        if (I == (NB*IP + 1).AND.RinG) then
-           I = NB*(IP-1) + 1
-        endif
-        RP(I,1) = ROT(1,4) + ROT(1,1)*R(I,1) + ROT(1,2)*R(I,2) + ROT(1,3)*R(I,3)
-        RP(I,2) = ROT(2,4) + ROT(2,1)*R(I,1) + ROT(2,2)*R(I,2) + ROT(2,3)*R(I,3)
-        RP(I,3) = ROT(3,4) + ROT(3,1)*R(I,1) + ROT(3,2)*R(I,2) + ROT(3,3)*R(I,3)
-        UP(I,1) = ROT(1,1)*U(I,1) + ROT(1,2)*U(I,2) + ROT(1,3)*U(I,3)
-        UP(I,2) = ROT(2,1)*U(I,1) + ROT(2,2)*U(I,2) + ROT(2,3)*U(I,3)
-        UP(I,3) = ROT(3,1)*U(I,1) + ROT(3,2)*U(I,2) + ROT(3,3)*U(I,3)
-        I = I + 1
-
-
-     ENDdo
-
-  !  ------begining testing---------
-  if(.false.) then
-      ! This is a code block for testing
-      if (abs(RP(IT1,1)-R(IT1,1)).gt.0.000001) then
-          print*, "error in crank-shaft move"
-          print*, RP(IT1,1), R(IT1,1)
-          stop 1
-      endif
-      if (abs(RP(IT2,1)-R(IT2,1)).gt.0.000001) then
-          print*, "error in crank-shaft move"
-          print*, RP(IT1,1), R(IT1,1)
-          stop 1
-      endif
-      if(IT1.ne.IT2) then
-          d1 = (R(IT1 + 1,1)-R(IT1,1))**2 + &
-             (R(IT1 + 1,2)-R(IT1,2))**2 + &
-             (R(IT1 + 1,3)-R(IT1,3))**2
-          d2 = (RP(IT1 + 1,1)-RP(IT1,1))**2 + &
-             (RP(IT1 + 1,2)-RP(IT1,2))**2 + &
-             (RP(IT1 + 1,3)-RP(IT1,3))**2
-          if (abs(d1-d2).gt.0.000001) then
-              print*, "error in crank-shaft move"
-              print*, "distance change in 1"
-              print*, "IT1",IT1," IT2",IT2
-              print*, d1,d2
-              stop 1
-          endif
-          d1 = (R(IT2-1,1)-R(IT2,1))**2 + &
-             (R(IT2-1,2)-R(IT2,2))**2 + &
-             (R(IT2-1,3)-R(IT2,3))**2
-          d2 = (RP(IT2-1,1)-RP(IT2,1))**2 + &
-             (RP(IT2-1,2)-RP(IT2,2))**2 + &
-             (RP(IT2-1,3)-RP(IT2,3))**2
-          if (abs(d1-d2).gt.0.000001) then
-              print*, "error in crank-shaft move"
-              print*, "distance change in 2"
-              print*, d1,d2
-              stop 1
-          endif
-      endif
-  endif
-  ! --------end testing--------
-
-!     Perform slide move (MCTYPE 2)
-
-elseif (MCTYPE == 2) then
-   call random_number(urand,rand_stat)
-   IP = ceiling(urand(1)*NP)
-   IB1 = ceiling(urand(2)*NB)
-   ! again, we use a window
-   if (winType.eq.0) then
-       IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW(MCTYPE) + 1.0))
-   elseif (winType.eq.1.and..not.RinG) then
-       call random_number(urnd,rand_stat)
-       IB2 = IB1 + (2*nint(urand(3))-1)* &
-               nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
-   elseif (winType.eq.1.and.RinG) then
-       call random_number(urnd,rand_stat)
-       IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
-
-   endif
-
-   DIB = IB2-IB1
-
-   if (RinG) then
-    if (IB2 > NB) then
-        IB2 = DIB-(NB-IB1)
-    endif
-   else
-    if (IB2 > NB) then
-        IB2 = NB
-    endif
-    if (IB2 < 1) then
-       IB2 = 1
-    endif
-    if (IB2 < IB1) then
-        TEMP = IB1
-        IB1 = IB2
-        IB2 = TEMP
-    endif
-    IT2 = NB*(IP-1) + IB2
-    DIB = IB2-IB1
-   endif
-
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-
-   call random_number(urand,rand_stat)
-   DR(1) = MCAMP(2)*(urand(1)-0.5)
-   DR(2) = MCAMP(2)*(urand(2)-0.5)
-   DR(3) = MCAMP(2)*(urand(3)-0.5)
-
-     I = IT1
-     do  J = 0,DIB
-
-        if (I == (NB*IP + 1).AND.RinG) then
-           I = NB*(IP-1) + 1
-        endif
-
-        RP(I,1) = R(I,1) + DR(1)
-        RP(I,2) = R(I,2) + DR(2)
-        RP(I,3) = R(I,3) + DR(3)
-        UP(I,1) = U(I,1)
-        UP(I,2) = U(I,2)
-        UP(I,3) = U(I,3)
-        I = I + 1
-
-     ENDdo
-! We don't have to protect moves 4-10 with if ring because the code is identical in both cases
-!     Perform pivot move (MCTYPE 3)
-
-elseif (MCTYPE == 3) then
-
-    call random_number(urnd,rand_stat)
-    IP = ceiling(urnd(1)*NP)
-    call random_number(urnd,rand_stat)
-    if (urnd(1).gt.0.5_dp) then
-        call random_number(urnd,rand_stat)
-        IB2 = nint(-1.0_dp*log(urnd(1))*WindoW(MCTYPE)) + 1
-        if (IB2 > NB) then
-            IB2 = NB
-        endif
-        IB1 = 1
-        IT1 = NB*(IP-1) + IB1
-        IT2 = NB*(IP-1) + IB2
-        P1(1) = R(IT2,1)
-        P1(2) = R(IT2,2)
-        P1(3) = R(IT2,3)
-    else
-        call random_number(urnd,rand_stat)
-        IB1 = NB-nint(-1.0_dp*log(urnd(1))*WindoW(MCTYPE))
-        if (IB1 < 1) then
-            IB1 = 1
-        endif
-        IB2 = NB
-        IT1 = NB*(IP-1) + IB1
-        IT2 = NB*(IP-1) + IB2
-        P1(1) = R(IT1,1)
-        P1(2) = R(IT1,2)
-        P1(3) = R(IT1,3)
-    endif
-
-   call random_number(urand,rand_stat)
-   ALPHA = 2.*PI*urand(1)
-   BETA = acos(2.*urand(2)-1.)
-   TA(1) = sin(BETA)*cos(ALPHA)
-   TA(2) = sin(BETA)*sin(ALPHA)
-   TA(3) = cos(BETA)
-
-   ALPHA = MCAMP(3)*(urand(3)-0.5)
-
-   ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-   ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-   ROT(1,4) = (P1(1)*(1.-TA(1)**2.) &
-   -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-
-   ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-   ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-   ROT(2,4) = (P1(2)*(1.-TA(2)**2.) &
-   -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-
-   ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-   ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-   ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-   ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
-   -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
-
-   do I = IT1,IT2
-      RP(I,1) = ROT(1,4) + ROT(1,1)*R(I,1) + ROT(1,2)*R(I,2) + ROT(1,3)*R(I,3)
-      RP(I,2) = ROT(2,4) + ROT(2,1)*R(I,1) + ROT(2,2)*R(I,2) + ROT(2,3)*R(I,3)
-      RP(I,3) = ROT(3,4) + ROT(3,1)*R(I,1) + ROT(3,2)*R(I,2) + ROT(3,3)*R(I,3)
-      UP(I,1) = ROT(1,1)*U(I,1) + ROT(1,2)*U(I,2) + ROT(1,3)*U(I,3)
-      UP(I,2) = ROT(2,1)*U(I,1) + ROT(2,2)*U(I,2) + ROT(2,3)*U(I,3)
-      UP(I,3) = ROT(3,1)*U(I,1) + ROT(3,2)*U(I,2) + ROT(3,3)*U(I,3)
-   enddo
-
-!     Perform rotate move (MCTYPE 4)
-!     a.k.a. rotate a single bead
-elseif (MCTYPE == 4) then
-
-   call random_number(urand,rand_stat)
-   IP = ceiling(urand(1)*NP)
-   IB1 = ceiling(urand(2)*NB)
-   IB2 = IB1
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-
-   call random_number(urand,rand_stat)
-   ALPHA = 2.*PI*urand(1)
-   BETA = acos(2.*urand(2)-1.)
-   TA(1) = sin(BETA)*cos(ALPHA)
-   TA(2) = sin(BETA)*sin(ALPHA)
-   TA(3) = cos(BETA)
-
-   ALPHA = MCAMP(4)*(urand(3)-0.5)
-
-   ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-   ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-   ROT(1,4) = 0.0
-
-   ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-   ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-   ROT(2,4) = 0.0
-
-   ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-   ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-   ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-   ROT(3,4) = 0.0
-
-   I = IT1
-   UP(I,1) = ROT(1,1)*U(I,1) + ROT(1,2)*U(I,2) + ROT(1,3)*U(I,3)
-   UP(I,2) = ROT(2,1)*U(I,1) + ROT(2,2)*U(I,2) + ROT(2,3)*U(I,3)
-   UP(I,3) = ROT(3,1)*U(I,1) + ROT(3,2)*U(I,2) + ROT(3,3)*U(I,3)
-   RP(I,1) = R(I,1)
-   RP(I,2) = R(I,2)
-   RP(I,3) = R(I,3)
-
-!     Perform a full chain rotation
-
-elseif (MCTYPE == 5) then
-
-    call random_number(urand,rand_stat)
-    IP = ceiling(urand(1)*NP)
-    IB1 = 1
-    IB2 = NB
-    IT1 = NB*(IP-1) + IB1
-    IT2 = NB*(IP-1) + IB2
-
-    ALPHA = 2.0_dp*PI*urand(2)
-    BETA = acos(2.0_dp*urand(3)-1.0_dp)
-    TA(1) = sin(BETA)*cos(ALPHA)
-    TA(2) = sin(BETA)*sin(ALPHA)
-    TA(3) = cos(BETA)
-
-    ! use ~central bead to put axes through
-    ! you could also use center of mass if you wanted
-    P1(1) = R((IT1 + IT2)/2,1)
-    P1(2) = R((IT1 + IT2)/2,2)
-    P1(3) = R((IT1 + IT2)/2,3)
-
-    call random_number(urnd,rand_stat)
-    ALPHA = MCAMP(5)*(urnd(1)-0.5)
-
-    ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-    ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-    ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-    ROT(1,4) = (P1(1)*(1.-TA(1)**2.) &
-    -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-
-    ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-    ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-    ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-    ROT(2,4) = (P1(2)*(1.-TA(2)**2.) &
-    -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-
-    ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-    ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-    ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-    ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
-    -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
-
-    do I = IT1,IT2
-       RP(I,1) = ROT(1,4) + ROT(1,1)*R(I,1) + ROT(1,2)*R(I,2) + ROT(1,3)*R(I,3)
-       RP(I,2) = ROT(2,4) + ROT(2,1)*R(I,1) + ROT(2,2)*R(I,2) + ROT(2,3)*R(I,3)
-       RP(I,3) = ROT(3,4) + ROT(3,1)*R(I,1) + ROT(3,2)*R(I,2) + ROT(3,3)*R(I,3)
-       UP(I,1) = ROT(1,1)*U(I,1) + ROT(1,2)*U(I,2) + ROT(1,3)*U(I,3)
-       UP(I,2) = ROT(2,1)*U(I,1) + ROT(2,2)*U(I,2) + ROT(2,3)*U(I,3)
-       UP(I,3) = ROT(3,1)*U(I,1) + ROT(3,2)*U(I,2) + ROT(3,3)*U(I,3)
-    enddo
-
-!     Perform full chain slide move (MCTYPE 6)
-elseif (MCTYPE == 6) then
-
-   call random_number(urnd,rand_stat)
-   IP = ceiling(urnd(1)*NP)
-   IB1 = 1
-   IB2 = NB
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-
-   call random_number(urand,rand_stat)
-   DR(1) = MCAMP(6)*(urand(1)-0.5_dp)
-   DR(2) = MCAMP(6)*(urand(2)-0.5_dp)
-   DR(3) = MCAMP(6)*(urand(3)-0.5_dp)
-
-   do I = IT1,IT2
-      RP(I,1) = R(I,1) + DR(1)
-      RP(I,2) = R(I,2) + DR(2)
-      RP(I,3) = R(I,3) + DR(3)
-      UP(I,1) = U(I,1)
-      UP(I,2) = U(I,2)
-      UP(I,3) = U(I,3)
-   enddo
-
-elseif (MCTYPE == 7) then
-   ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
-   ! Move amplitude is ignored for this move type
-
-   call random_number(urand,rand_stat)
-   IP = ceiling(urand(1)*NP)
-   IB1 = ceiling(urand(2)*NB)
-   call random_number(urnd,rand_stat)
-   IB2 = IB1 + (2*nint(urand(3))-1)* &
-           nint(-1.0*log(urnd(1))*WindoW(MCTYPE))
-
-   if (IB2 < 1) then
-      IB2 = 1
-   endif
-   if (IB2 > NB) then
-      IB2 = NB
-   endif
-
-   if (IB2 < IB1) then
-      TEMP = IB1
-      IB1 = IB2
-      IB2 = TEMP
-   endif
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-
-   !keep binding constant within monomers
-   IT1 = IT1-MOD(IT1-1,BPM)
-   IT2 = IT2-MOD(IT2-1,BPM) + BPM-1
-
-   do J = IT1,IT2
-       wlc_d%ABP(J) = 1-wlc_d%AB(J)
-   ENDdo
-
-   !This loop may not be necessary
-   do I = IT1,IT2
-      RP(I,1) = R(I,1)
-      RP(I,2) = R(I,2)
-      RP(I,3) = R(I,3)
-      UP(I,1) = U(I,1)
-      UP(I,2) = U(I,2)
-      UP(I,3) = U(I,3)
-   ENDdo
-
-! chain flip move
-elseif (MCTYPE == 8) then
-   call random_number(urand,rand_stat)
-   IP = ceiling(urand(1)*NP)
-   IB1 = 1
-   IB2 = NB
-   IT1 = NB*(IP-1) + IB1
-   IT2 = NB*(IP-1) + IB2
-   do I = 0,NB-1
-      RP(IT1 + I,1) = R(IT2-I,1)
-      RP(IT1 + I,2) = R(IT2-I,2)
-      RP(IT1 + I,3) = R(IT2-I,3)
-      UP(IT1 + I,1) = -U(IT2-I,1)
-      UP(IT1 + I,2) = -U(IT2-I,2)
-      UP(IT1 + I,3) = -U(IT2-I,3)
-   ENDdo
-! switch two chains
-elseif(MCTYPE == 9) then
-   call random_number(urnd,rand_stat)
-   IP = ceiling(urnd(1)*NP)
-   call random_number(urnd,rand_stat)
-   IP2 = ceiling(urnd(1)*NP)
-   ! Don't switch a chain with itself
-   if (IP.eq.IP2) then
-       IP2 = IP-1
-       if (IP2.eq.0) then
-           IP2 = 2
-       endif
-   endif
-   IT1 = NB*(IP-1) + 1
-   IT2 = NB*(IP-1) + NB
-   IT3 = NB*(IP2-1) + 1
-   IT4 = NB*(IP2-1) + NB
-   do I = 0,NB-1
-      RP(IT1 + I,1) = R(IT3 + I,1)
-      RP(IT1 + I,2) = R(IT3 + I,2)
-      RP(IT1 + I,3) = R(IT3 + I,3)
-      UP(IT1 + I,1) = U(IT3 + I,1)
-      UP(IT1 + I,2) = U(IT3 + I,2)
-      UP(IT1 + I,3) = U(IT3 + I,3)
-      RP(IT3 + I,1) = R(IT1 + I,1)
-      RP(IT3 + I,2) = R(IT1 + I,2)
-      RP(IT3 + I,3) = R(IT1 + I,3)
-      UP(IT3 + I,1) = U(IT1 + I,1)
-      UP(IT3 + I,2) = U(IT1 + I,2)
-      UP(IT3 + I,3) = U(IT1 + I,3)
-   ENDdo
-   IB1 = -2000000
-   IB2 = -2000000
-
-! single bead reptation
-elseif(MCTYPE == 10) then
-    call random_number(urnd,rand_stat)
-    IP = ceiling(urnd(1)*NP)
-    IT1 = NB*(IP-1) + 1
-    IT2 = NB*(IP-1) + NB
-    ! move forward or backward
-    call random_number(urnd,rand_stat)
-    if (urnd(1).lt.0.5_dp) then
-        forward = .true.
-        dR(1) = R(IT1 + 1,1)-R(IT1,1)
-        dR(2) = R(IT1 + 1,2)-R(IT1,2)
-        dR(3) = R(IT1 + 1,3)-R(IT1,3)
-
-        Uvec(1) = U(IT1,1); Uvec(2) = U(IT1,2); Uvec(3) = U(IT1,3)
-        ! chose coordinate system
-        call random_perp(Uvec,pDir,tDir,rand_stat)
-        ! find next r and u in new coordinate system
-        u_relative(1) = Uvec(1)*u(IT1 + 1,1) + &
-                      Uvec(2)*u(IT1 + 1,2) + &
-                      Uvec(3)*u(IT1 + 1,3)
-        u_relative(2) = pDir(1)*u(IT1 + 1,1) + &
-                      pDir(2)*u(IT1 + 1,2) + &
-                      pDir(3)*u(IT1 + 1,3)
-        u_relative(3) = tDir(1)*u(IT1 + 1,1) + &
-                      tDir(2)*u(IT1 + 1,2) + &
-                      tDir(3)*u(IT1 + 1,3)
-        r_relative(1) = Uvec(1)*dR(1) + &
-                      Uvec(2)*dR(2) + &
-                      Uvec(3)*dR(3)
-        r_relative(2) = pDir(1)*dR(1) + &
-                      pDir(2)*dR(2) + &
-                      pDir(3)*dR(3)
-        r_relative(3) = tDir(1)*dR(1) + &
-                      tDir(2)*dR(2) + &
-                      tDir(3)*dR(3)
-
-
-        ! orient coordinate system with end of chain
-        Uvec(1) = U(IT2,1); Uvec(2) = U(IT2,2); Uvec(3) = U(IT2,3)
-        call random_perp(Uvec,pDir,tDir,rand_stat)
-        ! update UP and RP
-        UP(IT2,1) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
-        UP(IT2,2) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
-        UP(IT2,3) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
-        mag = sqrt(UP(IT2,1)**2 + UP(IT2,2)**2 + UP(IT2,3)**2)
-        UP(IT2,1) = UP(IT2,1)/mag
-        UP(IT2,2) = UP(IT2,2)/mag
-        UP(IT2,3) = UP(IT2,3)/mag
-        RP(IT2,1) = R(IT2,1) + Uvec(1)*r_relative(1) + pDir(1)*r_relative(2) + tDir(1)*r_relative(3)
-        RP(IT2,2) = R(IT2,2) + Uvec(2)*r_relative(1) + pDir(2)*r_relative(2) + tDir(2)*r_relative(3)
-        RP(IT2,3) = R(IT2,3) + Uvec(3)*r_relative(1) + pDir(3)*r_relative(2) + tDir(3)*r_relative(3)
-
-        do I = IT1,IT2-1
-           RP(I,1) = R(I + 1,1)
-           RP(I,2) = R(I + 1,2)
-           RP(I,3) = R(I + 1,3)
-           UP(I,1) = U(I + 1,1)
-           UP(I,2) = U(I + 1,2)
-           UP(I,3) = U(I + 1,3)
-        enddo
-
-       ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
-       ! RparaMag = r_relative(1)
-       ! call test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
-
-    else
-        forward = .false.
-        dR(1) = R(IT2,1)-R(IT2-1,1)
-        dR(2) = R(IT2,2)-R(IT2-1,2)
-        dR(3) = R(IT2,3)-R(IT2-1,3)
-
-
-        Uvec(1) = U(IT2,1); Uvec(2) = U(IT2,2); Uvec(3) = U(IT2,3)
-        ! chose coordinate system
-        call random_perp(Uvec,pDir,tDir,rand_stat)
-        ! find next r and u in new coordinate system
-        u_relative(1) = Uvec(1)*u(IT2-1,1) + &
-                      Uvec(2)*u(IT2-1,2) + &
-                      Uvec(3)*u(IT2-1,3)
-        u_relative(2) = pDir(1)*u(IT2-1,1) + &
-                      pDir(2)*u(IT2-1,2) + &
-                      pDir(3)*u(IT2-1,3)
-        u_relative(3) = tDir(1)*u(IT2-1,1) + &
-                      tDir(2)*u(IT2-1,2) + &
-                      tDir(3)*u(IT2-1,3)
-        r_relative(1) = Uvec(1)*dR(1) + &
-                      Uvec(2)*dR(2) + &
-                      Uvec(3)*dR(3)
-        r_relative(2) = pDir(1)*dR(1) + &
-                      pDir(2)*dR(2) + &
-                      pDir(3)*dR(3)
-        r_relative(3) = tDir(1)*dR(1) + &
-                      tDir(2)*dR(2) + &
-                      tDir(3)*dR(3)
-
-        ! orient coordinate system with end of chain
-        Uvec(1) = U(IT1,1); Uvec(2) = U(IT1,2); Uvec(3) = U(IT1,3)
-        call random_perp(Uvec,pDir,tDir,rand_stat)
-        ! update UP and RP
-        UP(IT1,1) = Uvec(1)*u_relative(1) + pDir(1)*u_relative(2) + tDir(1)*u_relative(3)
-        UP(IT1,2) = Uvec(2)*u_relative(1) + pDir(2)*u_relative(2) + tDir(2)*u_relative(3)
-        UP(IT1,3) = Uvec(3)*u_relative(1) + pDir(3)*u_relative(2) + tDir(3)*u_relative(3)
-        mag = sqrt(UP(IT1,1)**2 + UP(IT1,2)**2 + UP(IT1,3)**2)
-        UP(IT1,1) = UP(IT1,1)/mag
-        UP(IT1,2) = UP(IT1,2)/mag
-        UP(IT1,3) = UP(IT1,3)/mag
-        RP(IT1,1) = R(IT1,1)-Uvec(1)*r_relative(1)-pDir(1)*r_relative(2)-tDir(1)*r_relative(3)
-        RP(IT1,2) = R(IT1,2)-Uvec(2)*r_relative(1)-pDir(2)*r_relative(2)-tDir(2)*r_relative(3)
-        RP(IT1,3) = R(IT1,3)-Uvec(3)*r_relative(1)-pDir(3)*r_relative(2)-tDir(3)*r_relative(3)
-
-        do I = IT1 + 1,IT2
-           RP(I,1) = R(I-1,1)
-           RP(I,2) = R(I-1,2)
-           RP(I,3) = R(I-1,3)
-           UP(I,1) = U(I-1,1)
-           UP(I,2) = U(I-1,2)
-           UP(I,3) = U(I-1,3)
-        enddo
-    endif
-endif
-
+type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
+
+
+type(wlcsim_params), intent(in) :: wlc_p
+type(wlcsim_data), intent(inout) :: wlc_d
+
+select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
+case(1) 
+call MC_crank(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
+       ,dib,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(2)
+call MC_slide(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
+       ,dib,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(3)
+call MC_pivot(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
+       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(4)
+call MC_rotate(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),rand_stat &
+       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(5)
+call MC_fullChainRotation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB&
+       ,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),rand_stat &
+       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(6)
+call MC_fullChainSlide(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB&
+       ,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),rand_stat &
+       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(7)
+call MC_chemMove(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,wlc_p%NT&
+       ,wlc_p%NB,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%Window(MCTYPE),wlc_p%nBPM,rand_stat &
+       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(8)
+case(9)
+call MC_chainSwap(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
+        wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
+       ,rand_stat &
+       ,IT3,IT4,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(10)
+call MC_reptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
+        wlc_p%NP,IP,IT1,IT2&
+       ,rand_stat &
+       ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+case(11)
+call MC_superReptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
+        ,wlc_p%NT,wlc_p%NB,wlc_p%NP,IP,IT1,IT2,rand_stat &
+       ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+end select 
 RETURN
 END
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
-use params, only: dp
+use params, only: dp, eps
 implicit none
 ! inputs
 integer NT,IT1,IT2
-real(dp) R(NT,3)  ! Bead positions
-real(dp) U(NT,3)  ! Tangent vectors
-real(dp) RP(NT,3)  ! Bead positions
-real(dp) UP(NT,3)  ! Tangent vectors
+real(dp) R(3,NT)  ! Bead positions
+real(dp) U(3,NT)  ! Tangent vectors
+real(dp) RP(3,NT)  ! Bead positions
+real(dp) UP(3,NT)  ! Tangent vectors
 real(dp) RparaMag, RperpMag
 
 !defined
@@ -752,39 +98,39 @@ real(dp) GIOld(3)
 real(dp) Ginew(3)
 Eta = 1.89756278_dp
 
-drOld(1) = R(IT1 + 1,1)-R(IT1,1)
-drOld(2) = R(IT1 + 1,2)-R(IT1,2)
-drOld(3) = R(IT1 + 1,3)-R(IT1,3)
-DRPAROld = DROld(1)*U(IT1,1) + DROld(2)*U(IT1,2) + DROld(3)*U(IT1,3)
-drNew(1) = RP(IT2,1)-RP(IT2-1,1)
-drNew(2) = RP(IT2,2)-RP(IT2-1,2)
-drNew(3) = RP(IT2,3)-RP(IT2-1,3)
-DRPARNew = DRNew(1)*UP(IT2-1,1) + &
-         DRNew(2)*UP(IT2-1,2) + &
-         DRNew(3)*UP(IT2-1,3)
+drOld(1) = R(1,IT1 + 1)-R(1,IT1)
+drOld(2) = R(2,IT1 + 1)-R(2,IT1)
+drOld(3) = R(3,IT1 + 1)-R(3,IT1)
+DRPAROld = DROld(1)*U(1,IT1) + DROld(2)*U(2,IT1) + DROld(3)*U(3,IT1)
+drNew(1) = RP(1,IT2)-RP(1,IT2-1)
+drNew(2) = RP(2,IT2)-RP(2,IT2-1)
+drNew(3) = RP(3,IT2)-RP(3,IT2-1)
+DRPARNew = DRNew(1)*UP(1,IT2-1) + &
+         DRNew(2)*UP(2,IT2-1) + &
+         DRNew(3)*UP(3,IT2-1)
 if (abs(drOld(1)**2 + drOld(2)**2 + drOld(3)**2&
-      -(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)).gt.0.000001) then
+      -(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)).gt.eps) then
       print*, "drOld",drOld, " mag^2 = ",drOld(1)**2 + drOld(2)**2 + drOld(3)**2
       print*, "drNew",drNew, " mag^2 = ",drNew(1)**2 + drNew(2)**2 + drNew(3)**2
       print*, "Difference detected in test_equiv, 0"
       stop 1
 endif
 
-if (abs(drParOld-drParNew).gt.0.0000001_dp) then
+if (abs(drParOld-drParNew).gt.eps) then
     print*, "DRParOld",DRParOld,"DRParNew",DRParNew
     print*, "Difference detected in test_equiv, 1"
     stop 1
 endif
 
-drPerpOld(1) = drOld(1)-drParOld*U(IT1,1)
-drPerpOld(2) = drOld(2)-drParOld*U(IT1,2)
-drPerpOld(3) = drOld(3)-drParOld*U(IT1,3)
-drPerpNew(1) = drNew(1)-drParNew*UP(IT2-1,1)
-drPerpNew(2) = drNew(2)-drParNew*UP(IT2-1,2)
-drPerpNew(3) = drNew(3)-drParNew*UP(IT2-1,3)
+drPerpOld(1) = drOld(1)-drParOld*U(1,IT1)
+drPerpOld(2) = drOld(2)-drParOld*U(2,IT1)
+drPerpOld(3) = drOld(3)-drParOld*U(3,IT1)
+drPerpNew(1) = drNew(1)-drParNew*UP(1,IT2-1)
+drPerpNew(2) = drNew(2)-drParNew*UP(2,IT2-1)
+drPerpNew(3) = drNew(3)-drParNew*UP(3,IT2-1)
 
 if (abs(drPerpOld(1)**2 + drPerpOld(2)**2 + drPerpOld(3)**2 &
-      -(drPerpNew(1)**2 + drPerpNew(2)**2 + drPerpNew(3)**2)).gt.0.000001_dp) then
+      -(drPerpNew(1)**2 + drPerpNew(2)**2 + drPerpNew(3)**2)).gt.eps) then
   print*, "drOld",sqrt(drOld(1)**2 + drOld(2)**2 + drOld(3)**2)
   print*, "drNew",sqrt(drNew(1)**2 + drNew(2)**2 + drNew(3)**2)
   print*, "dRparOld",dRparOld,"dRparNew",drParNew
@@ -795,15 +141,15 @@ if (abs(drPerpOld(1)**2 + drPerpOld(2)**2 + drPerpOld(3)**2 &
   stop 1
 endif
 
-GIOld(1) = U(IT1 + 1,1)-U(IT1,1)-Eta*dRperpOld(1)
-GIOld(2) = U(IT1 + 1,2)-U(IT1,2)-Eta*dRperpOld(2)
-GIOld(3) = U(IT1 + 1,3)-U(IT1,3)-Eta*dRperpOld(3)
-Ginew(1) = UP(IT2,1)-UP(IT2-1,1)-Eta*dRperpNew(1)
-Ginew(2) = UP(IT2,2)-UP(IT2-1,2)-Eta*dRperpNew(2)
-Ginew(3) = UP(IT2,3)-UP(IT2-1,3)-Eta*dRperpNew(3)
+GIOld(1) = U(1,IT1 + 1)-U(1,IT1)-Eta*dRperpOld(1)
+GIOld(2) = U(2,IT1 + 1)-U(2,IT1)-Eta*dRperpOld(2)
+GIOld(3) = U(3,IT1 + 1)-U(3,IT1)-Eta*dRperpOld(3)
+Ginew(1) = UP(1,IT2)-UP(1,IT2-1)-Eta*dRperpNew(1)
+Ginew(2) = UP(2,IT2)-UP(2,IT2-1)-Eta*dRperpNew(2)
+Ginew(3) = UP(3,IT2)-UP(3,IT2-1)-Eta*dRperpNew(3)
 
 if (abs(GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2&
-      -(Ginew(1)**2 + Ginew(2)**2 + Ginew(3)**2)).gt.0.000001_dp) then
+      -(Ginew(1)**2 + Ginew(2)**2 + Ginew(3)**2)).gt.eps) then
   print*, "Difference detected in test_equiv, 3"
   print*, "GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2", &
            GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2
@@ -820,7 +166,7 @@ subroutine random_perp(u,p,t,rand_stat)
 ! The output vectors, p and t, are perpendicular to eachother and u
 ! The triad is randomly left or right handed
 use mersenne_twister
-use params, only: dp
+use params, only: dp, eps
 implicit none
 real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
 type(random_stat) rand_stat  ! status of random number generator
@@ -832,7 +178,7 @@ real(dp), intent(out) :: p(3) ! output: random perpendicular to u
 real(dp), intent(out) :: t(3) ! orthogonal to p and u
 real(dp) f
 
-if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt. 0.0000001_dp) then
+if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt.eps) then
     print*, u
     print*, "Error in random_perp, please give me a unit vector"
     stop 1

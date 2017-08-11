@@ -8,7 +8,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
 
 
   integer, intent(in) :: N                 ! Number of beads
-  real(dp), intent(in) :: R(N,3)  ! PositionS
+  real(dp), intent(in) :: R(3,N)  ! PositionS
   !Geometric variables
   real(dp)  r1(3)                  ! Position bead 1
   real(dp)  r2(3)                  ! Position bead 2
@@ -84,14 +84,14 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
 
            !Calculate Gauss integeral between outer segment and inner segment
 
-           r2 = R(IO,:)
-           r1 = R(II,:)
+           r2 = R(:,IO)
+           r1 = R(:,II)
            r12 = r2-r1
 
-           s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-           s1 = SQRT(SUM((R(IP1,:)-R(II,:))**2))
-           e2 = (R(JP1,:)-R(IO,:))/s2
-           e1 = (R(IP1,:)-R(II,:))/s1
+           s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+           s1 = SQRT(SUM((R(:,IP1)-R(:,II))**2))
+           e2 = (R(:,JP1)-R(:,IO))/s2
+           e1 = (R(:,IP1)-R(:,II))/s1
 
            CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
            !Writhe = 0 between segments in plane (dWr = NaN)
@@ -109,15 +109,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
 
               !Calculate Gauss integeral between outer segment and first stretched segment
 
-              r2 = R(IO,:)
-              r1 = R(IS1,:)
+              r2 = R(:,IO)
+              r1 = R(:,IS1)
 
               r12 = r2-r1
 
-              s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-              s1 = SQRT(SUM((R(IS1P1,:)-R(IS1,:))**2))
-              e2 = (R(JP1,:)-R(IO,:))/s2
-              e1 = (R(IS1P1,:)-R(IS1,:))/s1
+              s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+              s1 = SQRT(SUM((R(:,IS1P1)-R(:,IS1))**2))
+              e2 = (R(:,JP1)-R(:,IO))/s2
+              e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
               CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
               !Writhe = 0 between segments in plane (dWr = NaN)
@@ -132,15 +132,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
               Wr = Wr + dWr
 
               !Calculate Gauss integeral between outer segment and second stretched segment
-              r2 = R(IO,:)
-              r1 = R(IS2,:)
+              r2 = R(:,IO)
+              r1 = R(:,IS2)
 
               r12 = r2-r1
 
-              s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-              s1 = SQRT(SUM((R(IS2P1,:)-R(IS2,:))**2))
-              e2 = (R(JP1,:)-R(IO,:))/s2
-              e1 = (R(IS2P1,:)-R(IS2,:))/s1
+              s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+              s1 = SQRT(SUM((R(:,IS2P1)-R(:,IS2))**2))
+              e2 = (R(:,JP1)-R(:,IO))/s2
+              e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
               CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
               !Writhe = 0 between segments in plane (dWr = NaN)
@@ -162,15 +162,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
 
         !Calculate Gauss integral between inner segment and first stretched segment
 
-        r2 = R(II,:)
-        r1 = R(IS1,:)
+        r2 = R(:,II)
+        r1 = R(:,IS1)
 
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(IP1,:)-R(II,:))**2))
-        s1 = SQRT(SUM((R(IS1P1,:)-R(IS1,:))**2))
-        e2 = (R(IP1,:)-R(II,:))/s2
-        e1 = (R(IS1P1,:)-R(IS1,:))/s1
+        s2 = SQRT(SUM((R(:,IP1)-R(:,II))**2))
+        s1 = SQRT(SUM((R(:,IS1P1)-R(:,IS1))**2))
+        e2 = (R(:,IP1)-R(:,II))/s2
+        e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
@@ -185,15 +185,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         Wr = Wr + dWr
 
         !Calculate Gauss integral between inner segment and second stretched segment
-        r2 = R(II,:)
-        r1 = R(IS2,:)
+        r2 = R(:,II)
+        r1 = R(:,IS2)
 
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(IP1,:)-R(II,:))**2))
-        s1 = SQRT(SUM((R(IS2P1,:)-R(IS2,:))**2))
-        e2 = (R(IP1,:)-R(II,:))/s2
-        e1 = (R(IS2P1,:)-R(IS2,:))/s1
+        s2 = SQRT(SUM((R(:,IP1)-R(:,II))**2))
+        s1 = SQRT(SUM((R(:,IS2P1)-R(:,IS2))**2))
+        e2 = (R(:,IP1)-R(:,II))/s2
+        e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
@@ -211,15 +211,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
   ENDif
 
   ! calculate Gauss integral  between two stretched segments
-  r2 = R(IS2,:)
-  r1 = R(IS1,:)
+  r2 = R(:,IS2)
+  r1 = R(:,IS1)
 
   r12 = r2-r1
 
-  s2 = SQRT(SUM((R(IS2P1,:)-R(IS2,:))**2))
-  s1 = SQRT(SUM((R(IS1P1,:)-R(IS1,:))**2))
-  e2 = (R(IS2P1,:)-R(IS2,:))/s2
-  e1 = (R(IS1P1,:)-R(IS1,:))/s1
+  s2 = SQRT(SUM((R(:,IS2P1)-R(:,IS2))**2))
+  s1 = SQRT(SUM((R(:,IS1P1)-R(:,IS1))**2))
+  e2 = (R(:,IS2P1)-R(:,IS2))/s2
+  e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
   CALL  GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
   !Writhe = 0 between segments in plane (dWr = NaN)
@@ -254,15 +254,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
 
         !Calculate Gauss integeral between outer segment and first stretched segment
 
-        r2 = R(IO,:)
-        r1 = R(IS1,:)
+        r2 = R(:,IO)
+        r1 = R(:,IS1)
 
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-        s1 = SQRT(SUM((R(IS1P1,:)-R(IS1,:))**2))
-        e2 = (R(JP1,:)-R(IO,:))/s2
-        e1 = (R(IS1P1,:)-R(IS1,:))/s1
+        s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+        s1 = SQRT(SUM((R(:,IS1P1)-R(:,IS1))**2))
+        e2 = (R(:,JP1)-R(:,IO))/s2
+        e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
@@ -278,15 +278,15 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         Wr = Wr + dWr
 
         !Calculate Gauss integeral between outer segment and second stretched segment
-        r2 = R(IO,:)
-        r1 = R(IS2,:)
+        r2 = R(:,IO)
+        r1 = R(:,IS2)
 
         r12 = r2-r1
 
-        s2 = SQRT(SUM((R(JP1,:)-R(IO,:))**2))
-        s1 = SQRT(SUM((R(IS2P1,:)-R(IS2,:))**2))
-        e2 = (R(JP1,:)-R(IO,:))/s2
-        e1 = (R(IS2P1,:)-R(IS2,:))/s1
+        s2 = SQRT(SUM((R(:,JP1)-R(:,IO))**2))
+        s1 = SQRT(SUM((R(:,IS2P1)-R(:,IS2))**2))
+        e2 = (R(:,JP1)-R(:,IO))/s2
+        e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
         CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)

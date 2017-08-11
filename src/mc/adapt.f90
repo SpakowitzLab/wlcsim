@@ -14,16 +14,11 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     TYPE(wlcsim_data), intent(inout) :: wlc_d
     integer, intent(in) :: MCTYPE   ! Type of move
 
-    ! Correct for turned down poor moves
-    if ((wlc_d%PHit(MCTYPE).lt.wlc_p%Min_ACCEPT).and. &
-        ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
-        wlc_d%SUCCESS(MCTYPE) = wlc_d%SUCCESS(MCTYPE)*wlc_p%reduce_move
-    endif
-
 !   Change the position if appropriate
-    wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE))/real(wlc_p%NADAPT(MCTYPE))
+    wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE))/real(wlc_d%ATTEMPTS(MCTYPE))
 
     wlc_d%SUCCESS(MCTYPE) = 0
+    wlc_d%ATTEMPTS(MCTYPE) = 0
 
     if ((MCTYPE.eq.8).or.(MCTYPE.eq.9)) then
         return

@@ -63,7 +63,10 @@ LBOX 10.
 
 # which algorithm to use to initialize bead positions before initialization
 # monte carlo. 7 -> directly sample analogous gaussian chain
-initCondType 7
+initCondType randomWalkWithBoundary
+#DOESN'T WORK FOR BD!
+confineType sphere
+confinementParameter1 200
 
 # l1 distance triggering a "collision" between beads
 collisionRadius        0.1

@@ -44,8 +44,8 @@ if (save_ind == 1) then
     ! perform initialization mc if applicable
     !brown always true
     call InitializeEnergiesForVerifier(wlc_p, wlc_d)
-    allocate(R0(wlc_p%NT,3))
-    allocate(U0(wlc_p%NT,3))
+    allocate(R0(3,wlc_p%NT))
+    allocate(U0(3,wlc_p%NT))
 endif
 
 call MCsim(wlc_p, wlc_d, wlc_p%stepsPerSave)

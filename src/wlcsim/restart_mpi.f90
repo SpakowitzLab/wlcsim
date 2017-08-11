@@ -151,7 +151,7 @@ subroutine pt_restart(wlc_p,wlc_d)
            print*, "Problem while reading R, Possible incomplete file"
            stop 1
        endif
-       read(5,*) wlc_d%R(I,1),wlc_d%R(I,2),wlc_d%R(I,3),wlc_d%AB(I)
+       read(5,*) wlc_d%R(1,I),wlc_d%R(2,I),wlc_d%R(3,I),wlc_d%AB(I)
     enddo
     close(5)
 
@@ -164,11 +164,11 @@ subroutine pt_restart(wlc_p,wlc_d)
     ! read U from file
     open (unit = 5, file = iostrg, status = 'OLD')
     do I = 1,wlc_p%NT
-       read(5,*) wlc_d%U(I,1),wlc_d%U(I,2),wlc_d%U(I,3)
-       mag = sqrt(wlc_d%U(I,1)**2 + wlc_d%U(I,2)**2 + wlc_d%U(I,3)**2)
-       wlc_d%U(I,1) = wlc_d%U(I,1)/mag
-       wlc_d%U(I,2) = wlc_d%U(I,2)/mag
-       wlc_d%U(I,3) = wlc_d%U(I,3)/mag
+       read(5,*) wlc_d%U(1,I),wlc_d%U(2,I),wlc_d%U(3,I)
+       mag = sqrt(wlc_d%U(1,I)**2 + wlc_d%U(2,I)**2 + wlc_d%U(3,I)**2)
+       wlc_d%U(1,I) = wlc_d%U(1,I)/mag
+       wlc_d%U(2,I) = wlc_d%U(2,I)/mag
+       wlc_d%U(3,I) = wlc_d%U(3,I)/mag
     enddo
     close(5)
 

@@ -10,9 +10,9 @@
       subroutine force_ponp(FPONP,R,NT,N,NP,LHC,VHC,LBOX,GAM,DT,XIR,SWDT) 
       use params, only : dp
       implicit none
-      real(dp) R(NT,3)   ! Bead positions
+      real(dp) R(3,NT)   ! Bead positions
       integer N,NT,NP            ! Current number of beads
-      real(dp) FPONP(NT,3) ! Self-interaction force
+      real(dp) FPONP(3,NT) ! Self-interaction force
       real(dp) FMAG     ! Mag of force
       real(dp) RIJ      ! Interbead dist
       real(dp) EIJ(3)   ! Interbead unit vector
@@ -49,9 +49,9 @@
       IB1 = 1
       do 10 I1 = 1,NP
          do 20 J1 = 1,N
-            FPONP(IB1,1) = 0.
-            FPONP(IB1,2) = 0.
-            FPONP(IB1,3) = 0.
+            FPONP(1,IB1) = 0.
+            FPONP(2,IB1) = 0.
+            FPONP(3,IB1) = 0.
             IB1 = IB1 + 1
  20      continue
  10   continue
@@ -64,26 +64,26 @@
             do 50 I2 = (I1 + 1),NP
                do 60 J2 = 1,(N-1)
                   IB2 = J2 + N*(I2-1)
-                  R12(1) = R(IB2,1)-R(IB1,1)
-                  R12(2) = R(IB2,2)-R(IB1,2)
-                  R12(3) = R(IB2,3)-R(IB1,3)
+                  R12(1) = R(1,IB2)-R(1,IB1)
+                  R12(2) = R(2,IB2)-R(2,IB1)
+                  R12(3) = R(3,IB2)-R(3,IB1)
 
                   D12 = sqrt(R12(1)**2. + R12(2)**2. + R12(3)**2.)
                   if (D12 > (3.*GAM)) then
                      goto 70
                   endif
 
-                  U1(1) = R(IB1 + 1,1)-R(IB1,1)
-                  U1(2) = R(IB1 + 1,2)-R(IB1,2)
-                  U1(3) = R(IB1 + 1,3)-R(IB1,3)
+                  U1(1) = R(1,IB1 + 1)-R(1,IB1)
+                  U1(2) = R(2,IB1 + 1)-R(2,IB1)
+                  U1(3) = R(3,IB1 + 1)-R(3,IB1)
                   D1 = sqrt(U1(1)**2. + U1(2)**2. + U1(3)**2.)
                   U1(1) = U1(1)/D1
                   U1(2) = U1(2)/D1
                   U1(3) = U1(3)/D1
 
-                  U2(1) = R(IB2 + 1,1)-R(IB2,1)
-                  U2(2) = R(IB2 + 1,2)-R(IB2,2)
-                  U2(3) = R(IB2 + 1,3)-R(IB2,3)
+                  U2(1) = R(1,IB2 + 1)-R(1,IB2)
+                  U2(2) = R(2,IB2 + 1)-R(2,IB2)
+                  U2(3) = R(3,IB2 + 1)-R(3,IB2)
                   D2 = sqrt(U2(1)**2. + U2(2)**2. + U2(3)**2.)
                   U2(1) = U2(1)/D2
                   U2(2) = U2(2)/D2
@@ -134,18 +134,18 @@
                      SWDT = 1
                   endif
 
-                  FPONP(IB1,1) = FPONP(IB1,1) + FMAG*E12(1)*(-1. + S1/D1)
-                  FPONP(IB1,2) = FPONP(IB1,2) + FMAG*E12(2)*(-1. + S1/D1)
-                  FPONP(IB1,3) = FPONP(IB1,3) + FMAG*E12(3)*(-1. + S1/D1)
-                  FPONP(IB1 + 1,1) = FPONP(IB1 + 1,1) + FMAG*E12(1)*(-S1/D1)
-                  FPONP(IB1 + 1,2) = FPONP(IB1 + 1,2) + FMAG*E12(2)*(-S1/D1)
-                  FPONP(IB1 + 1,3) = FPONP(IB1 + 1,3) + FMAG*E12(3)*(-S1/D1)
-                  FPONP(IB2,1) = FPONP(IB2,1) + FMAG*E12(1)*(1.-S2/D2)
-                  FPONP(IB2,2) = FPONP(IB2,2) + FMAG*E12(2)*(1.-S2/D2)
-                  FPONP(IB2,3) = FPONP(IB2,3) + FMAG*E12(3)*(1.-S2/D2)
-                  FPONP(IB2 + 1,1) = FPONP(IB2 + 1,1) + FMAG*E12(1)*(S2/D2)
-                  FPONP(IB2 + 1,2) = FPONP(IB2 + 1,2) + FMAG*E12(2)*(S2/D2)
-                  FPONP(IB2 + 1,3) = FPONP(IB2 + 1,3) + FMAG*E12(3)*(S2/D2)
+                  FPONP(1,IB1) = FPONP(1,IB1) + FMAG*E12(1)*(-1. + S1/D1)
+                  FPONP(2,IB1) = FPONP(2,IB1) + FMAG*E12(2)*(-1. + S1/D1)
+                  FPONP(3,IB1) = FPONP(3,IB1) + FMAG*E12(3)*(-1. + S1/D1)
+                  FPONP(1,IB1 + 1) = FPONP(1,IB1 + 1) + FMAG*E12(1)*(-S1/D1)
+                  FPONP(2,IB1 + 1) = FPONP(2,IB1 + 1) + FMAG*E12(2)*(-S1/D1)
+                  FPONP(3,IB1 + 1) = FPONP(3,IB1 + 1) + FMAG*E12(3)*(-S1/D1)
+                  FPONP(1,IB2) = FPONP(1,IB2) + FMAG*E12(1)*(1.-S2/D2)
+                  FPONP(2,IB2) = FPONP(2,IB2) + FMAG*E12(2)*(1.-S2/D2)
+                  FPONP(3,IB2) = FPONP(3,IB2) + FMAG*E12(3)*(1.-S2/D2)
+                  FPONP(1,IB2 + 1) = FPONP(1,IB2 + 1) + FMAG*E12(1)*(S2/D2)
+                  FPONP(2,IB2 + 1) = FPONP(2,IB2 + 1) + FMAG*E12(2)*(S2/D2)
+                  FPONP(3,IB2 + 1) = FPONP(3,IB2 + 1) + FMAG*E12(3)*(S2/D2)
 
  70               continue
  60            continue

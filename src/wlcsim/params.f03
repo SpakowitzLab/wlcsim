@@ -22,7 +22,7 @@ module params
 
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
-    integer, parameter :: nMoveTypes = 10
+    integer, parameter :: nMoveTypes = 11
 
     !!!     arbitrary technical choices
     ! used for all character buffers holding filenames
@@ -34,10 +34,12 @@ module params
     integer, parameter :: MAX_LOG10_SAVES = 10
     ! format string to use for num2str(save_ind)
     character(5), parameter :: num2strFormatString = '(I10)'
+    real(dp), parameter :: HUGE_ENERGY = 9990000.0_dp
+    real(dp), parameter :: eps = 0.00000001_dp
 
     !!!     universal constants
     ! fully accurate, adaptive precision
-    real(dp) :: pi = 4 * atan(1.0_dp)
+    real(dp), parameter :: pi = 4 * atan(1.0_dp)
     real(dp) :: nan
     ! ! won't get optimized away by compiler, see e.g.
     ! ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680
@@ -50,6 +52,8 @@ module params
     ! real(dp) :: inf = -log(one - one)
     ! the following would be preferred, but generated compilation errors...
     !real(dp) :: inf = ieee_value(inf, ieee_positive_inf)
+    real(dp) :: max_wlc_l0 = 0.01
+    real(dp) :: max_sswlc_delta = 10.0
 
     ! for all parameters that cannot change during individual simulations
     ! these are documented more thoroughly where they are read in (see the
@@ -70,7 +74,7 @@ module params
         real(dp) l  ! length of each polymer in simulation
         real(dp) lp       ! persistence length
         real(dp) lt       ! twist persistence length
-        real(dp) l0       ! Equilibrium segment length (same as gam)
+        real(dp) l0       ! Path length between beads. (meaning unknown for gaussian chain?)
         real(dp) beadVolume        ! Bead volume
         real(dp) fPoly    ! volume fraction of Polymer in simulation volume
         real(dp) fA       ! Fraction of A beads
@@ -87,6 +91,7 @@ module params
         real(dp) eps      ! number of kuhn lengths between beads
         real(dp) del      ! number of persistence lengths between beads
         real(dp) chi      ! Chi parameter value (solvent-polymer) (Flory-Huggins separation constant (how much A/B's hate each))
+        real(dp) chi_l2   ! maier saupe parameter (possibly multiplied by 4pi or something like that)
         real(dp) kap      ! Incompressibility parameter of the melt
         real(dp) collisionRadius ! radius triggering collisions to be recorded in "coltimes"
         real(dp) lhc    !TOdo something to do with intrapolymer interaction strength
@@ -105,15 +110,15 @@ module params
         real(dp) LAM_METH ! eigenvalue of transition matrix generating initial methalation
         real(dp) mu       ! chemical potential of HP1
 
-    !   box size things
+    !   boundary/box things
         integer NBin     ! Number of bins
         integer NBinX(3) ! Number of MC bins on an edge
         integer nColBin  ! Number of collision-detection bins on each edge
         real(dp) lbox(3)  ! monte carlo field bin total box length (approximate)
         real(dp) dbin      ! monte carlo field bin discretization size (approximate)
+        real(dp) confinementParameter(3)
 
     !   Monte Carlo Variables (for adaptation)
-        integer movetypes
         real(dp) PDesire(nMoveTypes) ! desired hit rate
         real(dp) MAXWindoW(nMoveTypes)         ! Max Size of window for bead selection
         real(dp) MinWindoW(nMoveTypes)         ! Min Size of window for bead selection
@@ -134,14 +139,15 @@ module params
         integer NNoInt             ! save points before turning on NNoInt
         integer N_KAP_ON           ! when to turn KAP energy on
         integer N_CHI_ON           ! when to turn CHI energy on
+        integer N_CHI_l2_ON           ! when to turn CHI energy on
         integer nInitMCSteps       ! number of mc steps before starting BD
 
     !   Switches
         logical ring              ! whether the polymer is a ring
         logical twist             ! whether to include twist (wlc_p only for now)
         integer LK                ! Linking number
-        integer confinetype       ! type of Boundary Conditions
-        integer initCondType           ! initial condition type
+        character(MAXPARAMLEN) confinetype       ! type of Boundary Conditions
+        character(MAXPARAMLEN) initCondType           ! initial condition type
         logical field_interactions ! field-based self interactions on
         logical intrapolymer_stick_crossing_enforced ! field-based self interactions on
         logical FRwlc_pHEM           ! read initial chemical sequence from file
@@ -154,9 +160,7 @@ module params
         logical saveU             ! save U vectors to file
         logical saveAB            ! save AB (chemical identity) to file
         logical savePhi           ! save Phi vectors to file
-        integer solType           ! Melt vs. Solution, Choose hamiltonian
         logical recenter_on       ! recenter in "quasi"-periodic boundary, should be off in BD
-        logical useSchedule       ! use scheduled change in interactions strength(s)
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
@@ -166,6 +170,9 @@ module params
                              ! uses many of the same functions as the chemical
                              ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
+        logical changingChemicalIdentity
+        logical chi_l2_on
+        character(MAXPARAMLEN) fieldInteractionType
 
     !   parallel Tempering parameters
         logical PTON    ! whether or not to parallel temper
@@ -175,6 +182,7 @@ module params
         logical PT_kap
         logical PT_mu
         logical PT_couple
+        logical PT_MaierSaupe
 
     !   Replica Dynamic Cof choice
         integer NRepAdapt ! number of exchange attemts between adapt
@@ -207,6 +215,7 @@ module params
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
+        real(dp), allocatable, dimension(:,:):: PHI_l2 ! l=2 oreientational field
         real(dp), allocatable, dimension(:):: PHIH ! Quinn's sinusoidal field for passing 1st order phase transitions
         real(dp), allocatable, dimension(:):: Vol  ! Volume fraction of A
         integer, allocatable, dimension(:):: AB    ! Chemical identity of beads
@@ -214,6 +223,7 @@ module params
         integer, allocatable, dimension(:):: METH  ! Methalation state of beads
         real(dp), allocatable, dimension(:):: DPHIA    ! Change in phi A
         real(dp), allocatable, dimension(:):: DPHIB    ! Change in phi A
+        real(dp), allocatable, dimension(:,:):: DPHI_l2 ! change in l=2 oreientational field
         integer, allocatable, dimension(:) :: indPHI   ! indices of the phi
         ! simulation times at which (i,j)th bead pair first collided
         real(dp), allocatable, dimension(:,:) :: coltimes
@@ -231,6 +241,7 @@ module params
         real(dp) MCAMP(nMoveTypes) ! Amplitude of random change
         real(dp) WindoW(nMoveTypes)         ! Size of window for bead selection
         integer SUCCESS(nMoveTypes)        ! Number of successes
+        integer ATTEMPTS(nMoveTypes)        ! Number of successes
         integer successTOTAL(nMoveTypes)               !Total number of successes
         real(dp) PHit(nMoveTypes) ! hit rate
 
@@ -244,6 +255,7 @@ module params
         real(dp) eField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         real(dp) eKnot    ! 0-inf potential for if chain crossed itself
+        real(dp) eMaierSaupe ! Maier Saupe energy
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
         real(dp) x_Chi,   dx_Chi
@@ -251,6 +263,7 @@ module params
         real(dp) x_Kap,   dx_Kap
         real(dp) x_Field, dx_Field
         real(dp) x_Mu,    dx_Mu
+        real(dp) x_maierSaupe, dx_maierSaupe ! Maier Saupe energy / chi_l2
 
     !   Move Variables
         real(dp) DEELAS(4) ! Change in bending energy
@@ -262,6 +275,7 @@ module params
         real(dp) DEField  ! Change in field energy
         real(dp) DESelf   ! change in self interaction energy
         real(dp) ECon     ! Confinement Energy
+        real(dp) deMaierSaupe ! change in Maier Saupe energy
         integer NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
     !   Parallel tempering variables
@@ -289,6 +303,7 @@ module params
 
     !   indices
         integer mc_ind                  ! current save point index for mc
+        integer ind_exchange            ! number of exchange moves since last save point
         integer time_ind                ! current time point
         real(dp) time
     end type
@@ -330,9 +345,8 @@ contains
         wlc_p%lt = 1                ! twist persistence length equals persistence length by default
         wlc_p%nMpP = wlc_p%nB / wlc_p%nBpM
         wlc_p%nT = wlc_p%nP * wlc_p%nB
-        wlc_p%lbox(1) = nan     ! box size, *MUST* be set by user
-        wlc_p%lbox(2) = nan
-        wlc_p%lbox(3) = nan
+        wlc_p%confinementParameter = nan
+        wlc_p%lbox = nan     ! box size/confinment, *MUST* be set by user
         wlc_p%nColBin = 1   ! equivalent to collisionDetectionType = 1
         wlc_p%dbin = NaN ! set in tweak_param_defaults
         ! wlc_p%l0  =1.25_dp         ! TOdo: not input
@@ -347,27 +361,30 @@ contains
         ! energy parameters
         wlc_p%EPS =0.3_dp ! TOdo: not input
         wlc_p%CHI =0.0_dp ! don't use chi by default
+        wlc_p%CHI_l2 =0.0_dp ! don't use maier Saupe by default
         wlc_p%hA =0.0_dp  ! don't use weird artificial field by default
-        wlc_p%KAP =10.0_dp ! "fairly" incompressible --Quinn
+        wlc_p%KAP =0.0_dp ! compressible 
         wlc_p%EU  =0.0_dp ! a function of coarse graining. This should be set by hand if needed.
         wlc_p%EM  =0.0_dp ! by default, no hp1 binding energy included
         wlc_p%mu  =0.0_dp ! by default, no hp1 binding included
         wlc_p%HP1_Bind = 0.0_dp ! by default, no binding of HP1 to each other
 
+
         ! options
         wlc_p%codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
-        wlc_p%movetypes = nMoveTypes
-        wlc_p%initCondType = 0 ! 0 for initializing polymer in non-random straight line
-        wlc_p%confineType = 0 ! 0 for no confinement
-        wlc_p%solType = 1       ! solution, not melt, by default
+        wlc_p%initCondType = 'randomWalkWithBoundary' ! 0 for initializing polymer in non-random straight line
+        wlc_p%confineType = 'none' ! 0 for no confinement
         wlc_p%ring = .false.    ! not a ring by default
         wlc_p%twist = .false.    ! don't include twist by default
         wlc_p%lk = 0    ! no linking number (lays flat) by default
         wlc_p%min_accept = 0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
         wlc_p%exitWhenCollided = .FALSE. ! stop sim when coltimes is full
         wlc_p%field_int_on = .FALSE. ! no field interactions by default
+        wlc_p%fieldInteractionType = 'none'  ! See MC_Hamiltonian
         wlc_p%bind_On = .FALSE. ! no binding energy by default
         wlc_p%inTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
+        wlc_p%changingChemicalIdentity = .FALSE.
+        wlc_p%CHI_L2_ON = .FALSE.
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
@@ -377,12 +394,12 @@ contains
         wlc_p%NNoInt = 100    ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
         wlc_p%reduce_move = 10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
         wlc_p%winType = 1   ! exponential fragment sizes mix better
-        wlc_p%useSchedule = .False. ! use Quinn's scheduler to modify wlc_p params halfway through the simulation
         wlc_p%KAP_ON = 1.0_dp ! use full value of compression energy
         wlc_p%CHI_ON = 1.0_dp ! use full value of chi energy
         wlc_p%Couple_ON = 1.0_dp ! use full value for coupling energy
         wlc_p%N_KAP_ON = 1 ! turn on compression energy immediately
         wlc_p%N_CHI_ON = 1 ! turn on chi energy immediately
+        wlc_p%N_CHI_l2_ON = 1 ! turn on chi energy immediately
         wlc_p%recenter_on = .TRUE. ! recenter the polymer in the box if it exists the boundary
         wlc_p%inITIAL_MAX_S = 0.0_dp !TOdo: for now must be set explicitly, was 0.1, Quinn, what is this value?
 
@@ -405,7 +422,7 @@ contains
         wlc_p%PT_kap =.False. ! don't parallel temper kap by default
         wlc_p%PT_mu =.False. ! don't parallel temper mu by default
         wlc_p%PT_couple =.False. ! don't parallel temper HP1 binding by default
-
+        wlc_p%PT_MaierSaupe =.False. ! don't parallel temper maier Saupe by default
 
         !switches to turn on various types of moves
         wlc_p%MOVEON(1) = 1  ! crank-shaft move
@@ -418,17 +435,19 @@ contains
         wlc_p%MOVEON(8) = 0  ! Chain flip ! TOdo not working
         wlc_p%MOVEON(9) = 1  ! Chain exchange
         wlc_p%MOVEON(10) = 1 ! Reptation
+        wlc_p%MOVEON(11) = 0 ! Super Reptation
 
         ! Balance move amplitude and number of beads
-        do mctype = 1,wlc_p%movetypes
+        do mctype = 1,nMovetypes
             wlc_p%winTarget(mctype) = 8.0_dp
             wlc_p%MinWindoW(mctype) = nan
             wlc_d%MCAMP(mctype) = nan
         enddo
-        do mctype = 1,wlc_p%movetypes
+        do mctype = 1,nMovetypes
             wlc_p%NADAPT(mctype) = 1000 ! adapt after at most 1000 steps
             wlc_p%PDESIRE(mctype) = 0.5_dp ! Target
             wlc_d%SUCCESS(mctype) = 0
+            wlc_d%ATTEMPTS(mctype) = 0
             wlc_d%SUCCESStotal(mctype) = 0
             wlc_d%PHIT(mctype) = 0.0_dp
         enddo
@@ -466,31 +485,37 @@ contains
         case('CODENAME') ! select version of wlcsim to run
             call readA(wlc_p%codeName)
         case('INITCONDTYPE')
-            call readI(wlc_p%initCondType)
-            ! initCondType      |  Discription
-            ! _____________|_________________________________
-            !    1         |   straight line in y direction with random starting
-            !    2         |   rerandomize when reaching boundary, slit in z dir
-            !    3         |   rerandomize when reaching boundary, cube boundary
-            !    4         |   rerandomize when reaching boundary, shpere
-            !    7         |   initialize as gaussian chain, redraw if outside bdry
+            call readA(wlc_p%initCondType)
+
+            ! initCondType|                          |  Discription
+            ! ____________|__________________________|_________
+            !    1        |lineInY                   |   straight line in y direction with random starting
+            !    2        |randomLineSlitInZBoundary |   rerandomize when reaching boundary, slit in z dir
+            !    3        |randomLineCubeBoundary    |   rerandomize when reaching boundary, cube boundary
+            !    4        |randomLineSphereBoundary  |   rerandomize when reaching boundary, sphere
+            !    7        |randomWalkWithBoundary    |   initialize as gaussian chain, redraw if outside bdry
         case('CONFINETYPE')
-            call readI(wlc_p%confinetype)
-            ! confinetype  |  Discription
-            ! _____________|_________________________________
-            !    0         |  No confinement, periodic cube
-            !    1         |  Between two plates in Z direction at 0 and lbox
-            !    2         |  Cube of size lbox**3,  range: 0-lbox
-            !    3         |  Circle of radius lbox, centered at lbox/2
-            !    4         |  Periodic, unequal dimensions
+            call readA(wlc_p%confinetype)
+
+            ! OLD names
+            ! confinetype | |  Discription
+            ! ____________|_|_________________________________
+            !    0        |none            |  No confinement, periodic cube
+            !    1        |platesInZperiodicXY       |  Between two plates in Z direction at 0 and lbox
+            !    2        |cube            |  Cube of size lbox**3,  range: 0-lbox
+            !    3        |sphere          |  Circle of radius lbox, centered at lbox/2
+            !    4        |periodicUnequal |  Periodic, unequal dimensions
         case('RECENTERON')
             call reado(wlc_p%recenter_on) ! recenter in periodic boundary
         case('SOLTYPE')
-            call readI(wlc_p%solType)
+            call stop_if_err(1, "solType has be depricated")
+            !call readI(wlc_p%solType)
             ! solType      | Discription
             !______________|_________________________________
             !    0         | Melt density fluctuates around fixed mean
             !    1         | Solution (For DNA)
+        case('FIELDINTERACTIONTYPE')
+            call readA(wlc_p%fieldInteractionType)  ! Type of bined field interaction type
         case('FRMCHEM')
             call reado(wlc_p%FRMCHEM) ! Initial chemical/methylation sequence from file
         case('FRMFILE')
@@ -505,6 +530,10 @@ contains
             call reado(wlc_p%field_int_on) !include field interactions
         case('BINDON')
             call reado(wlc_p%bind_on) ! Whether to include a binding state model
+        case('CHANGINGCHEMICALIDENTITY')
+            call reado(wlc_p%ChangingChemicalIdentity) ! Whether to include a binding state model
+        case('CHIL2ON')
+            call reado(wlc_p%CHI_L2_ON) ! Whether to include a binding state model
         case('LK')
             call readi(wlc_p%lk) ! linking number
         case('PTON')
@@ -552,6 +581,12 @@ contains
             call readF(wlc_p%lbox(2)) ! side length of box in y direction
         case('LBOXZ')
             call readF(wlc_p%lbox(3)) ! side length of box in z direction
+        case('CONFINEMENTPARAMETER1')
+            call readF(wlc_p%confinementParameter(1))
+        case('CONFINEMENTPARAMETER2')
+            call readF(wlc_p%confinementParameter(2))
+        case('CONFINEMENTPARAMETER3')
+            call readF(wlc_p%confinementParameter(3))
         case('NCOLBIN')
             call readI(wlc_p%nColBin) ! number of bins in each dimension
         case('NP')
@@ -566,6 +601,8 @@ contains
             call readI(wlc_p%N_KAP_ON) ! when to turn compression energy on
         case('NCHION')
             call readI(wlc_p%N_CHI_ON) ! when to turn CHI energy on
+        case('NCHIL2ON')
+            call readI(wlc_p%N_CHI_L2_ON) ! when to turn CHI energy on
         case('NUMSAVEPOINTS')
             call readI(wlc_p%numSavePoints) ! total number of save points
         case('NINITMCSTEPS')
@@ -578,6 +615,9 @@ contains
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
         case('FPOLY')
             call readF(wlc_p%Fpoly) ! Fraction Polymer
+            print*, "FPOLY is nolong used for anything"
+            print*, "You probably shouldn't include it in your input file"
+            stop
         case('BEADVOLUME')
             call readF(wlc_p%beadVolume) ! Bead volume
         case('FA')
@@ -585,13 +625,16 @@ contains
         case('LAM')
             call readF(wlc_p%LAM) ! Chemical correlation parameter
         case('EPS')
-            call readF(wlc_p%EPS) ! Elasticity l0/(2lp)
+            call stop_if_err(1, "do not input eps.  Determined from L, lp, and nb")
+            !call readF(wlc_p%EPS) ! Elasticity l0/(2lp)
         case('VHC')
             call readF(wlc_p%VHC) ! hard-core lennard jones potential strength
         case('LHC')
             call readF(wlc_p%LHC) ! hard-core lennard jones diameter
         case('CHI')
             call readF(wlc_p%CHI) ! CHI parameter (definition depends on  hamiltoniaon
+        case('CHIL2')
+            call readF(wlc_p%CHI_l2) ! (negitive) maier Saupe Parameter
         case('HA')
             call readF(wlc_p%hA) ! strength of externally applied field
         case('KAP')
@@ -628,6 +671,8 @@ contains
             call readI(wlc_p%MOVEON(9)) ! is chain swap move on 1/0
         case('REPTATIONMOVEON')
             call readI(wlc_p%MOVEON(10)) ! is reptation move on 1/0
+        case('SUPERREPTATIONMOVEON')
+            call readI(wlc_p%MOVEON(11)) ! is super reptation move on 1/0
         case('MINCRANKSHAFTWIN')
             call readF(wlc_p%MinWindoW(1)) ! min mean window size
         case('MINSLIDEWIN')
@@ -648,8 +693,6 @@ contains
             call readF(wlc_p%winTarget(2)) ! target window size for slide move
         case('PIVOTTARGET')
             call readF(wlc_p%winTarget(3)) ! target window size for Pivot move
-        case('STRENGTHSCHEDULE')
-            call reado(wlc_p%useSchedule) ! use scheduled ramp in interaction strength(s)
         case('NREPADAPT')
             call readI(wlc_p%NRepAdapt)  ! number of exchange attemts between adapt
         case('LOWERREPEXE')
@@ -684,6 +727,8 @@ contains
             call reado(wlc_p%PT_mu) ! parallel temper mu
         case('PARALLELTEMPCOUPLE')
             call reado(wlc_p%PT_couple) ! parallel temper HP1_bind
+        case('PARALLELTEMPMAIERSAUPE')
+            call reado(wlc_p%PT_MaierSaupe) ! parallel temper Maier Saupe energy
         case('PARALLELTEMPTWIST')
             call reado(wlc_p%pt_twist)  ! parallel temper over linking numbers
         case('RESTART')
@@ -772,8 +817,6 @@ contains
                 call readF(wlc_p%winTarget(2)) ! target window size for slide move
             case('PIVOT_TARGET')
                 call readF(wlc_p%winTarget(3)) ! target window size for Pivot move
-            case('STRENGTH_SCHEDULE')
-                call reado(wlc_p%useSchedule) ! use scheduled ramp in interaction strength(s)
             case('N_REP_ADAPT')
                 call readI(wlc_p%NRepAdapt)  ! number of exchange attemts between adapt
             case('LOWER_REP_EXE')
@@ -838,7 +881,7 @@ contains
                 print*, "not capable of more than one rings"
                 stop
             endif
-            if (wlc_p%initCondType == 7) then
+            if (wlc_p%initCondType == 'randomWalkWithBoundary') then
                 print*, "initCondType = 7 doesn't know how to make a ring."
                 stop
             endif
@@ -850,7 +893,7 @@ contains
 
         if (wlc_p%lBox(1) .ne. wlc_p%lBox(1)) then
             print*, "No box size set.  If you need a box please specify it."
-            call stop_if_err(wlc_p%initCondType /= 0, &
+            call stop_if_err(wlc_p%initCondType /= 'randomWalkWithBoundary', &
                 'Only one initial polymer config supported if you''re not '//&
                 'using LBOX to define a MC simulation box.')
         else
@@ -861,7 +904,7 @@ contains
                 stop 1
             endif
             ! we no longer specify fPoly, it is set in tweak_param_defaults
-            ! if (wlc_p%confineType.eq.3) then
+            ! if (wlc_p%confineType.eq.'sphere') then
             !     if (abs((wlc_p%fPoly*(1.0/6.0_dp)*PI*wlc_p%LBOX(1)**3 / &
             !             (wlc_p%beadVolume*wlc_p%NT)) - 1)>0.02) then
             !          print*, "Error: volume fraction incorrect"
@@ -875,6 +918,10 @@ contains
             ! endif
         endif
 
+        if (wlc_p%field_int_on .and. (wlc_p%lbox(1) .ne. wlc_p%lbox(2) .or. wlc_p%lbox(2) .ne. wlc_p%lbox(3))) then
+            call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
+        endif
+
         call stop_if_err(wlc_p%collisionDetectionType == 2, &
             'KD-tree based collision detection not yet implemented.')
 
@@ -884,11 +931,9 @@ contains
         if (wlc_p%codeName == 'quinn') then
            if ((wlc_p%NBinX(1)-wlc_p%NBinX(2).ne.0).or. &
                 (wlc_p%NBinX(1)-wlc_p%NBinX(3).ne.0)) then
-              err = wlc_p%solType.eq.1
-              call stop_if_err(err, "Solution not tested with non-cube box, more coding needed")
-              err = wlc_p%confinetype.ne.4
-              call stop_if_err(err, "Unequal boundaries require confinetype = 4")
-              err = wlc_p%initCondType.eq.4
+              err = wlc_p%confinetype.ne.'periodicUnequal'
+              call stop_if_err(err, "Unequal boundaries require confinetype = periodicUnequal")
+              err = wlc_p%initCondType.eq.'randomLineSphereBoundary'
               call stop_if_err(err, "You shouldn't put a sphere in and unequal box!")
            endif
 
@@ -913,8 +958,14 @@ contains
            err = wlc_p%NNoInt.gt.wlc_p%N_CHI_ON
            call stop_if_err(err, "error in mcsim. Can't have chi without int on")
 
+           err = wlc_p%NNoInt.gt.wlc_p%N_CHI_L2_ON
+           call stop_if_err(err, "error in mcsim. Can't have chi_l2 without int on")
+
            err = wlc_p%NNoInt.gt.wlc_p%N_KAP_ON
            call stop_if_err(err, "error in mcsim. Can't have kap without int on")
+
+           err = (wlc_p%moveon(7) /= 0 .and. (.not. wlc_p%bind_on))
+           call stop_if_err(err,"You need bindon if you have bindmove on")
 
         endif
 
@@ -953,7 +1004,9 @@ contains
         call tweak_param_defaults(wlc_p, wlc_d)
 
         ! get derived parameters that aren't directly input from file
-        call get_derived_parameters(wlc_p)
+        call get_renormalized_chain_params(wlc_p)
+
+        call setup_confinement_parameters(wlc_p)
 
         !If parallel tempering is on, read the Lks
         if (wlc_p%pt_twist) then
@@ -992,11 +1045,11 @@ contains
 #if MPI_VERSION
         call init_MPI(wlc_d)
 #endif
-        allocate(wlc_d%R(NT,3))
-        allocate(wlc_d%U(NT,3))
+        allocate(wlc_d%R(3,NT))
+        allocate(wlc_d%U(3,NT))
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
-            allocate(wlc_d%RP(NT,3))
-            allocate(wlc_d%UP(NT,3))
+            allocate(wlc_d%RP(3,NT))
+            allocate(wlc_d%UP(3,NT))
         endif
         !TOdo these should in principle be inside the following if statement,
         !but it's not clear if that's possible without adding a bunch of dirty
@@ -1004,7 +1057,11 @@ contains
         !check with quinn *exactly* in which cases they're needed if i do that
         if (wlc_p%field_int_on) then
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
-            allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            if (wlc_p%changingChemicalIdentity)  allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            if (wlc_p%chi_l2_on) then
+                allocate(wlc_d%PHI_l2(5,NT))
+                allocate(wlc_d%dPHI_l2(5,NT))
+            endif
             allocate(wlc_d%PHIA(NBin))
             allocate(wlc_d%PHIB(NBin))
             allocate(wlc_d%DPHIA(NBin))
@@ -1121,7 +1178,7 @@ contains
         if (wlc_p%field_int_on) then
             call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
             ! calculate volumes of bins
-            if (wlc_p%confineType.eq.3) then
+            if (wlc_p%confineType.eq.'sphere') then
                 call MC_calcVolume(wlc_p%confinetype, wlc_p%NBinX, wlc_p%dBin, &
                                 wlc_p%LBox(1), wlc_d%Vol, wlc_d%rand_stat)
             else
@@ -1132,40 +1189,38 @@ contains
         endif
 
         if (wlc_p%bind_on) then
-            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            call initchem(wlc_d%meth, wlc_p%nt, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%f_METH, wlc_p%lam_METH, wlc_d%rand_stat)
         endif
 
         ! initialize energies
-!        call CalculateEnergiesFromScratch(wlc_p,wlc_d)
-        wlc_d%EElas   = wlc_d%dEElas
-        if (wlc_p%field_int_on) then
-            wlc_d%ECouple =wlc_d%dECouple
-            wlc_d%EKap    =wlc_d%dEKap
-            wlc_d%ECHI    =wlc_d%dECHI
-            wlc_d%EField  =wlc_d%dEField
-            wlc_d%x_Field =wlc_d%dx_Field
-            wlc_d%x_couple = wlc_d%dx_couple
-            wlc_d%x_Kap   =wlc_d%dx_Kap
-            wlc_d%x_Chi   =wlc_d%dx_Chi
-        else
-            wlc_d%ECouple =0.0_dp
-            wlc_d%EKap    =0.0_dp
-            wlc_d%ECHI    =0.0_dp
-            wlc_d%EField  =0.0_dp
-            wlc_d%x_Field =0.0_dp
-            wlc_d%x_couple = 0.0_dp
-            wlc_d%x_Kap   =0.0_dp
-            wlc_d%x_Chi   =0.0_dp
-        endif
-        if (wlc_p%bind_On) then
-            wlc_d%ebind   =wlc_d%debind
-            wlc_d%x_mu    =wlc_d%dx_mu
-        else
-            wlc_d%ebind   =0.0_dp
-            wlc_d%x_mu    =0.0_dp
-        endif
+        !-------------------------------------
+        !
+        !  Set all energies to zero in case they aren't set later
+        !
+        !--------------------------------------
+        wlc_d%eElas       = 0.0 ! Elastic force
+        wlc_d%eChi        = 0.0 ! CHI energy
+        wlc_d%eKap        = 0.0 ! KAP energy
+        wlc_d%eCouple     = 0.0 ! Coupling
+        wlc_d%eBind       = 0.0 ! binding energy
+        wlc_d%eField      = 0.0 ! Field energy
+        wlc_d%eSelf       = 0.0 ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
+        wlc_d%eKnot       = 0.0 ! 0-inf potential for if chain crossed itself
+        wlc_d%eMaierSaupe = 0.0 ! Maier Saupe energy
+        wlc_d%DEELAS      = 0.0 ! Change in bending energy
+        wlc_d%DECouple    = 0.0 ! Coupling energy
+        wlc_d%DEChi       = 0.0 ! chi interaction energy
+        wlc_d%DEKap       = 0.0 ! compression energy
+        wlc_d%Debind      = 0.0 ! Change in binding energy
+        wlc_d%DEField     = 0.0 ! Change in field energy
+        wlc_d%DESelf      = 0.0 ! change in self interaction energy
+        wlc_d%ECon        = 0.0 ! Confinement Energy
+        wlc_d%deMaierSaupe= 0.0 ! change in Maier Saupe energy
+        wlc_d%NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
         if(wlc_p%Ring) then
             wlc_d%eKnot   =1.0
+        else
+            wlc_d%eKnot = 0.0
         endif
 
         wlc_d%time = 0
@@ -1260,7 +1315,7 @@ contains
             wlc_p%dbin = wlc_p%lp
         endif
 
-        if (wlc_p%confineType.eq.3) then
+        if (wlc_p%confineType == 'sphere') then
             wlc_p%fPoly = 6.0_dp*wlc_p%beadVolume*wlc_p%NT &
                 /PI/wlc_p%LBOX(1)/wlc_p%LBOX(1)/wlc_p%LBOX(1)
         else
@@ -1269,6 +1324,7 @@ contains
         endif
 
         wlc_p%L0 = wlc_p%l/real(wlc_p%nb)
+        wlc_p%eps=wlc_p%L0/(2.0_dp*wlc_p%lp)
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters
         wlc_d%MCAMP(1) = 0.5_dp*PI
@@ -1282,40 +1338,17 @@ contains
         wlc_d%MCAMP(9) = nan
         wlc_d%MCAMP(10) = nan
 
-        !switches to turn on various types of moves
-        wlc_p%MOVEON(1) = 1  ! crank-shaft move
-        wlc_p%MOVEON(2) = 1  ! slide move
-        wlc_p%MOVEON(3) = 1  ! pivot move
-        wlc_p%MOVEON(4) = 1  ! rotate move
-        wlc_p%MOVEON(5) = 1  ! full chain rotation
-        wlc_p%MOVEON(6) = 1  ! full chain slide
         ! if we're not using field interactions
         ! energies, then this should never be on
-        if (wlc_p%field_int_on) then
-            wlc_p%MOVEON(7) = 1  ! Change in Binding state
-        else
-            wlc_p%MOVEON(7) = 0
+        if ((.not. wlc_p%field_int_on) .and. wlc_p%MOVEON(9)/=0) then
+            wlc_p%MOVEON(7) = 0  ! Change in Binding state
+            print*, "turning off movetype 7, binding, becuase unneeded"
         endif
         wlc_p%MOVEON(8) = 0  ! Chain flip ! TOdo not working
         ! if number of polymers is 1, this should never be on
-        if (wlc_p%np < 2) then
+        if (wlc_p%np < 2 .and. wlc_p%moveon(9)/=0) then
             wlc_p%moveon(9) = 0
-        else
-            wlc_p%MOVEON(9) = 1  ! Chain exchange
-        endif
-        wlc_p%MOVEON(10) = 1 ! Reptation
-        if (wlc_p%codeName == 'quinn') then
-            !switches to turn on various types of moves
-            wlc_p%MOVEON(1) = 1  ! crank-shaft move
-            wlc_p%MOVEON(2) = 1  ! slide move
-            wlc_p%MOVEON(3) = 1  ! pivot move
-            wlc_p%MOVEON(4) = 1  ! rotate move
-            wlc_p%MOVEON(5) = 0  ! full chain rotation
-            wlc_p%MOVEON(6) = 0  ! full chain slide
-            wlc_p%MOVEON(7) = 1  ! Change in Binding state
-            wlc_p%MOVEON(8) = 0  ! Chain flip
-            wlc_p%MOVEON(9) = 0  ! Chain exchange
-            wlc_p%MOVEON(10) = 0 ! Reptation
+            print*, "Turning off movetype 9, chain exchange, because <2 polymers"
         endif
 
         !     Initial segment window for wlc_p moves
@@ -1430,14 +1463,14 @@ contains
         real(dp) R0(3)  ! Offset to move by
         IB = 1
         do I = 1,wlc_p%NP
-        R0(1) = nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
-        R0(2) = nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
-        R0(3) = nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+        R0(1) = nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
+        R0(2) = nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
+        R0(3) = nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
         if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
             do J = 1,wlc_p%NB
-                wlc_d%R(IB,1) = wlc_d%R(IB,1)-R0(1)
-                wlc_d%R(IB,2) = wlc_d%R(IB,2)-R0(2)
-                wlc_d%R(IB,3) = wlc_d%R(IB,3)-R0(3)
+                wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
+                wlc_d%R(2,IB) = wlc_d%R(2,IB)-R0(2)
+                wlc_d%R(3,IB) = wlc_d%R(3,IB)-R0(3)
                 IB = IB + 1
             enddo
         endif
@@ -1464,9 +1497,28 @@ contains
         print*, "Par compression energy", wlc_d%EELAS(2)
         print*, "Shear energy", wlc_d%EELAS(3)
         print*, "ECHI", wlc_d%ECHI
+        print*, "ECHI l=2", wlc_d%eMaierSaupe
         print*, "EField", wlc_d%EField
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind
+    end subroutine
+
+    subroutine calcTotalPolymerVolume(wlc_p,wlc_d,totalVpoly)
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(in) :: wlc_d
+        integer i
+        real(dp), intent(out) :: totalVpoly
+        real(dp) VV
+        totalVpoly=0.0
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
+            !if (VV.le.0.1_dp) cycle
+            totalVpoly = totalVpoly + VV*(wlc_d%PHIA(I) + wlc_d%PHIB(I))
+        enddo
+        print*, "Total volume of polymer from density", totalVpoly,&
+                " and from beads ",wlc_p%NT*wlc_p%beadVolume
+
     end subroutine
 
     subroutine wlcsim_params_printPhi(wlc_p,wlc_d)
@@ -1505,7 +1557,7 @@ contains
         integer I ! counter
         I = 0
         print*, "Succes | MCAMP | WindoW| type "
-        do I = 1,wlc_p%movetypes
+        do I = 1,nMovetypes
             if (wlc_p%MOVEON(i).eq.1) then
                 write(*,"(f8.5,2f8.2,1I8)") wlc_d%phit(i), wlc_d%MCAMP(i),  wlc_d%WindoW(i), i
             endif
@@ -1584,15 +1636,15 @@ contains
               do J = 1,wlc_p%NB
                  if (wlc_p%saveAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
-                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
-                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3), &
                          wlc_d%AB(IB)
                  else
                     write(outFileUnit,"(3f10.3)") &
-                         wlc_d%R(IB,1)-0.*nint(wlc_d%R(IB,1)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
-                         wlc_d%R(IB,2)-0.*nint(wlc_d%R(IB,2)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
-                         wlc_d%R(IB,3)-0.*nint(wlc_d%R(IB,3)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1), &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2), &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
                  endif
                  IB = IB + 1
               enddo
@@ -1606,10 +1658,10 @@ contains
               do J = 1,wlc_p%NB
                   if (wlc_p%saveAB) then
                      write(outFileUnit,"(3f10.3,I2)") &
-                            wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3),wlc_d%AB(IB)
+                            wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB),wlc_d%AB(IB)
                   else
                      write(outFileUnit,"(3f10.3)") &
-                           wlc_d%R(IB,1),wlc_d%R(IB,2),wlc_d%R(IB,3)
+                           wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB)
                   endif
                   IB = IB + 1
               enddo
@@ -1629,9 +1681,16 @@ contains
         character(MAXFILENAMELEN) fullName
         fullName=  trim(fileName) // trim(wlc_d%repSuffix)
         open (unit = outFileUnit, file = fullName, status = 'NEW')
-        do I = 1,wlc_p%NBin
-            write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
-        enddo
+        if (wlc_p%chi_l2_on) then
+            do I = 1,wlc_p%NBin
+                write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I),wlc_d%PHI_l2(:,I)
+            enddo
+        else
+            do I = 1,wlc_p%NBin
+                write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I)
+            enddo
+        endif
+
         close(outFileUnit)
     end subroutine
 
@@ -1649,7 +1708,7 @@ contains
         IB = 1
         do I = 1,wlc_p%NP
             do J = 1,wlc_p%NB
-                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(IB,1),wlc_d%U(IB,2),wlc_d%U(IB,3)
+                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(1,IB),wlc_d%U(2,IB),wlc_d%U(3,IB)
                 IB = IB + 1
             enddo
         enddo
@@ -1701,13 +1760,13 @@ contains
             write(outFileUnit,*) "ind | id |",&
                        " ebend  | eparll | EShear | ECoupl | E Kap  | E Chi  |",&
                        " EField | ebind  |  x_Mu  | Couple |  Chi   |  mu    |",&
-                       "  Kap   | Field  |"
+                       "  Kap   | Field  |  x_MS  | chi_l2 |"
         endif
-        write(outFileUnit,"(2I5, 9f9.1,5f9.4)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f9.1,5f9.4,f9.1,f9.4)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_Bind*wlc_p%Couple_on, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%mu, wlc_p%KAP*wlc_p%KAP_ON,&
-            wlc_p%hA
+            wlc_p%hA, wlc_d%x_maierSaupe, wlc_p%chi_l2
         close(outFileUnit)
     end subroutine
 
@@ -2019,4 +2078,153 @@ contains
     enddo
     close(unit = 1)
     end subroutine get_LKs_from_file
+
+    subroutine get_renormalized_chain_params(wlc_p)
+    !     Setup the parameters for the simulation
+    !
+    !     1. Determine the simulation type
+    !     2. Evaluate the polymer elastic parameters
+    !     3. Determine the parameters for Brownian dynamics simulation
+        implicit none
+
+        integer i,ind
+        real(dp) m
+
+        type(wlcsim_params), intent(inout) :: wlc_p
+        REAL(dp) :: pvec(679, 8) ! array holding dssWLC params calculated by Elena
+
+        !Calculate total number of beads
+        wlc_p%nT = wlc_p%nB*wlc_p%nP
+
+        if (wlc_p%NB == 1.0d0) then
+            ! since we use "DEL" as an intermediate, we need at least two beads
+            PRinT*, 'Some intermediate calculations used require at least two beads, 1 requested.'
+            STOP 1
+        endif
+
+        ! calculate metrics that don't change between WLC, ssWLC, GC
+        if (wlc_p%RinG) then
+            wlc_p%DEL = wlc_p%L/wlc_p%LP/(wlc_p%NB)
+        else
+            wlc_p%DEL = wlc_p%L/wlc_p%LP/(wlc_p%NB-1.0_dp)
+        ENDif
+        ! std dev of interbead distribution of nearest possible GC, used to initialize sometimes
+        wlc_p%SIGMA = sqrt(2.0_dp*wlc_p%LP*wlc_p%L/3.0_dp)/(wlc_p%NB - 1)
+
+    !     Load the tabulated parameters
+
+        open (UNIT = 5,FILE = 'input/dssWLCparams',STATUS = 'OLD')
+        do I = 1,679
+            READ(5,*) PVEC(I,1),PVEC(I,2),PVEC(I,3),PVEC(I,4),PVEC(I,5),PVEC(I,6),PVEC(I,7),PVEC(I,8)
+        ENDdo
+        CLOSE(5)
+
+
+    !     Setup the parameters for WLC simulation
+
+        ! if del < 0.01
+        if (wlc_p%DEL < PVEC(1,1)) then
+            PRinT*, 'It has never been known if the WLC code actually works.'
+            PRinT*, 'An entire summer student (Luis Nieves) was thrown at this'
+            PRinT*, 'problem and it is still not solved.'
+            stop 1
+            wlc_p%EB = wlc_p%LP/wlc_p%DEL
+            wlc_p%GAM = wlc_p%DEL
+            wlc_p%XIR = wlc_p%L/wlc_p%LP/wlc_p%NB
+            wlc_p%SIMTYPE = 1
+
+    !    Setup the parameters for GC simulation
+
+        ! if del > 10
+        elseif (wlc_p%DEL > PVEC(679,1)) then
+            wlc_p%EPAR = 1.5/wlc_p%DEL
+            wlc_p%GAM = 0.0_dp
+            wlc_p%SIMTYPE = 3
+            wlc_p%XIR = wlc_p%L/wlc_p%NB/wlc_p%LP
+
+    !    Setup the parameters for ssWLC simulation
+        ! if 0.01 <= del <= 10
+        else !  if (DEL >= PVEC(1,1).AND.DEL <= PVEC(679,1)) then
+            wlc_p%SIMTYPE = 2
+
+        ! find(del < pvec, 1, 'first')
+        inD = 1
+        do while (wlc_p%DEL > PVEC(inD,1))
+            inD = inD + 1
+        enddo
+
+        !     Perform linear interpolations
+        I = 2
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%EB = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        I = 3
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%GAM = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        I = 4
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%EPAR = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        I = 5
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%EPERP = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        I = 6
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%ETA = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        I = 7
+        M = (PVEC(inD,I)-PVEC(inD-1,I))/(PVEC(inD,1)-PVEC(inD-1,1))
+        wlc_p%XIU = M*(wlc_p%DEL-PVEC(inD,1)) + PVEC(inD,I)
+
+        ! The values read in from file are all non-dimentionalized by the
+        ! persistance length.  We now re-dimentionalize them.
+        ! We also divied by DEL which is also re-dimentionalized.
+
+        wlc_p%EB = wlc_p%LP*wlc_p%EB/(wlc_p%DEL*wlc_p%LP)
+        wlc_p%EPAR = wlc_p%EPAR/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+        wlc_p%EPERP = wlc_p%EPERP/(wlc_p%DEL*wlc_p%LP*wlc_p%LP)
+        wlc_p%GAM = wlc_p%DEL*wlc_p%LP*wlc_p%GAM
+        wlc_p%ETA = wlc_p%ETA/wlc_p%LP
+        wlc_p%XIU = wlc_p%XIU*wlc_p%L/wlc_p%NB/wlc_p%LP
+        wlc_p%XIR = wlc_p%L/wlc_p%LP/wlc_p%NB
+        wlc_p%DT = 0.5*wlc_p%XIU/(wlc_p%EPERP*wlc_p%GAM**2.)
+
+        ! wlc_p%L0 = wlc_p%GAM  ! not sure why this was included
+        endif
+
+        return
+    end subroutine get_renormalized_chain_params
+
+    subroutine setup_confinement_parameters(wlc_p)
+        implicit none
+        type(wlcsim_params), intent(inout) :: wlc_p
+
+        if (wlc_p%confineType == 'platesInZperiodicXY') then
+            if ( .not. isnan(wlc_p%lbox(3)) ) then
+                print *, "WARNING: Overwriting lbox(3) value passed to match plate boundary."
+            end if
+            wlc_p%lbox(3) = wlc_p%confinementParameter(1)
+        elseif (wlc_p%confineType == 'cube') then
+            if (.not. (isnan(wlc_p%lbox(1)) .or. isnan(wlc_p%lbox(2)) .or. isnan(wlc_p%lbox(3)))) then
+                print *, "WARNING: Overwriting lbox value passed to match cube boundary."
+            end if
+            wlc_p%lbox = wlc_p%confinementParameter(1)
+        elseif (wlc_p%confineType == 'sphere') then
+            if (.not. (isnan(wlc_p%lbox(1)) .or. isnan(wlc_p%lbox(2)) .or. isnan(wlc_p%lbox(3)))) then
+                print *, "WARNING: Overwriting lbox(:) values passed to match sphere diameter."
+            end if
+            wlc_p%lbox = wlc_p%confinementParameter(1)
+        elseif (wlc_p%confineType == 'ecoli') then
+            if (.not. all(isnan(wlc_p%lbox))) then
+                print *, "WARNING: Overwriting lbox(:) values passed to match cell size."
+            end if
+            wlc_p%lbox(1) = wlc_p%confinementParameter(1)
+            wlc_p%lbox(2:3) = wlc_p%confinementParameter(2)
+        endif
+    end subroutine setup_confinement_parameters
+
+
+
 end module params

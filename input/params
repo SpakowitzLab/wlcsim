@@ -5,10 +5,10 @@
 # Simulation basics
 #
 codeName quinn
-initCondType 1
-confineType 0
+initCondType lineInY
+confineType none
 recenterOn T
-solType 0
+fieldInteractionType MaierSaupe
 frmChem F
 frmFile F
 twist F
@@ -16,86 +16,94 @@ ring F
 interpBeadLennardJones F
 fieldIntOn T
 bindOn T
+changingChemicalIdentity T
+chiL2On T
 # lk 0
 ptOn T
 saveR T
-# fptColType 0
 saveU T
-savePhi F
+saveAB T
+savePhi T
+# collisionRadius 0.0
+# collisiondetectiontype 0
 # exitWhenCollided F
 nb 40
 # dt 0
 # -below- l = L0*nb
-l 16.266666
+l 20.0
 # lt 0
 # -below- lp=L0/(EPS*2)
-lp 20.3333333
+lp 2.0
 dBin 1
 lBox 20
 np 2000
 # -below- nBpM use to be G
-nBpM 5
-nMpP 8
-nNoInt 10
-nKapOn 10
-nChiOn 15
+nBpM 1
+nMpP 40
+nNoInt 5
+nKapOn 5
+nChiOn 10
+nChiL2On 10
 numSavePoints 5000
 # nInitMCSteps 1000
 # stepsPerSave 4000000
 stepsPerExchange 100
-nReplicaExchangePerSavePoint 40000
-fPoly 1
+nReplicaExchangePerSavePoint 40
+# fPoly 1
 beadVolume 0.1
-fA 0.5
-lam -1
+fA 0.0
+lam 1.0
+# VHC 0.0
+# LHC 0.0
 # chi 0.0
+chil2 0.1
 # hA 0.0
-kap 10
-# EU 0
-# EM 0
-# mu 0
+kap 100.0
+EU -100000.0
+EM -1.0
+mu 0
 # energyCouple
-# fMeth 0.5
-# lamMeth 0
+fMeth 1.0
+lamMeth 1.0
 crankShaftOn 1
 slideOn 1
 pivotOn 1
 rotateOn 1
 fullChainRotationOn 1
 fullChainSlideOn 1
-bindMoveOn 0
+bindMoveOn 1
 chainFlipMoveOn 0
 chainSwapMoveOn 1
 reptationMoveOn 1
-minCrankShaftWin 1
-minSlideWin 6 
+minCrankShaftWin 6
+minSlideWin 6
 minPivotWin 6
-# minBindWin
+minBindWin 1
 reduceMove 6
 winType 1
-minAccept 0.1
-# crankShaftTarget 
-# slideTarget
-# pivotTarget
-strengthSchedule T
-nRepAdapt 100
-lowerRepExe 0.12
-upperRepExe 0.22
-lowerCofRail 0.005
-upperCofRail 0.5
-indStartRepAdapt 15
-indEndRepAdapt 25
-repAnnealSpeed 0.01
+minAccept 0.05
+crankShaftTarget 8.0
+slideTarget 8.0
+pivotTarget 8.0
+nRepAdapt 10000
+lowerRepExe 0.00
+upperRepExe 1.00
+lowerCofRail 0.000
+upperCofRail 100000.0
+indStartRepAdapt 10000000
+indEndRepAdapt 10000000
+repAnnealSpeed 0.0
 # frmField F
 # kField 
 replicaBounds F
+#  !!!!!!!!!!!!!
 initialMaxS 0.1
-parallelTempChi T
+#  !!!!!!!!!!!!!
+parallelTempChi F
 parallelTempH F
 parallelTempKap F
 parallelTempMu F
 parallelTempCouple F
 parallelTempTwist F
+parallelTempMaierSaupe T
 restart F
-
-

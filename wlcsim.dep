@@ -17,9 +17,9 @@ src/mc/verifyEnergiesFromScratch.o : src/mc/verifyEnergiesFromScratch.f03 \
 src/wlcsim/MCparrll_mpi.o : src/wlcsim/MCparrll_mpi.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/MCparrll_mpi.f90 -o src/wlcsim/MCparrll_mpi.o
-src/wlcsim/get_derived_parameters.o : src/wlcsim/get_derived_parameters.f03 \
+src/mc/writhe_slide.o : src/mc/writhe_slide.f03 \
 	src/wlcsim/params.o
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/get_derived_parameters.f03 -o src/wlcsim/get_derived_parameters.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/writhe_slide.f03 -o src/mc/writhe_slide.o
 src/util/stop_if_err.o : src/util/stop_if_err.f03
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/stop_if_err.f03 -o src/util/stop_if_err.o
 src/third_party/kdtree2.o : src/third_party/kdtree2.f90 \
@@ -38,14 +38,16 @@ src/mc/MC_int.o : src/mc/MC_int.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_int.f03 -o src/mc/MC_int.o
 src/mc/MC_interp.o : src/mc/MC_interp.f03 \
-	src/wlcsim/params.o
+	src/wlcsim/params.o \
+	src/util/inputparams.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_interp.f03 -o src/mc/MC_interp.o
 src/util/auto_correlation_vector.o : src/util/auto_correlation_vector.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/auto_correlation_vector.f03 -o src/util/auto_correlation_vector.o
 src/wlcsim/initcond.o : src/wlcsim/initcond.f03 \
 	src/third_party/mersenne_twister.o \
-	src/wlcsim/params.o
+	src/wlcsim/params.o \
+	src/util/inputparams.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/initcond.f03 -o src/wlcsim/initcond.o
 src/wlcsim/wlcsim_bruno.o : src/wlcsim/wlcsim_bruno.f03 \
 	src/wlcsim/params.o
@@ -58,7 +60,8 @@ src/util/auto_correlation.o : src/util/auto_correlation.f03 \
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/auto_correlation.f03 -o src/util/auto_correlation.o
 src/mc/MC_calcVolume.o : src/mc/MC_calcVolume.f03 \
 	src/third_party/mersenne_twister.o \
-	src/wlcsim/params.o
+	src/wlcsim/params.o \
+	src/util/inputparams.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_calcVolume.f03 -o src/mc/MC_calcVolume.o
 src/wlcsim/save_rep_history.o : src/wlcsim/save_rep_history.f03 \
 	src/wlcsim/params.o
@@ -140,6 +143,12 @@ src/bd/stress.o : src/bd/stress.f03 \
 src/mc/energy_self_slide.o : src/mc/energy_self_slide.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/energy_self_slide.f03 -o src/mc/energy_self_slide.o
+src/mc/MC_int_chem.o : src/mc/MC_int_chem.f03 \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_int_chem.f03 -o src/mc/MC_int_chem.o
+src/mc/Y2calc.o : src/mc/Y2calc.f03 \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/Y2calc.f03 -o src/mc/Y2calc.o
 src/mc/energy_elas.o : src/mc/energy_elas.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/energy_elas.f90 -o src/mc/energy_elas.o
@@ -152,9 +161,6 @@ src/wlcsim/wlcsim_brad.o : src/wlcsim/wlcsim_brad.f03 \
 src/wlcsim/init_MPI.o : src/wlcsim/init_MPI.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/init_MPI.f03 -o src/wlcsim/init_MPI.o
-src/mc/writhe_slide.o : src/mc/writhe_slide.f03 \
-	src/wlcsim/params.o
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/writhe_slide.f03 -o src/mc/writhe_slide.o
 src/bd/stressp.o : src/bd/stressp.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/stressp.f03 -o src/bd/stressp.o
@@ -206,3 +212,7 @@ src/mc/MCsim.o : src/mc/MCsim.f03 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MCsim.f03 -o src/mc/MCsim.o
+src/util/confinement.o : src/util/confinement.f03 \
+	src/wlcsim/params.o \
+	src/util/inputparams.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/confinement.f03 -o src/util/confinement.o

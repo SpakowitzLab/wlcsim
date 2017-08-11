@@ -8,14 +8,14 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
 
   !inPUT VARIABLES
   integer N                     ! Number of points in space curve
-  real(dp) R(N,3)       !Space curve
+  real(dp) R(3,N)       !Space curve
   integer CrossSize            !Size of cross matrix. Overallocate to avoid resizing
   !outPUT VARIABLES
   integer  DELTA
   !inTERMEDIATE VARIABLES
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(N,3)      ! projection of R onto plane defined by NV
+  real(dp) RP(3,N)      ! projection of R onto plane defined by NV
   real(dp) RdoTN(N)        ! Dot product of R and NV
   integer Ncross                ! number of crossings in projection
   integer Ndegen                ! number of crossings for a given segment
@@ -41,7 +41,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
 
   !Calculate the projection of R onto the projection plane
   do I = 1,N
-     RdoTN(I) = R(I,1)*NV(1) + R(I,2)*NV(2) + R(I,3)*NV(3)
+     RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
   ENDdo
 
 
@@ -51,7 +51,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
   !Calculate the projection of the curve into the plane with normal NV
 
   do I = 1,N
-     RP(I,:) = R(I,:)-RdoTN(I)*NV
+     RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
 
@@ -83,10 +83,10 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
         ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax = SQRT(SUM((RP(IP1,:)-RP(I,:))**2))
-        tmax = SQRT(SUM((RP(JP1,:)-RP(J,:))**2))
-        ui = (RP(IP1,:)-RP(I,:))/smax
-        uj = ((RP(JP1,:)-RP(J,:)))/tmax
+        smax = SQRT(SUM((RP(:,IP1)-RP(:,I))**2))
+        tmax = SQRT(SUM((RP(:,JP1)-RP(:,J))**2))
+        ui = (RP(:,IP1)-RP(:,I))/smax
+        uj = ((RP(:,JP1)-RP(:,J)))/tmax
         udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
@@ -95,18 +95,18 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
         ENDif
 
         !Compute the point of intersection
-        tint = (rp(j,2)-rp(i,2)-(ui(2)/ui(1))*(rp(j,1)-rp(i,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint = (rp(j,1)-rp(i,1) + uj(1)*tint)/ui(1)
+        tint = (RP(2,j)-RP(2,i)-(ui(2)/ui(1))*(RP(1,j)-RP(1,i)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (RP(1,j)-RP(1,i) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
         if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
            !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
            !Compute lengths and tangents  of true segments (not projected)
-           srmax = SQRT(SUM((R(IP1,:)-R(I,:))**2))
-           trmax = SQRT(SUM((R(JP1,:)-R(J,:))**2))
-           DRI = R(IP1,:)-R(I,:)
-           DRJ = R(JP1,:)-R(J,:)
+           srmax = SQRT(SUM((R(:,IP1)-R(:,I))**2))
+           trmax = SQRT(SUM((R(:,JP1)-R(:,J))**2))
+           DRI = R(:,IP1)-R(:,I)
+           DRJ = R(:,JP1)-R(:,J)
            uri = DRI/srmax
            urj = DRJ/trmax
            !Calculate the angle between the real segment and the projection
@@ -120,7 +120,7 @@ subroutine ALEXANDERP(R,N,DELTA,Cross,CrossSize,NCross)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(i,3) + uri(3)*srint<r(j,3) + urj(3)*trint) then
+           if (R(3,i) + uri(3)*srint<R(3,j) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = i;
               Cross(Ncross,2) = j;

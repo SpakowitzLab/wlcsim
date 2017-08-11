@@ -40,7 +40,7 @@ stepsPerSave 10000
 frmFile 0
 
 # if not loading in initial conf, how to initialize chain positions
-initCondType 1
+initCondType randomWalkWithBoundary
 
 # Whether to save the positions/momentums at each time point, or only most
 # recent time point

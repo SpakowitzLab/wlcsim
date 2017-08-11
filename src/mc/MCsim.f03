@@ -53,6 +53,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
     integer DELTA             !Alexander polynomial evaluated at t = -1; used for knot checking
     real(dp) para(10)
+    integer m_plus3  ! m is the m from spherical harmonics (z component)
 
     rand_stat = wlc_d%rand_stat
 
@@ -77,8 +78,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 
     do while (ISTEP <= NSTEP)
 
-       do MCTYPE = 1,wlc_p%moveTypes
-
+       do MCTYPE = 1,nMoveTypes
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
@@ -87,11 +87,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP, &
-                       IP,IB1,IB2,IT1,IT2,MCTYPE, &
-                       wlc_d%MCAMP,wlc_d%WindoW,wlc_p%nBpM,&
-                       rand_stat, wlc_p%winType,IT3,IT4,forward,dib,wlc_p%ring, &
-                       wlc_p%inTERP_BEAD_LENNARD_JONES,wlc_d)
+          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
 
         if (wlc_p%RinG) then
            wlc_d%CrossP = wlc_d%Cross
@@ -110,6 +106,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
            else
                wlc_d%eKnot = 0.0_dp
            ENDif
+        else
+            wlc_d%eKnot=0.0_dp
         ENDif
 
 
@@ -119,7 +117,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               (MCTYPE /= 7) .and. &
               (MCTYPE /= 8) .and. &
               (MCTYPE /= 9) .and. &
-              (MCTYPE /= 10) )then
+              (MCTYPE /= 10) .and. &
+              (MCTYPE /= 11) )then
               call MC_eelas(wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,&
                             wlc_p%NT,wlc_p%NB,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
@@ -135,9 +134,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               stop 1
           endif
 !   Calculate the change in the binding energy
-          if (MCTYPE == 7) then
+          if (MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(wlc_p%NT,wlc_p%NB,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
+              call MC_bind(wlc_p%NT,wlc_p%NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
                           wlc_d%DEBind,wlc_p%mu,wlc_d%dx_mu)
           else
               wlc_d%DEBind = 0.0
@@ -163,25 +162,26 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                   PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
                   STOP 1
               else
-                  wlc_d%DESELF = 0.
+                  wlc_d%DESELF = 0.0
               ENDif
+          else
+              wlc_d%DESELF=0.0
           endif
 
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
           if (wlc_p%FIELD_inT_ON) then
-             if (MCTYPE == 9) then
+             if (MCTYPE == 9) then !swap move
                  !skip if doesn't do anything
                  if (abs(wlc_p%CHI_ON).lt.0.00001) CYCLE
                  call MC_int_swap(wlc_p,wlc_d,IT1,IT2,IT3,IT4)
-                 if (abs(wlc_d%DEKap).gt.0.0001) then
-                     print*, "Error in MCsim.  Kappa energy shouldn't change on move 9"
-                     print*, "DEKap", wlc_d%DEKap
-                     stop 1
-                 endif
-             elseif (MCTYPE == 10) then
+             elseif (MCTYPE == 7) then
+                 call MC_int_chem(wlc_p,wlc_d,IT1,IT2)
+             elseif (MCTYPE == 10) then ! reptation move
                  call MC_int_rep(wlc_p,wlc_d,IT1,IT2,forward)
-             else
+             elseif (MCTYPE == 11) then ! super reptation move
+                 call MC_int_super_rep(wlc_p,wlc_d,IT1,IT2,forward)
+             else ! motion of chain
                  call MC_int_update(wlc_p,wlc_d,IT1,IT2,.false.)
              endif
           else
@@ -189,6 +189,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               wlc_d%DECouple = 0.0_dp
               wlc_d%DEChi = 0.0_dp
               wlc_d%DEField = 0.0_dp
+              wlc_d%deMaierSaupe = 0.0_dp
           endif
           if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
               print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
@@ -197,9 +198,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Calculate the change in confinement energy
           if ((MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
-              (MCTYPE /= 9)) then
-              call MC_confine(wlc_p%confineType, wlc_p%LBox, wlc_d%RP, wlc_p%NT, &
-                              IT1,IT2,wlc_d%ECon)
+              (MCTYPE /= 9).and. &
+              (MCTYPE /= 11)) then
+              call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
           else
               wlc_d%ECon = 0.0_dp;
           endif
@@ -207,33 +208,37 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 !   Change the position if appropriate
           ENERGY = wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3) &
                  +wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind + wlc_d%ECon + wlc_d%DEField &
-                 +wlc_d%eKnot
+                 +wlc_d%eKnot + wlc_d%deMaierSaupe
           PROB = exp(-ENERGY)
           call random_number(urnd,rand_stat)
           TEST = urnd(1)
           if (TEST <= PROB) then
 
-             if(MCTYPE == 7) then
+             if(MCTYPE == 7 .or. MCTYPE == 11) then
+                 if (.not.wlc_p%ChangingChemicalIdentity) then
+                     call stop_if_err(1, "Tried to change chemical Identity when you can't")
+                 endif
                  do I = IT1,IT2
                       wlc_d%AB(I) = wlc_d%ABP(I)
                  ENDdo
-             else
+             endif
+             if(MCTYPE /= 7) then
                  do I = IT1,IT2
-                     wlc_d%R(I,1) = wlc_d%RP(I,1)
-                     wlc_d%R(I,2) = wlc_d%RP(I,2)
-                     wlc_d%R(I,3) = wlc_d%RP(I,3)
-                     wlc_d%U(I,1) = wlc_d%UP(I,1)
-                     wlc_d%U(I,2) = wlc_d%UP(I,2)
-                     wlc_d%U(I,3) = wlc_d%UP(I,3)
+                     wlc_d%R(1,I) = wlc_d%RP(1,I)
+                     wlc_d%R(2,I) = wlc_d%RP(2,I)
+                     wlc_d%R(3,I) = wlc_d%RP(3,I)
+                     wlc_d%U(1,I) = wlc_d%UP(1,I)
+                     wlc_d%U(2,I) = wlc_d%UP(2,I)
+                     wlc_d%U(3,I) = wlc_d%UP(3,I)
                  enddo
                  if (MCTYPE == 9) then
                      do I = IT3,IT4
-                         wlc_d%R(I,1) = wlc_d%RP(I,1)
-                         wlc_d%R(I,2) = wlc_d%RP(I,2)
-                         wlc_d%R(I,3) = wlc_d%RP(I,3)
-                         wlc_d%U(I,1) = wlc_d%UP(I,1)
-                         wlc_d%U(I,2) = wlc_d%UP(I,2)
-                         wlc_d%U(I,3) = wlc_d%UP(I,3)
+                         wlc_d%R(1,I) = wlc_d%RP(1,I)
+                         wlc_d%R(2,I) = wlc_d%RP(2,I)
+                         wlc_d%R(3,I) = wlc_d%RP(3,I)
+                         wlc_d%U(1,I) = wlc_d%UP(1,I)
+                         wlc_d%U(2,I) = wlc_d%UP(2,I)
+                         wlc_d%U(3,I) = wlc_d%UP(3,I)
                      enddo
                  endif
              endif
@@ -251,13 +256,20 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
              if (wlc_p%FIELD_inT_ON) then
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)
+                   if (wlc_p%chi_l2_on) then
+                       do m_plus3 = 1,5
+                           wlc_d%PHI_l2(m_plus3,J) =  wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,I)
+                       enddo
+                   endif
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
                    wlc_d%PHIB(J) = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-                   if ((wlc_d%PHIA(J).lt.-0.000001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
+                   if ((wlc_d%PHIA(J).lt.-0.0001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
+                       print*, "IT1-4",IT1,IT2,IT3,IT4
                        print*, "Vol", wlc_d%Vol(I)
                        print*, "MCTYPE", MCTYPE
                        print*, "DPHIA ",wlc_d%DPHIA(I)," DPHIB",wlc_d%DPHIB(I)
                        print*, "PHIA(J) ", wlc_d%PHIA(J), " PHIB(J) ", wlc_d%PHIB(J)
+                       print*, "I", I,"J",J
                        print*, "Error in MCsim. Negative phi"
                        stop 1
                    endif
@@ -266,10 +278,13 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                 wlc_d%EKap = wlc_d%EKap + wlc_d%DEKap
                 wlc_d%EChi = wlc_d%EChi + wlc_d%DEChi
                 wlc_d%EField = wlc_d%EField + wlc_d%DEField
+                wlc_d%EmaierSaupe = wlc_d%EmaierSaupe + wlc_d%demaierSaupe
+
                 wlc_d%x_Couple = wlc_d%x_couple + wlc_d%dx_couple
                 wlc_d%x_kap = wlc_d%x_Kap + wlc_d%dx_kap
                 wlc_d%x_chi = wlc_d%x_chi + wlc_d%dx_chi
                 wlc_d%x_field = wlc_d%x_field + wlc_d%dx_field
+                wlc_d%x_maierSaupe = wlc_d%x_maierSaupe + wlc_d%dx_maierSaupe
 
              endif
              if (wlc_p%ring) then
@@ -279,10 +294,11 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
             endif
              wlc_d%SUCCESS(MCTYPE) = wlc_d%SUCCESS(MCTYPE) + 1
           endif
+          wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
 !   Adapt the amplitude of step every NADAPT steps
 
           !amplitude and window adaptations
-          if (mod(ISTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
+          if (mod(ISTEP+wlc_d%ind_exchange*NSTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
 
              ! move each chain back if drifted though repeated BC

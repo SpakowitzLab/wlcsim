@@ -9,8 +9,10 @@
 !---------------------------------------------------------------
 subroutine interp(confineType,RBin,LBOX,NBinX,dbin,IX,IY,IZ,WX,WY,WZ)
 use params, only: dp
+use inputparams, only: MAXPARAMLEN
 implicit none
-integer, intent (in) :: confineType
+
+character(MAXPARAMLEN), intent(in) :: confineType  ! Specifier for type of confinement
 real(dp), intent(inout) :: RBin(3) ! position or posiion within bin
 real(dp), intent(in) :: LBOX(3) ! Side length of box
 integer, intent(in) :: NBinX(3)      ! number of discritations in each direction
@@ -22,7 +24,7 @@ real(dp), intent(out) :: WX(2) ! Output
 real(dp), intent(out) :: WY(2) ! Output
 real(dp), intent(out) :: WZ(2) ! Output
 SELECT CASE (confineType)
-CASE (0) ! Box from 0-LBOX, Bins split by boundaries
+CASE ('none') ! Box from 0-LBOX, Bins split by boundaries
     ! Periodic BC
     RBin(1) = RBin(1)-floor(RBin(1)/LBOX(1))*LBOX(1)
     RBin(2) = RBin(2)-floor(RBin(2)/LBOX(2))*LBOX(2)
@@ -52,7 +54,7 @@ CASE (0) ! Box from 0-LBOX, Bins split by boundaries
     IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(NBinX(2))) * NBinX(2)
     IZ(1) = IZ(1)-floor(REAL((IZ(1)-1))/REAL(NBinX(3))) * NBinX(3)
     IZ(2) = IZ(2)-floor(REAL((IZ(2)-1))/REAL(NBinX(3))) * NBinX(3)
-CASE (1)
+CASE ('platesInZperiodicXY')
     ! Periodic BC
     RBin(1) = RBin(1)-floor(RBin(1)/LBOX(2))*LBOX(1)
     RBin(2) = RBin(2)-floor(RBin(2)/LBOX(1))*LBOX(2)
@@ -84,7 +86,7 @@ CASE (1)
     IX(2) = IX(2)-floor(REAL((IX(2)-1))/REAL(NBinX(1))) * NBinX(1)
     IY(1) = IY(1)-floor(REAL((IY(1)-1))/REAL(NBinX(2))) * NBinX(2)
     IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(NBinX(2))) * NBinX(2)
-CASE (2) ! Box confinement
+CASE ('cube') ! Box confinement
     ! Binning
     IX(1) = nint(RBin(1)/dbin) + 1
     IY(1) = nint(RBin(2)/dbin) + 1
@@ -101,7 +103,7 @@ CASE (2) ! Box confinement
     WY(1) = 1.0_dp-WY(2)
     WZ(2) = (dbin*IZ(1)-0.5_dp*dbin-RBin(3))/dbin
     WZ(1) = 1.0_dp-WZ(2)
-CASE (3)
+CASE ('sphere')
     ! Binning
     IX(1) = nint(RBin(1)/dbin) + 1
     IY(1) = nint(RBin(2)/dbin) + 1
@@ -118,7 +120,7 @@ CASE (3)
     WY(1) = 1.0_dp-WY(2)
     WZ(2) = (dbin*IZ(1)-0.5_dp*dbin-RBin(3))/dbin
     WZ(1) = 1.0_dp-WZ(2)
-CASE (4) ! Box from 0-LBOX, Bins split by boundaries
+CASE ('periodicUnequal') ! Box from 0-LBOX, Bins split by boundaries
     ! Periodic BC
     RBin(1) = RBin(1)-floor(RBin(1)/LBOX(1))*LBOX(1)
     RBin(2) = RBin(2)-floor(RBin(2)/LBOX(2))*LBOX(2)

@@ -11,17 +11,17 @@
       subroutine stressp(COR,R,U,R0,U0,NT,N,NP,PARA,inTON,SIMTYPE)
           use params, only : dp
       implicit none
-      real(dp) FELAS(NT,3) ! Elastic force
-      real(dp) FPONP(NT,3) ! Self-interaction force
-      real(dp) TELAS(NT,3) ! Elastic force
+      real(dp) FELAS(3,NT) ! Elastic force
+      real(dp) FPONP(3,NT) ! Self-interaction force
+      real(dp) TELAS(3,NT) ! Elastic force
       real(dp) FELAS0(NT,3) ! Elastic force
       real(dp) FPONP0(NT,3) ! Self-interaction force
       integer inTON             ! Include polymer interactions
       real(dp) TELAS0(NT,3) ! Elastic force
-      real(dp) R(NT,3)  ! Bead positions
-      real(dp) U(NT,3)  ! Tangent vectors
-      real(dp) R0(NT,3)  ! Bead positions
-      real(dp) U0(NT,3)  ! Tangent vectors
+      real(dp) R(3,NT)  ! Bead positions
+      real(dp) U(3,NT)  ! Tangent vectors
+      real(dp) R0(3,NT)  ! Bead positions
+      real(dp) U0(3,NT)  ! Tangent vectors
       real(dp) COR
 
       real(dp) FTOT(3)  ! Compress force
@@ -78,9 +78,9 @@
          RCOM(3) = 0.
          do 20 J = 1,N
             IB = J + N*(I-1)
-            RCOM(1) = RCOM(1) + R(IB,1)/N
-            RCOM(2) = RCOM(2) + R(IB,2)/N
-            RCOM(3) = RCOM(3) + R(IB,3)/N
+            RCOM(1) = RCOM(1) + R(1,IB)/N
+            RCOM(2) = RCOM(2) + R(2,IB)/N
+            RCOM(3) = RCOM(3) + R(3,IB)/N
  20      continue
 
          SIG(1,1) = 0.
@@ -94,18 +94,18 @@
          SIG(3,3) = 0.
          do 30 J = 1,N
             IB = J + N*(I-1)
-            FTOT(1) = FELAS(IB,1) + inTON*FPONP(IB,1)
-            FTOT(2) = FELAS(IB,2) + inTON*FPONP(IB,2)
-            FTOT(3) = FELAS(IB,3) + inTON*FPONP(IB,3)
-            SIG(1,1) = SIG(1,1)-(R(IB,1)-RCOM(1))*FTOT(1)
-            SIG(1,2) = SIG(1,2)-(R(IB,1)-RCOM(1))*FTOT(2)
-            SIG(1,3) = SIG(1,3)-(R(IB,1)-RCOM(1))*FTOT(3)
-            SIG(2,1) = SIG(2,1)-(R(IB,2)-RCOM(2))*FTOT(1)
-            SIG(2,2) = SIG(2,2)-(R(IB,2)-RCOM(2))*FTOT(2)
-            SIG(2,3) = SIG(2,3)-(R(IB,2)-RCOM(2))*FTOT(3)
-            SIG(3,1) = SIG(3,1)-(R(IB,3)-RCOM(3))*FTOT(1)
-            SIG(3,2) = SIG(3,2)-(R(IB,3)-RCOM(3))*FTOT(2)
-            SIG(3,3) = SIG(3,3)-(R(IB,3)-RCOM(3))*FTOT(3)
+            FTOT(1) = FELAS(1,IB) + inTON*FPONP(1,IB)
+            FTOT(2) = FELAS(2,IB) + inTON*FPONP(2,IB)
+            FTOT(3) = FELAS(3,IB) + inTON*FPONP(3,IB)
+            SIG(1,1) = SIG(1,1)-(R(1,IB)-RCOM(1))*FTOT(1)
+            SIG(1,2) = SIG(1,2)-(R(1,IB)-RCOM(1))*FTOT(2)
+            SIG(1,3) = SIG(1,3)-(R(1,IB)-RCOM(1))*FTOT(3)
+            SIG(2,1) = SIG(2,1)-(R(2,IB)-RCOM(2))*FTOT(1)
+            SIG(2,2) = SIG(2,2)-(R(2,IB)-RCOM(2))*FTOT(2)
+            SIG(2,3) = SIG(2,3)-(R(2,IB)-RCOM(2))*FTOT(3)
+            SIG(3,1) = SIG(3,1)-(R(3,IB)-RCOM(3))*FTOT(1)
+            SIG(3,2) = SIG(3,2)-(R(3,IB)-RCOM(3))*FTOT(2)
+            SIG(3,3) = SIG(3,3)-(R(3,IB)-RCOM(3))*FTOT(3)
  30      continue
 
          RCOM(1) = 0.
@@ -113,9 +113,9 @@
          RCOM(3) = 0.
          do 40 J = 1,N
             IB = J + N*(I-1)
-            RCOM(1) = RCOM(1) + R0(IB,1)/N
-            RCOM(2) = RCOM(2) + R0(IB,2)/N
-            RCOM(3) = RCOM(3) + R0(IB,3)/N
+            RCOM(1) = RCOM(1) + R0(1,IB)/N
+            RCOM(2) = RCOM(2) + R0(2,IB)/N
+            RCOM(3) = RCOM(3) + R0(3,IB)/N
  40      continue
 
          SIG0(1,1) = 0.
@@ -132,15 +132,15 @@
             FTOT(1) = FELAS0(IB,1) + inTON*FPONP0(IB,1)
             FTOT(2) = FELAS0(IB,2) + inTON*FPONP0(IB,2)
             FTOT(3) = FELAS0(IB,3) + inTON*FPONP0(IB,3)
-            SIG0(1,1) = SIG0(1,1)-(R0(IB,1)-RCOM(1))*FTOT(1)
-            SIG0(1,2) = SIG0(1,2)-(R0(IB,1)-RCOM(1))*FTOT(2)
-            SIG0(1,3) = SIG0(1,3)-(R0(IB,1)-RCOM(1))*FTOT(3)
-            SIG0(2,1) = SIG0(2,1)-(R0(IB,2)-RCOM(2))*FTOT(1)
-            SIG0(2,2) = SIG0(2,2)-(R0(IB,2)-RCOM(2))*FTOT(2)
-            SIG0(2,3) = SIG0(2,3)-(R0(IB,2)-RCOM(2))*FTOT(3)
-            SIG0(3,1) = SIG0(3,1)-(R0(IB,3)-RCOM(3))*FTOT(1)
-            SIG0(3,2) = SIG0(3,2)-(R0(IB,3)-RCOM(3))*FTOT(2)
-            SIG0(3,3) = SIG0(3,3)-(R0(IB,3)-RCOM(3))*FTOT(3)
+            SIG0(1,1) = SIG0(1,1)-(R0(1,IB)-RCOM(1))*FTOT(1)
+            SIG0(1,2) = SIG0(1,2)-(R0(1,IB)-RCOM(1))*FTOT(2)
+            SIG0(1,3) = SIG0(1,3)-(R0(1,IB)-RCOM(1))*FTOT(3)
+            SIG0(2,1) = SIG0(2,1)-(R0(2,IB)-RCOM(2))*FTOT(1)
+            SIG0(2,2) = SIG0(2,2)-(R0(2,IB)-RCOM(2))*FTOT(2)
+            SIG0(2,3) = SIG0(2,3)-(R0(2,IB)-RCOM(2))*FTOT(3)
+            SIG0(3,1) = SIG0(3,1)-(R0(3,IB)-RCOM(3))*FTOT(1)
+            SIG0(3,2) = SIG0(3,2)-(R0(3,IB)-RCOM(3))*FTOT(2)
+            SIG0(3,3) = SIG0(3,3)-(R0(3,IB)-RCOM(3))*FTOT(3)
  50      continue
 
          COR = COR + SIG(1,2)*SIG0(1,2) + SIG(1,3)*SIG0(1,3) + SIG(2,1)*SIG0(2,1) &

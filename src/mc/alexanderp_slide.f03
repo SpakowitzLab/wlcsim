@@ -9,7 +9,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !inPUT VARIABLES
   integer N                     ! Number of points in space curve
   integer CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
-  real(dp) R(N,3)       !Space curve
+  real(dp) R(3,N)       !Space curve
   real(dp) Cross(CrossSize,6)        !Matrix of cross indices and coordinates
   real(dp) CrossNew(CrossSize,6)
   integer Ncross                !Total number of crossings
@@ -25,7 +25,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   integer IS1,IS2,IS1P1,IS2P1   !Indices of initial beads of the two segments that are "stretched" during the slide move
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(N,3)      ! projection of R onto plane defined by NV
+  real(dp) RP(3,N)      ! projection of R onto plane defined by NV
   real(dp) RdoTN(N)        ! Dot product of R and NV
   integer Ndegen                ! number of crossings for a given segment
   integer I,J,K,IP1,JP1,KP1           ! iteration indices
@@ -57,13 +57,13 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
   !Calculate the projection of R onto the projection plane
   do I = 1,N
-     RdoTN(I) = R(I,1)*NV(1) + R(I,2)*NV(2) + R(I,3)*NV(3)
+     RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
   ENDdo
 
   !Calculate the projection of the curve into the plane with normal NV
 
   do I = 1,N
-     RP(I,:) = R(I,:)-RdoTN(I)*NV
+     RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
 
@@ -176,10 +176,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Calculate lengths of segments in the projection and the tangents
-        smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-        tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-        ui = (RP(IIP1,:)-RP(II,:))/smax
-        uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+        smax = SQRT(SUM((RP(:,IIP1)-RP(:,II))**2))
+        tmax = SQRT(SUM((RP(:,IOP1)-RP(:,IO))**2))
+        ui = (RP(:,IIP1)-RP(:,II))/smax
+        uj = ((RP(:,IOP1)-RP(:,IO)))/tmax
         udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
         !If segments are parallel, continue to next segment
@@ -188,18 +188,18 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         ENDif
 
         !Compute the point of intersection
-        tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-        sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
+        tint = (RP(2,IO)-RP(2,II)-(ui(2)/ui(1))*(RP(1,IO)-RP(1,II)))/((ui(2)*uj(1)/ui(1))-uj(2))
+        sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
         !If the intersection point is within length of segments, count as an intersection
         if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
            !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
            !Compute lengths and tangents  of true segments (not projected)
-           srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-           trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-           DRI = R(IIP1,:)-R(II,:)
-           DRJ = R(IOP1,:)-R(IO,:)
+           srmax = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+           trmax = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+           DRI = R(:,IIP1)-R(:,II)
+           DRJ = R(:,IOP1)-R(:,IO)
            uri = DRI/srmax
            urj = DRJ/trmax
            !Calculate the angle between the real segment and the projection
@@ -213,7 +213,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            !Save the indices appropriately (the index of the undercrossing segment
            !must come first
 
-           if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+           if (R(3,II) + uri(3)*srint<R(3,IO) + urj(3)*trint) then
               Ncross = Ncross + 1
               Cross(Ncross,1) = II;
               Cross(Ncross,2) = IO;
@@ -269,10 +269,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      ENDif
 
      !Calculate lengths of segments in the projection and the tangents
-     smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-     tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-     ui = (RP(IIP1,:)-RP(II,:))/smax
-     uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+     smax = SQRT(SUM((RP(:,IIP1)-RP(:,II))**2))
+     tmax = SQRT(SUM((RP(:,IOP1)-RP(:,IO))**2))
+     ui = (RP(:,IIP1)-RP(:,II))/smax
+     uj = ((RP(:,IOP1)-RP(:,IO)))/tmax
      udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
      !If segments are parallel, continue to next segment
@@ -281,18 +281,18 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      ENDif
 
      !Compute the point of intersection
-     tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-     sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
+     tint = (RP(2,IO)-RP(2,II)-(ui(2)/ui(1))*(RP(1,IO)-RP(1,II)))/((ui(2)*uj(1)/ui(1))-uj(2))
+     sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
      !If the intersection point is within length of segments, count as an intersection
      if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
         !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
         !Compute lengths and tangents  of true segments (not projected)
-        srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-        trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-        DRI = R(IIP1,:)-R(II,:)
-        DRJ = R(IOP1,:)-R(IO,:)
+        srmax = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+        trmax = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+        DRI = R(:,IIP1)-R(:,II)
+        DRJ = R(:,IOP1)-R(:,IO)
         uri = DRI/srmax
         urj = DRJ/trmax
         !Calculate the angle between the real segment and the projection
@@ -306,7 +306,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+        if (R(3,II) + uri(3)*srint<R(3,IO) + urj(3)*trint) then
            Ncross = Ncross + 1
            Cross(Ncross,1) = II;
            Cross(Ncross,2) = IO;
@@ -344,10 +344,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      ENDif
 
      !Calculate lengths of segments in the projection and the tangents
-     smax = SQRT(SUM((RP(IIP1,:)-RP(II,:))**2))
-     tmax = SQRT(SUM((RP(IOP1,:)-RP(IO,:))**2))
-     ui = (RP(IIP1,:)-RP(II,:))/smax
-     uj = ((RP(IOP1,:)-RP(IO,:)))/tmax
+     smax = SQRT(SUM((RP(:,IIP1)-RP(:,II))**2))
+     tmax = SQRT(SUM((RP(:,IOP1)-RP(:,IO))**2))
+     ui = (RP(:,IIP1)-RP(:,II))/smax
+     uj = ((RP(:,IOP1)-RP(:,IO)))/tmax
      udot = ui(1)*uj(1) + ui(2)*uj(2) + ui(3)*uj(3)
 
      !If segments are parallel, continue to next segment
@@ -356,18 +356,18 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      ENDif
 
      !Compute the point of intersection
-     tint = (rp(IO,2)-rp(II,2)-(ui(2)/ui(1))*(rp(IO,1)-rp(II,1)))/((ui(2)*uj(1)/ui(1))-uj(2))
-     sint = (rp(IO,1)-rp(II,1) + uj(1)*tint)/ui(1)
+     tint = (RP(2,IO)-RP(2,II)-(ui(2)/ui(1))*(RP(1,IO)-RP(1,II)))/((ui(2)*uj(1)/ui(1))-uj(2))
+     sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
      !If the intersection point is within length of segments, count as an intersection
      if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
         !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
         !Compute lengths and tangents  of true segments (not projected)
-        srmax = SQRT(SUM((R(IIP1,:)-R(II,:))**2))
-        trmax = SQRT(SUM((R(IOP1,:)-R(IO,:))**2))
-        DRI = R(IIP1,:)-R(II,:)
-        DRJ = R(IOP1,:)-R(IO,:)
+        srmax = SQRT(SUM((R(:,IIP1)-R(:,II))**2))
+        trmax = SQRT(SUM((R(:,IOP1)-R(:,IO))**2))
+        DRI = R(:,IIP1)-R(:,II)
+        DRJ = R(:,IOP1)-R(:,IO)
         uri = DRI/srmax
         urj = DRJ/trmax
         !Calculate the angle between the real segment and the projection
@@ -381,7 +381,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         !Save the indices appropriately (the index of the undercrossing segment
         !must come first
 
-        if (R(II,3) + uri(3)*srint<r(IO,3) + urj(3)*trint) then
+        if (R(3,II) + uri(3)*srint<R(3,IO) + urj(3)*trint) then
            Ncross = Ncross + 1
            Cross(Ncross,1) = II;
            Cross(Ncross,2) = IO;
