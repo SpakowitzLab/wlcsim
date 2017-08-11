@@ -23,7 +23,7 @@ real(dp) phi_B ! density of B
 real(dp) phi_h ! strength of field
 real(dp) phi_l2 ! strength of field
 real(dp) VV ! volume of bin
-integer I,J,m_plus3 ! for looping
+integer I,J,m_index ! for looping
 
 wlc_d%dx_Chi = 0.0_dp
 wlc_d%Dx_Couple = 0.0_dp
@@ -45,8 +45,8 @@ if (initialize) then  ! calculate absolute energy
 
         if (wlc_p%chi_l2_on) then
             do I = 1,wlc_p%NBIN
-                do m_plus3=1,5
-                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%PHI_l2(m_plus3,I)**2
+                do m_index = -2,2
+                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%PHI_l2(m_index,I)**2
                 enddo
             enddo
         endif
@@ -114,12 +114,12 @@ else ! Calculate change in energy
                 phi_B = phi_B + wlc_d%DPHIB(I)
                 wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
 
-                do m_plus3=1,5
+                do m_index = -2,2
                         ! minus old
-                        phi_l2 = wlc_d%PHI_l2(m_plus3,J)
+                        phi_l2 = wlc_d%PHI_l2(m_index,J)
                         wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe - VV*phi_l2**2
                         ! plus new
-                        phi_l2 = phi_l2 + wlc_d%DPHI_l2(m_plus3,I)
+                        phi_l2 = phi_l2 + wlc_d%DPHI_l2(m_index,I)
                         wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*phi_l2**2
                 enddo
             enddo

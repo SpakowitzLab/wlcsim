@@ -37,6 +37,14 @@ module params
     real(dp), parameter :: HUGE_ENERGY = 9990000.0_dp
     real(dp), parameter :: eps = 0.00000001_dp
 
+    character(len = 20), parameter, dimension(nMoveTypes) :: moveNames(nMoveTypes) = &
+        (/'crank-shaft         ','slide               ',&
+          'pivot               ','rotate              ',&
+          'fullChainRotation   ','fullChianSlide      ',&
+          'chem-identity       ','end-end filp        ',&
+          'chain swap          ','reptation           ',&
+          'superReptation      '/)
+
     !!!     universal constants
     ! fully accurate, adaptive precision
     real(dp), parameter :: pi = 4 * atan(1.0_dp)
@@ -141,6 +149,7 @@ module params
         integer N_CHI_ON           ! when to turn CHI energy on
         integer N_CHI_l2_ON           ! when to turn CHI energy on
         integer nInitMCSteps       ! number of mc steps before starting BD
+        integer movesPerStep(nMoveTypes) ! how many times each move is done per step
 
     !   Switches
         logical ring              ! whether the polymer is a ring
@@ -363,7 +372,7 @@ contains
         wlc_p%CHI =0.0_dp ! don't use chi by default
         wlc_p%CHI_l2 =0.0_dp ! don't use maier Saupe by default
         wlc_p%hA =0.0_dp  ! don't use weird artificial field by default
-        wlc_p%KAP =0.0_dp ! compressible 
+        wlc_p%KAP =0.0_dp ! compressible
         wlc_p%EU  =0.0_dp ! a function of coarse graining. This should be set by hand if needed.
         wlc_p%EM  =0.0_dp ! by default, no hp1 binding energy included
         wlc_p%mu  =0.0_dp ! by default, no hp1 binding included
@@ -377,7 +386,7 @@ contains
         wlc_p%ring = .false.    ! not a ring by default
         wlc_p%twist = .false.    ! don't include twist by default
         wlc_p%lk = 0    ! no linking number (lays flat) by default
-        wlc_p%min_accept = 0.05 ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
+        wlc_p%min_accept = 0.05_dp ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
         wlc_p%exitWhenCollided = .FALSE. ! stop sim when coltimes is full
         wlc_p%field_int_on = .FALSE. ! no field interactions by default
         wlc_p%fieldInteractionType = 'none'  ! See MC_Hamiltonian
@@ -392,7 +401,7 @@ contains
         wlc_p%stepsPerSave = 2000  ! number of simulation steps to take
         wlc_p%numSavePoints = 200    ! 200 total save points, i.e. 2000 steps per save point
         wlc_p%NNoInt = 100    ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
-        wlc_p%reduce_move = 10 ! use moves that fall below the min_accept threshold only once every 10 times they would otherwise be used
+        wlc_p%reduce_move = 1 ! use moves that fall below the min_accept threshold only once every ~ times they would otherwise be used, set to one for no effect
         wlc_p%winType = 1   ! exponential fragment sizes mix better
         wlc_p%KAP_ON = 1.0_dp ! use full value of compression energy
         wlc_p%CHI_ON = 1.0_dp ! use full value of chi energy
@@ -408,13 +417,13 @@ contains
         wlc_p%stepsPerExchange = 100      ! 100 steps between parallel tempering is pretty frequent
         wlc_p%nReplicaExchangePerSavePoint = 1000      ! make this large
         wlc_p%NRepAdapt = 1000  ! 1000 exchange attempts between adaptations
-        wlc_p%lowerRepExe = 0.09 ! TOdo: enter justification for these defaults, if any.
-        wlc_p%upperRepExe = 0.18 ! TOdo: fine if the only justification is "these just work"
-        wlc_p%lowerCofRail = 0.005
-        wlc_p%upperCofRail = 0.1
+        wlc_p%lowerRepExe = 0.09_dp ! TOdo: enter justification for these defaults, if any.
+        wlc_p%upperRepExe = 0.18_dp ! TOdo: fine if the only justification is "these just work"
+        wlc_p%lowerCofRail = 0.005_dp
+        wlc_p%upperCofRail = 0.1_dp
         wlc_p%indStartRepAdapt = 10
         wlc_p%indendRepAdapt = 20
-        wlc_p%repAnnealSpeed = 0.01
+        wlc_p%repAnnealSpeed = 0.01_dp
         wlc_p%replicaBounds = .TRUE.
         wlc_p%PT_twist =.False. ! don't parallel temper linking number (twist) by default
         wlc_p%PT_chi =.False. ! don't parallel temper chi by default
@@ -436,6 +445,18 @@ contains
         wlc_p%MOVEON(9) = 1  ! Chain exchange
         wlc_p%MOVEON(10) = 1 ! Reptation
         wlc_p%MOVEON(11) = 0 ! Super Reptation
+
+        wlc_p%movesPerStep(1) = 11  ! crank shaft
+        wlc_p%movesPerStep(2) = 25 ! slide
+        wlc_p%movesPerStep(3) = 19 ! pivot
+        wlc_p%movesPerStep(4) = 45 ! rotate
+        wlc_p%movesPerStep(5) = 5  ! full chain rotation
+        wlc_p%movesPerStep(6) = 6  ! full chain slide
+        wlc_p%movesPerStep(7) = 111! bind
+        wlc_p%movesPerStep(8) = 0  ! filp
+        wlc_p%movesPerStep(9) = 5  ! full chain swap
+        wlc_p%movesPerStep(10) = 10  ! reptation
+        wlc_p%movesPerStep(11) = 57  ! super-reptation
 
         ! Balance move amplitude and number of beads
         do mctype = 1,nMovetypes
@@ -733,6 +754,28 @@ contains
             call reado(wlc_p%pt_twist)  ! parallel temper over linking numbers
         case('RESTART')
             call reado(wlc_p%restart) ! Restart from parallel tempering
+        case('NCRANK')
+            call readi(wlc_p%movesPerStep(1)) ! crank shaft
+        case('NSLIDE')
+            call readi(wlc_p%movesPerStep(2)) ! slide
+        case('NPIVOT')
+            call readi(wlc_p%movesPerStep(3)) ! pivot
+        case('NROTATE')
+            call readi(wlc_p%movesPerStep(4)) ! rotate
+        case('NFULLCHAINROTATION')
+            call readi(wlc_p%movesPerStep(5)) ! full chain rotation
+        case('NFULLCHAINSLIDE')
+            call readi(wlc_p%movesPerStep(6)) ! full chain slide
+        case('NBIND')
+            call readi(wlc_p%movesPerStep(7)) ! bind
+        case('NFLIP')
+            call readi(wlc_p%movesPerStep(8)) ! filp
+        case('NFULLCHAINSWAP')
+            call readi(wlc_p%movesPerStep(9))  ! full chain swap
+        case('NREPTATION')
+            call readi(wlc_p%movesPerStep(10))  ! reptation
+        case('NSUPERREPTATION')
+            call readi(wlc_p%movesPerStep(11))  ! super-reptation
         case default
             print *, "Warning, the input key ", trim(Word), " was not recognized."
             print *, "    ...Checking deprecated variable names"
@@ -1059,8 +1102,8 @@ contains
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
             if (wlc_p%changingChemicalIdentity)  allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
             if (wlc_p%chi_l2_on) then
-                allocate(wlc_d%PHI_l2(5,NT))
-                allocate(wlc_d%dPHI_l2(5,NT))
+                allocate(wlc_d%PHI_l2(-2:2,NT))
+                allocate(wlc_d%dPHI_l2(-2:2,NT))
             endif
             allocate(wlc_d%PHIA(NBin))
             allocate(wlc_d%PHIB(NBin))
@@ -1559,7 +1602,8 @@ contains
         print*, "Succes | MCAMP | WindoW| type "
         do I = 1,nMovetypes
             if (wlc_p%MOVEON(i).eq.1) then
-                write(*,"(f8.5,2f8.2,1I8)") wlc_d%phit(i), wlc_d%MCAMP(i),  wlc_d%WindoW(i), i
+                write(*,"(f8.5,2f8.2,1A1,1A20)") wlc_d%phit(i), wlc_d%MCAMP(i),&
+                    wlc_d%WindoW(i),' ', moveNames(i)
             endif
         enddo
         return

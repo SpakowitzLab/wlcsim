@@ -33,8 +33,8 @@ real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
-real(dp) phi2(5)
-integer m_plus3  ! m from Ylm spherical harmonics
+real(dp), dimension(-2:2) :: phi2
+integer m_index  ! m from Ylm spherical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
@@ -122,9 +122,9 @@ do II = 1,2
                       wlc_d%DPHIA(wlc_d%NPHI) = temp
                       wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                                  + phi2(m_plus3)*temp
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                                  + phi2(m_index)*temp
                           enddo
                       endif
                       exit
@@ -132,9 +132,9 @@ do II = 1,2
                       temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) &
-                                  + phi2(m_plus3)*temp
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
+                                  + phi2(m_index)*temp
                           enddo
                       endif
                       exit
@@ -163,9 +163,9 @@ do II = 1,2
                       wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
                       wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
+                          do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = 0.0
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
                           enddo
                       endif
                       exit
@@ -250,9 +250,9 @@ do IB = I1,I2-1
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
                   if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                              + phi2(m_plus3)*temp
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                              + phi2(m_index)*temp
                       enddo
                   endif
                   exit
@@ -261,9 +261,9 @@ do IB = I1,I2-1
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
                   if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) &
-                              + phi2(m_plus3)*temp
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
+                              + phi2(m_index)*temp
                       enddo
                   endif
                   exit

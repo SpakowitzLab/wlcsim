@@ -32,10 +32,10 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 !LOGICAL isA   ! The bead is of type A
 integer AminusB
-integer m_plus3
+integer m_index ! m quantum number for sphrical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
-real(dp) phi2(5)
+real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
 NBinX = wlc_p%NBinX
 
@@ -122,8 +122,8 @@ do IB = I1,I2
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
                   if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%dPHI_l2(m_plus3,wlc_d%NPHI) = phi2(m_plus3)*temp
+                      do m_index = -2,2
+                          wlc_d%dPHI_l2(m_index,wlc_d%NPHI) = phi2(m_index)*temp
                       enddo
                   endif
                   exit
@@ -132,9 +132,9 @@ do IB = I1,I2
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
                   if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%dPHI_l2(m_plus3,I) = wlc_d%dPHI_l2(m_plus3,I) + &
-                                      phi2(m_plus3)*temp
+                      do m_index = -2,2
+                          wlc_d%dPHI_l2(m_index,I) = wlc_d%dPHI_l2(m_index,I) + &
+                                      phi2(m_index)*temp
                       enddo
                   endif
                   exit

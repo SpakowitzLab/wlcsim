@@ -14,6 +14,10 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     TYPE(wlcsim_data), intent(inout) :: wlc_d
     integer, intent(in) :: MCTYPE   ! Type of move
 
+    if(wlc_d%ATTEMPTS(MCTYPE) < 10) then
+        return
+    endif
+
 !   Change the position if appropriate
     wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE))/real(wlc_d%ATTEMPTS(MCTYPE))
 

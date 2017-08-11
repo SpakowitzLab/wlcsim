@@ -27,8 +27,8 @@ LOGICAL isA   ! The bead is of type A
 integer NBinX(3)
 real(dp) temp
 real(dp) contribution 
-integer m_plus3 ! m from spherical harmonics
-real(dp) phi2(5)
+integer m_index ! m from spherical harmonics
+real(dp), dimension(-2:2) :: phi2
 real(dp) AminusB ! +1 if A and -1 if B
 
 NBinX = wlc_p%NBinX
@@ -81,9 +81,9 @@ do IB = I1,I2
                       wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                                     AminusB*phi2(m_plus3)*contribution
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                                     AminusB*phi2(m_index)*contribution
                           enddo
                       endif
                       exit
@@ -91,9 +91,9 @@ do IB = I1,I2
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
                       wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
-                                  AminusB*phi2(m_plus3)*contribution
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
+                                  AminusB*phi2(m_index)*contribution
                           enddo
                       endif
                       exit
@@ -124,9 +124,9 @@ do IB = I1,I2
                       wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) =  +&
-                                  AminusB*phi2(m_plus3)*contribution
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) =  +&
+                                  AminusB*phi2(m_index)*contribution
                           enddo
                       endif
                       exit
@@ -134,9 +134,9 @@ do IB = I1,I2
                       wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
                       if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
-                                  AminusB*phi2(m_plus3)*contribution
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
+                                  AminusB*phi2(m_index)*contribution
                           enddo
                       endif
                       exit

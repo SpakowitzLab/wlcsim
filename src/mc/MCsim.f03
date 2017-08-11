@@ -53,7 +53,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
     integer DELTA             !Alexander polynomial evaluated at t = -1; used for knot checking
     real(dp) para(10)
-    integer m_plus3  ! m is the m from spherical harmonics (z component)
+    integer m_index  ! m is the m from spherical harmonics (z component)
+    integer sweepIndex
 
     rand_stat = wlc_d%rand_stat
 
@@ -77,8 +78,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     ISTEP = 1
 
     do while (ISTEP <= NSTEP)
-
+       
        do MCTYPE = 1,nMoveTypes
+       do sweepIndex = 1,wlc_p%movesPerStep(MCTYPE) 
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
@@ -257,8 +259,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)
                    if (wlc_p%chi_l2_on) then
-                       do m_plus3 = 1,5
-                           wlc_d%PHI_l2(m_plus3,J) =  wlc_d%PHI_l2(m_plus3,J) + wlc_d%DPHI_l2(m_plus3,I)
+                       do m_index = -2,2
+                           wlc_d%PHI_l2(m_index,J) =  wlc_d%PHI_l2(m_index,J) + wlc_d%DPHI_l2(m_index,I)
                        enddo
                    endif
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
@@ -297,6 +299,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
 !   Adapt the amplitude of step every NADAPT steps
 
+       enddo ! End of sweepIndex loop
           !amplitude and window adaptations
           if (mod(ISTEP+wlc_d%ind_exchange*NSTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
@@ -306,7 +309,6 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                  call wlcsim_params_recenter(wlc_p,wlc_d)  ! You don't need to do this if there is confinement
             endif
           endif
-
        enddo ! End of movetype loop
 
       ! Parallel tempereing used to happen here but now has been moved to wlcsim_name
