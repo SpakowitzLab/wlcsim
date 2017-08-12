@@ -73,8 +73,8 @@ module params
         character(MAXPARAMLEN) codeName ! which simulation code to run
     !   Simulation parameters
         integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
-        integer nT                ! Total number of beads  NT = NP*N*G
-        integer nB                ! Number of beads in a polymer NB = N*G
+        integer nT                ! Total number of beads  NT = nBpM*nMpP*np
+        integer nB                ! Number of beads in a polymer NB = nMpP*nBpM
         integer nMpP              ! Number of monomers (NOT BEADS!) in a polymer
         integer nBpM              ! number beads per monomer
         integer nP                ! Number of polymers
@@ -1504,19 +1504,19 @@ contains
         type(wlcsim_data), intent(inout) :: wlc_d
         integer IB, I, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
-        IB = 1
         do I = 1,wlc_p%NP
-        R0(1) = nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
-        R0(2) = nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
-        R0(3) = nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
-        if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
-            do J = 1,wlc_p%NB
-                wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
-                wlc_d%R(2,IB) = wlc_d%R(2,IB)-R0(2)
-                wlc_d%R(3,IB) = wlc_d%R(3,IB)-R0(3)
-                IB = IB + 1
-            enddo
-        endif
+            IB=wlc_p%nBpM * (I-1) + 1
+            R0(1) = nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
+            R0(2) = nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
+            R0(3) = nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
+            if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
+                do J = 1,wlc_p%nB
+                    wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
+                    wlc_d%R(2,IB) = wlc_d%R(2,IB)-R0(2)
+                    wlc_d%R(3,IB) = wlc_d%R(3,IB)-R0(3)
+                    IB = IB + 1
+                enddo
+            endif
         enddo
     end subroutine
 
