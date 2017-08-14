@@ -1505,7 +1505,7 @@ contains
         integer IB, I, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
         do I = 1,wlc_p%NP
-            IB=wlc_p%nBpM * (I-1) + 1
+            IB=wlc_p%nB * (I-1) + 1
             R0(1) = nint(wlc_d%R(1,IB)/wlc_p%lbox(1)-0.5_dp)*wlc_p%lbox(1)
             R0(2) = nint(wlc_d%R(2,IB)/wlc_p%lbox(2)-0.5_dp)*wlc_p%lbox(2)
             R0(3) = nint(wlc_d%R(3,IB)/wlc_p%lbox(3)-0.5_dp)*wlc_p%lbox(3)
@@ -1802,11 +1802,11 @@ contains
         else
             open (unit = outFileUnit, file = fullName, status = 'new')
             write(outFileUnit,*) "ind | id |",&
-                       " ebend  | eparll | EShear | ECoupl | E Kap  | E Chi  |",&
-                       " EField | ebind  |  x_Mu  | Couple |  Chi   |  mu    |",&
-                       "  Kap   | Field  |  x_MS  | chi_l2 |"
+                       "  ebend    |  eparll   |  EShear   |  ECoupl   |  E Kap    |  E Chi    |",&
+                       "  EField   |  ebind    |   x_Mu    |  Couple   |   Chi     |   mu      |",&
+                       "   Kap     |  Field    |   x_MS    |  chi_l2   |"
         endif
-        write(outFileUnit,"(2I5, 9f9.1,5f9.4,f9.1,f9.4)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_Bind*wlc_p%Couple_on, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%mu, wlc_p%KAP*wlc_p%KAP_ON,&
