@@ -78,9 +78,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     ISTEP = 1
 
     do while (ISTEP <= NSTEP)
-       
+
        do MCTYPE = 1,nMoveTypes
-       do sweepIndex = 1,wlc_p%movesPerStep(MCTYPE) 
+       do sweepIndex = 1,wlc_p%movesPerStep(MCTYPE)
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
@@ -198,10 +198,10 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
           endif
 
 !   Calculate the change in confinement energy
-          if ((MCTYPE /= 7).and. &
+          if ((MCTYPE /= 4).and. &
+              (MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
-              (MCTYPE /= 9).and. &
-              (MCTYPE /= 11)) then
+              (MCTYPE /= 9)) then
               call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
           else
               wlc_d%ECon = 0.0_dp;
@@ -297,6 +297,28 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
              wlc_d%SUCCESS(MCTYPE) = wlc_d%SUCCESS(MCTYPE) + 1
           endif
           wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
+
+          !  vvvvvvvvvv Beginning of hold check vvvvvvvvvvvvvvvvvv
+          do I = IT1,IT2
+              wlc_d%RP(1,I) = nan
+              wlc_d%RP(2,I) = nan
+              wlc_d%RP(3,I) = nan
+              wlc_d%UP(1,I) = nan
+              wlc_d%UP(2,I) = nan
+              wlc_d%UP(3,I) = nan
+              wlc_d%ABP(I) = nan
+          enddo
+          if (MCTYPE == 9) then
+              do I = IT3,IT4
+                  wlc_d%RP(1,I) = nan
+                  wlc_d%RP(2,I) = nan
+                  wlc_d%RP(3,I) = nan
+                  wlc_d%UP(1,I) = nan
+                  wlc_d%UP(2,I) = nan
+                  wlc_d%UP(3,I) = nan
+              enddo
+          endif
+          !^^^^^^^^^^^End of check ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 !   Adapt the amplitude of step every NADAPT steps
 
        enddo ! End of sweepIndex loop

@@ -347,6 +347,9 @@ subroutine worker_node(wlc_p, wlc_d)
 
     call schedule(wlc_p, wlc_d,system_has_been_changed)
 
+    if (wlc_p%simType == 1 .or. wlc_p%simType == 2) then
+        call endendBounds(wlc_p, wlc_d)
+    endif
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
         if (wlc_p%field_int_on) then
@@ -401,6 +404,25 @@ subroutine worker_node(wlc_p, wlc_d)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine worker_node
+subroutine endendBounds(wlc_p, wlc_d)
+    use params
+    implicit none
+    type(wlcsim_params), intent(inout) :: wlc_p
+    type(wlcsim_data), intent(inout) :: wlc_d
+    integer i,j
+    real(dp) REE
+    do i = 1,wlc_p%np
+        REE=0.0_dp
+        do j = 1,3
+            REE=REE+(wlc_d%R(j,(i-1)*wlc_p%nb+1) - wlc_d%R(j,i*wlc_p%nb))**2
+        enddo
+        REE=sqrt(REE)
+        if (REE > 1.1_dp*wlc_p%l) then
+            write(ERROR_UNIT,*) "Error: Chain Exceeds max l (nearly) inextensible chain"
+            call stop_if_err(1,"Error: Chain Exceeds max l (nearly) inextensible chain")
+        endif
+    enddo
+end subroutine
 #endif
 
 subroutine onlyNode(wlc_p, wlc_d)
