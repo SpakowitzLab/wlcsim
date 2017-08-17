@@ -15,8 +15,6 @@ subroutine MC_chemMove(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
 use mersenne_twister
 use params, only: dp
 
-!TODO: replace R,U,RP,UP .... with wlc_d
-
 implicit none
 
 integer, intent(in) :: NB     ! Number of beads on a polymer
@@ -42,23 +40,13 @@ integer I,J  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
-real(dp) P1(3)    ! Point on rotation line
-
-
-!     MC adaptation variables
-
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
-
-
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)

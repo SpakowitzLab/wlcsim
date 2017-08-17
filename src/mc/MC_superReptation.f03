@@ -8,13 +8,11 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_superReptation(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IT1,IT2&
+subroutine MC_superReptation(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IT1,IT2,IB1,IB2&
                   ,rand_stat &
                   ,forward,ring,inTERP_BEAD_LENNARD_JONES)
 use mersenne_twister
 use params, only: dp
-
-!TODO: replace R,U,RP,UP .... with wlc_d
 
 implicit none
 
@@ -30,6 +28,8 @@ real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IT2   ! Index of test bead 2
+integer, intent(out) :: IB1   ! Index of test bead 1
+integer, intent(out) :: IB2   ! Index of test bead 2
 logical, intent(in) :: ring
 logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
@@ -37,17 +37,8 @@ integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
-real(dp) P1(3)    ! Point on rotation line
 real(dp) MAG      ! Magnitude of vector
-
-
-!     MC adaptation variables
 real(dp) DR(3)    ! Displacement for slide move
-
-
-! variables for reptation move
 real(dp) Uvec(3) ! parallel component of triad
 real(dp) pDir(3) ! perp component of triad
 real(dp) tDir(3) ! twist component of triad
@@ -59,7 +50,6 @@ logical, intent(out) :: forward
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 ! single bead reptation
@@ -67,6 +57,8 @@ call random_number(urnd,rand_stat)
 IP = ceiling(urnd(1)*NP)
 IT1 = NB*(IP-1) + 1
 IT2 = NB*(IP-1) + NB
+IB1 = mod(IT1,NB)
+IB2 = mod(IT2,NB)
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then

@@ -409,15 +409,37 @@ subroutine endendBounds(wlc_p, wlc_d)
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
-    integer i,j
+    integer i,j,jj
     real(dp) REE
+    real(dp) dl
     do i = 1,wlc_p%np
         REE=0.0_dp
         do j = 1,3
             REE=REE+(wlc_d%R(j,(i-1)*wlc_p%nb+1) - wlc_d%R(j,i*wlc_p%nb))**2
         enddo
         REE=sqrt(REE)
-        if (REE > 1.1_dp*wlc_p%l) then
+        if (REE > 1.6_dp*wlc_p%l) then
+            !do j=(i-2)*wlc_p%nb+1,(i-1)*wlc_p%nb
+            !    dl=0.0
+            !    do jj =1,3
+            !        dl = dl + (wlc_d%R(jj,j) - wlc_d%R(jj,j+1)  )**2
+            !    enddo
+            !    print*, wlc_d%id, wlc_d%R(:,j), sqrt(dl)
+            !enddo
+            !do j=(i-1)*wlc_p%nb+1,i*wlc_p%nb
+            !    dl=0.0
+            !    do jj =1,3
+            !        dl = dl + (wlc_d%R(jj,j) - wlc_d%R(jj,j+1)  )**2
+            !    enddo
+            !    print*, wlc_d%id, wlc_d%R(:,j), sqrt(dl), j
+            !enddo
+            !print*, "REE",REE
+            !print*, "l0", wlc_p%l0
+            !print*, "del",wlc_p%DEL
+            !print*, "GAM",wlc_p%GAM
+            !print*, "Epar", wlc_p%epar
+            !print*, "EELAS",wlc_d%EElas
+            !print*, "Chain ",i
             write(ERROR_UNIT,*) "Error: Chain Exceeds max l (nearly) inextensible chain"
             call stop_if_err(1,"Error: Chain Exceeds max l (nearly) inextensible chain")
         endif

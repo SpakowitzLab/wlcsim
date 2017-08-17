@@ -66,12 +66,12 @@ call MC_chainSwap(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
        ,IT3,IT4,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
 case(10)
 call MC_reptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
-        wlc_p%NP,IP,IT1,IT2&
+        wlc_p%NP,IP,IT1,IT2,IB1,IB2&
        ,rand_stat &
        ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
 case(11)
 call MC_superReptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
-        ,wlc_p%NT,wlc_p%NB,wlc_p%NP,IP,IT1,IT2,rand_stat &
+        ,wlc_p%NT,wlc_p%NB,wlc_p%NP,IP,IT1,IT2,IB1,IB2,rand_stat &
        ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
 end select 
 RETURN

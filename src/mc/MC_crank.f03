@@ -57,8 +57,6 @@ integer TEMP
 ! Variables for change of binding state move
 real(dp) d1,d2  !for testing
 
-! variables for reptation move
-
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R

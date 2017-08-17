@@ -256,7 +256,7 @@ module params
 
     !   Energys
         !real(dp) Eint     ! running Eint
-        real(dp) eElas(4) ! Elastic force
+        real(dp) eElas(4) ! Elastic energy
         real(dp) eChi     ! CHI energy
         real(dp) eKap     ! KAP energy
         real(dp) eCouple  ! Coupling
@@ -1093,6 +1093,8 @@ contains
         if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
             allocate(wlc_d%RP(3,NT))
             allocate(wlc_d%UP(3,NT))
+            wlc_d%RP=nan  ! To prevent accidental use
+            wlc_d%UP=nan
         endif
         !TOdo these should in principle be inside the following if statement,
         !but it's not clear if that's possible without adding a bunch of dirty
@@ -1100,7 +1102,10 @@ contains
         !check with quinn *exactly* in which cases they're needed if i do that
         if (wlc_p%field_int_on) then
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
-            if (wlc_p%changingChemicalIdentity)  allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+            if (wlc_p%changingChemicalIdentity) then
+                allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+                wlc_d%ABP = nan
+            endif
             if (wlc_p%chi_l2_on) then
                 allocate(wlc_d%PHI_l2(-2:2,NT))
                 allocate(wlc_d%dPHI_l2(-2:2,NT))
@@ -1176,6 +1181,7 @@ contains
         !   Generate thread safe random number seeds
         !
         !--------------------------------------------
+        call MPI_COMM_RANK(MPI_COMM_WORLD,wlc_d%id,error)
         if (wlc_d%id .eq. 0) then ! head node
             if (.false.) then ! set spedific seed
                 Irand = 7171
@@ -1366,7 +1372,7 @@ contains
                 /wlc_p%LBOX(1)/wlc_p%LBOX(2)/wlc_p%LBOX(3)
         endif
 
-        wlc_p%L0 = wlc_p%l/real(wlc_p%nb)
+        wlc_p%L0 = wlc_p%l/real(wlc_p%nb-1.0_dp) ! -1.0 because one fewer segments then beads
         wlc_p%eps=wlc_p%L0/(2.0_dp*wlc_p%lp)
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters

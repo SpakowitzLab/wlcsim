@@ -15,8 +15,6 @@ subroutine MC_slide(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
 use mersenne_twister
 use params, only: dp
 
-!TODO: replace R,U,RP,UP .... with wlc_d
-
 implicit none
 
 integer, intent(in) :: NB     ! Number of beads on a polymer
@@ -31,7 +29,7 @@ integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-integer, intent(out) :: dib   ! number of beads moved by move
+integer, intent(out) :: dib   ! number of beads moved by move (plus or minus a few)
 logical, intent(in) :: ring
 logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
@@ -40,13 +38,6 @@ integer I,J  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
-real(dp) P1(3)    ! Point on rotation line
-
-
-!     MC adaptation variables
-
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer, intent(in) :: winType
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
@@ -54,12 +45,10 @@ real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
 
 
-
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 !     Perform slide move (MCTYPE 2)

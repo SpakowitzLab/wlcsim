@@ -15,8 +15,6 @@ subroutine MC_chainSwap(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
 use mersenne_twister
 use params, only: dp
 
-!TODO: replace R,U,RP,UP .... with wlc_d
-
 implicit none
 
 integer, intent(in) :: NB     ! Number of beads on a polymer
@@ -42,7 +40,6 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 real urnd(1) ! single random number
 ! Variables for the crank-shaft move
 
-real(dp) P1(3)    ! Point on rotation line
 integer I
 
 
@@ -50,7 +47,6 @@ integer I
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 ! switch two chains

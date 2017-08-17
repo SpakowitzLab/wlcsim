@@ -15,8 +15,6 @@ subroutine MC_pivot(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
 use mersenne_twister
 use params, only: dp, pi
 
-!TODO: replace R,U,RP,UP .... with wlc_d
-
 implicit none
 
 integer, intent(in) :: NB     ! Number of beads on a polymer
@@ -39,12 +37,10 @@ integer I  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
-! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
 real(dp) P1(3)    ! Point on rotation line
 real(dp) ROT(4,4) ! Rotation matrix
-
 real(dp) ALPHA    ! Angle of move
 real(dp) BETA     ! Angle of move
 

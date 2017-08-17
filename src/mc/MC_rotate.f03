@@ -41,7 +41,6 @@ real urand(3)  ! random vector
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
-real(dp) P1(3)    ! Point on rotation line
 real(dp) ROT(4,4) ! Rotation matrix
 
 real(dp) ALPHA    ! Angle of move
@@ -56,7 +55,6 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 !     Perform rotate move (MCTYPE 4)
