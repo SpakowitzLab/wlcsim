@@ -40,15 +40,15 @@ np 2000
 # -below- nBpM use to be G
 nBpM 1
 nMpP 40
-nNoInt 5
-nKapOn 5
-nChiOn 10
-nChiL2On 10
+nNoInt 20
+nKapOn 20
+nChiOn 40
+nChiL2On 40
 numSavePoints 5000
 # nInitMCSteps 1000
 # stepsPerSave 4000000
 stepsPerExchange 100
-nReplicaExchangePerSavePoint 40
+nReplicaExchangePerSavePoint 4000
 # fPoly 1
 beadVolume 0.1
 fA 0.0
@@ -65,7 +65,7 @@ mu 0
 # energyCouple
 fMeth 1.0
 lamMeth 1.0
-crankShaftOn 1
+crankShaftOn 0
 slideOn 1
 pivotOn 1
 rotateOn 1
@@ -75,11 +75,12 @@ bindMoveOn 1
 chainFlipMoveOn 0
 chainSwapMoveOn 1
 reptationMoveOn 1
+superReptationMoveOn 1
 minCrankShaftWin 6
 minSlideWin 6
 minPivotWin 6
 minBindWin 1
-reduceMove 6
+reduceMove 1
 winType 1
 minAccept 0.05
 crankShaftTarget 8.0
@@ -97,7 +98,7 @@ repAnnealSpeed 0.0
 # kField 
 replicaBounds F
 #  !!!!!!!!!!!!!
-initialMaxS 0.1
+initialMaxS 100.0
 #  !!!!!!!!!!!!!
 parallelTempChi F
 parallelTempH F
