@@ -56,9 +56,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
 
-    rand_stat = wlc_d%rand_stat
-
-
+    !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
     EB=   PARA(1)
     EPAR= PARA(2)
@@ -89,7 +87,8 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
+
+          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,wlc_d%rand_stat,dib)
 
         if (wlc_p%RinG) then
            wlc_d%CrossP = wlc_d%Cross
@@ -114,22 +113,19 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 
 
 !   Calculate the change in compression and bending energy
+          wlc_d%DEElas=0.0_dp
           if ((MCTYPE /= 5) .and. &
               (MCTYPE /= 6) .and. &
               (MCTYPE /= 7) .and. &
               (MCTYPE /= 8) .and. &
               (MCTYPE /= 9) .and. &
               (MCTYPE /= 10) .and. &
-              (MCTYPE /= 11) )then
+              (MCTYPE /= 11) ) then
               call MC_eelas(wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,&
                             wlc_p%NT,wlc_p%NB,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
                             wlc_p%ring,wlc_p%twist,wlc_p%lk,wlc_p%lt,wlc_p%l, &
                             mctype,wlc_d%wr,wrp,wlc_p%simType)
-          else
-              wlc_d%DEElas(1) = 0.0
-              wlc_d%DEElas(2) = 0.0
-              wlc_d%DEElas(3) = 0.0
           endif
           if (MCTYPE.eq.8) then
               print*, "Flop move not working!  Chain energy isn't symmetric"
@@ -212,7 +208,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
                  +wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind + wlc_d%ECon + wlc_d%DEField &
                  +wlc_d%eKnot + wlc_d%deMaierSaupe
           PROB = exp(-ENERGY)
-          call random_number(urnd,rand_stat)
+          call random_number(urnd,wlc_d%rand_stat)
           TEST = urnd(1)
           if (TEST <= PROB) then
 
