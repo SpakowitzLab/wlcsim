@@ -37,18 +37,4 @@ do I = IT1,IT2,BPM
     endif
 ENDdo
 
-if (abs(DEBind).gt.100000) then
-
-    do I = IT1,IT2,BPM
-        print*, ABP(I), AB(I)
-    ENDdo
-    print*, "range:",IT1,IT2
-    print*, "error in MC_bind"
-    print*, "DEBind",DEBind
-    print*, "mu", mu
-    print*, "EM",EM,"   EU",EU
-    stop 1
-endif
-
-
 END

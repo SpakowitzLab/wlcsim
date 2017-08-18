@@ -309,7 +309,7 @@ function maierSaupe_path(s) result(output)
     implicit none
     real(dp), intent(in) :: s
     real(dp) output
-    output = s*1.0_dp
+    output = s*(-1.0_dp)
 end function maierSaupe_path
 function hp1_bind_path(s) result(hp1_bind)
     use params, only: dp
