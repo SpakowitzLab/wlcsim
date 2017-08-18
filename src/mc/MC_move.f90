@@ -76,6 +76,20 @@ call MC_superReptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
 end select 
 RETURN
 END
+function exponential_random_int(window,rand_stat) result(output)
+    ! this function gives a random exponentially distributed intiger
+    ! the most likely outcome is 0
+    use params, only: dp
+    use mersenne_twister
+    implicit none
+    type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
+    real urnd(1) ! single random number
+    integer, intent(in) :: window
+    integer output
+    call random_number(urnd,rand_stat)
+    output  = nint(-1.0_dp*log(urnd(1)+0.000001_dp)*window+0.0001_dp)
+    output = abs(output)
+end function exponential_random_int
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
 use params, only: dp, eps
 implicit none

@@ -39,6 +39,7 @@ integer I ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
+integer irnd(1)
 ! Variables for the crank-shaft move
 
 real(dp) P1(3)    ! Point on rotation line
@@ -55,8 +56,8 @@ endif
 
 !     Perform full chain slide move (MCTYPE 6)
 
-call random_number(urnd,rand_stat)
-IP = ceiling(urnd(1)*NP)
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
 IB1 = 1
 IB2 = NB
 IT1 = NB*(IP-1) + IB1

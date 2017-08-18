@@ -48,7 +48,7 @@ numSavePoints 5000
 # nInitMCSteps 1000
 # stepsPerSave 4000000
 stepsPerExchange 100
-nReplicaExchangePerSavePoint 4000
+nReplicaExchangePerSavePoint 5000
 # fPoly 1
 beadVolume 0.1
 fA 0.0
@@ -60,12 +60,12 @@ chil2 0.1
 # hA 0.0
 kap 100.0
 EU -100000.0
-EM -1.0
+EM -3.0
 mu 0
 # energyCouple
 fMeth 1.0
 lamMeth 1.0
-crankShaftOn 0
+crankShaftOn 1
 slideOn 1
 pivotOn 1
 rotateOn 1
@@ -98,7 +98,7 @@ repAnnealSpeed 0.0
 # kField 
 replicaBounds F
 #  !!!!!!!!!!!!!
-initialMaxS 100.0
+initialMaxS 1000.0
 #  !!!!!!!!!!!!!
 parallelTempChi F
 parallelTempH F

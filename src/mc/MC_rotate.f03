@@ -38,6 +38,7 @@ integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
+integer irnd(1)  ! random vector
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
@@ -59,9 +60,10 @@ endif
 
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
-call random_number(urand,rand_stat)
-IP = ceiling(urand(1)*NP)
-IB1 = ceiling(urand(2)*NB)
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
+call random_index(NB,irnd,rand_stat)
+IB1=irnd(1)
 IB2 = IB1
 IT1 = NB*(IP-1) + IB1
 IT2 = NB*(IP-1) + IB2

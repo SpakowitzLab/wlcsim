@@ -37,9 +37,7 @@ logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
+integer irnd(1)
 integer I
 
 
@@ -50,10 +48,10 @@ if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
 endif
 
 ! switch two chains
-call random_number(urnd,rand_stat)
-IP = ceiling(urnd(1)*NP)
-call random_number(urnd,rand_stat)
-IP2 = ceiling(urnd(1)*NP)
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
+call random_index(NB,irnd,rand_stat)
+IP2=irnd(1)
 ! Don't switch a chain with itself
 if (IP.eq.IP2) then
     IP2 = IP-1

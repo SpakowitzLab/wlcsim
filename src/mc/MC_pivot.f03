@@ -37,6 +37,7 @@ integer I  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
+integer irnd(1)
 
 real(dp) TA(3)    ! Axis of rotation
 real(dp) P1(3)    ! Point on rotation line
@@ -49,7 +50,7 @@ real(dp) BETA     ! Angle of move
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer, intent(in) :: winType
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
-
+integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
@@ -60,12 +61,12 @@ endif
 
 ! We don't have to protect moves 4-10 with if ring because the code is identical in both cases
 !     Perform pivot move (MCTYPE 3)
-    call random_number(urnd,rand_stat)
-    IP = ceiling(urnd(1)*NP)
-    call random_number(urnd,rand_stat)
+    call random_index(NP,irnd,rand_stat)
+    IP=irnd(1)
+    call random_index(NB,irnd,rand_stat)
+    IB1=irnd(1)
     if (urnd(1).gt.0.5_dp) then
-        call random_number(urnd,rand_stat)
-        IB2 = nint(-1.0_dp*log(urnd(1))*WindoW) + 1
+        IB2 = exponential_random_int(window,rand_stat) + 1
         if (IB2 > NB) then
             IB2 = NB
         endif
@@ -76,8 +77,7 @@ endif
         P1(2) = R(2,IT2)
         P1(3) = R(3,IT2)
     else
-        call random_number(urnd,rand_stat)
-        IB1 = NB-nint(-1.0_dp*log(urnd(1))*WindoW)
+        IB1 = NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
             IB1 = 1
         endif

@@ -39,6 +39,7 @@ integer I  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
+integer irnd(1)
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
@@ -60,13 +61,14 @@ endif
 
 !     Perform a full chain rotation
 
-call random_number(urand,rand_stat)
-IP = ceiling(urand(1)*NP)
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
 IB1 = 1
 IB2 = NB
 IT1 = NB*(IP-1) + IB1
 IT2 = NB*(IP-1) + IB2
 
+call random_number(urand,rand_stat)
 ALPHA = 2.0_dp*PI*urand(2)
 BETA = acos(2.0_dp*urand(3)-1.0_dp)
 TA(1) = sin(BETA)*cos(ALPHA)

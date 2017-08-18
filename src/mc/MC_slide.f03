@@ -38,11 +38,13 @@ integer I,J  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
+integer irnd(1)
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer, intent(in) :: winType
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
+integer exponential_random_int
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -53,20 +55,22 @@ endif
 
 !     Perform slide move (MCTYPE 2)
 
-call random_number(urand,rand_stat)
-IP = ceiling(urand(1)*NP)
-IB1 = ceiling(urand(2)*NB)
-! again, we use a window
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
+call random_index(NB,irnd,rand_stat)
+IB1=irnd(1)
 if (winType.eq.0) then
-    IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW + 1.0))
-elseif (winType.eq.1.and..not.RinG) then
     call random_number(urnd,rand_stat)
+    IB2 = IB1 +exponential_random_int(window,rand_stat)
+elseif (winType.eq.1.and..not.RinG) then
+    call random_number(urand,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
-            nint(-1.0*log(urnd(1))*WindoW)
+           exponential_random_int(window,rand_stat)
 elseif (winType.eq.1.and.RinG) then
     call random_number(urnd,rand_stat)
-    IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW)
-
+    IB2 = IB1 + exponential_random_int(window,rand_stat)
+else
+    call stop_if_err(1, "Warning: winType not recognized")
 endif
 
 DIB = IB2-IB1

@@ -37,6 +37,7 @@ integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urnd(1) ! single random number
+integer irnd(1)
 real(dp) MAG      ! Magnitude of vector
 real(dp) DR(3)    ! Displacement for slide move
 real(dp) Uvec(3) ! parallel component of triad
@@ -53,8 +54,8 @@ if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
 endif
 
 ! single bead reptation
-call random_number(urnd,rand_stat)
-IP = ceiling(urnd(1)*NP)
+call random_index(NP,irnd,rand_stat)
+IP=irnd(1)
 IT1 = NB*(IP-1) + 1
 IT2 = NB*(IP-1) + NB
 IB1 = mod(IT1,NB)
