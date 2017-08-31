@@ -302,7 +302,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               wlc_d%UP(1,I) = nan
               wlc_d%UP(2,I) = nan
               wlc_d%UP(3,I) = nan
-              wlc_d%ABP(I) = nan
+              if (wlc_p%bind_on) then
+                  wlc_d%ABP(I) = nan
+              endif
           enddo
           if (MCTYPE == 9) then
               do I = IT3,IT4
