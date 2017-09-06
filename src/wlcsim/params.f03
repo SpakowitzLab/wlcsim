@@ -1733,7 +1733,7 @@ contains
         open (unit = outFileUnit, file = fullName, status = 'NEW')
         if (wlc_p%chi_l2_on) then
             do I = 1,wlc_p%NBin
-                write(outFileUnit,"(2f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I),wlc_d%PHI_l2(:,I)
+                write(outFileUnit,"(7f7.2)") wlc_d%PHIA(I),wlc_d%PHIB(I),wlc_d%PHI_l2(:,I)
             enddo
         else
             do I = 1,wlc_p%NBin
