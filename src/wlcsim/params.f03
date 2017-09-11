@@ -180,6 +180,7 @@ module params
                              ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
         logical changingChemicalIdentity
+        logical asymmetricAlternatingChem
         logical chi_l2_on
         character(MAXPARAMLEN) fieldInteractionType
 
@@ -394,6 +395,7 @@ contains
         wlc_p%inTERP_BEAD_LENNARD_JONES = .FALSE. ! no intrapolymer interactions by default
         wlc_p%changingChemicalIdentity = .FALSE.
         wlc_p%CHI_L2_ON = .FALSE.
+        wlc_p%asymmetricAlternatingChem = .FALSE.
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
@@ -776,6 +778,8 @@ contains
             call readi(wlc_p%movesPerStep(10))  ! reptation
         case('NSUPERREPTATION')
             call readi(wlc_p%movesPerStep(11))  ! super-reptation
+        case('ASYMMETRICALT')
+            call reado(wlc_p%asymmetricAlternatingChem)
         case default
             print *, "Warning, the input key ", trim(Word), " was not recognized."
             print *, "    ...Checking deprecated variable names"
@@ -917,6 +921,10 @@ contains
         logical err
         integer (kind = 4) mpi_err
 
+        if (wlc_p%asymmetricAlternatingChem .and. wlc_p%changingChemicalIdentity) then
+            print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
+            stop
+        endif
         if (wlc_p%ring) then
             if (wlc_p%NP .gt. 1) then
                 print*, "As of the writing of this error message"
@@ -1225,7 +1233,11 @@ contains
             wlc_p%initCondType, wlc_d%rand_stat, wlc_p%ring, wlc_p)
 
         if (wlc_p%field_int_on) then
-            call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            if (wlc_p%asymmetricAlternatingChem) then
+                call alternChem(wlc_d%AB, wlc_p%nT, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            else
+                call initchem(wlc_d%AB, wlc_p%nT, wlc_p%nMpP, wlc_p%nBpM, wlc_p%nP, wlc_p%fA, wlc_p%lam, wlc_d%rand_stat)
+            endif
             ! calculate volumes of bins
             if (wlc_p%confineType.eq.'sphere') then
                 call MC_calcVolume(wlc_p%confinetype, wlc_p%NBinX, wlc_p%dBin, &
