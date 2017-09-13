@@ -69,6 +69,22 @@ if (initialize) then  ! calculate absolute energy
             wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/wlc_p%beadVolume)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
         enddo
+    !------------------------------------------------------------
+    !
+    !    A-B solution hamiltonian
+    !
+    !--------------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    case('ABsolution') ! A,B,Solvent Hamiltonian
+        do I = 1,wlc_p%NBin
+            VV = wlc_d%Vol(I)
+            if (VV.le.0.1_dp) CYCLE
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
+            PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
+            if(PHIPoly > 1.0_dp) then
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
+            endif
+        enddo
     !---------------------------------------------------------
     !
     !    Chromatin Hamiltonian
@@ -160,6 +176,35 @@ else ! Calculate change in energy
             wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/wlc_p%beadVolume)*(wlc_d%PHIA(J)*wlc_d%PHIB(J))
             wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/wlc_p%beadVolume)*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%Dx_Field + phi_h*wlc_d%PHIA(J)
+        enddo
+    !------------------------------------------------------------
+    !
+    !    A-B solution hamiltonian
+    !
+    !--------------------------------------------------------------
+    ! Here Chi and Kap are in units of KT/beadVolume
+    case('ABsolution') ! Melt Hamiltonian
+        do I = 1,wlc_d%NPHI
+            J = wlc_d%inDPHI(I)
+            VV = wlc_d%Vol(J)
+            if (VV.le.0.1_dp) CYCLE
+            ! new
+            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
+            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
+            phi_h = wlc_d%PHIH(J)
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/wlc_p%beadVolume)*phi_A*phi_B
+            PHIPoly = phi_A + phi_B
+            if(PHIPoly > 1.0_dp) then
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
+            endif
+            ! minus old
+            phi_A = wlc_d%PHIA(J)
+            phi_B = wlc_d%PHIB(J)
+            PHIPoly = phi_A + phi_B
+            if(PHIPoly > 1.0_dp) then
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap - (VV/wlc_p%beadVolume)*(PHIPoly-1.0_dp)**2
+            endif
+            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/wlc_p%beadVolume)*(phi_A+phi_B)
         enddo
     !---------------------------------------------------------
     !
