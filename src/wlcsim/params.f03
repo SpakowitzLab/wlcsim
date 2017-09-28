@@ -36,6 +36,7 @@ module params
     character(5), parameter :: num2strFormatString = '(I10)'
     real(dp), parameter :: HUGE_ENERGY = 9990000.0_dp
     real(dp), parameter :: eps = 0.00000001_dp
+    real(dp), parameter :: epsApprox = 0.001_dp  ! for compairison but allows for more ronding error
 
     character(len = 20), parameter, dimension(nMoveTypes) :: moveNames(nMoveTypes) = &
         (/'crank-shaft         ','slide               ',&

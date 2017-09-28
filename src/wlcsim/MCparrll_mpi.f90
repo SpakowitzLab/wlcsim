@@ -173,7 +173,7 @@ use mpi
     !wlc_p%para(3)  =cof(8)
     wlc_p%chi_l2 = cof(9)
 
-    if (abs(wlc_d%EChi-wlc_d%x_chi*chi_old).gt.eps) then
+    if (abs(wlc_d%EChi-wlc_d%x_chi*chi_old).gt.epsApprox) then
         print*, "Error in replicaExchange"
         print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*CofOld(1)",wlc_d%x_chi*chi_old
         stop 1
@@ -189,7 +189,7 @@ use mpi
    ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
     wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +wlc_d%x_maierSaupe*(wlc_p%chi_l2-chi_l2_old)
 
-    if (abs(wlc_d%EChi-wlc_p%chi*wlc_d%x_chi).gt.eps) then
+    if (abs(wlc_d%EChi-wlc_p%chi*wlc_d%x_chi).gt.epsApprox) then
         print*, "Error in replicaExchange"
         print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*Cof(1)",wlc_p%chi*wlc_d%x_chi
         stop 1
