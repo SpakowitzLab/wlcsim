@@ -50,7 +50,7 @@ endif
 ! switch two chains
 call random_index(NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(NB,irnd,rand_stat)
+call random_index(NP,irnd,rand_stat)
 IP2=irnd(1)
 ! Don't switch a chain with itself
 if (IP.eq.IP2) then
