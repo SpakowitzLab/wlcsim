@@ -70,7 +70,7 @@ do IB = 1,wlc_p%NT
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
@@ -193,7 +193,7 @@ do IB = I1,I2
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
