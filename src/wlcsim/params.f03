@@ -449,17 +449,17 @@ contains
         wlc_p%MOVEON(10) = 1 ! Reptation
         wlc_p%MOVEON(11) = 0 ! Super Reptation
 
-        wlc_p%movesPerStep(1) = 11  ! crank shaft
-        wlc_p%movesPerStep(2) = 25 ! slide
-        wlc_p%movesPerStep(3) = 19 ! pivot
-        wlc_p%movesPerStep(4) = 45 ! rotate
+        wlc_p%movesPerStep(1) = 30  ! crank shaft
+        wlc_p%movesPerStep(2) = 30 ! slide
+        wlc_p%movesPerStep(3) = 60 ! pivot
+        wlc_p%movesPerStep(4) = 60 ! rotate
         wlc_p%movesPerStep(5) = 5  ! full chain rotation
-        wlc_p%movesPerStep(6) = 6  ! full chain slide
-        wlc_p%movesPerStep(7) = 111! bind
+        wlc_p%movesPerStep(6) = 5  ! full chain slide
+        wlc_p%movesPerStep(7) = 10! bind
         wlc_p%movesPerStep(8) = 0  ! filp
         wlc_p%movesPerStep(9) = 5  ! full chain swap
-        wlc_p%movesPerStep(10) = 10  ! reptation
-        wlc_p%movesPerStep(11) = 57  ! super-reptation
+        wlc_p%movesPerStep(10) = 50  ! reptation
+        wlc_p%movesPerStep(11) = 10  ! super-reptation
 
         ! Balance move amplitude and number of beads
         do mctype = 1,nMovetypes

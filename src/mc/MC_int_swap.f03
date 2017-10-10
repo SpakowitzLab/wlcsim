@@ -9,7 +9,7 @@
 !
 !---------------------------------------------------------------!
 subroutine MC_int_swap(wlc_p,wlc_d,I1,I2,I3,I4)
-use params
+use params,only:dp,wlcsim_params,wlcsim_data
 implicit none
 
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output

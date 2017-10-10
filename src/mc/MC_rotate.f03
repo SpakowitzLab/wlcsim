@@ -8,31 +8,30 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_rotate(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
-                  ,MCAMP,rand_stat &
-                  ,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_rotate(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+                  ,MCAMP,rand_stat)
 
 use mersenne_twister
-use params, only: dp, pi
+use params, only: dp, pi,wlcsim_params
 
 !TODO: replace R,U,RP,UP .... with wlc_d
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
+type(wlcsim_params), intent(in) :: wlc_p
+!integer, intent(in) :: wlc_p%NB     ! Number of beads on a polymer
+!integer, intent(in) :: wlc_p%NP     ! Number of polymers
+!integer, intent(in) :: wlc_p%NT     ! Total beads in simulation
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
+!logical, intent(in) :: wlc_p%ring
+!logical, intent(in) :: wlc_p%interp_bead_lennard_jones
 
 integer I  ! Test indices
 ! Things for random number generator
@@ -43,7 +42,6 @@ integer irnd(1)  ! random vector
 
 real(dp) TA(3)    ! Axis of rotation
 real(dp) ROT(4,4) ! Rotation matrix
-
 real(dp) ALPHA    ! Angle of move
 real(dp) BETA     ! Angle of move
 
@@ -53,20 +51,20 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
     RP = R
     UP = U
 endif
 
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
-call random_index(NP,irnd,rand_stat)
+call random_index(wlc_p%NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(NB,irnd,rand_stat)
+call random_index(wlc_p%NB,irnd,rand_stat)
 IB1=irnd(1)
 IB2 = IB1
-IT1 = NB*(IP-1) + IB1
-IT2 = NB*(IP-1) + IB2
+IT1 = wlc_p%NB*(IP-1) + IB1
+IT2 = wlc_p%NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
 ALPHA = 2.*PI*urand(1)

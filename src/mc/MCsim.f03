@@ -8,7 +8,7 @@
 !    Quinn Made Changes to this file starting on 12/15/15
 !
 
-subroutine MCsim(wlc_p,wlc_d,NSTEP)
+subroutine MCsim(wlc_p,wlc_d)
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
@@ -16,7 +16,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 
     implicit none
 
-    integer, intent(in) :: NSTEP             ! Number of MC steps
+    !integer, intent(in) :: NSTEP             ! Number of MC steps
 
 !   Variables for the simulation
 
@@ -75,7 +75,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 ! -------------------------------------
     ISTEP = 1
 
-    do while (ISTEP <= NSTEP)
+    do while (ISTEP <= wlc_p%stepsperexchange)
 
        do MCTYPE = 1,nMoveTypes
        do sweepIndex = 1,wlc_p%movesPerStep(MCTYPE)
@@ -121,11 +121,9 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
               (MCTYPE /= 9) .and. &
               (MCTYPE /= 10) .and. &
               (MCTYPE /= 11) ) then
-              call MC_eelas(wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,&
-                            wlc_p%NT,wlc_p%NB,IB1,IB2, &
+              call MC_eelas(wlc_p,wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
-                            wlc_p%ring,wlc_p%twist,wlc_p%lk,wlc_p%lt,wlc_p%l, &
-                            mctype,wlc_d%wr,wrp,wlc_p%simType)
+                            mctype,wlc_d%wr,wrp)
           endif
           if (MCTYPE.eq.8) then
               print*, "Flop move not working!  Chain energy isn't symmetric"
@@ -321,7 +319,7 @@ subroutine MCsim(wlc_p,wlc_d,NSTEP)
 
        enddo ! End of sweepIndex loop
           !amplitude and window adaptations
-          if (mod(ISTEP+wlc_d%ind_exchange*NSTEP,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
+          if (mod(ISTEP+wlc_d%ind_exchange*wlc_p%stepsperexchange,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
 
              ! move each chain back if drifted though repeated BC
