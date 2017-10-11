@@ -140,7 +140,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
        inD = inD + 1
        NCrossNew = NCrossNew + 1
     ENDif
- ENDdo:
+ ENDdo
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !The only crossings that change during the slide move are those that involve the slid segment with the segment
