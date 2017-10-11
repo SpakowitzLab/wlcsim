@@ -178,8 +178,8 @@ endif
 
   I = IT1
   do J = 0,DIB
-      if (I == (NB*IP+1).and.Ring) then
-          I = NB*(IP-1)+1
+      if (I == (wlc_p%NB*IP+1).and.wlc_p%Ring) then
+          I = wlc_p%NB*(IP-1)+1
       endif
      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
