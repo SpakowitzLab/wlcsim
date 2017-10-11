@@ -12,16 +12,11 @@ subroutine MC_bind(wlc_p,IT1,IT2,AB,ABP,METH,DEBind,dx_mu)
 use params, only: dp,wlcsim_params
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-!integer, intent(in) :: wlc_p%NT     ! Total number of beads in siwlc_p%mulation
-!integer, intent(in) :: wlc_p%NBPM    ! Number of beads per monomer
 integer, intent(in) :: IT1    ! Start test bead
 integer, intent(in) :: IT2    ! Final test bead
 integer, intent(in) :: AB(wlc_p%NT)   ! Chemical identity (a.k.a. binding state)
 integer, intent(in) :: ABP(wlc_p%NT)  ! Test Chemical identity
 integer, intent(in) :: METH(wlc_p%NT) ! Methalation state (unerlyin chamical type)
-!real(dp), intent(in) :: wlc_p%EU        ! Binding energy of Unemethalted state
-!real(dp), intent(in) :: wlc_p%EM        ! Binding energy of methalated state
-!real(dp), intent(in) :: wlc_p%mu   ! Chemical potential of HP1
 real(dp), intent(out) :: DEBind    ! Change in binding energy
 real(dp), intent(out) :: dx_mu ! -n_bound
 integer I      ! Index of bead being compared
