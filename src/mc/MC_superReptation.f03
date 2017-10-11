@@ -8,30 +8,24 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_superReptation(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IT1,IT2,IB1,IB2&
-                  ,rand_stat &
-                  ,forward,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_superReptation(wlc_p,R,U,RP,UP,AB,ABP,IP,IT1,IT2,IB1,IB2&
+                  ,rand_stat,forward)
 use mersenne_twister
-use params, only: dp
+use params, only: dp,wlcsim_params
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-integer, intent(in) :: AB(NT)  ! Current chemical identity
-integer, intent(out) :: ABP(NT)  ! Proposed chemical identity
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
+type(wlcsim_params), intent(in) :: wlc_p
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+integer, intent(in) :: AB(wlc_p%NT)  ! Current chemical identity
+integer, intent(out) :: ABP(wlc_p%NT)  ! Proposed chemical identity
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: IB1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Index of test bead 2
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 integer I  ! Test indices
 ! Things for random number generator
@@ -48,18 +42,18 @@ real(dp) u_relative(3) ! u in new coordinate system
 logical, intent(out) :: forward
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
     RP = R
     UP = U
 endif
 
 ! single bead reptation
-call random_index(NP,irnd,rand_stat)
+call random_index(wlc_p%NP,irnd,rand_stat)
 IP=irnd(1)
-IT1 = NB*(IP-1) + 1
-IT2 = NB*(IP-1) + NB
-IB1 = mod(IT1,NB)
-IB2 = mod(IT2,NB)
+IT1 = wlc_p%NB*(IP-1) + 1
+IT2 = wlc_p%NB*(IP-1) + wlc_p%NB
+IB1 = mod(IT1,wlc_p%NB)
+IB2 = mod(IT2,wlc_p%NB)
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then
@@ -120,7 +114,7 @@ if (urnd(1).lt.0.5_dp) then
 
    ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
    ! RparaMag = r_relative(1)
-   ! call test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
+   ! call test_equiv_forward(U,R,UP,RP,wlc_p%NT,IT1,IT2,RparaMag,RperpMag)
 
 else
     forward = .false.

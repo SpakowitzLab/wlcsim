@@ -8,32 +8,26 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(R,U,RP,UP,AB,ABP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
-                  ,WindoW,BPM,rand_stat &
-                  ,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_chemMove(wlc_p,R,U,RP,UP,AB,ABP,IP,IB1,IB2,IT1,IT2 &
+                  ,WindoW,rand_stat)
 
 use mersenne_twister
-use params, only: dp
+use params, only: dp,wlcsim_params
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-integer, intent(in) :: AB(NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
-integer, intent(out) :: ABP(NT)  ! Tangent vectors
-integer, intent(in) :: BPM    ! Beads per monomer, aka G
+type(wlcsim_params), intent(in) :: wlc_p
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+integer, intent(in) :: AB(wlc_p%NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
+integer, intent(out) :: ABP(wlc_p%NT)  ! Tangent vectors
+!integer, intent(in) :: wlc_p%nBPM    ! Beads per monomer, aka G
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 integer I,J  ! Test indices
 ! Things for random number generator
@@ -46,16 +40,16 @@ integer TEMP
 integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
     RP = R
     UP = U
 endif
 
 ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
 ! Move amplitude is ignored for this move type
-call random_index(NP,irnd,rand_stat)
+call random_index(wlc_p%NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(NB,irnd,rand_stat)
+call random_index(wlc_p%NB,irnd,rand_stat)
 IB1=irnd(1)
 call random_number(urand,rand_stat)
 IB2 = IB1 + (2*nint(urand(3))-1)* &
@@ -64,8 +58,8 @@ IB2 = IB1 + (2*nint(urand(3))-1)* &
 if (IB2 < 1) then
    IB2 = 1
 endif
-if (IB2 > NB) then
-   IB2 = NB
+if (IB2 > wlc_p%NB) then
+   IB2 = wlc_p%NB
 endif
 
 if (IB2 < IB1) then
@@ -73,12 +67,12 @@ if (IB2 < IB1) then
    IB1 = IB2
    IB2 = TEMP
 endif
-IT1 = NB*(IP-1) + IB1
-IT2 = NB*(IP-1) + IB2
+IT1 = wlc_p%NB*(IP-1) + IB1
+IT2 = wlc_p%NB*(IP-1) + IB2
 
 !keep binding constant within monomers
-IT1 = IT1-MOD(IT1-1,BPM)
-IT2 = IT2-MOD(IT2-1,BPM) + BPM-1
+IT1 = IT1-MOD(IT1-1,wlc_p%nBPM)
+IT2 = IT2-MOD(IT2-1,wlc_p%nBPM) + wlc_p%nBPM-1
 
 do J = IT1,IT2
     ABP(J) = 1-AB(J)

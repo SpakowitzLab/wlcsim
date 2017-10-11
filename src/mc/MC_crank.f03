@@ -8,30 +8,25 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_crank(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
-                  ,MCAMP,WindoW,rand_stat,winType &
-                  ,dib,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_crank(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+                  ,MCAMP,WindoW,rand_stat  &
+                  ,dib)
 
 use mersenne_twister
-use params, only: dp
+use params, only: dp,wlcsim_params
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectorslet g:syntastic_fortran_compiler_options = '-Wall -pedantic -std=f2003'
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
+type(wlcsim_params),intent(in) :: wlc_p
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 integer I,J  ! Test indices
 ! Things for random number generator
@@ -51,7 +46,7 @@ real(dp) ALPHA    ! Angle of move
 !     MC adaptation variables
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-integer, intent(in) :: winType
+!integer, intent(in) :: winType
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
 
@@ -60,7 +55,7 @@ real(dp) d1,d2  !for testing
 integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (wlc_p%RinG .OR.wlc_p%inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
     P1 = 0.0_dp
@@ -69,42 +64,42 @@ endif
 !     Perform crank-shaft move (MCTYPE 1)
 
 
-call random_index(NP,irnd,rand_stat)
+call random_index(wlc_p%NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(NB,irnd,rand_stat)
+call random_index(wlc_p%NB,irnd,rand_stat)
 IB1=irnd(1)
-if (winType.eq.0) then
+if (wlc_p%winType.eq.0) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
-elseif (winType.eq.1.and..not.RinG) then
+elseif (wlc_p%winType.eq.1.and..not.wlc_p%RinG) then
     call random_number(urand,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
            exponential_random_int(window,rand_stat)
-elseif (winType.eq.1.and.RinG) then
+elseif (wlc_p%winType.eq.1.and.wlc_p%RinG) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 else
     call stop_if_err(1, "Warning: winType not recognized")
 endif
 
-IT1 = NB*(IP-1) + IB1
-IT2 = NB*(IP-1) + IB2
+IT1 = wlc_p%NB*(IP-1) + IB1
+IT2 = wlc_p%NB*(IP-1) + IB2
 
 DIB = IB2-IB1
-if (RinG) then                    !Polymer is a ring
-   if (IB2 > NB) then
-      IB2 = DIB-(NB-IB1)
+if (wlc_p%RinG) then                    !Polymer is a ring
+   if (IB2 > wlc_p%NB) then
+      IB2 = DIB-(wlc_p%NB-IB1)
    ENDif
-   IT2 = NB*(IP-1) + IB2
+   IT2 = wlc_p%NB*(IP-1) + IB2
    if (IB1 == IB2.AND.IB1 == 1) then
-      TA(1) = R(1,IT1 + 1)-R(1,NB*IP)
-      TA(2) = R(2,IT1 + 1)-R(2,NB*IP)
-      TA(3) = R(3,IT1 + 1)-R(3,NB*IP)
-   elseif (IB1 == IB2.AND.IB1 == NB) then
-      TA(1) = R(1,NB*(IP-1) + 1)-R(1,IT1-1)
-      TA(2) = R(2,NB*(IP-1) + 1)-R(2,IT1-1)
-      TA(3) = R(3,NB*(IP-1) + 1)-R(3,IT1-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= NB) then
+      TA(1) = R(1,IT1 + 1)-R(1,wlc_p%NB*IP)
+      TA(2) = R(2,IT1 + 1)-R(2,wlc_p%NB*IP)
+      TA(3) = R(3,IT1 + 1)-R(3,wlc_p%NB*IP)
+   elseif (IB1 == IB2.AND.IB1 == wlc_p%NB) then
+      TA(1) = R(1,wlc_p%NB*(IP-1) + 1)-R(1,IT1-1)
+      TA(2) = R(2,wlc_p%NB*(IP-1) + 1)-R(2,IT1-1)
+      TA(3) = R(3,wlc_p%NB*(IP-1) + 1)-R(3,IT1-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /=wlc_p%NB) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1-1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1-1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1-1)
@@ -114,12 +109,13 @@ if (RinG) then                    !Polymer is a ring
       TA(3) = R(3,IT2)-R(3,IT1)
    endif
 else                                 !Polymer is not a ring
-   if (IB2 > NB) then
-      IB2 = NB
-   elseif (IB2 < 1) then
+   if (IB2 > wlc_p%NB) then
+      IB2 =wlc_p%NB
+   endif
+   if (IB2 < 1) then
       IB2 = 1
    endif
-   IT2 = NB*(IP-1) + IB2
+   IT2 = wlc_p%NB*(IP-1) + IB2
 
    if (IT1 > IT2) then
       TEMP = IT1
@@ -130,16 +126,17 @@ else                                 !Polymer is not a ring
       IB2 = TEMP
    endif
    DIB = IB2-IB1
-
-   if (IB1 == IB2.AND.IB1 == 1) then
+   IT1 = wlc_p%NB*(IP-1)+IB1
+   IT2 = wlc_p%NB*(IP-1)+IB2
+  if (IB1 == IB2.AND.IB1 == 1) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1)
-   elseif (IB1 == IB2.AND.IB1 == NB) then
-      TA(1) = R(1,NB*IP)-R(1,NB*IP-1)
-      TA(2) = R(2,NB*IP)-R(2,NB*IP-1)
-      TA(3) = R(3,NB*IP)-R(3,NB*IP-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= NB) then
+   elseif (IB1 == IB2.AND.IB1 == wlc_p%NB) then
+      TA(1) = R(1,wlc_p%NB*IP)-R(1,wlc_p%NB*IP-1)
+      TA(2) = R(2,wlc_p%NB*IP)-R(2,wlc_p%NB*IP-1)
+      TA(3) = R(3,wlc_p%NB*IP)-R(3,wlc_p%NB*IP-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= wlc_p%NB) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1-1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1-1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1-1)
@@ -180,10 +177,9 @@ endif
        -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
   I = IT1
-
-  do  J = 0,DIB
-     if (I == (NB*IP + 1).AND.RinG) then
-        I = NB*(IP-1) + 1
+   do J = 0,DIB
+     if (I == (wlc_p%NB*IP+1).and.wlc_p%Ring) then
+          I = wlc_p%NB*(IP-1)+1
      endif
      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)

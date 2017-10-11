@@ -12,7 +12,7 @@
 !-------------------------------------------------------------------
 
 subroutine hamiltonian(wlc_p,wlc_d,initialize)
-use params
+use params,only: dp,wlcsim_params,wlcsim_data
 implicit none
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
 TYPE(wlcsim_data), intent(inout) :: wlc_d
