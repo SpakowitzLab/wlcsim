@@ -174,7 +174,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
            IOP1 = 1
         else
            IOP1 = IO + 1
-       ENDif
+        ENDif
         !Skip calculation for adjacent segments
         if (II == IOP1.OR.IO == IIP1.OR.II == IO) then
            GOTO 20
@@ -238,9 +238,9 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
 20      continue
         IO = IO + 1
-    ENDdo
+     ENDdo
      II = II + 1
- ENDdo
+  ENDdo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !Loop over all segments of the portion of the chain that was not moved and check for
   !intersections with the two stretched segments
@@ -408,7 +408,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      IO = IO + 1
 
 
- ENDdo
+  ENDdo
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !Continue with the alexander polynomial calculation as usual. The remainder is no different
@@ -431,7 +431,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      Ndegen = 1
      do while (nint(Cross(index + Ndegen,1)) == nint(Cross(index,1)))
         Ndegen = Ndegen + 1
-    ENDdo
+     ENDdo
      if (Ndegen > 1) then
         CALL bubble_sort(Cross(index:index + Ndegen-1,:),Ndegen,6,3)
      ENDif
@@ -442,7 +442,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
 
   !Construct vector of over-pass indices according to indexing described by Vologodskii
-  !The element in the wlc_p%NTth row is the index of the segment that overpasses the Nth crossing
+  !The element in the Nth row is the index of the segment that overpasses the Nth crossing
 
   allocate(over_ind(Ncross))
 
@@ -490,17 +490,17 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
                  ENDif
                  inD = inD + 1
               ENDdo
-        endif
+           endif
         endif
 
-  enddo
+     enddo
 50   continue
 
   ENDdo
 
 
  !Calculate the Alexander matrix evaluated at t = -1
- ! wlc_p%NTote that the Alexander matrix is correct only up to
+ ! Note that the Alexander matrix is correct only up to
  ! a factor of +-1. Since the alexander polynomial evaluated
  ! at t = -1 is always positive, take the absolute value of the
  ! determinant
@@ -531,7 +531,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
         A(K,I) = -2.
      ENDif
 
- ENDdo
+  ENDdo
 
   !Calculate the determinant of the matrix with one row and one column removed
 
