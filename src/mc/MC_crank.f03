@@ -111,7 +111,7 @@ if (wlc_p%RinG) then                    !Polymer is a ring
 else                                 !Polymer is not a ring
    if (IB2 > wlc_p%NB) then
       IB2 =wlc_p%NB
-  endif
+   endif
    if (IB2 < 1) then
       IB2 = 1
    endif
