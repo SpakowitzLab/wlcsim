@@ -438,7 +438,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      Cross(index:index + Ndegen-1,5) = Ndegen
      index = index + Ndegen
 
- ENDdo
+  ENDdo
 
 
   !Construct vector of over-pass indices according to indexing described by Vologodskii
