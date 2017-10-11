@@ -8,29 +8,23 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_pivot(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
-                  ,MCAMP,WindoW,rand_stat,winType &
-                  ,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_pivot(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+                  ,MCAMP,WindoW,rand_stat)
 
 use mersenne_twister
-use params, only: dp, pi
+use params, only: dp, pi,wlcsim_params
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
+type(wlcsim_params), intent(in) :: wlc_p
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 integer I  ! Test indices
 ! Things for random number generator
@@ -48,42 +42,42 @@ real(dp) BETA     ! Angle of move
 !     MC adaptation variables
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-integer, intent(in) :: winType
+!integer, intent(in) :: wlc_p%winType
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (wlc_p%ring .OR. wlc_p%inTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
     P1 = 0.0_dp
 endif
 
-! We don't have to protect moves 4-10 with if ring because the code is identical in both cases
+! We don't have to protect moves 4-10 with if wlc_p%ring because the code is identical in both cases
 !     Perform pivot move (MCTYPE 3)
-    call random_index(NP,irnd,rand_stat)
+    call random_index(wlc_p%NP,irnd,rand_stat)
     IP=irnd(1)
-    call random_index(NB,irnd,rand_stat)
+    call random_index(wlc_p%NB,irnd,rand_stat)
     IB1=irnd(1)
     if (urnd(1).gt.0.5_dp) then
         IB2 = exponential_random_int(window,rand_stat) + 1
-        if (IB2 > NB) then
-            IB2 = NB
+        if (IB2 > wlc_p%NB) then
+            IB2 = wlc_p%NB
         endif
         IB1 = 1
-        IT1 = NB*(IP-1) + IB1
-        IT2 = NB*(IP-1) + IB2
+        IT1 = wlc_p%NB*(IP-1) + IB1
+        IT2 = wlc_p%NB*(IP-1) + IB2
         P1(1) = R(1,IT2)
         P1(2) = R(2,IT2)
         P1(3) = R(3,IT2)
     else
-        IB1 = NB-exponential_random_int(window,rand_stat)
+        IB1 = wlc_p%NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
             IB1 = 1
         endif
-        IB2 = NB
-        IT1 = NB*(IP-1) + IB1
-        IT2 = NB*(IP-1) + IB2
+        IB2 = wlc_p%NB
+        IT1 = wlc_p%NB*(IP-1) + IB1
+        IT2 = wlc_p%NB*(IP-1) + IB2
         P1(1) = R(1,IT1)
         P1(2) = R(2,IT1)
         P1(3) = R(3,IT1)

@@ -18,9 +18,6 @@ use params, only: dp, pi,wlcsim_params
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-!integer, intent(in) :: wlc_p%NB     ! Number of beads on a polymer
-!integer, intent(in) :: wlc_p%NP     ! Number of polymers
-!integer, intent(in) :: wlc_p%NT     ! Total beads in simulation
 real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
@@ -30,8 +27,6 @@ integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-!logical, intent(in) :: wlc_p%ring
-!logical, intent(in) :: wlc_p%interp_bead_lennard_jones
 
 integer I  ! Test indices
 ! Things for random number generator

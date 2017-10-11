@@ -5,27 +5,26 @@
 !     Calculate the change in the polymer elastic energy
 !     due to the displacement from a MC move
 !
-subroutine MC_eelas(DEELAS,R,U,RP,UP,&
-                    NT,NB,IB1,IB2,&
+subroutine MC_eelas(wlc_p,DEELAS,R,U,RP,UP,IB1,IB2,&
                     IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
-                    RinG,TWIST,Lk,lt,L,MCTYPE,WR,WRP, &
-                    SIMTYPE)
+                    MCTYPE,WR,WRP)
 
-use params, only: dp, pi
+use params, only: dp, pi,wlcsim_params
 implicit none
-integer, intent(in) :: NT, SIMTYPE
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-real(dp), intent(in) :: RP(3,NT)  ! Bead positions
-real(dp), intent(in) :: UP(3,NT)  ! Tangent vectors
-integer, intent(in) :: NB                ! Number of beads in a polymer
+type(wlcsim_params), intent(in) :: wlc_p
+!integer, intent(in) :: NT, SIMTYPE
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(in) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: UP(3,wlc_p%NT)  ! Tangent vectors
+!integer, intent(in) :: wlc_p%NB                ! Number of beads in a polymer
 integer, intent(in) :: IB1               ! Test bead position 1
 integer, intent(in) :: IT1               ! Index of test bead 1
 integer, intent(in) :: IB2               ! Test bead position 2
 integer, intent(in) :: IT2               ! Index of test bead 2
 
-real(dp) :: U0(3,NT)  ! dummy variable for calculating u in wlc case
-real(dp) :: UP0(3,NT)  ! dummy variable for calculating u in wlc case
+real(dp) :: U0(3,wlc_p%NT)  ! dummy variable for calculating u in wlc case
+real(dp) :: UP0(3,wlc_p%NT)  ! dummy variable for calculating u in wlc case
 real(dp) :: UNORM,U1U2
 
 real(dp), intent(out) :: DEELAS(4)   ! Change in ECOM
@@ -37,17 +36,17 @@ real(dp), intent(in) :: EPAR
 real(dp), intent(in) :: EPERP
 real(dp), intent(in) :: GAM
 real(dp), intent(in) :: ETA
-integer  Lk               ! Linking number
-real(dp) L        ! Contour length
-real(dp) lt       ! Twist persistence length
-real(dp) Tw       ! Twist
-real(dp) TWP      ! Twist of test structure
+!integer  wlc_p%Lk               ! Linking number
+!real(dp),  L        ! Contour length
+!real(dp) wlc_p%lt       ! wlc_p%twist persistence length
+real(dp) tw       ! Twist
+real(dp) twP      ! Twist of test structure
 real(dp) WR       ! Writhe
 real(dp), intent(out) :: WRP      ! Writhe of test structure
 real(dp) DWR      ! Change in Writhe
 real(dp) WRM,WRMP ! Component of writhe affected by move
-logical RinG              ! Is polymer a ring?
-logical TWIST             ! Include twist?
+!logical wlc_p%ring              ! Is polymer a ring?
+!logical wlc_p%twIST             ! Include twist?
 integer IT1M1
 integer IT1P1
 integer IT2M1
@@ -62,23 +61,23 @@ real(dp) GI(3)
       DEELAS(1) = 0.0_dp ! bending energy
       DEELAS(2) = 0.0_dp ! parallel stretch energy
       DEELAS(3) = 0.0_dp ! perpendicular stretch energy
-      DEELAS(4) = 0.0_dp ! twist energy
+      DEELAS(4) = 0.0_dp ! wlc_p%twist energy
 
 !     Calculate the change in the energy
 
-      if ((IB1 /= 1).or.(RinG)) then
-          ! so if RinG == 1, i.e.
+      if ((IB1 /= 1).or.(wlc_p%ring)) then
+          ! so if wlc_p%ring == 1, i.e.
           if (IB1 == 1) then
-              ! then the bead to the left of IB1 is actually the end bead due to the ring inducing periodic boundaries on the array
-              IT1M1 = NB
+              ! then the bead to the left of IB1 is actually the end bead due to the wlc_p%ring inducing periodic boundaries on the array
+              IT1M1 = wlc_p%NB
           else
               IT1M1 = IT1 - 1
           endif
 
          ! MC move only affects energy if it's interior to the polymer, since there are only crankshaft moves, and end
          ! crankshafts don't affect polymer
-         if (SIMTYPE == 1.AND.(IB1 /= NB.OR.RinG)) then
-             if (IB1 == NB) then
+         if (wlc_p%SIMTYPE == 1.AND.(IB1 /= wlc_p%NB.OR.wlc_p%ring)) then
+             if (IB1 == wlc_p%NB) then
                  IT1P1 = 1
              else
                  IT1P1 = IT1 + 1
@@ -117,7 +116,7 @@ real(dp) GI(3)
             U1U2 = U(1,IT1M1)*UP0(1,IT1) + U(2,IT1M1)*UP(2,IT1) + U(3,IT1M1)*UP(3,IT1)
             DEELAS(1) = DEELAS(1)-EB*U1U2
 
-         elseif (SIMTYPE == 2) then
+         elseif (wlc_p%SIMTYPE == 2) then
 
             DR(1) = R(1,IT1)-R(1,IT1M1)
             DR(2) = R(2,IT1)-R(2,IT1M1)
@@ -157,7 +156,7 @@ real(dp) GI(3)
             DEELAS(2) = DEELAS(2) + 0.5_dp*EPAR*(DRPAR-GAM)**2
             DEELAS(3) = DEELaS(3) + 0.5_dp*EPERP*(DRPERP(1)**2 + DRPERP(2)**2 + DRPERP(3)**2)
 
-         elseif (SIMTYPE == 3) then
+         elseif (wlc_p%SIMTYPE == 3) then
 
             DR(1) = R(1,IT1)-R(1,IT1M1)
             DR(2) = R(2,IT1)-R(2,IT1M1)
@@ -172,8 +171,8 @@ real(dp) GI(3)
          endif
       endif
 
-      if ((IB2 /= NB).or.(RinG)) then
-         if (IB2 == NB) then
+      if ((IB2 /= wlc_p%NB).or.(wlc_p%ring)) then
+         if (IB2 == wlc_p%NB) then
              IT2P1 = 1
          else
              IT2P1 = IT2 + 1
@@ -182,9 +181,9 @@ real(dp) GI(3)
          ! if we're talking about a WLC, if we crankshaft a single bead, that's a no-op, since the u's are directly
          ! determined by the r's. Thus we're not worried about double counting the energy change here since the energy change
          ! should be zero by definition if IB1 = =IB2.
-         if (SIMTYPE == 1.AND.((IB2 /= 1).OR.(RinG))) then
+         if (wlc_p%SIMTYPE == 1.AND.((IB2 /= 1).OR.(wlc_p%ring))) then
             if (IB2 == 1) then
-                IT2M1 = NB
+                IT2M1 = wlc_p%NB
             else
                 IT2M1 = IT2 - 1
             endif
@@ -220,7 +219,7 @@ real(dp) GI(3)
             U1U2 = UP0(1,IT2-1)*U0(1,IT2) + UP0(2,IT2-1)*U0(2,IT2) + UP0(3,IT2-1)*U0(3,IT2)
             DEELAS(1) = DEELAS(1)-EB*U1U2
 
-         elseif (SIMTYPE == 2) then
+         elseif (wlc_p%SIMTYPE == 2) then
 
             DR(1) = R(1,IT2P1)-R(1,IT2)
             DR(2) = R(2,IT2P1)-R(2,IT2)
@@ -258,7 +257,7 @@ real(dp) GI(3)
             DEELAS(2) = DEELAS(2) + 0.5_dp*EPAR*(DRPAR-GAM)**2.
             DEELAS(3) = DEELAS(3) + 0.5_dp*EPERP*(DRPERP(1)**2. + DRPERP(2)**2. + DRPERP(3)**2.)
 
-         elseif (SIMTYPE == 3) then
+         elseif (wlc_p%SIMTYPE == 3) then
 
             DR(1) = R(1,IT2P1)-R(1,IT2)
             DR(2) = R(2,IT2P1)-R(2,IT2)
@@ -273,22 +272,22 @@ real(dp) GI(3)
 
       endif
 
-      if (RinG.AND.TWIST) then
+      if (wlc_p%ring.AND.wlc_p%twIST) then
           if (MCTYPE == 1) then
-              CALL WRITHECRANK(R,IT1,IT2,NB,WRM)
-              CALL WRITHECRANK(RP,IT1,IT2,NB,WRMP)
+              CALL WRITHECRANK(R,IT1,IT2,wlc_p%NB,WRM)
+              CALL WRITHECRANK(RP,IT1,IT2,wlc_p%NB,WRMP)
               DWR = WRMP-WRM
           elseif (MCTYPE == 2) then
-              CALL WRITHESLIDE(R,IT1,IT2,NB,WRM)
-              CALL WRITHESLIDE(RP,IT1,IT2,NB,WRMP)
+              CALL WRITHESLIDE(R,IT1,IT2,wlc_p%NB,WRM)
+              CALL WRITHESLIDE(RP,IT1,IT2,wlc_p%NB,WRMP)
               DWR = WRMP-WRM
           else
               DWR = 0.
           ENDif
           WRP = WR + DWR
-          TW = REAL(LK)-WR
-          TWP = REAL(LK)-WRP
-          DEELAS(4) = DEELAS(4) + (((2.*pi*TWP)**2.)*LT/(2.*L))-(((2.*pi*TW)**2.)*LT/(2.*L))
+          tw = REAL(wlc_p%LK)-WR
+          twP = REAL(wlc_p%LK)-WRP
+          DEELAS(4) = DEELAS(4) + (((2.*pi*twP)**2.)*wlc_p%lt/(2.*wlc_p%L))-(((2.*pi*TW)**2.)*wlc_p%LT/(2.*wlc_p%L))
       ENDif
 
       RETURN

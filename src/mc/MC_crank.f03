@@ -17,9 +17,6 @@ use params, only: dp,wlcsim_params
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
-!integer, intent(in) :: NB     ! Number of beads on a polymer
-!integer, intent(in) :: NP     ! Number of polymers
-!integer, intent(in) :: NT     ! Total beads in simulation
 real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
@@ -30,8 +27,6 @@ integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move
-!logical, intent(in) :: ring
-!logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
 
 integer I,J  ! Test indices
 ! Things for random number generator
@@ -181,19 +176,18 @@ endif
   ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
        -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
 
-  !I = IT1
-
-  do  I = IT1,IT2
-    ! if (I == (wlc_p%NB*IP + 1).AND.wlc_p%RinG) then
-     !   I = wlc_p%NB*(IP-1) + 1
-     !endif
+  I = IT1
+  do J = 0,DIB
+      if (I == (NB*IP+1).and.Ring) then
+          I = NB*(IP-1)+1
+      endif
      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
      RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
      UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
      UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
      UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
-    ! I = I + 1
+    I = I + 1
 
   ENDdo
 
