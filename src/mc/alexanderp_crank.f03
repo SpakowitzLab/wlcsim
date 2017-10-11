@@ -51,7 +51,10 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   real(dp) TIME2
   real(dp) DT_PRUNE
   real(dp) DT_inTERSECT
-
+  if (wlc_p%NB.ne.wlc_p%NT) then
+      print*,"this section doesn't work for more than one polymer, fix this if multiple polymers"
+      stop
+  endif
 
   !Set the normal vector for the plane of projection. Currently set to parallel to z axis
   NV = 0.

@@ -52,7 +52,10 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   real(dp) TIME2
   real(dp) DT_PRUNE
   real(dp) DT_inTERSECT
-
+  if (wlc_p%NB.ne.wlc_p%NT) then
+      print*,"this section doesn't work for more than one polymer, fix this if more than one polymer"
+      stop
+  endif
   !Set the normal vector for the plane of projection. Currently set to parallel to z axis
    NV = 0.
    NV(3) = 1.
@@ -60,13 +63,13 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !Calculate the projection of R onto the projection plane
   do I = 1,wlc_p%NT
      RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
- Enddo
+  Enddo
 
   !Calculate the projection of the curve into the plane with normal wlc_p%NTV
 
   do I = 1,wlc_p%NT
      RP(:,I) = R(:,I)-RdoTN(I)*NV
- ENDdo
+  ENDdo
 
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
