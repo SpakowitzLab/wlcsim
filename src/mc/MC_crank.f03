@@ -82,8 +82,8 @@ else
     call stop_if_err(1, "Warning: winType not recognized")
 endif
 
-!IT1 = wlc_p%NB*(IP-1) + IB1
-!IT2 = wlc_p%NB*(IP-1) + IB2
+IT1 = wlc_p%NB*(IP-1) + IB1
+IT2 = wlc_p%NB*(IP-1) + IB2
 
 DIB = IB2-IB1
 if (wlc_p%RinG) then                    !Polymer is a ring
@@ -115,7 +115,7 @@ else                                 !Polymer is not a ring
    if (IB2 < 1) then
       IB2 = 1
    endif
-  ! IT2 = wlc_p%NB*(IP-1) + IB2
+   IT2 = wlc_p%NB*(IP-1) + IB2
 
    if (IT1 > IT2) then
       TEMP = IT1
