@@ -12,12 +12,10 @@ subroutine MC_eelas(wlc_p,DEELAS,R,U,RP,UP,IB1,IB2,&
 use params, only: dp, pi,wlcsim_params
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-!integer, intent(in) :: NT, SIMTYPE
 real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(in) :: RP(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: UP(3,wlc_p%NT)  ! Tangent vectors
-!integer, intent(in) :: wlc_p%NB                ! Number of beads in a polymer
 integer, intent(in) :: IB1               ! Test bead position 1
 integer, intent(in) :: IT1               ! Index of test bead 1
 integer, intent(in) :: IB2               ! Test bead position 2
@@ -36,17 +34,12 @@ real(dp), intent(in) :: EPAR
 real(dp), intent(in) :: EPERP
 real(dp), intent(in) :: GAM
 real(dp), intent(in) :: ETA
-!integer  wlc_p%Lk               ! Linking number
-!real(dp),  L        ! Contour length
-!real(dp) wlc_p%lt       ! wlc_p%twist persistence length
 real(dp) tw       ! Twist
 real(dp) twP      ! Twist of test structure
 real(dp) WR       ! Writhe
 real(dp), intent(out) :: WRP      ! Writhe of test structure
 real(dp) DWR      ! Change in Writhe
 real(dp) WRM,WRMP ! Component of writhe affected by move
-!logical wlc_p%ring              ! Is polymer a ring?
-!logical wlc_p%twIST             ! Include twist?
 integer IT1M1
 integer IT1P1
 integer IT2M1
