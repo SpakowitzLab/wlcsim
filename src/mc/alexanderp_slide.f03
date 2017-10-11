@@ -17,8 +17,8 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   integer Ncross                !Total number of crossings
   integer NCrossNew
   integer  IT1,IT2               !Indices of beads that bound the segment rotated during crankshaft move
-  integer DIB                   !wlc_p%NTumber of segments in the segment rotated
-  integer DIO                   !wlc_p%NTumber of segments outside the segment rotated
+  integer DIB                   !Number of segments in the segment rotated
+  integer DIO                   !Number of segments outside the segment rotated
   !outPUT VARIABLES
   integer  DELTA
 
