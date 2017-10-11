@@ -103,6 +103,11 @@ Stack of things to do:
         32. in CalculateEnergiesFromScratch, do Brad's eknot, self, etc
         33. finish code to initialize energies in params and to get out x_'s
             from CalculateEnergiesFromScratch
+3. Make FASTFLAGS actually fast flags instead of just O3.
+4. Make constant parameters compile time constants.
+5. Implement a binning based u(r) two body interaction in Monte-Carlo.
+6. Implement an umbrella sampling procedure.
+
 
 sitting in the src/wlcsim directory, and you've just run make -i in the top
 level, the following now succeeds if you remove

@@ -53,6 +53,7 @@ nReplicaExchangePerSavePoint 5000
 beadVolume 0.1
 fA 0.0
 lam 1.0
+AsymmetricAlt F
 # VHC 0.0
 # LHC 0.0
 # chi 0.0
