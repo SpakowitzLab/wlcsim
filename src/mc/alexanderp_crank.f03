@@ -11,7 +11,7 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !inPUT VARIABLES
  ! integer N                     ! Number of points in space curve
   integer CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
-  real(dp) R(3,wlc_p%NB)       !Space curve
+  real(dp) R(3,wlc_p%NT)       !Space curve
   real(dp) Cross(CrossSize,6)        !Matrix of cross indices and coordinates
   real(dp) CrossNew(CrossSize,6)
   integer Ncross                !Total number of crossings
@@ -26,8 +26,8 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   integer IT1N,IT2N             !New indicies for segments that bound the crankshaft move. Necessary to capture part that changes when IT1 = IT2
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(3,wlc_p%NB)      ! projection of R onto plane defined by NV
-  real(dp) RdoTN(wlc_p%NB)        ! Dot product of R and NV
+  real(dp) RP(3,wlc_p%NT)      ! projection of R onto plane defined by NV
+  real(dp) RdoTN(wlc_p%NT)        ! Dot product of R and NV
   integer Ndegen                ! number of crossings for a given segment
   integer I,J,K,IP1,JP1,KP1           ! iteration indices
   real(dp) smax,tmax    ! length of segments in the projection
@@ -58,13 +58,13 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   NV(3) = 1.
 
   !Calculate the projection of R onto the projection plane
-  do I = 1,wlc_p%NB
+  do I = 1,wlc_p%NT
      RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
   ENDdo
 
   !Calculate the projection of the curve into the plane with normal NV
 
-  do I = 1,wlc_p%NB
+  do I = 1,wlc_p%NT
      RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
@@ -81,34 +81,34 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
   if (IT2N == IT1N) then
      if (DIB == 0) then
-        if (IT1N /= 1.AND.IT1N /= wlc_p%Nb) then
+        if (IT1N /= 1.AND.IT1N /= wlc_p%NT) then
            IT2N = IT1N + 1
            IT1N = IT1N-1
         elseif (IT1N == 1) then
            IT2N = IT1N + 1
-           IT1N = wlc_p%NB
-        elseif (IT1N == wlc_p%Nb) then
+           IT1N = wlc_p%NT
+        elseif (IT1N == wlc_p%NT) then
            IT2N = 1
-           IT1N = wlc_p%Nb-1
+           IT1N = wlc_p%NT-1
         ENDif
      ENDif
 
-     if (DIB == wlc_p%Nb) then
-        if (IT1N /= 1.AND.IT1N /= wlc_p%Nb) then
+     if (DIB == wlc_p%NT) then
+        if (IT1N /= 1.AND.IT1N /= wlc_p%NT) then
            IT2N = IT1N-1
            IT1N = IT1N + 1
         elseif (IT1N == 1) then
            IT1N = IT1N + 1
-           IT2N = wlc_p%Nb
-        elseif (IT1N == wlc_p%Nb) then
-           IT2N =wlc_p%Nb-1
+           IT2N = wlc_p%NT
+        elseif (IT1N == wlc_p%NT) then
+           IT2N =wlc_p%NT-1
            IT1N = 1
         ENDif
      ENDif
 
   ENDif
 
-  DIO = wlc_p%Nb-DIB
+  DIO = wlc_p%NT-DIB
   II = IT1N
   inD = 1
   NCrossNew = 0
@@ -120,7 +120,7 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      Copy = .TRUE.
      II = IT1N
      do I = 1,DIB
-        if (II ==wlc_p%Nb + 1) then
+        if (II ==wlc_p%NT + 1) then
            II = 1
         ENDif
         if (II == nint(Cross(J,1)).OR.II == nint(Cross(J,2))) then
@@ -150,10 +150,10 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
   do I = 1,DIB
 
-     if(II == wlc_p%Nb + 1) then
+     if(II == wlc_p%NT + 1) then
         II = 1
         IIP1 = 2
-     elseif (II == wlc_p%Nb) then
+     elseif (II == wlc_p%NT) then
         IIP1 = 1
      else
         IIP1 = II + 1
@@ -162,10 +162,10 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      !Loop over all segments outside of the portion of the chain that was moved
      IO = IT2N
      do J = 1,DIO
-        if(IO == wlc_p%Nb + 1) then
+        if(IO == wlc_p%NT + 1) then
            IO = 1
            IOP1 = 2
-        elseif (IO == wlc_p%Nb) then
+        elseif (IO == wlc_p%NT) then
            IOP1 = 1
         else
            IOP1 = IO + 1
@@ -241,10 +241,10 @@ subroutine alexanderp_crank(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      IO = IT1N
 
      do J = 1,I-2
-        if(IO == wlc_p%Nb + 1) then
+        if(IO == wlc_p%NT + 1) then
            IO = 1
            IOP1 = 2
-        elseif (IO == wlc_p%Nb) then
+        elseif (IO == wlc_p%NT) then
            IOP1 = 1
         else
            IOP1 = IO + 1

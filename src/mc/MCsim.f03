@@ -94,10 +94,10 @@ subroutine MCsim(wlc_p,wlc_d)
            wlc_d%CrossP = wlc_d%Cross
            wlc_d%NCrossP = wlc_d%NCross
            if (MCTYPE == 1) then
-              CALL alexanderp_crank(wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
+              CALL alexanderp_crank(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
            elseif (MCTYPE == 2) then
               if (DIB /= wlc_p%NB) then
-                 CALL alexanderp_slide(wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
+                 CALL alexanderp_slide(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
               ENDif
            else
               CALL ALEXANDERP(wlc_d%RP,wlc_p%NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
