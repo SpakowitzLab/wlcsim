@@ -9,6 +9,9 @@
 !   as a whole should also go here.
 !
 !   --------------------------------------------------------------
+#include <src/wlcsim/defs.h>
+
+
 module params
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: IEEE_ARITHMETIC
@@ -71,7 +74,7 @@ module params
     !
     ! many of these variables are used only in certain kinds of simulations
     type wlcsim_params
-        character(MAXPARAMLEN) codeName ! which simulation code to run
+        !character(MAXPARAMLEN) codeName ! which simulation code to run
     !   Simulation parameters
         integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
         integer nT                ! Total number of beads  NT = nBpM*nMpP*np
@@ -382,7 +385,7 @@ contains
 
 
         ! options
-        wlc_p%codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
+        !wlc_p__codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%initCondType = 'randomWalkWithBoundary' ! 0 for initializing polymer in non-random straight line
         wlc_p%confineType = 'none' ! 0 for no confinement
         wlc_p%ring = .false.    ! not a ring by default
@@ -507,7 +510,9 @@ contains
 
         select case(WORD) ! pick which keyword, case matchign string must be all uppercase
         case('CODENAME') ! select version of wlcsim to run
-            call readA(wlc_p%codeName)
+            !call readA(wlc_p__codeName)
+            print*, WORD, "is nolonger a input"
+            stop
         case('INITCONDTYPE')
             call readA(wlc_p%initCondType)
 
@@ -980,7 +985,7 @@ contains
         call stop_if_err(wlc_p%REND > wlc_p%L, &
             "Requesting initial end-to-end distance larger than polymer length.")
 
-        if (wlc_p%codeName == 'quinn') then
+        if (wlc_p__codeName == 'quinn') then
            if ((wlc_p%NBinX(1)-wlc_p%NBinX(2).ne.0).or. &
                 (wlc_p%NBinX(1)-wlc_p%NBinX(3).ne.0)) then
               err = wlc_p%confinetype.ne.'periodicUnequal'
@@ -1099,7 +1104,7 @@ contains
 #endif
         allocate(wlc_d%R(3,NT))
         allocate(wlc_d%U(3,NT))
-        if (wlc_p%codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
+        if (wlc_p__codeName /= 'bruno' .OR. wlc_p%nInitMCSteps /= 0) then
             allocate(wlc_d%RP(3,NT))
             allocate(wlc_d%UP(3,NT))
             wlc_d%RP=nan  ! To prevent accidental use
@@ -1314,7 +1319,7 @@ contains
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
         print*, "---------------System Description---------------"
-        print*, " type of simulation, codeName", wlc_p%codeName
+        print*, " type of simulation, codeName", wlc_p__codeName
         print*, " WLC, DSSWLC, GC, simType", wlc_p%simType
         print*, "Bead variables:"
         print*, " Total number of beads, NT = ", wlc_p%NT
@@ -1479,7 +1484,7 @@ contains
             print*, "to ", wlc_p%dBin
         endif
 
-        if (wlc_p%codeName == 'brad') then
+        if (wlc_p__codeName == 'brad') then
             ! initialize windows to number of beads
             wlc_p%MAXWindoW = wlc_p%nB         ! Max Size of window for bead selection
             wlc_p% MinWindoW  = 1         ! Min Size of window for bead selection

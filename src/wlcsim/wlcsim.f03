@@ -1,3 +1,4 @@
+#include <src/wlcsim/defs.h>
 program main
     ! Loads in parameters from the input file.
     ! Calculates parameters used in simulation from input parameters.
@@ -67,7 +68,7 @@ program main
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
 
-    select case (trim(adjustL(wlc_p%codeName)))
+    select case (trim(adjustL(wlc_p__codeName)))
     case ('quinn', 'parallel temper continuous parameters')
         do i = 1,wlc_p%numSavePoints
             call wlcsim_quinn(i, wlc_d, wlc_p)
