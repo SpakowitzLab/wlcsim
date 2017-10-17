@@ -1,0 +1,7 @@
+To compress data go to the base directory and run
+
+./dataTools/compress.sh data
+
+To umcompress data go to the base directory and run
+
+./dataTools/uncompress.sh data
