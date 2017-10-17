@@ -110,7 +110,7 @@ if (urnd(1).lt.0.5_dp) then
        UP(3,I) = U(3,I + 1)
        ABP(I) = AB(I+1)
     enddo
-    ABP(IT2)=AB(IT2) ! extend cheical sequence
+    ABP(IT2)=AB(IT1) ! extend cheical sequence
 
    ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
    ! RparaMag = r_relative(1)
