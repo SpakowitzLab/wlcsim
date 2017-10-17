@@ -1436,7 +1436,7 @@ contains
         !    Maximum window size (large windows are expensive)
         wlc_p%MAXWindoW(1) = dble(min(150,wlc_p%NB))
         wlc_p%MAXWindoW(2) = dble(min(150,wlc_p%NB))
-        wlc_p%MAXWindoW(3) = dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(3) = dble(min(150,int(wlc_p%NB/2.0)))
         wlc_p%MAXWindoW(4) = nan
         wlc_p%MAXWindoW(5) = nan
         wlc_p%MAXWindoW(6) = nan
