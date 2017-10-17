@@ -50,8 +50,8 @@ call random_index(wlc_p%NP,irnd,rand_stat)
 IP=irnd(1)
 IT1 = wlc_p%NB*(IP-1) + 1
 IT2 = wlc_p%NB*(IP-1) + wlc_p%NB
-IB1 = mod(IT1,wlc_p%NB)
-IB2 = mod(IT2,wlc_p%NB)
+IB1 = 1
+IB2 = wlc_p%NB
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then
