@@ -4,7 +4,7 @@
 # -----------------------------------------------
 # Simulation basics
 #
-codeName quinn
+#codeName quinn
 initCondType lineInY
 confineType none
 recenterOn T
