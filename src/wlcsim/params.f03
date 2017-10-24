@@ -128,7 +128,7 @@ module params
         integer nColBin  ! Number of collision-detection bins on each edge
         real(dp) lbox(3)  ! monte carlo field bin total box length (approximate)
         real(dp) dbin      ! monte carlo field bin discretization size (approximate)
-        real(dp) confinementParameter(3)
+        real(dp) confinementParameter(2)
 
     !   Monte Carlo Variables (for adaptation)
         real(dp) PDesire(nMoveTypes) ! desired hit rate
@@ -161,7 +161,6 @@ module params
         integer LK                ! Linking number
         character(MAXPARAMLEN) confinetype       ! type of Boundary Conditions
         character(MAXPARAMLEN) initCondType           ! initial condition type
-        logical field_interactions ! field-based self interactions on
         logical intrapolymer_stick_crossing_enforced ! field-based self interactions on
         logical FRwlc_pHEM           ! read initial chemical sequence from file
         logical FRMchem           ! read initial chemical/methylation state from file
@@ -179,9 +178,7 @@ module params
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
         logical restart     ! whether we are restarting from a previous sim or not
         logical inTERP_BEAD_LENNARD_JONES ! whether to have inter bead lennard jones energies
-        logical field_int_on ! include field interactions (e.g. A/B interactions)
-                             ! uses many of the same functions as the chemical
-                             ! identity/"meth"ylation code, but energies are calcualted via a field-based approach
+        logical field_int_on ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
         logical changingChemicalIdentity
         logical asymmetricAlternatingChem
@@ -357,12 +354,13 @@ contains
         wlc_p%nBpM = 10
         wlc_p%lp = 1                ! units of lp by default
         wlc_p%lt = 1                ! twist persistence length equals persistence length by default
-        wlc_p%nMpP = wlc_p%nB / wlc_p%nBpM
-        wlc_p%nT = wlc_p%nP * wlc_p%nB
+        wlc_p%nMpP = wlc_p%nB/wlc_p%nBpM
+        wlc_p%nT = wlc_p%nP*wlc_p%nB
         wlc_p%confinementParameter = nan
         wlc_p%lbox = nan     ! box size/confinment, *MUST* be set by user
         wlc_p%nColBin = 1   ! equivalent to collisionDetectionType = 1
         wlc_p%dbin = NaN ! set in tweak_param_defaults
+        wlc_p%nbin = 0 ! set this yourself!
         ! wlc_p%l0  =1.25_dp         ! TOdo: not input
         wlc_p%beadVolume  = 0.1_dp ! much smaller than space between beads
         wlc_p%fA  =0.5_dp  ! half A, half B by default
@@ -383,7 +381,6 @@ contains
         wlc_p%mu  =0.0_dp ! by default, no hp1 binding included
         wlc_p%HP1_Bind = 0.0_dp ! by default, no binding of HP1 to each other
 
-
         ! options
         !wlc_p__codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%initCondType = 'randomWalkWithBoundary' ! 0 for initializing polymer in non-random straight line
@@ -400,6 +397,8 @@ contains
         wlc_p%changingChemicalIdentity = .FALSE.
         wlc_p%CHI_L2_ON = .FALSE.
         wlc_p%asymmetricAlternatingChem = .FALSE.
+        wlc_p%simtype = 2
+        wlc_p%intrapolymer_stick_crossing_enforced = .FALSE.
 
         ! timing options
         wlc_p%dt  = 1              ! set time scale to unit
