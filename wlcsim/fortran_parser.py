@@ -147,7 +147,11 @@ def wlc_p_to_defines():
     """
     vars_to_keep = ['EB', 'EPAR', 'EPERP', 'ESELF', 'GAM', 'ETA', 'XIR',
             'SIGMA', 'XIU', 'DEL', 'LHC', 'VHC', 'REND', 'L0', 'EPS',
-            'DT', 'NBIN', 'NT', 'SIMTYPE']
+            'DT', 'NBIN', 'NT', 'SIMTYPE',
+                   # parallel tempered variables, quinn
+            'CHI', 'MU', 'HA', 'HP1_BIND', 'KAP', 'CHI_L2',
+                   # parallel tempered variables, brad
+            'LK' ]
     wlc_p_usage_re = re.compile("[^!]*wlc_p%("+ var_re +")\(("+ var_re +")\)")
     wlc_p_usage_re_grep =      "^[^!]*wlc_p%" + var_re + "\(" + var_re + "\)"
     defaults = extract_from_lines(
@@ -255,6 +259,18 @@ def make_defines_inc(active_defines):
                 f.write("! TYPE: {}\n".format(new_define.type))
             f.write("#define {} {}\n".format(new_define.define_name, new_define.value))
 
+def temp_rename(names_to_hide, undo=False):
+    for name in names_to_hide.itertuples():
+        if undo:
+            program = ['find', src_dir, '-type', 'f', '-exec', 'sed', '-i',
+                    's/TMPTMPTMP' + name.name + '/wlc_p%' + name.name + '/gi',
+                    '{}', ';']
+        else:
+            program = ['find', src_dir, '-type', 'f', '-exec', 'sed', '-i',
+                    's/wlc_p%' + name.name + '/TMPTMPTMP' + name.name + '/gi',
+                    '{}', ';']
+        subprocess.check_output(program)
+
 def replace_wlc_p_instances(active_defines):
     # def shape_to_int(shape):
     #     if shape == 'NDIM':
@@ -295,7 +311,9 @@ def get_replace_order(strings):
 
 def perform_wlc_p_to_define_transform():
     defines = wlc_p_to_defines()
-    declarations_to_delete = defines[defines['shape'].isnull() & (~defines.keep_regardless)]
+    to_delete = defines['shape'].isnull() & (~defines.keep_regardless)
+    declarations_to_delete = defines[to_delete]
+    declarations_to_keep = defines[~to_delete]
     delete_declaration_lines(declarations_to_delete.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
                              in_type='wlcsim_params')
     # delete_definition_lines(defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
@@ -304,7 +322,9 @@ def perform_wlc_p_to_define_transform():
     delete_subroutine('read_input_file', os.path.join(src_dir, 'wlcsim', 'params.f03'))
     defines_to_be_written = defines.loc[~defines.keep_regardless]
     make_defines_inc(defines_to_be_written)
+    temp_rename(declarations_to_keep)
     replace_wlc_p_instances(declarations_to_delete)
+    temp_rename(declarations_to_keep, undo=True)
     add_looped_defaults(defines)
 
 def delete_subroutine(name, file):

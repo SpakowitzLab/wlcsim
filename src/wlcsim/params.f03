@@ -1086,7 +1086,7 @@ contains
         character(MAXFILENAMELEN), intent(in) :: infile  ! file with parameters
 
         ! baseline defaults
-        call set_param_defaults(wlc_p, wlc_d)
+        call set_param_defaults(wlc_p)
 
         call read_input_file(infile, wlc_p)
 
@@ -1407,11 +1407,6 @@ contains
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
-
-        if (wlc_p%dbin /= wlc_p%dbin) then
-            ! discretizing at 1 persistence length seems to be a reasonable default
-            wlc_p%dbin = wlc_p%lp
-        endif
 
         wlc_p%L0 = wlc_p%l/real(wlc_p%nb-1.0_dp) ! -1.0 because one fewer segments then beads
         wlc_p%eps=wlc_p%L0/(2.0_dp*wlc_p%lp)

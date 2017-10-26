@@ -78,7 +78,7 @@ use mpi
     wlc_p%hA      =cof(3)
     wlc_p%HP1_Bind =cof(4)
     wlc_p%Kap      =cof(5)
-    !wlc_p%para(1)  =cof(6)
+    !wlc_p%para(1)  =cof(6) ! eb, eperp, epar
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
     wlc_p%chi_l2   =cof(9)
