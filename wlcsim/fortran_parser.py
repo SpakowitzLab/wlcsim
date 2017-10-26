@@ -146,7 +146,8 @@ def wlc_p_to_defines():
     on other input parameters.
     """
     vars_to_keep = ['EB', 'EPAR', 'EPERP', 'ESELF', 'GAM', 'ETA', 'XIR',
-            'SIGMA', 'XIU', 'DEL', 'LHC', 'VHC', 'REND']
+            'SIGMA', 'XIU', 'DEL', 'LHC', 'VHC', 'REND', 'L0', 'EPS',
+            'DT', 'NBIN', 'NT', 'SIMTYPE']
     wlc_p_usage_re = re.compile("[^!]*wlc_p%("+ var_re +")\(("+ var_re +")\)")
     wlc_p_usage_re_grep =      "^[^!]*wlc_p%" + var_re + "\(" + var_re + "\)"
     defaults = extract_from_lines(
@@ -244,7 +245,7 @@ def make_defines_inc(active_defines):
     if os.path.exists(defines_file):
         raise OSError(defines_file + ' already exists!')
     with open(defines_file, 'w') as f:
-        f.write("\n\n#define PI 4*atan(1.0_dp)\n\n")
+        # f.write("\n\n#define PI 4*atan(1.0_dp)\n\n")
         for new_define in active_defines.itertuples():
             f.write("! VARIABLE COMMENT: {}\n".format(new_define.declaration_comment))
             f.write("! DEFAULTS COMMENT: {}\n".format(new_define.defaults_comment))
@@ -266,7 +267,7 @@ def replace_wlc_p_instances(active_defines):
     for file in affected_files:
         # if os.path.basename(file) == b'defines.inc':
         #     continue
-        if file[-2:] == b'.o':
+        if not re.search("\.f[0-9][0-9]'$", str(file)):
             continue
         # add the include line at the top for defines.inc
         with open(file, 'r') as original: data = original.read()
@@ -292,146 +293,74 @@ def get_replace_order(strings):
     ix = np.argsort(lengths)
     return np.array(strings)[ix]
 
-    # tree = SuperStringTree(strings)
-    # # pre order traversal gives superstrings first
-    # replace_order = []
-    # for string in reversed(tree.base.pre_order_values()):
-    #     if not string or string in replace_order:
-    #         continue
-    #     replace_order.append(string)
-    # return replace_order
-
-# class Node:
-#     def __init__(self, value):
-#         self.children = list()
-#         self.value = value
-#     def __str__(self, level=0):
-#             ret = "\t"*level + repr(self) + "\n"
-#             for child in self.children:
-#                 ret += child.__str__(level + 1)
-#             return ret
-#     def __repr__(self):
-#         return "<Tree Node, Value={}, len(Children)={}>".format(self.value, len(self.children))
-#     def pre_order_values(self):
-#         values = []
-#         values.append(self.value)
-#         for child in self.children:
-#             values += child.pre_order_values()
-#         return values
-#     def post_order_values(self):
-#         values = []
-#         for child in self.children:
-#             values += child.pre_order_values()
-#         values.append(self.value)
-#         return values
-#     @property
-#     def child_values(self):
-#         return [child.value for child in self.children]
-
-# class SuperStringNode(Node):
-#     # # this algorithm doesn't work, because for example say we insert
-#     # # "a", then "ab", then "b". "ab" will be a child of "a", so it won't
-#     # # get tested to see if it's a superstring of b
-#     def insert_string(self, string):
-#         was_inserted = False
-#         for i,child in enumerate(self.children):
-#             # if string is a superstring, so should be child of child
-#             if child.value in string:
-#                 child.insert_string(string)
-#                 was_inserted = True
-#             # if string is a substring, so should be parent of child
-#             if string in child.value:
-#                 new_node = SuperStringNode(string)
-#                 new_node.children.append(child)
-#                 if self.value is not None:
-#                     self.children[i] = new_node
-#                     was_inserted = True
-#         # it was neither super nor substring of any children, so it's gets its 
-#         # own branch. the root gets every string as a direct child, but not here
-#         if not was_inserted and self.value is not None:
-#             self.children.append(SuperStringNode(string))
-#         return was_inserted
-
-# class SuperStringTree:
-#     def __init__(self, strings):
-#         self.base = SuperStringNode(None)
-#         self.all_strings = []
-#         for string in strings:
-#             self.base.insert_string(string)
-#             self.base.children.append(SuperStringNode(string))
-#             for old_string in self.all_strings:
-#                 self.base.children[-1].insert_string(old_string)
-#             self.all_strings.append(string)
-
-# def get_superstring_tree(strings):
-#     """Pre order traversal gives reversed "replace order"... """
-#     tree = Node(None)
-#     for s in strings:
-#         if len(tree.children) == 0:
-#             tree.children.append(Node(s))
-#             continue
-#         is_substring = True
-#         node = tree
-#         prev_node = tree
-#         while is_substring:
-#             if len(node.children) == 0:
-#                 node.children.append(Node(s))
-#             for i,child_node in enumerate(node.children):
-#                 if s in child_node.value:
-#                     new_node = Node(s)
-#                     new_node.children.append(child_node)
-#                     node.children[i] = new_node
-#                     is_substring = False
-#                     break
-#                 if child_node.value in s:
-#                     prev_node = node
-#                     node = child_node
-#                     break
-#             else:
-#                 is_substring = False
-#                 prev_node.children.append(Node(s))
-#     return tree
-
-# def get_substring_tree(strings):
-#     """Not very useful kind of tree."""
-#     tree = Node(None)
-#     for s in strings:
-#         if len(tree.children) == 0:
-#             tree.children.append(Node(s))
-#             continue
-#         is_substring = True
-#         node = tree
-#         prev_node = tree
-#         while is_substring:
-#             if len(node.children) == 0:
-#                 node.children.append(Node(s))
-#             for i,child_node in enumerate(node.children):
-#                 if child_node.value in s:
-#                     new_node = Node(s)
-#                     new_node.children.append(child_node)
-#                     node.children[i] = new_node
-#                     is_substring = False
-#                     break
-#                 if s in child_node.value:
-#                     prev_node = node
-#                     node = child_node
-#                     break
-#             else:
-#                 is_substring = False
-#                 prev_node.children.append(Node(s))
-#     return tree
-
 def perform_wlc_p_to_define_transform():
     defines = wlc_p_to_defines()
-    active_defines = defines.loc[~(defines.is_looped_on | defines.keep_regardless)]
-    delete_declaration_lines(active_defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
+    non_array_defines = defines[defines['shape'].isnull()]
+    delete_declaration_lines(non_array_defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
                              in_type='wlcsim_params')
-    delete_definition_lines(active_defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
-                            in_subroutine='set_param_defaults')
-    make_defines_inc(active_defines)
-    replace_wlc_p_instances(active_defines)
+    # delete_definition_lines(defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
+    #                         in_subroutine='set_param_defaults')
+    delete_subroutine('set_param_defaults', os.path.join(src_dir, 'wlcsim', 'params.f03'))
+    delete_subroutine('read_input_file', os.path.join(src_dir, 'wlcsim', 'params.f03'))
+    defines_to_be_written = defines.loc[~defines.keep_regardless]
+    make_defines_inc(defines_to_be_written)
+    defines_to_use = defines.loc[~(defines.is_looped_on | defines.keep_regardless)]
+    replace_wlc_p_instances(defines_to_use)
+    add_looped_defaults(defines)
 
+def delete_subroutine(name, file):
+    with open(file, 'r') as f:
+        lines = f.readlines()
+    with open(file, 'w') as f:
+        pos = "before subroutine"
+        for line in lines:
+            if pos == "before subroutine" and re.search("subroutine\s+" + name, line):
+                    pos = "inside subroutine"
+            elif pos == "inside subroutine" and re.search("end\s+subroutine", line):
+                    pos = "after subroutine"
+                    continue
+            if pos != 'inside subroutine':
+                f.write(line)
 
+def add_looped_defaults(defines):
+    params_file = os.path.join(src_dir, 'wlcsim', 'params.f03')
+    with open(params_file, 'r') as f:
+        old_file = f.readlines()
+    with open(params_file, 'w') as f:
+        pos = 'before module'
+        for line in old_file:
+            if pos == 'before module' and re.search('module\s+params', line):
+                pos = 'before contains'
+            if pos == 'before contains' and re.match('^\s*contains\s*$', line):
+                pos = 'after contains'
+                f.write(line)
+                write_looped_defaults(f, defines)
+                continue
+            f.write(line)
+
+def write_looped_defaults(f, defines):
+    f.write("""
+    subroutine set_param_defaults(wlc_p)
+        implicit none
+        ! WARNinG: changing this to intent(out) means that unassigned values
+        ! here will become undefined upon return, due to Fortran's weird
+        ! intent(out) semantics for records, this would require that a default
+        ! value always be given to new parameters in wlc_p, else we would get a
+        ! compile time catchable runtime error that is not caught by gcc as of v5.0
+        !
+        ! this is almost definitely undesireable, since "undefined" means the
+        ! behavior will depend on which compiler is used
+        type(wlcsim_params), intent(inout) :: wlc_p
+""")
+    for define in defines.itertuples():
+        if define.indexer is None:
+            continue
+        f.write("        wlc_p%{}({}) = {}\n".format(
+                define.name, define.indexer, define.define_name))
+    f.write("""
+    end subroutine set_param_defaults
+
+""")
 
 def delete_declaration_lines(names, file, in_type=None):
     with open(file, 'r') as f:

@@ -89,7 +89,6 @@ module params
         real(dp) lt       ! twist persistence length
         real(dp) l0       ! Path length between beads. (meaning unknown for gaussian chain?)
         real(dp) beadVolume        ! Bead volume
-        real(dp) fPoly    ! volume fraction of Polymer in simulation volume
         real(dp) fA       ! Fraction of A beads
         real(dp) lam      ! Chemical correlation parameter (eigenvalue of transition matrix that generates A/B's)
         real(dp) gam    ! average equilibrium interbead spacing
@@ -355,7 +354,7 @@ contains
         wlc_p%confinementParameter = nan
         wlc_p%lbox = nan     ! box size/confinment, *MUST* be set by user
         wlc_p%nColBin = 1   ! equivalent to collisionDetectionType = 1
-        wlc_p%dbin = NaN ! set in tweak_param_defaults
+        wlc_p%dbin = 1 ! should always be 1 according to quinn
         wlc_p%nbin = 0 ! set this yourself!
         wlc_p%nbinx = 0 ! set this yourself!
         ! wlc_p%l0  =1.25_dp         ! TOdo: not input
@@ -364,7 +363,6 @@ contains
         wlc_p%LAM =0.0_dp  ! perfectly random sequence  (see generating_sequences.rst for details)
         wlc_p%F_METH = 0.5_dp ! half beads methylated by default
         wlc_p%LAM_METH = 0.9_dp ! highly alternating sequence by default
-        wlc_p%fPoly = 0.025_dp   ! volume fraction of plymer corresponding to HELA DNA in cytoplasm
         wlc_p%k_field = 0.0_dp ! some previous values: !1.5708_dp !0.3145_dp
 
         ! energy parameters
@@ -692,11 +690,6 @@ contains
             call readI(wlc_p%stepsPerExchange) ! number of steps between parallel tempering
         case('NREPLICAEXCHANGEPERSAVEPOINT')
             call readI(wlc_p%nReplicaExchangePerSavePoint) ! read the variable
-        case('FPOLY')
-            call readF(wlc_p%Fpoly) ! Fraction Polymer
-            print*, "FPOLY is nolong used for anything"
-            print*, "You probably shouldn't include it in your input file"
-            stop
         case('BEADVOLUME')
             call readF(wlc_p%beadVolume) ! Bead volume
         case('FA')
@@ -1010,19 +1003,6 @@ contains
                 print*, "Comment me out if you do."
                 stop 1
             endif
-            ! we no longer specify fPoly, it is set in tweak_param_defaults
-            ! if (wlc_p%confineType.eq.'sphere') then
-            !     if (abs((wlc_p%fPoly*(1.0/6.0_dp)*PI*wlc_p%LBOX(1)**3 / &
-            !             (wlc_p%beadVolume*wlc_p%NT)) - 1)>0.02) then
-            !          print*, "Error: volume fraction incorrect"
-            !          stop
-            !      endif
-            ! else
-            !     if (abs(wlc_p%fPoly*wlc_p%LBOX(1)**3/(wlc_p%beadVolume*wlc_p%NT) - 1)>0.02) then
-            !          print*, "Error: volume fraction incorrect"
-            !          stop
-            !     endif
-            ! endif
         endif
 
         if (wlc_p%field_int_on .and. (wlc_p%lbox(1) .ne. wlc_p%lbox(2) .or. wlc_p%lbox(2) .ne. wlc_p%lbox(3))) then
@@ -1390,7 +1370,6 @@ contains
         print*, " Number of bins", wlc_p%NBin
         print*, " spatial descritation dbin = ",wlc_p%dbin
         print*, " L0 = ", wlc_p%L0
-        print*, " volume fraction polymer =", wlc_p%Fpoly
         print*, " bead volume V = ", wlc_p%beadVolume
         print*, " number of kuhn lengths between beads, eps ", wlc_p%eps
         print*, " "
@@ -1429,14 +1408,6 @@ contains
         if (wlc_p%dbin /= wlc_p%dbin) then
             ! discretizing at 1 persistence length seems to be a reasonable default
             wlc_p%dbin = wlc_p%lp
-        endif
-
-        if (wlc_p%confineType == 'sphere') then
-            wlc_p%fPoly = 6.0_dp*wlc_p%beadVolume*wlc_p%NT &
-                /PI/wlc_p%LBOX(1)/wlc_p%LBOX(1)/wlc_p%LBOX(1)
-        else
-            wlc_p%fPoly = wlc_p%beadVolume*wlc_p%NT &
-                /wlc_p%LBOX(1)/wlc_p%LBOX(2)/wlc_p%LBOX(3)
         endif
 
         wlc_p%L0 = wlc_p%l/real(wlc_p%nb-1.0_dp) ! -1.0 because one fewer segments then beads
@@ -1495,9 +1466,6 @@ contains
             wlc_p%MaxAMP = 2.0_dp*pi
             wlc_p%MaxAMP(2) = wlc_p%lbox(1)
             wlc_p%MaxAMP(6) = wlc_p%lbox(1)
-
-            ! Turn off saving AB
-            wlc_p%saveAB = .FALSE.
 
             !Set which moves are used
             wlc_p%MOVEON(1) = 1  ! crank-shaft move
@@ -1797,7 +1765,6 @@ contains
 
             write(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
             write(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
-            write(outFileUnit,"(f10.5)") wlc_p%Fpoly ! Fraction polymer
             write(outFileUnit,"(f10.5)") wlc_p%lbox(1)  ! 10 Lenth of box
             write(outFileUnit,"(f10.5)") wlc_p%EU    ! Energy unmethalated
             write(outFileUnit,"(f10.5)") wlc_p%EM    ! 12 Energy methalated
