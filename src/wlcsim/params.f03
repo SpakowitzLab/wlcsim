@@ -1447,15 +1447,10 @@ contains
         if (wlc_p%MinWindow(7).ne.wlc_p%MinWindow(7)) wlc_p%MinWindoW(7) = dble(min(10,wlc_p%NB))
 
         ! Solution
-        wlc_p%NBinX(1) = nint(wlc_p%LBOX(1)/wlc_p%dBin)
-        wlc_p%NBinX(2) = nint(wlc_p%LBOX(2)/wlc_p%dBin)
-        wlc_p%NBinX(3) = nint(wlc_p%LBOX(3)/wlc_p%dBin)
+        wlc_p%LBOX(1) = wlc_p%NBINX(1)*wlc_p%dbin
+        wlc_p%LBOX(2) = wlc_p%NBINX(2)*wlc_p%dbin
+        wlc_p%LBOX(3) = wlc_p%NBINX(3)*wlc_p%dbin
         wlc_p%NBin = wlc_p%NBinX(1)*wlc_p%NBinX(2)*wlc_p%NBinX(3)
-        if (abs(wlc_p%dBin*sum(wlc_p%NBinX) /sum(wlc_p%LBOX) -1)>0.001) then
-            print*, "Warning: I have changed the descritation lenth from:", wlc_p%dBin
-            wlc_p%dBin = wlc_p%lBox(1)*dble(wlc_p%NBinX(1))
-            print*, "to ", wlc_p%dBin
-        endif
 
         if (wlc_p__codeName == 'brad') then
             ! initialize windows to number of beads
