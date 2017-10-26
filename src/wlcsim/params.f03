@@ -26,6 +26,7 @@ module params
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
     integer, parameter :: nMoveTypes = 11
+    integer, parameter :: nDim = 3
 
     !!!     arbitrary technical choices
     ! used for all character buffers holding filenames
@@ -91,10 +92,6 @@ module params
         real(dp) fPoly    ! volume fraction of Polymer in simulation volume
         real(dp) fA       ! Fraction of A beads
         real(dp) lam      ! Chemical correlation parameter (eigenvalue of transition matrix that generates A/B's)
-        real(dp) eb     ! Energy of bending
-        real(dp) epar   ! energy "parallel" i.e. psring energy
-        real(dp) eperp  ! energy "perpendicular" i.e. shear energy
-        real(dp) eself  ! energy "polymer on polymer" (self-interaction)
         real(dp) gam    ! average equilibrium interbead spacing
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
@@ -124,9 +121,9 @@ module params
 
     !   boundary/box things
         integer NBin     ! Number of bins
-        integer NBinX(3) ! Number of MC bins on an edge
+        integer NBinX(nDim) ! Number of MC bins on an edge
         integer nColBin  ! Number of collision-detection bins on each edge
-        real(dp) lbox(3)  ! monte carlo field bin total box length (approximate)
+        real(dp) lbox(nDim)  ! monte carlo field bin total box length (approximate)
         real(dp) dbin      ! monte carlo field bin discretization size (approximate)
         real(dp) confinementParameter(2)
 
@@ -257,7 +254,6 @@ module params
         real(dp) PHit(nMoveTypes) ! hit rate
 
     !   Energys
-        !real(dp) Eint     ! running Eint
         real(dp) eElas(4) ! Elastic energy
         real(dp) eChi     ! CHI energy
         real(dp) eKap     ! KAP energy
@@ -278,7 +274,6 @@ module params
 
     !   Move Variables
         real(dp) DEELAS(4) ! Change in bending energy
-    !    real(dp) DEinT    ! Change in self energy
         real(dp) DECouple ! Coupling energy
         real(dp) DEChi    ! chi interaction energy
         real(dp) DEKap    ! compression energy
@@ -349,6 +344,7 @@ contains
         wlc_p%restart = .FALSE.      ! don't restart from previously saved simulation
 
         ! geometry options
+        wlc_p%L = 0 ! set this yourself!
         wlc_p%NP  =1               ! one polymer
         wlc_p%nB  =200             ! 200 beads per polymer
         wlc_p%nBpM = 10
@@ -361,6 +357,7 @@ contains
         wlc_p%nColBin = 1   ! equivalent to collisionDetectionType = 1
         wlc_p%dbin = NaN ! set in tweak_param_defaults
         wlc_p%nbin = 0 ! set this yourself!
+        wlc_p%nbinx = 0 ! set this yourself!
         ! wlc_p%l0  =1.25_dp         ! TOdo: not input
         wlc_p%beadVolume  = 0.1_dp ! much smaller than space between beads
         wlc_p%fA  =0.5_dp  ! half A, half B by default
@@ -382,7 +379,7 @@ contains
         wlc_p%HP1_Bind = 0.0_dp ! by default, no binding of HP1 to each other
 
         ! options
-        !wlc_p__codeName= "brad" ! not bruno, brad, or quinn, so will error unless specified elsewehre
+        wlc_p%codeName= "" ! not bruno, brad, or quinn, so will error unless specified elsewehre
         wlc_p%initCondType = 'randomWalkWithBoundary' ! 0 for initializing polymer in non-random straight line
         wlc_p%confineType = 'none' ! 0 for no confinement
         wlc_p%ring = .false.    ! not a ring by default
@@ -477,6 +474,60 @@ contains
             wlc_d%SUCCESStotal(mctype) = 0
             wlc_d%PHIT(mctype) = 0.0_dp
         enddo
+
+        ! window size adaptation parameters
+        !     Initial segment window for wlc_p moves
+
+        wlc_d%Window(1) = wlc_p%nB/5.0_dp
+        wlc_d%Window(2) = wlc_p%nB/5.0_dp
+        wlc_d%Window(3) = wlc_p%nB/5.0_dp
+        wlc_d%Window(4) = 0
+        wlc_d%Window(5) = 0
+        wlc_d%Window(6) = 0
+        wlc_d%Window(7) = wlc_p%nB/5.0_dp
+        wlc_d%Window(8) = 0
+        wlc_d%Window(9) = 0
+        wlc_d%Window(10) = 1
+        wlc_d%Window(11) = wlc_p%nB/5.0_dp
+
+
+        !    Maximum window size (large windows are expensive)
+        wlc_p%MAXWindoW(1) = dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(2) = dble(min(150,wlc_p%NB))
+        wlc_p%MAXWindoW(3) = dble(min(150,int(wlc_p%NB/2.0)))
+        wlc_p%MAXWindoW(4) = nan
+        wlc_p%MAXWindoW(5) = nan
+        wlc_p%MAXWindoW(6) = nan
+        wlc_p%MAXWindoW(7) = dble(min(4,wlc_p%NB))
+        wlc_p%MAXWindoW(8) = nan
+        wlc_p%MAXWindoW(9) = nan
+        wlc_p%MAXWindoW(10) = nan
+        wlc_p%MAXWindoW(11) = nan
+
+        wlc_p%MinAMP(1) = 0.1_dp*PI
+        wlc_p%MinAMP(2) = 0.2_dp*wlc_p%L0
+        wlc_p%MinAMP(3) = 0.2_dp*PI
+        wlc_p%MinAMP(4) = 0.2_dp*PI
+        wlc_p%MinAMP(5) = 0.05_dp*PI
+        wlc_p%MinAMP(6) = 0.2_dp*wlc_p%L0
+        wlc_p%MinAMP(7) = nan
+        wlc_p%MinAMP(8) = nan
+        wlc_p%MinAMP(9) = nan
+        wlc_p%MinAMP(10) = nan
+        wlc_p%MinAMP(11) = nan
+
+        wlc_p%MAXAMP(1) = 1.0_dp*PI
+        wlc_p%MAXAMP(2) = 1.0_dp*wlc_p%L0
+        wlc_p%MAXAMP(3) = 1.0_dp*PI
+        wlc_p%MAXAMP(4) = 1.0_dp*PI
+        wlc_p%MAXAMP(5) = 1.0_dp*PI
+        wlc_p%MAXAMP(6) = 0.1*wlc_p%lbox(1)
+        wlc_p%MAXAMP(7) = nan
+        wlc_p%MAXAMP(8) = nan
+        wlc_p%MAXAMP(9) = nan
+        wlc_p%MAXAMP(10) = nan
+        wlc_p%MAXAMP(11) = nan
+
 
     end subroutine
 
@@ -1374,7 +1425,6 @@ contains
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
-        real(dp) :: default_window
 
         if (wlc_p%dbin /= wlc_p%dbin) then
             ! discretizing at 1 persistence length seems to be a reasonable default
@@ -1417,60 +1467,10 @@ contains
             print*, "Turning off movetype 9, chain exchange, because <2 polymers"
         endif
 
-        !     Initial segment window for wlc_p moves
-        default_window = wlc_p%nB
-        default_window = max(default_window, 1.0_dp*wlc_p%nMpP*wlc_p%nBpM)
-        default_window = default_window/5.0_dp
-        wlc_d%Window(1) = default_window ! 15.0_dp ! used to be N*G
-        wlc_d%Window(2) = default_window ! 15.0_dp ! used to be N*G
-        wlc_d%Window(3) = default_window ! 15.0_dp ! used to be N*G
-        wlc_d%Window(4) = default_window ! 1.0_dp
-        wlc_d%Window(5) = default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(6) = default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(7) = default_window ! 15.0_dp ! used to be N*G
-        wlc_d%Window(8) = default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(9) = default_window ! dble(wlc_p%nMpP*wlc_p%nBpM)
-        wlc_d%Window(9) = 1.0_dp
-
-        !    Maximum window size (large windows are expensive)
-        wlc_p%MAXWindoW(1) = dble(min(150,wlc_p%NB))
-        wlc_p%MAXWindoW(2) = dble(min(150,wlc_p%NB))
-        wlc_p%MAXWindoW(3) = dble(min(150,int(wlc_p%NB/2.0)))
-        wlc_p%MAXWindoW(4) = nan
-        wlc_p%MAXWindoW(5) = nan
-        wlc_p%MAXWindoW(6) = nan
-        wlc_p%MAXWindoW(7) = dble(min(4,wlc_p%NB))
-        wlc_p%MAXWindoW(8) = nan
-        wlc_p%MAXWindoW(9) = nan
-        wlc_p%MAXWindoW(9) = nan ! need to chaige code to allow >1
-
-
         if (wlc_p%MinWindow(1).ne.wlc_p%MinWindow(1)) wlc_p%MinWindoW(1) = dble(min(10,wlc_p%NB))
         if (wlc_p%MinWindow(2).ne.wlc_p%MinWindow(2)) wlc_p%MinWindoW(2) = dble(min(10,wlc_p%NB))
         if (wlc_p%MinWindow(3).ne.wlc_p%MinWindow(3)) wlc_p%MinWindoW(3) = dble(min(10,wlc_p%NB))
         if (wlc_p%MinWindow(7).ne.wlc_p%MinWindow(7)) wlc_p%MinWindoW(7) = dble(min(10,wlc_p%NB))
-
-        wlc_p%MinAMP(1) = 0.1_dp*PI
-        wlc_p%MinAMP(2) = 0.2_dp*wlc_p%L0
-        wlc_p%MinAMP(3) = 0.2_dp*PI
-        wlc_p%MinAMP(4) = 0.2_dp*PI
-        wlc_p%MinAMP(5) = 0.05_dp*PI
-        wlc_p%MinAMP(6) = 0.2_dp*wlc_p%L0
-        wlc_p%MinAMP(7) = nan
-        wlc_p%MinAMP(8) = nan
-        wlc_p%MinAMP(9) = nan
-        wlc_p%MinAMP(10) = nan
-
-        wlc_p%MAXAMP(1) = 1.0_dp*PI
-        wlc_p%MAXAMP(2) = 1.0_dp*wlc_p%L0
-        wlc_p%MAXAMP(3) = 1.0_dp*PI
-        wlc_p%MAXAMP(4) = 1.0_dp*PI
-        wlc_p%MAXAMP(5) = 1.0_dp*PI
-        wlc_p%MAXAMP(6) = 0.1*wlc_p%lbox(1)
-        wlc_p%MAXAMP(7) = nan
-        wlc_p%MAXAMP(8) = nan
-        wlc_p%MAXAMP(9) = nan
-        wlc_p%MAXAMP(10) = nan
 
         ! Solution
         wlc_p%NBinX(1) = nint(wlc_p%LBOX(1)/wlc_p%dBin)

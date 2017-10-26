@@ -80,9 +80,9 @@ do ISTEP = 1,wlc_p%NSTEP
     wlc_p%DEKap = wlc_p%Kap*        wlc_p%dx_Kap
     wlc_p%DEField = wlc_p%h_A*      wlc_p%dx_Field
 
-    wlc_p%deelas(1) = wlc_p%Para(1)*(rp(6)**2-r(6)**2)
-    wlc_p%deelas(2) = wlc_p%Para(2)*(rp(7)**2-r(7)**2)
-    wlc_p%deelas(3) = wlc_p%Para(3)*(rp(8)**2-r(8)**2)
+    ! wlc_p%deelas(1) = wlc_p%Para(1)*(rp(6)**2-r(6)**2)
+    ! wlc_p%deelas(2) = wlc_p%Para(2)*(rp(7)**2-r(7)**2)
+    ! wlc_p%deelas(3) = wlc_p%Para(3)*(rp(8)**2-r(8)**2)
 
     ! accept or reject
     ENERGY = wlc_p%DEELAS(1) + wlc_p%DEELAS(2) + wlc_p%DEELAS(3) &
@@ -136,7 +136,8 @@ do ISTEP = 1,wlc_p%NSTEP
             if (.not.isfile) then
                 open (UNIT = 2, FILE = fullName, STATUS = 'NEW')
                 write(2,*), wlc_p%chi, wlc_p%mu, wlc_p%h_A, wlc_p%HP1_Bind,wlc_p%kap,&
-                            wlc_p%Para(1),wlc_p%Para(2), wlc_p%Para(3), wlc_p%id
+                            ! wlc_p%Para(1),wlc_p%Para(2), wlc_p%Para(3),
+                            wlc_p%id
                 close(2)
             endif
         endif

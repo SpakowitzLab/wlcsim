@@ -435,8 +435,6 @@ subroutine endendBounds(wlc_p, wlc_d)
             !enddo
             !print*, "REE",REE
             !print*, "l0", wlc_p%l0
-            !print*, "del",wlc_p%DEL
-            !print*, "GAM",wlc_p%GAM
             !print*, "Epar", wlc_p%epar
             !print*, "EELAS",wlc_d%EElas
             !print*, "Chain ",i
