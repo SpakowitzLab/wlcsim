@@ -104,6 +104,9 @@ module params
         real(dp) collisionRadius ! radius triggering collisions to be recorded in "coltimes"
         real(dp) lhc    !TOdo something to do with intrapolymer interaction strength
         real(dp) vhc    !TOdo something to do with intrapolymer interaction strength, fill in defaults, etc
+        real(dp) eb     ! effective bending energy for ssWLC
+        real(dp) eperp  ! effective shearing energy for ssWLC
+        real(dp) epar   ! effective stretch energy for ssWLC
 
     !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlc_p sims
         real(dp) k_field   ! wave vector of applied sinusoidal field (used in PT to step around 1st order phase transition)
