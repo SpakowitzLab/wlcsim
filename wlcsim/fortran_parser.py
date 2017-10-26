@@ -267,7 +267,7 @@ def replace_wlc_p_instances(active_defines):
     for file in affected_files:
         # if os.path.basename(file) == b'defines.inc':
         #     continue
-        if not re.search("\.f[0-9][0-9]'$", str(file)):
+        if not re.search("\.f[0-9][0-9]'$", str(file)) and not re.search("\.inc'$", str(file)):
             continue
         # add the include line at the top for defines.inc
         with open(file, 'r') as original: data = original.read()
@@ -295,8 +295,8 @@ def get_replace_order(strings):
 
 def perform_wlc_p_to_define_transform():
     defines = wlc_p_to_defines()
-    non_array_defines = defines[defines['shape'].isnull()]
-    delete_declaration_lines(non_array_defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
+    declarations_to_delete = defines[defines['shape'].isnull() & (~defines.keep_regardless)]
+    delete_declaration_lines(declarations_to_delete.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
                              in_type='wlcsim_params')
     # delete_definition_lines(defines.name.values, os.path.join(src_dir, 'wlcsim', 'params.f03'),
     #                         in_subroutine='set_param_defaults')
@@ -304,8 +304,7 @@ def perform_wlc_p_to_define_transform():
     delete_subroutine('read_input_file', os.path.join(src_dir, 'wlcsim', 'params.f03'))
     defines_to_be_written = defines.loc[~defines.keep_regardless]
     make_defines_inc(defines_to_be_written)
-    defines_to_use = defines.loc[~(defines.is_looped_on | defines.keep_regardless)]
-    replace_wlc_p_instances(defines_to_use)
+    replace_wlc_p_instances(declarations_to_delete)
     add_looped_defaults(defines)
 
 def delete_subroutine(name, file):
