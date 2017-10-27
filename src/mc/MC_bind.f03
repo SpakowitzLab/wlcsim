@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !-----------------------------------------------------------!
 !
 !         Calculate HP1 Binding Energy
@@ -5,8 +6,8 @@
 !            Started by Quinn 12/16/15
 !
 !
-!  sign convention: wlc_p%EM and wlc_p%EU are more positive for favorable binding
-!  Typical Values: wlc_p%EU = -1.52 and wlc_p%EM = 0.01
+!  sign convention: WLC_P__EM and WLC_P__EU are more positive for favorable binding
+!  Typical Values: WLC_P__EU = -1.52 and WLC_P__EM = 0.01
 
 subroutine MC_bind(wlc_p,IT1,IT2,AB,ABP,METH,DEBind,dx_mu)
 use params, only: dp,wlcsim_params
@@ -22,14 +23,14 @@ real(dp), intent(out) :: dx_mu ! -n_bound
 integer I      ! Index of bead being compared
 DEBind = 0.0_dp
 Dx_mu = 0.0_dp
-do I = IT1,IT2,wlc_p%NBPM
+do I = IT1,IT2,WLC_P__NBPM
     if(METH(I) == 1) then
-        DEBind = DEBind + (-wlc_p%mu-wlc_p%EM)*real(ABP(I)-AB(I))
+        DEBind = DEBind + (-wlc_p%MU-WLC_P__EM)*real(ABP(I)-AB(I))
         Dx_mu = Dx_mu-real(ABP(I)-AB(I))
     else
-        DEBind = DEBind + (-wlc_p%mu-wlc_p%EU)*real(ABP(I)-AB(I))
+        DEBind = DEBind + (-wlc_p%MU-WLC_P__EU)*real(ABP(I)-AB(I))
         Dx_mu = Dx_mu-real(ABP(I)-AB(I))
-        !print*, 'In MC_bind wlc_p%EU:',EU,' wlc_p%EM:',EM
+        !print*, 'In MC_bind WLC_P__EU:',EU,' WLC_P__EM:',EM
     endif
 ENDdo
 

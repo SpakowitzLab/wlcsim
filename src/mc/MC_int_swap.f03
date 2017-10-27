@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !
@@ -37,14 +38,14 @@ integer NBinX(3)
 real(dp) temp    !for speeding up code
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 
-if (I2-I1 + 1.ne.wlc_p%NB) then
+if (I2-I1 + 1.ne.WLC_P__NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
-if (I4-I3 + 1.ne.wlc_p%NB) then
+if (I4-I3 + 1.ne.WLC_P__NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
@@ -78,7 +79,7 @@ do IB = I1,I2
        RBin(3) = wlc_d%RP(3,IB)
    endif
    AminusB = -1+2*wlc_d%AB(IB) ! -1 if B and +1 if A
-   if (wlc_p%chi_l2_on) then
+   if (wlc_p%CHI_L2_ON) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else
@@ -118,20 +119,20 @@ do IB = I1,I2
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
-                  if(wlc_p%chi_l2_on) then
+                  if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%dPHI_l2(m_index,wlc_d%NPHI) = phi2(m_index)*temp
                       enddo
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
-                  if(wlc_p%chi_l2_on) then
+                  if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%dPHI_l2(m_index,I) = wlc_d%dPHI_l2(m_index,I) + &
                                       phi2(m_index)*temp

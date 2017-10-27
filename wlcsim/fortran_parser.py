@@ -150,6 +150,8 @@ def wlc_p_to_defines():
             'DT', 'NBIN', 'NT', 'SIMTYPE',
                    # parallel tempered variables, quinn
             'CHI', 'MU', 'HA', 'HP1_BIND', 'KAP', 'CHI_L2',
+            'RECENTER_ON', 'KAP_ON', 'CHI_ON', 'COUPLE_ON', 'FIELD_INT_ON',
+            'BIND_ON', "CHI_L2_ON",
                    # parallel tempered variables, brad
             'LK' ]
     wlc_p_usage_re = re.compile("[^!]*wlc_p%("+ var_re +")\(("+ var_re +")\)")
@@ -259,15 +261,17 @@ def make_defines_inc(active_defines):
                 f.write("! TYPE: {}\n".format(new_define.type))
             f.write("#define {} {}\n".format(new_define.define_name, new_define.value))
 
-def temp_rename(names_to_hide, undo=False):
-    for name in names_to_hide.itertuples():
+def temp_rename(active_defines, undo=False):
+    names_in_replace_order = get_replace_order(active_defines.name.values)
+    # now replace all instances of wlc_p variables with their new values
+    for name in names_in_replace_order:
         if undo:
             program = ['find', src_dir, '-type', 'f', '-exec', 'sed', '-i',
-                    's/TMPTMPTMP' + name.name + '/wlc_p%' + name.name + '/gi',
+                    's/TMPTMPTMP' + name + '/wlc_p%' + name+ '/gi',
                     '{}', ';']
         else:
             program = ['find', src_dir, '-type', 'f', '-exec', 'sed', '-i',
-                    's/wlc_p%' + name.name + '/TMPTMPTMP' + name.name + '/gi',
+                    's/wlc_p%' + name + '/TMPTMPTMP' + name + '/gi',
                     '{}', ';']
         subprocess.check_output(program)
 
@@ -286,8 +290,9 @@ def replace_wlc_p_instances(active_defines):
         if not re.search("\.f[0-9][0-9]'$", str(file)) and not re.search("\.inc'$", str(file)):
             continue
         # add the include line at the top for defines.inc
-        with open(file, 'r') as original: data = original.read()
-        with open(file, 'w') as modified: modified.write('#include "../defines.inc"\n' + data)
+        if os.path.basename(file) != b"defines.inc":
+            with open(file, 'r') as original: data = original.read()
+            with open(file, 'w') as modified: modified.write('#include "../defines.inc"\n' + data)
         names_in_replace_order = get_replace_order(active_defines.name.values)
         # now replace all instances of wlc_p variables with their new values
         for name in names_in_replace_order:

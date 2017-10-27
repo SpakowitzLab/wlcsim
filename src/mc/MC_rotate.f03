@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -46,20 +47,20 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
 endif
 
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(wlc_p%NB,irnd,rand_stat)
+call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
 IB2 = IB1
-IT1 = wlc_p%NB*(IP-1) + IB1
-IT2 = wlc_p%NB*(IP-1) + IB2
+IT1 = WLC_P__NB*(IP-1) + IB1
+IT2 = WLC_P__NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
 ALPHA = 2.*PI*urand(1)

@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !     This subroutine calculates the field energy from scratch.
@@ -33,7 +34,7 @@ integer m_index ! m for spherical harmonics
 
 ! Copy so I don't have to type wlc_p% everywhere
 integer NBinX(3)
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 ! -------------------------------------------------------------
 !
@@ -45,7 +46,7 @@ wlc_d%DPHIA = 0.0_dp
 wlc_d%PHIB = 0.0_dp
 wlc_d%DPHIB = 0.0_dp
 wlc_d%inDPHI = 0
-if (wlc_p%chi_l2_on) then
+if (wlc_p%CHI_L2_ON) then
     wlc_d%phi_l2 = 0.0_dp
     wlc_d%dphi_l2 = 0.0_dp
 endif
@@ -57,7 +58,7 @@ do IB = 1,wlc_p%NT
    RBin(3) = wlc_d%R(3,IB)
 
    isA = wlc_d%AB(IB).eq.1
-   if (wlc_p%chi_l2_on .and. isA) then
+   if (wlc_p%CHI_L2_ON .and. isA) then
        call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -91,9 +92,9 @@ do IB = 1,wlc_p%NT
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
                 ! Set all phi values on initialize
-                contribution =  WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                contribution =  WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + contribution
-                if(wlc_p%chi_l2_on) then
+                if(wlc_p%CHI_L2_ON) then
                     do m_index = -2,2
                         wlc_d%PHI_l2(m_index,indBin) = wlc_d%PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
@@ -112,7 +113,7 @@ do IB = 1,wlc_p%NT
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
                 ! Set all phi values on initialize
-                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
 
              enddo !ISZ
           enddo !ISY
@@ -172,7 +173,7 @@ integer m_index ! m for spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
 
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
 do IB = I1,I2
@@ -204,7 +205,7 @@ do IB = I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    isA = wlc_d%AB(IB).eq.1
-   if (wlc_p%chi_l2_on .and. isA) then
+   if (wlc_p%CHI_L2_ON .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else
@@ -215,10 +216,10 @@ do IB = I1,I2
        phi2=0.0
    endif
 
-   if (wlc_p%confineType == 'none' .or. wlc_p%confineType == 'periodicUnequal') then
+   if (WLC_P__CONFINETYPE == 'none' .or. WLC_P__CONFINETYPE == 'periodicUnequal') then
        ! If periodic than you can assume that all bins are included and have a volume
        ! of dbin**3
-       temp = rrdr*wlc_p%beadVolume/(wlc_p%dbin**3)
+       temp = rrdr*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
        if (isA) then
            do ISX = 1,2
               do ISY = 1,2
@@ -235,7 +236,7 @@ do IB = I1,I2
                           wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                           wlc_d%DPHIA(wlc_d%NPHI) = contribution
                           wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
                                       + phi2(m_index)*contribution
@@ -244,7 +245,7 @@ do IB = I1,I2
                           exit
                        elseif (inDBin == wlc_d%inDPHI(I)) then
                           wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp*WTOT
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
                                       + phi2(m_index)*contribution
@@ -272,7 +273,7 @@ do IB = I1,I2
                           wlc_d%NPHI = wlc_d%NPHI + 1
                           wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                           wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
                                   wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
@@ -310,20 +311,20 @@ do IB = I1,I2
                        if (I.eq.0) then
                           wlc_d%NPHI = wlc_d%NPHI + 1
                           wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                          contribution=rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                          contribution=rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                           wlc_d%DPHIA(wlc_d%NPHI) = contribution
                           !wlc_d%DPHIA(wlc_d%NPHI) = temp*WTOT
                           wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = phi2(m_index)*contribution
                               enddo
                           endif
                           exit
                        elseif (inDBin == wlc_d%inDPHI(I)) then
-                          wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                          wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                           !wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp*WTOT
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + phi2(m_index)*contribution
                               enddo
@@ -353,9 +354,9 @@ do IB = I1,I2
                           wlc_d%NPHI = wlc_d%NPHI + 1
                           wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                           wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                          wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                          wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                           !wlc_d%DPHIB(wlc_d%NPHI) = temp*WTOT
-                          if(wlc_p%chi_l2_on) then
+                          if(wlc_p%CHI_L2_ON) then
                               do m_index = -2,2
                                   ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
                                   wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
@@ -363,7 +364,7 @@ do IB = I1,I2
                           endif
                           exit
                        elseif (inDBin == wlc_d%inDPHI(I)) then
-                          wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                          wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                           !wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + temp*WTOT
                           exit
                        else

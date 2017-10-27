@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 
 !
@@ -39,7 +40,7 @@ integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
 integer AminusB
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
 ! -------------------------------------------------------------
@@ -78,7 +79,7 @@ do II = 1,2
        RBin(3) = wlc_d%RP(3,IB)
    endif
    isA = wlc_d%AB(IB).eq.1
-   if (wlc_p%chi_l2_on .and. isA) then
+   if (wlc_p%CHI_L2_ON .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else
@@ -118,10 +119,10 @@ do II = 1,2
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                       wlc_d%DPHIA(wlc_d%NPHI) = temp
                       wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
                                   + phi2(m_index)*temp
@@ -129,9 +130,9 @@ do II = 1,2
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
                                   + phi2(m_index)*temp
@@ -161,8 +162,8 @@ do II = 1,2
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                       wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
-                      if(wlc_p%chi_l2_on) then
+                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
                               wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
@@ -170,7 +171,7 @@ do II = 1,2
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                       exit
                    else
                       I = I-1
@@ -216,7 +217,7 @@ do IB = I1,I2-1
    ! --------------------------------------------------
    call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
-   if (wlc_p%chi_l2_on) then
+   if (wlc_p%CHI_L2_ON) then
        if (forward) then
            call Y2calc(wlc_d%UP(:,IB),phi2)
        else
@@ -246,10 +247,10 @@ do IB = I1,I2-1
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
-                  if(wlc_p%chi_l2_on) then
+                  if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
                               + phi2(m_index)*temp
@@ -257,10 +258,10 @@ do IB = I1,I2-1
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
-                  if(wlc_p%chi_l2_on) then
+                  if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
                               + phi2(m_index)*temp

@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -55,7 +56,7 @@ real(dp) d1,d2  !for testing
 integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%RinG .OR.wlc_p%inTERP_BEAD_LENNARD_JONES) then
+if (WLC_P__RING .OR.WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
     P1 = 0.0_dp
@@ -64,42 +65,42 @@ endif
 !     Perform crank-shaft move (MCTYPE 1)
 
 
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(wlc_p%NB,irnd,rand_stat)
+call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
-if (wlc_p%winType.eq.0) then
+if (WLC_P__WINTYPE.eq.0) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
-elseif (wlc_p%winType.eq.1.and..not.wlc_p%RinG) then
+elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
     call random_number(urand,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
            exponential_random_int(window,rand_stat)
-elseif (wlc_p%winType.eq.1.and.wlc_p%RinG) then
+elseif (WLC_P__WINTYPE.eq.1.and.WLC_P__RING) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 else
     call stop_if_err(1, "Warning: winType not recognized")
 endif
 
-IT1 = wlc_p%NB*(IP-1) + IB1
-IT2 = wlc_p%NB*(IP-1) + IB2
+IT1 = WLC_P__NB*(IP-1) + IB1
+IT2 = WLC_P__NB*(IP-1) + IB2
 
 DIB = IB2-IB1
-if (wlc_p%RinG) then                    !Polymer is a ring
-   if (IB2 > wlc_p%NB) then
-      IB2 = DIB-(wlc_p%NB-IB1)
+if (WLC_P__RING) then                    !Polymer is a ring
+   if (IB2 > WLC_P__NB) then
+      IB2 = DIB-(WLC_P__NB-IB1)
    ENDif
-   IT2 = wlc_p%NB*(IP-1) + IB2
+   IT2 = WLC_P__NB*(IP-1) + IB2
    if (IB1 == IB2.AND.IB1 == 1) then
-      TA(1) = R(1,IT1 + 1)-R(1,wlc_p%NB*IP)
-      TA(2) = R(2,IT1 + 1)-R(2,wlc_p%NB*IP)
-      TA(3) = R(3,IT1 + 1)-R(3,wlc_p%NB*IP)
-   elseif (IB1 == IB2.AND.IB1 == wlc_p%NB) then
-      TA(1) = R(1,wlc_p%NB*(IP-1) + 1)-R(1,IT1-1)
-      TA(2) = R(2,wlc_p%NB*(IP-1) + 1)-R(2,IT1-1)
-      TA(3) = R(3,wlc_p%NB*(IP-1) + 1)-R(3,IT1-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /=wlc_p%NB) then
+      TA(1) = R(1,IT1 + 1)-R(1,WLC_P__NB*IP)
+      TA(2) = R(2,IT1 + 1)-R(2,WLC_P__NB*IP)
+      TA(3) = R(3,IT1 + 1)-R(3,WLC_P__NB*IP)
+   elseif (IB1 == IB2.AND.IB1 == WLC_P__NB) then
+      TA(1) = R(1,WLC_P__NB*(IP-1) + 1)-R(1,IT1-1)
+      TA(2) = R(2,WLC_P__NB*(IP-1) + 1)-R(2,IT1-1)
+      TA(3) = R(3,WLC_P__NB*(IP-1) + 1)-R(3,IT1-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /=WLC_P__NB) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1-1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1-1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1-1)
@@ -109,13 +110,13 @@ if (wlc_p%RinG) then                    !Polymer is a ring
       TA(3) = R(3,IT2)-R(3,IT1)
    endif
 else                                 !Polymer is not a ring
-   if (IB2 > wlc_p%NB) then
-      IB2 =wlc_p%NB
+   if (IB2 > WLC_P__NB) then
+      IB2 =WLC_P__NB
    endif
    if (IB2 < 1) then
       IB2 = 1
    endif
-   IT2 = wlc_p%NB*(IP-1) + IB2
+   IT2 = WLC_P__NB*(IP-1) + IB2
 
    if (IT1 > IT2) then
       TEMP = IT1
@@ -126,17 +127,17 @@ else                                 !Polymer is not a ring
       IB2 = TEMP
    endif
    DIB = IB2-IB1
-   IT1 = wlc_p%NB*(IP-1)+IB1
-   IT2 = wlc_p%NB*(IP-1)+IB2
+   IT1 = WLC_P__NB*(IP-1)+IB1
+   IT2 = WLC_P__NB*(IP-1)+IB2
   if (IB1 == IB2.AND.IB1 == 1) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1)
-   elseif (IB1 == IB2.AND.IB1 == wlc_p%NB) then
-      TA(1) = R(1,wlc_p%NB*IP)-R(1,wlc_p%NB*IP-1)
-      TA(2) = R(2,wlc_p%NB*IP)-R(2,wlc_p%NB*IP-1)
-      TA(3) = R(3,wlc_p%NB*IP)-R(3,wlc_p%NB*IP-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= wlc_p%NB) then
+   elseif (IB1 == IB2.AND.IB1 == WLC_P__NB) then
+      TA(1) = R(1,WLC_P__NB*IP)-R(1,WLC_P__NB*IP-1)
+      TA(2) = R(2,WLC_P__NB*IP)-R(2,WLC_P__NB*IP-1)
+      TA(3) = R(3,WLC_P__NB*IP)-R(3,WLC_P__NB*IP-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= WLC_P__NB) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1-1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1-1)
       TA(3) = R(3,IT1 + 1)-R(3,IT1-1)
@@ -178,8 +179,8 @@ endif
 
   I = IT1
    do J = 0,DIB
-     if (I == (wlc_p%NB*IP+1).and.wlc_p%Ring) then
-          I = wlc_p%NB*(IP-1)+1
+     if (I == (WLC_P__NB*IP+1).and.WLC_P__RING) then
+          I = WLC_P__NB*(IP-1)+1
      endif
      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)

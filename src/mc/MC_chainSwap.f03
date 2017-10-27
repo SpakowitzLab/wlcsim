@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -37,15 +38,15 @@ integer I
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%interp_Bead_lennard_jones) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
 endif
 
 ! switch two chains
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP2=irnd(1)
 ! Don't switch a chain with itself
 if (IP.eq.IP2) then
@@ -54,11 +55,11 @@ if (IP.eq.IP2) then
         IP2 = 2
     endif
 endif
-IT1 = wlc_p%NB*(IP-1) + 1
-IT2 = wlc_p%NB*(IP-1) + wlc_p%NB
-IT3 = wlc_p%NB*(IP2-1) + 1
-IT4 = wlc_p%NB*(IP2-1) + wlc_p%NB
-do I = 0,wlc_p%NB-1
+IT1 = WLC_P__NB*(IP-1) + 1
+IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
+IT3 = WLC_P__NB*(IP2-1) + 1
+IT4 = WLC_P__NB*(IP2-1) + WLC_P__NB
+do I = 0,WLC_P__NB-1
    RP(1,IT1 + I) = R(1,IT3 + I)
    RP(2,IT1 + I) = R(2,IT3 + I)
    RP(3,IT1 + I) = R(3,IT3 + I)

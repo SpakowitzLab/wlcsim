@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 !
 !
@@ -75,32 +76,32 @@ subroutine MCsim(wlc_p,wlc_d)
 ! -------------------------------------
     ISTEP = 1
 
-    do while (ISTEP <= wlc_p%stepsperexchange)
+    do while (ISTEP <= WLC_P__STEPSPEREXCHANGE)
 
        do MCTYPE = 1,nMoveTypes
-       do sweepIndex = 1,wlc_p%movesPerStep(MCTYPE)
+       do sweepIndex = 1,wlc_p%MOVESPERSTEP(MCTYPE)
           if (wlc_p%MOVEON(MCTYPE) == 0) cycle
 
           ! Turn down poor moves
-          if ((wlc_d%PHit(MCTYPE).lt.wlc_p%Min_ACCEPT).and. &
-              (mod(ISTEP,wlc_p%reduce_move).ne.0).and. &
+          if ((wlc_d%PHit(MCTYPE).lt.WLC_P__MIN_ACCEPT).and. &
+              (mod(ISTEP,WLC_P__REDUCE_MOVE).ne.0).and. &
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
 
           call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,wlc_d%rand_stat,dib)
 
-        if (wlc_p%RinG) then
+        if (WLC_P__RING) then
            wlc_d%CrossP = wlc_d%Cross
            wlc_d%NCrossP = wlc_d%NCross
            if (MCTYPE == 1) then
               CALL alexanderp_crank(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
            elseif (MCTYPE == 2) then
-              if (DIB /= wlc_p%NB) then
+              if (DIB /= WLC_P__NB) then
                  CALL alexanderp_slide(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
               ENDif
            else
-              CALL ALEXANDERP(wlc_d%RP,wlc_p%NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
+              CALL ALEXANDERP(wlc_d%RP,WLC_P__NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
            ENDif
            if (DELTA /= 1) then
               wlc_d%eKnot = inf
@@ -132,27 +133,27 @@ subroutine MCsim(wlc_p,wlc_d)
 !   Calculate the change in the binding energy
           if (MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(wlc_p%NT,wlc_p%NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,wlc_p%EU,wlc_p%EM, &
-                          wlc_d%DEBind,wlc_p%mu,wlc_d%dx_mu)
+              call MC_bind(wlc_p%NT,WLC_P__NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,WLC_P__EU,WLC_P__EM, &
+                          wlc_d%DEBind,wlc_p%MU,wlc_d%dx_mu)
           else
               wlc_d%DEBind = 0.0
           endif
-          if (wlc_p%inTERP_BEAD_LENNARD_JONES) then
-              !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+          if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
+              !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
-                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,wlc_p%NB,wlc_p%NP, &
-                      pack_as_para(wlc_p),wlc_p%RinG,IB1,IB2)
+                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
 
               elseif (MCTYPE == 2) then
-                  CALL ENERGY_SELF_SLIDE(wlc_d%ESELF,wlc_d%R,wlc_p%NT,wlc_p%NB,wlc_p%NP, &
-                      pack_as_para(wlc_p),wlc_p%RinG,IB1,IB2)
-                  CALL ENERGY_SELF_SLIDE(ESELFP,wlc_d%R,wlc_p%NT,wlc_p%NB,wlc_p%NP, &
-                      pack_as_para(wlc_p),wlc_p%RinG,IB1,IB2)
+                  CALL ENERGY_SELF_SLIDE(wlc_d%ESELF,wlc_d%R,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
+                  CALL ENERGY_SELF_SLIDE(ESELFP,wlc_d%R,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
 
                   wlc_d%DESELF = ESELFP-wlc_d%ESELF
               elseif (MCTYPE == 3) then
-                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,wlc_p%NB,wlc_p%NP,&
-                      pack_as_para(wlc_p),wlc_p%RinG,IB1,IB2)
+                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,WLC_P__NB,WLC_P__NP,&
+                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
               elseif (MCTYPE == 10) then
                   PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
                   PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
@@ -166,7 +167,7 @@ subroutine MCsim(wlc_p,wlc_d)
 
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
-          if (wlc_p%FIELD_inT_ON) then
+          if (wlc_p%FIELD_INT_ON) then
              if (MCTYPE == 9) then !swap move
                  !skip if doesn't do anything
                  if (abs(wlc_p%CHI_ON).lt.0.00001) CYCLE
@@ -211,7 +212,7 @@ subroutine MCsim(wlc_p,wlc_d)
           if (TEST <= PROB) then
 
              if(MCTYPE == 7 .or. MCTYPE == 11) then
-                 if (.not.wlc_p%ChangingChemicalIdentity) then
+                 if (.not.WLC_P__CHANGINGCHEMICALIDENTITY) then
                      call stop_if_err(1, "Tried to change chemical Identity when you can't")
                  endif
                  do I = IT1,IT2
@@ -249,10 +250,10 @@ subroutine MCsim(wlc_p,wlc_d)
              wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
              wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)
              wlc_d%EElas(3) = wlc_d%EElas(3) + wlc_d%DEElas(3)
-             if (wlc_p%FIELD_inT_ON) then
+             if (wlc_p%FIELD_INT_ON) then
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)
-                   if (wlc_p%chi_l2_on) then
+                   if (wlc_p%CHI_L2_ON) then
                        do m_index = -2,2
                            wlc_d%PHI_l2(m_index,J) =  wlc_d%PHI_l2(m_index,J) + wlc_d%DPHI_l2(m_index,I)
                        enddo
@@ -283,7 +284,7 @@ subroutine MCsim(wlc_p,wlc_d)
                 wlc_d%x_maierSaupe = wlc_d%x_maierSaupe + wlc_d%dx_maierSaupe
 
              endif
-             if (wlc_p%ring) then
+             if (WLC_P__RING) then
                 wlc_d%WR = WRP
                 wlc_d%NCross = wlc_d%NCrossP
                 wlc_d%Cross = wlc_d%CrossP
@@ -300,7 +301,7 @@ subroutine MCsim(wlc_p,wlc_d)
               wlc_d%UP(1,I) = nan
               wlc_d%UP(2,I) = nan
               wlc_d%UP(3,I) = nan
-              if (wlc_p%bind_on) then
+              if (wlc_p%BIND_ON) then
                   wlc_d%ABP(I) = nan
               endif
           enddo
@@ -319,11 +320,11 @@ subroutine MCsim(wlc_p,wlc_d)
 
        enddo ! End of sweepIndex loop
           !amplitude and window adaptations
-          if (mod(ISTEP+wlc_d%ind_exchange*wlc_p%stepsperexchange,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
+          if (mod(ISTEP+wlc_d%ind_exchange*WLC_P__STEPSPEREXCHANGE,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
 
              ! move each chain back if drifted though repeated BC
-             if (wlc_p%recenter_on) then
+             if (wlc_p%RECENTER_ON) then
                  call wlcsim_params_recenter(wlc_p,wlc_d)  ! You don't need to do this if there is confinement
             endif
           endif
@@ -331,7 +332,7 @@ subroutine MCsim(wlc_p,wlc_d)
 
       ! Parallel tempereing used to happen here but now has been moved to wlcsim_name
       ! !  -----  Parallel tempering ----
-      ! if (mod(ISTEP,wlc_p%NPT).eq.0) then
+      ! if (mod(ISTEP,WLC_P__NPT).eq.0) then
       !    call replicaExchange(wlc_p)
       ! ENDif
 

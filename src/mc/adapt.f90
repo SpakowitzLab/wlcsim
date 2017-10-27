@@ -36,10 +36,10 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
            wlc_d%WindoW(MCTYPE) = wlc_d%WindoW(MCTYPE)*0.95_dp
         endif
         !window limits
-        if (wlc_d%WindoW(MCTYPE) < wlc_p%MinWindoW(MCTYPE)) then
-           wlc_d%WindoW(MCTYPE) = wlc_p%MinWindoW(MCTYPE)
-        elseif (wlc_d%WindoW(MCTYPE) > wlc_p%MAXWindoW(MCTYPE)) then
-           wlc_d%WindoW(MCTYPE) = wlc_p%MAXWindoW(MCTYPE)
+        if (wlc_d%WindoW(MCTYPE) < wlc_p%MINWINDOW(MCTYPE)) then
+           wlc_d%WindoW(MCTYPE) = wlc_p%MINWINDOW(MCTYPE)
+        elseif (wlc_d%WindoW(MCTYPE) > wlc_p%MAXWINDOW(MCTYPE)) then
+           wlc_d%WindoW(MCTYPE) = wlc_p%MAXWINDOW(MCTYPE)
         endif
         return
     endif
@@ -57,8 +57,8 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
         ! amplitude limits
         if (wlc_d%MCAMP(MCTYPE) > wlc_p%MAXAMP(MCTYPE)) then
            wlc_d%MCAMP(MCTYPE) = wlc_p%MAXAMP(MCTYPE)
-        elseif (wlc_d%MCAMP(MCTYPE) < wlc_p%MinAMP(MCTYPE)) then
-           wlc_d%MCAMP(MCTYPE) = wlc_p%MinAMP(MCTYPE)
+        elseif (wlc_d%MCAMP(MCTYPE) < wlc_p%MINAMP(MCTYPE)) then
+           wlc_d%MCAMP(MCTYPE) = wlc_p%MINAMP(MCTYPE)
         endif
         return
     endif
@@ -74,21 +74,21 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
 
     ! Drift to target window
     wlc_d%WindoW(MCTYPE) = wlc_d%WindoW(MCTYPE)*0.98_dp + &
-                      0.02_dp*wlc_p%winTarget(MCTYPE)
+                      0.02_dp*wlc_p%WINTARGET(MCTYPE)
 
 
     ! amplitude limits
     if (wlc_d%MCAMP(MCTYPE) > wlc_p%MAXAMP(MCTYPE)) then
        wlc_d%MCAMP(MCTYPE) = wlc_p%MAXAMP(MCTYPE)
-    elseif (wlc_d%MCAMP(MCTYPE) < wlc_p%MinAMP(MCTYPE)) then
-       wlc_d%MCAMP(MCTYPE) = wlc_p%MinAMP(MCTYPE)
+    elseif (wlc_d%MCAMP(MCTYPE) < wlc_p%MINAMP(MCTYPE)) then
+       wlc_d%MCAMP(MCTYPE) = wlc_p%MINAMP(MCTYPE)
     endif
 
     !window limits
-    if (wlc_d%WindoW(MCTYPE) < wlc_p%MinWindoW(MCTYPE)) then
-       wlc_d%WindoW(MCTYPE) = wlc_p%MinWindoW(MCTYPE)
-    elseif (wlc_d%WindoW(MCTYPE) > wlc_p%MAXWindoW(MCTYPE)) then
-       wlc_d%WindoW(MCTYPE) = wlc_p%MAXWindoW(MCTYPE)
+    if (wlc_d%WindoW(MCTYPE) < wlc_p%MINWINDOW(MCTYPE)) then
+       wlc_d%WindoW(MCTYPE) = wlc_p%MINWINDOW(MCTYPE)
+    elseif (wlc_d%WindoW(MCTYPE) > wlc_p%MAXWINDOW(MCTYPE)) then
+       wlc_d%WindoW(MCTYPE) = wlc_p%MAXWINDOW(MCTYPE)
     endif
 
 end subroutine

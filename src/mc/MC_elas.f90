@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !     subroutine MC_eelas
@@ -54,23 +55,23 @@ real(dp) GI(3)
       DEELAS(1) = 0.0_dp ! bending energy
       DEELAS(2) = 0.0_dp ! parallel stretch energy
       DEELAS(3) = 0.0_dp ! perpendicular stretch energy
-      DEELAS(4) = 0.0_dp ! wlc_p%twist energy
+      DEELAS(4) = 0.0_dp ! WLC_P__TWIST energy
 
 !     Calculate the change in the energy
 
-      if ((IB1 /= 1).or.(wlc_p%ring)) then
-          ! so if wlc_p%ring == 1, i.e.
+      if ((IB1 /= 1).or.(WLC_P__RING)) then
+          ! so if WLC_P__RING == 1, i.e.
           if (IB1 == 1) then
-              ! then the bead to the left of IB1 is actually the end bead due to the wlc_p%ring inducing periodic boundaries on the array
-              IT1M1 = wlc_p%NB
+              ! then the bead to the left of IB1 is actually the end bead due to the WLC_P__RING inducing periodic boundaries on the array
+              IT1M1 = WLC_P__NB
           else
               IT1M1 = IT1 - 1
           endif
 
          ! MC move only affects energy if it's interior to the polymer, since there are only crankshaft moves, and end
          ! crankshafts don't affect polymer
-         if (wlc_p%SIMTYPE == 1.AND.(IB1 /= wlc_p%NB.OR.wlc_p%ring)) then
-             if (IB1 == wlc_p%NB) then
+         if (wlc_p%SIMTYPE == 1.AND.(IB1 /= WLC_P__NB.OR.WLC_P__RING)) then
+             if (IB1 == WLC_P__NB) then
                  IT1P1 = 1
              else
                  IT1P1 = IT1 + 1
@@ -164,8 +165,8 @@ real(dp) GI(3)
          endif
       endif
 
-      if ((IB2 /= wlc_p%NB).or.(wlc_p%ring)) then
-         if (IB2 == wlc_p%NB) then
+      if ((IB2 /= WLC_P__NB).or.(WLC_P__RING)) then
+         if (IB2 == WLC_P__NB) then
              IT2P1 = 1
          else
              IT2P1 = IT2 + 1
@@ -174,9 +175,9 @@ real(dp) GI(3)
          ! if we're talking about a WLC, if we crankshaft a single bead, that's a no-op, since the u's are directly
          ! determined by the r's. Thus we're not worried about double counting the energy change here since the energy change
          ! should be zero by definition if IB1 = =IB2.
-         if (wlc_p%SIMTYPE == 1.AND.((IB2 /= 1).OR.(wlc_p%ring))) then
+         if (wlc_p%SIMTYPE == 1.AND.((IB2 /= 1).OR.(WLC_P__RING))) then
             if (IB2 == 1) then
-                IT2M1 = wlc_p%NB
+                IT2M1 = WLC_P__NB
             else
                 IT2M1 = IT2 - 1
             endif
@@ -265,14 +266,14 @@ real(dp) GI(3)
 
       endif
 
-      if (wlc_p%ring.AND.wlc_p%twIST) then
+      if (WLC_P__RING.AND.WLC_P__TWIST) then
           if (MCTYPE == 1) then
-              CALL WRITHECRANK(R,IT1,IT2,wlc_p%NB,WRM)
-              CALL WRITHECRANK(RP,IT1,IT2,wlc_p%NB,WRMP)
+              CALL WRITHECRANK(R,IT1,IT2,WLC_P__NB,WRM)
+              CALL WRITHECRANK(RP,IT1,IT2,WLC_P__NB,WRMP)
               DWR = WRMP-WRM
           elseif (MCTYPE == 2) then
-              CALL WRITHESLIDE(R,IT1,IT2,wlc_p%NB,WRM)
-              CALL WRITHESLIDE(RP,IT1,IT2,wlc_p%NB,WRMP)
+              CALL WRITHESLIDE(R,IT1,IT2,WLC_P__NB,WRM)
+              CALL WRITHESLIDE(RP,IT1,IT2,WLC_P__NB,WRMP)
               DWR = WRMP-WRM
           else
               DWR = 0.
@@ -280,7 +281,7 @@ real(dp) GI(3)
           WRP = WR + DWR
           tw = REAL(wlc_p%LK)-WR
           twP = REAL(wlc_p%LK)-WRP
-          DEELAS(4) = DEELAS(4) + (((2.*pi*twP)**2.)*wlc_p%lt/(2.*wlc_p%L))-(((2.*pi*TW)**2.)*wlc_p%LT/(2.*wlc_p%L))
+          DEELAS(4) = DEELAS(4) + (((2.*pi*twP)**2.)*WLC_P__LT/(2.*WLC_P__L))-(((2.*pi*TW)**2.)*WLC_P__LT/(2.*WLC_P__L))
       ENDif
 
       RETURN

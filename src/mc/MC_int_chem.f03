@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !     Written by Quinn 8/4/2017
@@ -31,7 +32,7 @@ integer m_index ! m from spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) AminusB ! +1 if A and -1 if B
 
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
 do IB = I1,I2
@@ -53,7 +54,7 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (wlc_p%chi_l2_on) then
+   if (wlc_p%CHI_L2_ON) then
        call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -61,10 +62,10 @@ do IB = I1,I2
    endif
    AminusB = real(wlc_d%ABP(IB)-wlc_d%AB(IB))
 
-   if (wlc_p%confineType == 'none' .or. wlc_p%confineType == 'periodicUnequal') then
+   if (WLC_P__CONFINETYPE == 'none' .or. WLC_P__CONFINETYPE == 'periodicUnequal') then
        ! If periodic than you can assume that all bins are included and have a volume
        ! of dbin**3
-       temp = wlc_p%beadVolume/(wlc_p%dbin**3)
+       temp = WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
        do ISX = 1,2
           do ISY = 1,2
              do ISZ = 1,2
@@ -80,7 +81,7 @@ do IB = I1,I2
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                       wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
                                      AminusB*phi2(m_index)*contribution
@@ -90,7 +91,7 @@ do IB = I1,I2
                    elseif (inDBin == wlc_d%inDPHI(I)) then
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
                       wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
                                   AminusB*phi2(m_index)*contribution
@@ -107,7 +108,7 @@ do IB = I1,I2
     else ! not periodic
        ! if not periodic you need to check wheter bin is outside and
        ! also need to divide by volume of bin
-       temp = wlc_p%beadVolume
+       temp = WLC_P__BEADVOLUME
        do ISX = 1,2
           do ISY = 1,2
              do ISZ = 1,2
@@ -123,7 +124,7 @@ do IB = I1,I2
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                       wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,wlc_d%NPHI) =  +&
                                   AminusB*phi2(m_index)*contribution
@@ -133,7 +134,7 @@ do IB = I1,I2
                    elseif (inDBin == wlc_d%inDPHI(I)) then
                       wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
                       wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
+                      if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
                                   AminusB*phi2(m_index)*contribution

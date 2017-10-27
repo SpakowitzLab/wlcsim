@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -45,33 +46,33 @@ real(dp), allocatable :: Rtemp(:,:)
 real(dp), allocatable :: Utemp(:,:)
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
 endif
 
-allocate( Rtemp(3,wlc_p%nb) )
-allocate( Utemp(3,wlc_p%nb) )
+allocate( Rtemp(3,WLC_P__NB) )
+allocate( Utemp(3,WLC_P__NB) )
 
 
 ! single bead reptation
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-IT1 = wlc_p%NB*(IP-1) + 1
-IT2 = wlc_p%NB*(IP-1) + wlc_p%NB
+IT1 = WLC_P__NB*(IP-1) + 1
+IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
 
 Rtemp=R(:,IT1:IT2)
 Utemp=U(:,IT1:IT2)
 
 IB1 = 1
-IB2 = wlc_p%NB
+IB2 = WLC_P__NB
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then
     forward = .true.
     ! note, this is not the most efficient way of doing things
     ! it would be more efficient to move all nbpm at a time.
-    do beadi =1,wlc_p%nbpm
+    do beadi =1,WLC_P__NBPM
         dR(1) = Rtemp(1,IB1 + 1)-Rtemp(1,IB1)
         dR(2) = Rtemp(2,IB1 + 1)-Rtemp(2,IB1)
         dR(3) = Rtemp(3,IB1 + 1)-Rtemp(3,IB1)
@@ -123,8 +124,8 @@ if (urnd(1).lt.0.5_dp) then
         Rtemp=RP(:,IT1:IT2)
         Utemp=UP(:,IT1:IT2)
     enddo
-    ABP(IT1:IT2-wlc_p%nbpm)=ABP(IT1+wlc_p%nbpm:IT2)
-    ABP(IT2-wlc_p%nbpm+1:IT2)=AB(IT1:IT1+wlc_p%nbpm-1) ! put end segment type on other end for detail balance
+    ABP(IT1:IT2-WLC_P__NBPM)=ABP(IT1+WLC_P__NBPM:IT2)
+    ABP(IT2-WLC_P__NBPM+1:IT2)=AB(IT1:IT1+WLC_P__NBPM-1) ! put end segment type on other end for detail balance
 
    ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
    ! RparaMag = r_relative(1)

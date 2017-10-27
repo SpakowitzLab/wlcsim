@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !This subroutine calculates the alexander polynomial of a chain represented by a set of
 !discrete beads after a slide move has been performed. The routine updates the values
 !in the Cross matrix that change during the move. This subroutine currently only works if there
@@ -52,7 +53,7 @@ subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   real(dp) TIME2
   real(dp) DT_PRUNE
   real(dp) DT_inTERSECT
-  if (wlc_p%NB.ne.wlc_p%NT) then
+  if (WLC_P__NB.ne.wlc_p%NT) then
       print*,"this section doesn't work for more than one polymer, fix this if more than one polymer"
       stop
   endif

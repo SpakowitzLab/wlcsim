@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -35,7 +36,7 @@ real urand(3)  ! random vector
 real urnd(1) ! single random number
 integer irnd(1)
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-!integer, intent(in) :: wlc_p%wintype
+!integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
@@ -43,40 +44,40 @@ integer exponential_random_int
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
 endif
 
 !     Perform slide move (MCTYPE 2)
 
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-call random_index(wlc_p%NB,irnd,rand_stat)
+call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
-if (wlc_p%wintype.eq.0) then
+if (WLC_P__WINTYPE.eq.0) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 +exponential_random_int(window,rand_stat)
-elseif (wlc_p%wintype.eq.1.and..not.wlc_p%ring) then
+elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
     call random_number(urand,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
            exponential_random_int(window,rand_stat)
-elseif (wlc_p%wintype.eq.1.and.wlc_p%ring) then
+elseif (WLC_P__WINTYPE.eq.1.and.WLC_P__RING) then
     call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 else
-    call stop_if_err(1, "Warning: wlc_p%wintype not recognized")
+    call stop_if_err(1, "Warning: WLC_P__WINTYPE not recognized")
 endif
 
 DIB = IB2-IB1
 
-if (wlc_p%ring) then
- if (IB2 > wlc_p%NB) then
-     IB2 = DIB-(wlc_p%NB-IB1)
+if (WLC_P__RING) then
+ if (IB2 > WLC_P__NB) then
+     IB2 = DIB-(WLC_P__NB-IB1)
  endif
 else
- if (IB2 > wlc_p%NB) then
-     IB2 = wlc_p%NB
+ if (IB2 > WLC_P__NB) then
+     IB2 = WLC_P__NB
  endif
  if (IB2 < 1) then
     IB2 = 1
@@ -86,12 +87,12 @@ else
      IB1 = IB2
      IB2 = TEMP
  endif
- IT2 = wlc_p%NB*(IP-1) + IB2
+ IT2 = WLC_P__NB*(IP-1) + IB2
  DIB = IB2-IB1
 endif
 
-IT1 = wlc_p%NB*(IP-1) + IB1
-IT2 = wlc_p%NB*(IP-1) + IB2
+IT1 = WLC_P__NB*(IP-1) + IB1
+IT2 = WLC_P__NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
 DR(1) = MCAMP*(urand(1)-0.5)
@@ -101,8 +102,8 @@ DR(3) = MCAMP*(urand(3)-0.5)
 I = IT1
 do  J = 0,DIB
 
-   if (I == (wlc_p%NB*IP + 1).AND.wlc_p%ring) then
-      I = wlc_p%NB*(IP-1) + 1
+   if (I == (WLC_P__NB*IP + 1).AND.WLC_P__RING) then
+      I = WLC_P__NB*(IP-1) + 1
    endif
 
    RP(1,I) = R(1,I) + DR(1)

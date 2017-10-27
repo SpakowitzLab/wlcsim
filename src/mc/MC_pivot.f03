@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -42,42 +43,42 @@ real(dp) BETA     ! Angle of move
 !     MC adaptation variables
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-!integer, intent(in) :: wlc_p%winType
+!integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer exponential_random_int
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%inTERP_BEAD_LENNARD_JONES) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
     P1 = 0.0_dp
 endif
 
-! We don't have to protect moves 4-10 with if wlc_p%ring because the code is identical in both cases
+! We don't have to protect moves 4-10 with if WLC_P__RING because the code is identical in both cases
 !     Perform pivot move (MCTYPE 3)
-    call random_index(wlc_p%NP,irnd,rand_stat)
+    call random_index(WLC_P__NP,irnd,rand_stat)
     IP=irnd(1)
-    call random_index(wlc_p%NB,irnd,rand_stat)
+    call random_index(WLC_P__NB,irnd,rand_stat)
     IB1=irnd(1)
     if (urnd(1).gt.0.5_dp) then
         IB2 = exponential_random_int(window,rand_stat) + 1
-        if (IB2 > wlc_p%NB) then
-            IB2 = wlc_p%NB
+        if (IB2 > WLC_P__NB) then
+            IB2 = WLC_P__NB
         endif
         IB1 = 1
-        IT1 = wlc_p%NB*(IP-1) + IB1
-        IT2 = wlc_p%NB*(IP-1) + IB2
+        IT1 = WLC_P__NB*(IP-1) + IB1
+        IT2 = WLC_P__NB*(IP-1) + IB2
         P1(1) = R(1,IT2)
         P1(2) = R(2,IT2)
         P1(3) = R(3,IT2)
     else
-        IB1 = wlc_p%NB-exponential_random_int(window,rand_stat)
+        IB1 = WLC_P__NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
             IB1 = 1
         endif
-        IB2 = wlc_p%NB
-        IT1 = wlc_p%NB*(IP-1) + IB1
-        IT2 = wlc_p%NB*(IP-1) + IB2
+        IB2 = WLC_P__NB
+        IT1 = WLC_P__NB*(IP-1) + IB1
+        IT2 = WLC_P__NB*(IP-1) + IB2
         P1(1) = R(1,IT1)
         P1(2) = R(2,IT1)
         P1(3) = R(3,IT1)

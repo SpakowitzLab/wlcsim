@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -47,7 +48,7 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (wlc_p%ring .OR. wlc_p%interp_bead_lennard_jones) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
     P1 = 0.0_dp
@@ -55,12 +56,12 @@ endif
 
 !     Perform a full chain rotation
 
-call random_index(wlc_p%NP,irnd,rand_stat)
+call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
 IB1 = 1
-IB2 = wlc_p%NB
-IT1 = wlc_p%NB*(IP-1) + IB1
-IT2 = wlc_p%NB*(IP-1) + IB2
+IB2 = WLC_P__NB
+IT1 = WLC_P__NB*(IP-1) + IB1
+IT2 = WLC_P__NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
 ALPHA = 2.0_dp*PI*urand(2)
