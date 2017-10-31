@@ -22,25 +22,31 @@ src/mc/writhe_slide.o : src/mc/writhe_slide.f03 \
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/writhe_slide.f03 -o src/mc/writhe_slide.o
 src/util/stop_if_err.o : src/util/stop_if_err.f03
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/stop_if_err.f03 -o src/util/stop_if_err.o
+src/mc/MC_writhe.o : src/mc/MC_writhe.f03 \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_writhe.f03 -o src/mc/MC_writhe.o
 src/third_party/kdtree2.o : src/third_party/kdtree2.f90 \
 	src/third_party/kdtree2.o \
 	src/third_party/kdtree2.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/kdtree2.f90 -o src/third_party/kdtree2.o
-src/third_party/DGTSL.o : src/third_party/DGTSL.f
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/DGTSL.f -o src/third_party/DGTSL.o
 src/mc/MC_bind.o : src/mc/MC_bind.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_bind.f03 -o src/mc/MC_bind.o
+src/mc/MC_int_super_rep.o : src/mc/MC_int_super_rep.f03 \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_int_super_rep.f03 -o src/mc/MC_int_super_rep.o
 src/mc/MC_Hamiltonian.o : src/mc/MC_Hamiltonian.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_Hamiltonian.f03 -o src/mc/MC_Hamiltonian.o
 src/mc/MC_int.o : src/mc/MC_int.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_int.f03 -o src/mc/MC_int.o
-src/mc/MC_interp.o : src/mc/MC_interp.f03 \
-	src/wlcsim/params.o \
-	src/util/inputparams.o
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_interp.f03 -o src/mc/MC_interp.o
+src/third_party/DGTSL.o : src/third_party/DGTSL.f
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/DGTSL.f -o src/third_party/DGTSL.o
+src/mc/MC_chemMove.o : src/mc/MC_chemMove.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_chemMove.f03 -o src/mc/MC_chemMove.o
 src/util/auto_correlation_vector.o : src/util/auto_correlation_vector.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/auto_correlation_vector.f03 -o src/util/auto_correlation_vector.o
@@ -71,28 +77,41 @@ src/util/inputparams.o : src/util/inputparams.f90 \
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/inputparams.f90 -o src/util/inputparams.o
 src/third_party/mersenne_twister.o : src/third_party/mersenne_twister.f90
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/mersenne_twister.f90 -o src/third_party/mersenne_twister.o
+src/mc/MC_crank.o : src/mc/MC_crank.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_crank.f03 -o src/mc/MC_crank.o
 src/util/debugging.o : src/util/debugging.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/debugging.f90 -o src/util/debugging.o
 src/mc/alexanderp_crank.o : src/mc/alexanderp_crank.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/alexanderp_crank.f03 -o src/mc/alexanderp_crank.o
+src/mc/MC_chainSwap.o : src/mc/MC_chainSwap.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_chainSwap.f03 -o src/mc/MC_chainSwap.o
 src/mc/MC_confine.o : src/mc/MC_confine.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_confine.f03 -o src/mc/MC_confine.o
-src/mc/MC_writhe.o : src/mc/MC_writhe.f03 \
+src/mc/gauss_pair.o : src/mc/gauss_pair.f03 \
 	src/wlcsim/params.o
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_writhe.f03 -o src/mc/MC_writhe.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/gauss_pair.f03 -o src/mc/gauss_pair.o
+src/mc/MC_superReptation.o : src/mc/MC_superReptation.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_superReptation.f03 -o src/mc/MC_superReptation.o
 src/mc/DE_self_crank.o : src/mc/DE_self_crank.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/DE_self_crank.f03 -o src/mc/DE_self_crank.o
+src/third_party/dgtsv.o : src/third_party/dgtsv.f
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/dgtsv.f -o src/third_party/dgtsv.o
 src/bd/force_ponp.o : src/bd/force_ponp.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/force_ponp.f03 -o src/bd/force_ponp.o
 src/wlcsim/params.o : src/wlcsim/params.f03 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/precision.o \
-	src/util/inputparams.o \
 	src/util/inputparams.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/params.f03 -o src/wlcsim/params.o
 src/wlcsim/restart_mpi.o : src/wlcsim/restart_mpi.f90 \
@@ -107,18 +126,32 @@ src/mc/energy_self_chain.o : src/mc/energy_self_chain.f03 \
 src/util/bubble_sort.o : src/util/bubble_sort.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/bubble_sort.f03 -o src/util/bubble_sort.o
+src/mc/MC_slide.o : src/mc/MC_slide.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_slide.f03 -o src/mc/MC_slide.o
 src/bd/RKstep.o : src/bd/RKstep.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/bd/RKstep.f03 -o src/bd/RKstep.o
 src/wlcsim/wlcsim.o : src/wlcsim/wlcsim.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/wlcsim.f03 -o src/wlcsim/wlcsim.o
+src/mc/MC_fullChainRotation.o : src/mc/MC_fullChainRotation.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_fullChainRotation.f03 -o src/mc/MC_fullChainRotation.o
 src/util/colchecker.o : src/util/colchecker.f03 \
 	src/third_party/kdtree2.o \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/colchecker.f03 -o src/util/colchecker.o
-src/third_party/sort.o : src/third_party/sort.f90
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/sort.f90 -o src/third_party/sort.o
+src/mc/MC_interp.o : src/mc/MC_interp.f03 \
+	src/wlcsim/params.o \
+	src/util/inputparams.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_interp.f03 -o src/mc/MC_interp.o
+src/mc/MC_fullChainSlide.o : src/mc/MC_fullChainSlide.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_fullChainSlide.f03 -o src/mc/MC_fullChainSlide.o
 src/mc/MC_capsid_ex.o : src/mc/MC_capsid_ex.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_capsid_ex.f90 -o src/mc/MC_capsid_ex.o
@@ -188,17 +221,30 @@ src/mc/adapt.o : src/mc/adapt.f90 \
 src/mc/MC_int_swap.o : src/mc/MC_int_swap.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_int_swap.f03 -o src/mc/MC_int_swap.o
-src/third_party/dgtsv.o : src/third_party/dgtsv.f
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/dgtsv.f -o src/third_party/dgtsv.o
+src/mc/MC_superReptationMulti.o : src/mc/MC_superReptationMulti.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_superReptationMulti.f03 -o src/mc/MC_superReptationMulti.o
+src/mc/MC_rotate.o : src/mc/MC_rotate.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_rotate.f03 -o src/mc/MC_rotate.o
 src/mc/MC_self.o : src/mc/MC_self.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_self.f90 -o src/mc/MC_self.o
 src/util/alexanderp_opt.o : src/util/alexanderp_opt.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/util/alexanderp_opt.f03 -o src/util/alexanderp_opt.o
-src/mc/gauss_pair.o : src/mc/gauss_pair.f03 \
+src/mc/MC_pivot.o : src/mc/MC_pivot.f03 \
+	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o
-	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/gauss_pair.f03 -o src/mc/gauss_pair.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_pivot.f03 -o src/mc/MC_pivot.o
+src/third_party/sort.o : src/third_party/sort.f90
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/third_party/sort.f90 -o src/third_party/sort.o
+src/wlcsim/alternChem.o : src/wlcsim/alternChem.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/wlcsim/alternChem.f03 -o src/wlcsim/alternChem.o
 src/mc/adaptCof.o : src/mc/adaptCof.f90 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/adaptCof.f90 -o src/mc/adaptCof.o
@@ -208,6 +254,10 @@ src/util/abs_determinant.o : src/util/abs_determinant.f03 \
 src/mc/alexanderp_slide.o : src/mc/alexanderp_slide.f03 \
 	src/wlcsim/params.o
 	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/alexanderp_slide.f03 -o src/mc/alexanderp_slide.o
+src/mc/MC_reptationMove.o : src/mc/MC_reptationMove.f03 \
+	src/third_party/mersenne_twister.o \
+	src/wlcsim/params.o
+	mpifort -c -ggdb -Jsrc -Isrc -Isrc/third_party/FLAP/exe/mod -Isrc/third_party -cpp -fcheck=all -Wall -pedantic -fall-intrinsics -Wno-surprising  -DMPI_VERSION src/mc/MC_reptationMove.f03 -o src/mc/MC_reptationMove.o
 src/mc/MCsim.o : src/mc/MCsim.f03 \
 	src/third_party/mersenne_twister.o \
 	src/wlcsim/params.o

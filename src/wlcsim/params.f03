@@ -10,8 +10,6 @@
 !   as a whole should also go here.
 !
 !   --------------------------------------------------------------
-#include <src/wlcsim/defs.h>
-
 
 module params
     use, intrinsic :: iso_fortran_env
@@ -431,7 +429,7 @@ contains
         call stop_if_err(wlc_p%REND > WLC_P__L, &
             "Requesting initial end-to-end distance larger than polymer length.")
 
-        if (wlc_p__codeName == 'quinn') then
+        if (WLC_P__CODENAME == 'quinn') then
            if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
                 (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
               err = WLC_P__CONFINETYPE.ne.'periodicUnequal'
@@ -550,7 +548,7 @@ contains
 #endif
         allocate(wlc_d%R(3,NT))
         allocate(wlc_d%U(3,NT))
-        if (wlc_p__codeName /= 'bruno' .OR. WLC_P__NINITMCSTEPS /= 0) then
+        if (WLC_P__CODENAME /= 'bruno' .OR. WLC_P__NINITMCSTEPS /= 0) then
             allocate(wlc_d%RP(3,NT))
             allocate(wlc_d%UP(3,NT))
             wlc_d%RP=nan  ! To prevent accidental use
@@ -765,7 +763,7 @@ contains
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
         print*, "---------------System Description---------------"
-        print*, " type of simulation, codeName", wlc_p__codeName
+        print*, " type of simulation, codeName", WLC_P__CODENAME
         print*, " WLC, DSSWLC, GC, simType", wlc_p%SIMTYPE
         print*, "Bead variables:"
         print*, " Total number of beads, NT = ", wlc_p%NT
@@ -860,7 +858,7 @@ contains
         wlc_p%LBOX(3) = wlc_p%NBINX(3)*WLC_P__DBIN
         wlc_p%NBIN = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3)
 
-        if (wlc_p__codeName == 'brad') then
+        if (WLC_P__CODENAME == 'brad') then
             ! initialize windows to number of beads
             wlc_p%MAXWINDOW = WLC_P__NB         ! Max Size of window for bead selection
             wlc_p% MinWindoW  = 1         ! Min Size of window for bead selection
