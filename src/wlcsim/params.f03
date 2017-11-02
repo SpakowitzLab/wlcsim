@@ -680,7 +680,7 @@ contains
 #endif
         call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, &
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), wlc_p%LBOX, &
-            WLC_P__INITCONDTYPE, wlc_d%rand_stat, WLC_P__RING, wlc_p)
+            wlc_d%rand_stat, WLC_P__RING, wlc_p)
 
         if (wlc_p%FIELD_INT_ON) then
             if (WLC_P__ASYMMETRICALTERNATINGCHEM) then

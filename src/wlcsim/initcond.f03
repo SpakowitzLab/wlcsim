@@ -11,7 +11,7 @@
 !     Updated by Quinn in 2016
 !
 subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA,LBOX, &
-                    initCondType,rand_stat,ring, wlc_p)
+                    rand_stat,ring, wlc_p)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
@@ -33,7 +33,6 @@ LOGICAL FRMFILE           ! Is conformation in file?
 !real(dp) RMin
 real(dp) R0(3)
 real(dp) PARA(10)
-character(MAXPARAMLEN) initCondType           ! select what type of configurateion
 
 !     Varibles for type 2
 
@@ -80,9 +79,8 @@ if (FRMFILE)then
    CLOSE(5)
    return
 endif
-
 !     Fix the initial condition
-if (initCondType.eq.'lineInYFromOrigin') then
+if (WLC_P__INITCONDTYPE.eq.'lineInYFromOrigin') then
 ! straight line in y direction starting at origin, equilibrium bond lengths
     iB = 1
     do i = 1,nP
@@ -97,7 +95,7 @@ if (initCondType.eq.'lineInYFromOrigin') then
         enddo
     enddo
 
-else if (initCondType.eq.'lineInY') then
+else if (WLC_P__INITCONDTYPE.eq.'lineInY') then
 ! staight line in y direction with random starting position
 
     IB = 1
@@ -119,7 +117,7 @@ else if (initCondType.eq.'lineInY') then
        enddo
     enddo
 
-else if (initCondType.eq.'randomLineSlitInZBoundary') then
+else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! slit boundary in z direction
@@ -180,7 +178,7 @@ else if (initCondType.eq.'randomLineSlitInZBoundary') then
            IB = IB + 1
         enddo
     enddo
-else if (initCondType.eq.'randomLineCubeBoundary') then
+else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! square boundary
@@ -254,7 +252,7 @@ else if (initCondType.eq.'randomLineCubeBoundary') then
        enddo
     enddo
 
-else if (initCondType.eq.'randomLineSphereBoundary') then
+else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! shpere boundary
@@ -308,7 +306,7 @@ else if (initCondType.eq.'randomLineSphereBoundary') then
            IB = IB + 1
        enddo ! loop to N
     enddo ! loop to np
-else if (initCondType.eq.'randomlyDistributeBeadsInSphere') then
+else if (WLC_P__INITCONDTYPE.eq.'randomlyDistributeBeadsInSphere') then
     ! randomly distribute beads in shereical confinement
     do IB = 1,NT
         search = .true.
@@ -330,7 +328,7 @@ else if (initCondType.eq.'randomlyDistributeBeadsInSphere') then
         U(2,IB) = 0.00_dp
         U(3,IB) = 0.00_dp
     enddo
-else if (initCondType == 'ring') then
+else if (WLC_P__INITCONDTYPE == 'ring') then
     IB = 1
     do  I = 1,NP
         call random_number(urand,rand_stat)
@@ -349,12 +347,12 @@ else if (initCondType == 'ring') then
              IB = IB + 1
         ENDdo
     ENDdo
-else if (initCondType == 'WormlikeChain') then
+else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
-else if (initCondType == 'randomWalkWithBoundary') then
+else if (WLC_P__INITCONDTYPE == 'randomWalkWithBoundary') then
     call gaus_init(R, U, NT, wlc_p, rand_stat)
 else
-    print*, "Unknown version of chain initialization initCondType....."
+    print*, "Unknown version of chain initialization WLC_P__INITCONDTYPE....."
     stop 1
 endif
 
