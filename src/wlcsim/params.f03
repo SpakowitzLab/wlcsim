@@ -400,10 +400,6 @@ contains
                 stop
             endif
         endif
-        if ((wlc_p%NT > 200000).OR.(wlc_p%NT.lt.1)) then
-            print*, "ERROR: Requested ", wlc_p%NT," beads."
-            stop 1
-        endif
 
         if (wlc_p%LBOX(1) .ne. wlc_p%LBOX(1)) then
             print*, "No box size set.  If you need a box please specify it."
@@ -411,7 +407,7 @@ contains
                 'Only one initial polymer config supported if you''re not '//&
                 'using LBOX to define a MC simulation box.')
         else
-            if ((wlc_p%NBIN > 20000).or.(wlc_p%NBIN.lt.1)) then
+            if ((wlc_p%NBIN > 8000000).or.(wlc_p%NBIN.lt.1)) then
                 print*, "ERROR: Requested ", wlc_p%NBIN," bins."
                 print*, "You probably don't want this."
                 print*, "Comment me out if you do."
@@ -540,6 +536,7 @@ contains
         integer ( kind = 4 ) source  !source id for messages
         integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
         integer ( kind = 4 ) error  ! error id for MIP functions
+        character*16 iostr  ! string for file name
         nt = wlc_p%NT
         nbin = wlc_p%NBIN
 
@@ -591,7 +588,12 @@ contains
         endif
         if (WLC_P__RING) then !TOdo this should be if ("knot")
             wlc_d%NCross = 0
-            wlc_d%CrossSize = WLC_P__NB**2
+            wlc_d%CrossSize = min(10000,WLC_P__NB)**2
+            if (wlc_d%CrossSize == 10000) then
+                print*, "Two many beas for ring calculation"
+                stop 1
+            endif
+            ! In include 
             allocate(wlc_d%Cross(wlc_d%CrossSize,6))
             allocate(wlc_d%CrossP(wlc_d%CrossSize,6))
         endif
@@ -683,11 +685,22 @@ contains
             wlc_d%rand_stat, WLC_P__RING, wlc_p)
 
         if (wlc_p%FIELD_INT_ON) then
-            if (WLC_P__ASYMMETRICALTERNATINGCHEM) then
+            ! initialize a/b sequence
+            if (WLC_P__CHEM_STATE_FROM_FILE) then
+                iostr='input/ab'
+                call MCvar_loadAB(wlc_p,wlc_d,iostr)
+            elseif (WLC_P__ASYMMETRICALTERNATINGCHEM) then
                 call alternChem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
             else
                 call initchem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
             endif
+            
+            ! initialize methalation sequence
+            if (WLC_P__CHEM_SEQ_FROM_FILE) then
+                iostr='input/meth'
+                call wlcsim_params_loadMeth(wlc_p,wlc_d,iostr)
+            endif
+
             ! calculate volumes of bins
             if (WLC_P__CONFINETYPE.eq.'sphere') then
                 call MC_calcVolume(WLC_P__CONFINETYPE, wlc_p%NBINX, WLC_P__DBIN, &
@@ -1047,9 +1060,26 @@ contains
         open (unit = inFileUnit, file = fileName, status = 'OLD')
         IB = 1
         do I = 1,WLC_P__NP
-        do J = 1,WLC_P__NB
-            read(inFileUnit,"(I2)") wlc_d%AB(IB)
-            IB = IB + 1
+            do J = 1,WLC_P__NB
+                read(inFileUnit,"(I2)") wlc_d%AB(IB)
+                IB = IB + 1
+            enddo
+        enddo
+        close(inFileUnit)
+    end subroutine
+    subroutine wlcsim_params_loadMeth(wlc_p,wlc_d,fileName)
+    ! Loads Methalation for file...has not been tested
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        type(wlcsim_data), intent(inout) :: wlc_d
+        character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
+        integer IB, I, J ! counters
+        open (unit = inFileUnit, file = fileName, status = 'OLD')
+        IB = 1
+        do I = 1,WLC_P__NP
+            do J = 1,WLC_P__NB
+                read(inFileUnit,"(I2)") wlc_d%meth(IB)
+                IB = IB + 1
             enddo
         enddo
         close(inFileUnit)
