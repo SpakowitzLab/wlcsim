@@ -376,7 +376,7 @@ subroutine worker_node(wlc_p, wlc_d)
             wlc_d%x_Chi   =0.0_dp
             wlc_d%x_maierSaupe = 0.0_dp
         endif
-        if (wlc_p%BIND_ON) then
+        if (WLD_P__VARIABLE_CHEM_STATE) then
             wlc_d%ebind   =wlc_d%debind
             wlc_d%x_mu    =wlc_d%dx_mu
         else
@@ -480,7 +480,7 @@ subroutine onlyNode(wlc_p, wlc_d)
             wlc_d%x_Chi   =0.0_dp
             wlc_d%x_maiersaupe = 0.0_dp
         endif
-        if (wlc_p%BIND_ON) then
+        if (WLD_P__VARIABLE_CHEM_STATE) then
             wlc_d%ebind   =wlc_d%debind
             wlc_d%x_mu    =wlc_d%dx_mu
         else

@@ -129,7 +129,6 @@ module params
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
         logical field_int_on ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
-        logical bind_On ! chemical identities of each bead are tracked in the "meth" variable
         logical chi_l2_on
 
     !   parallel Tempering parameters
@@ -263,9 +262,9 @@ contains
         wlc_p%NBINX(1) = WLC_P__NBINX_X
         wlc_p%NBINX(2) = WLC_P__NBINX_Y
         wlc_p%NBINX(3) = WLC_P__NBINX_Z
-        wlc_p%LBOX(1) = WLC_P__LBOX_X
-        wlc_p%LBOX(2) = WLC_P__LBOX_Y
-        wlc_p%LBOX(3) = WLC_P__LBOX_Z
+        !WLC_P__LBOX_X = WLC_P__LBOX_X
+        !WLC_P__LBOX_Y = WLC_P__LBOX_Y
+        !WLC_P__LBOX_Z = WLC_P__LBOX_Z
         wlc_p%CONFINEMENTPARAMETER(1) = WLC_P__CONFINEMENTPARAMETER_1
         wlc_p%CONFINEMENTPARAMETER(2) = WLC_P__CONFINEMENTPARAMETER_2
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
@@ -401,7 +400,7 @@ contains
             endif
         endif
 
-        if (wlc_p%LBOX(1) .ne. wlc_p%LBOX(1)) then
+        if (WLC_P__LBOX_X .ne. WLC_P__LBOX_X) then
             print*, "No box size set.  If you need a box please specify it."
             call stop_if_err(WLC_P__INITCONDTYPE /= 'randomWalkWithBoundary', &
                 'Only one initial polymer config supported if you''re not '//&
@@ -415,7 +414,7 @@ contains
             endif
         endif
 
-        if (wlc_p%FIELD_INT_ON .and. (wlc_p%LBOX(1) .ne. wlc_p%LBOX(2) .or. wlc_p%LBOX(2) .ne. wlc_p%LBOX(3))) then
+        if (wlc_p%FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
             call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
         endif
 
@@ -461,7 +460,7 @@ contains
            err = WLC_P__NNOINT.gt.WLC_P__N_KAP_ON
            call stop_if_err(err, "error in mcsim. Can't have kap without int on")
 
-           err = (wlc_p%MOVEON(7) /= 0 .and. (.not. wlc_p%BIND_ON))
+           err = (wlc_p%MOVEON(7) /= 0 .and. (.not. WLD_P__VARIABLE_CHEM_STATE))
            call stop_if_err(err,"You need bindon if you have bindmove on")
 
         endif
@@ -577,7 +576,7 @@ contains
                 wlc_d%PHIB(I) = 0.0_dp
             enddo
         endif
-        if (wlc_p%BIND_ON) then
+        if (WLD_P__VARIABLE_CHEM_STATE) then
             allocate(wlc_d%METH(NT)) !Underlying methalation profile
         endif
         !Allocate vector of writhe and elastic energies for replicas
@@ -704,7 +703,7 @@ contains
             ! calculate volumes of bins
             if (WLC_P__CONFINETYPE.eq.'sphere') then
                 call MC_calcVolume(WLC_P__CONFINETYPE, wlc_p%NBINX, WLC_P__DBIN, &
-                                wlc_p%LBOX(1), wlc_d%Vol, wlc_d%rand_stat)
+                                WLC_P__LBOX_X, wlc_d%Vol, wlc_d%rand_stat)
             else
                 do I = 1,NBin
                     wlc_d%Vol(I) = WLC_P__DBIN**3
@@ -712,7 +711,7 @@ contains
             endif
         endif
 
-        if (wlc_p%BIND_ON) then
+        if (WLD_P__VARIABLE_CHEM_STATE) then
             call initchem(wlc_d%meth, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
         endif
 
@@ -766,7 +765,7 @@ contains
         para(5) = wlc_p%ETA
         para(6) = wlc_p%XIR
         para(7) = wlc_p%XIU
-        para(8) = wlc_p%LBOX(1)
+        para(8) = WLC_P__LBOX_X
         para(9) = wlc_p%LHC
         para(10) = wlc_p%VHC
     end function pack_as_para
@@ -791,7 +790,7 @@ contains
         print*, " persistance length =",(wlc_p%L0/(2.0_dp*wlc_p%EPS))
         print*, " length of each polymer in simulation, l = ",WLC_P__L
         print*, " twist persistence length, lt", WLC_P__LT
-        print*, " lbox = ", wlc_p%LBOX(1), wlc_p%LBOX(2), wlc_p%LBOX(3)
+        print*, " lbox = ", WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z
         print*, " Number of bins in x direction", &
                    wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
         print*, " Number of bins", wlc_p%NBIN
@@ -866,9 +865,9 @@ contains
         if (wlc_p%MINWINDOW(7).ne.wlc_p%MINWINDOW(7)) wlc_p%MINWINDOW(7) = dble(min(10,WLC_P__NB))
 
         ! Solution
-        wlc_p%LBOX(1) = wlc_p%NBINX(1)*WLC_P__DBIN
-        wlc_p%LBOX(2) = wlc_p%NBINX(2)*WLC_P__DBIN
-        wlc_p%LBOX(3) = wlc_p%NBINX(3)*WLC_P__DBIN
+        !WLC_P__LBOX_X = wlc_p%NBINX(1)*WLC_P__DBIN
+        !WLC_P__LBOX_Y = wlc_p%NBINX(2)*WLC_P__DBIN
+        !WLC_P__LBOX_Z = wlc_p%NBINX(3)*WLC_P__DBIN
         wlc_p%NBIN = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3)
 
         if (WLC_P__CODENAME == 'brad') then
@@ -881,8 +880,8 @@ contains
             wlc_p%MINAMP(1) = 0.07_dp*pi
             wlc_p%MINAMP(2) = 0.01_dp*WLC_P__L/WLC_P__NB
             wlc_p%MAXAMP = 2.0_dp*pi
-            wlc_p%MAXAMP(2) = wlc_p%LBOX(1)
-            wlc_p%MAXAMP(6) = wlc_p%LBOX(1)
+            wlc_p%MAXAMP(2) = WLC_P__LBOX_X
+            wlc_p%MAXAMP(6) = WLC_P__LBOX_X
 
             !Set which moves are used
             wlc_p%MOVEON(1) = 1  ! crank-shaft move
@@ -914,9 +913,9 @@ contains
         real(dp) R0(3)  ! Offset to move by
         do I = 1,WLC_P__NP
             IB=WLC_P__NB * (I-1) + 1
-            R0(1) = nint(wlc_d%R(1,IB)/wlc_p%LBOX(1)-0.5_dp)*wlc_p%LBOX(1)
-            R0(2) = nint(wlc_d%R(2,IB)/wlc_p%LBOX(2)-0.5_dp)*wlc_p%LBOX(2)
-            R0(3) = nint(wlc_d%R(3,IB)/wlc_p%LBOX(3)-0.5_dp)*wlc_p%LBOX(3)
+            R0(1) = nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X
+            R0(2) = nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y
+            R0(3) = nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z
             if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
                 do J = 1,WLC_P__NB
                     wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
@@ -1105,15 +1104,15 @@ contains
               do J = 1,WLC_P__NB
                  if (WLC_P__SAVEAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%LBOX(1)-0.5_dp)*wlc_p%LBOX(1), &
-                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%LBOX(2)-0.5_dp)*wlc_p%LBOX(2), &
-                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%LBOX(3)-0.5_dp)*wlc_p%LBOX(3), &
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X, &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y, &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z, &
                          wlc_d%AB(IB)
                  else
                     write(outFileUnit,"(3f10.3)") &
-                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/wlc_p%LBOX(1)-0.5_dp)*wlc_p%LBOX(1), &
-                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/wlc_p%LBOX(2)-0.5_dp)*wlc_p%LBOX(2), &
-                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/wlc_p%LBOX(3)-0.5_dp)*wlc_p%LBOX(3)
+                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X, &
+                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y, &
+                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z
                  endif
                  IB = IB + 1
               enddo
@@ -1199,7 +1198,7 @@ contains
 
             write(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
             write(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
-            write(outFileUnit,"(f10.5)") wlc_p%LBOX(1)  ! 10 Lenth of box
+            write(outFileUnit,"(f10.5)") WLC_P__LBOX_X  ! 10 Lenth of box
             write(outFileUnit,"(f10.5)") WLC_P__EU    ! Energy unmethalated
             write(outFileUnit,"(f10.5)") WLC_P__EM    ! 12 Energy methalated
             write(outFileUnit,"(f10.5)") wlc_p%HP1_BIND ! Energy of HP1 binding
@@ -1668,29 +1667,31 @@ contains
     subroutine setup_confinement_parameters(wlc_p)
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
-
-        if (WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
-            if ( .not. isnan(wlc_p%LBOX(3)) ) then
-                print *, "WARNING: Overwriting lbox(3) value passed to match plate boundary."
-            end if
-            wlc_p%LBOX(3) = wlc_p%CONFINEMENTPARAMETER(1)
-        elseif (WLC_P__CONFINETYPE == 'cube') then
-            if (.not. (isnan(wlc_p%LBOX(1)) .or. isnan(wlc_p%LBOX(2)) .or. isnan(wlc_p%LBOX(3)))) then
-                print *, "WARNING: Overwriting lbox value passed to match cube boundary."
-            end if
-            wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
-        elseif (WLC_P__CONFINETYPE == 'sphere') then
-            if (.not. (isnan(wlc_p%LBOX(1)) .or. isnan(wlc_p%LBOX(2)) .or. isnan(wlc_p%LBOX(3)))) then
-                print *, "WARNING: Overwriting lbox(:) values passed to match sphere diameter."
-            end if
-            wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
-        elseif (WLC_P__CONFINETYPE == 'ecoli') then
-            if (.not. all(isnan(wlc_p%LBOX))) then
-                print *, "WARNING: Overwriting lbox(:) values passed to match cell size."
-            end if
-            wlc_p%LBOX(1) = wlc_p%CONFINEMENTPARAMETER(1)
-            wlc_p%LBOX(2:3) = wlc_p%CONFINEMENTPARAMETER(2)
-        endif
+        
+        ! Quinn broke this. Sorry.
+       ! if (WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
+       !     if ( .not. isnan(WLC_P__LBOX_Z) ) then
+       !         print *, "WARNING: Overwriting lbox(3) value passed to match plate boundary."
+       !     end if
+       !     WLC_P__LBOX_Z = wlc_p%CONFINEMENTPARAMETER(1)
+       ! elseif (WLC_P__CONFINETYPE == 'cube') then
+       !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
+       !         print *, "WARNING: Overwriting lbox value passed to match cube boundary."
+       !     end if
+       !     wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
+       ! elseif (WLC_P__CONFINETYPE == 'sphere') then
+       !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
+       !         print *, "WARNING: Overwriting lbox(:) values passed to match sphere diameter."
+       !     end if
+       !     wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
+       ! elseif (WLC_P__CONFINETYPE == 'ecoli') then
+       !     if (.not. all(isnan(wlc_p%LBOX))) then
+       !         print *, "WARNING: Overwriting lbox(:) values passed to match cell size."
+       !     end if
+       !     WLC_P__LBOX_X = wlc_p%CONFINEMENTPARAMETER(1)
+       !     WLC_P__LBOX_Y = wlc_p%CONFINEMENTPARAMETER(2)
+       !     WLC_P__LBOX_Z = wlc_p%CONFINEMENTPARAMETER(2)
+       ! endif
     end subroutine setup_confinement_parameters
 
 

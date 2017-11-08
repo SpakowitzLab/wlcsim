@@ -24,9 +24,9 @@ real(dp), intent(out) :: WZ(2) ! Output
 SELECT CASE (WLC_P__CONFINETYPE)
 CASE ('none') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/wlc_p%LBOX(1))*wlc_p%LBOX(1)
-    RBin(2) = RBin(2)-floor(RBin(2)/wlc_p%LBOX(2))*wlc_p%LBOX(2)
-    RBin(3) = RBin(3)-floor(RBin(3)/wlc_p%LBOX(3))*wlc_p%LBOX(3)
+    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_X)*WLC_P__LBOX_X
+    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
+    RBin(3) = RBin(3)-floor(RBin(3)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
@@ -54,8 +54,8 @@ CASE ('none') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     IZ(2) = IZ(2)-floor(REAL((IZ(2)-1))/REAL(wlc_p%NBINX(3))) * wlc_p%NBINX(3)
 CASE ('platesInZperiodicXY')
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/wlc_p%LBOX(2))*wlc_p%LBOX(1)
-    RBin(2) = RBin(2)-floor(RBin(2)/wlc_p%LBOX(1))*wlc_p%LBOX(2)
+    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_Y)*WLC_P__LBOX_X
+    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_X)*WLC_P__LBOX_Y
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
@@ -120,9 +120,9 @@ CASE ('sphere')
     WZ(1) = 1.0_dp-WZ(2)
 CASE ('periodicUnequal') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/wlc_p%LBOX(1))*wlc_p%LBOX(1)
-    RBin(2) = RBin(2)-floor(RBin(2)/wlc_p%LBOX(2))*wlc_p%LBOX(2)
-    RBin(3) = RBin(3)-floor(RBin(3)/wlc_p%LBOX(3))*wlc_p%LBOX(3)
+    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_X)*WLC_P__LBOX_X
+    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
+    RBin(3) = RBin(3)-floor(RBin(3)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)

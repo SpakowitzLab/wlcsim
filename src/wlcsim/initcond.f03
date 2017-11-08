@@ -434,9 +434,9 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
     do I = 1,WLC_P__NP
         ! uniformly first bead inside box
         call random_number(urand,rand_stat)
-        R(1,IB) = urand(1)*wlc_p%LBOX(1)
-        R(2,IB) = urand(2)*wlc_p%LBOX(2)
-        R(3,IB) = urand(3)*wlc_p%LBOX(3)
+        R(1,IB) = urand(1)*WLC_P__LBOX_X
+        R(2,IB) = urand(2)*WLC_P__LBOX_Y
+        R(3,IB) = urand(3)*WLC_P__LBOX_Z
         ! uniformly from unit sphere first tan vec
         call random_gauss(urand, rand_stat)
         U(:,IB) = urand
