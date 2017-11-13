@@ -124,7 +124,6 @@ module params
 
     !   Switches
         integer LK                ! Linking number
-        logical recenter_on       ! recenter in "quasi"-periodic boundary, should be off in BD
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
@@ -259,12 +258,26 @@ contains
         ! this is almost definitely undesireable, since "undefined" means the
         ! behavior will depend on which compiler is used
         type(wlcsim_params), intent(inout) :: wlc_p
+
+        ! parallel temper variables
+        wlc_p%CHI      = WLC_P__CHI
+        wlc_p%MU       = WLC_p__MU
+        wlc_p%HA       = WLC_P__HA
+        wlc_p%HP1_BIND = WLC_P__HP1_BIND
+        wlc_p%KAP      = WLC_P__KAP
+        wlc_p%CHI_L2   = WLC_P__CHI_L2
+
+        wlc_p%lhc = NAN ! I have no idea what this does
+        wlc_p%vhc = NAN ! I have no idea what this does
+        wlc_p%couple_on = 1.0 ! on by default
+        wlc_p%kap_on = 1.0 ! on by default
+        wlc_p%chi_on = 1.0 ! on by default
+        wlc_p%chi_l2_on = .TRUE. ! on by default
+        wlc_p%field_int_on = .TRUE. ! on by default
+
         wlc_p%NBINX(1) = WLC_P__NBINX_X
         wlc_p%NBINX(2) = WLC_P__NBINX_Y
         wlc_p%NBINX(3) = WLC_P__NBINX_Z
-        !WLC_P__LBOX_X = WLC_P__LBOX_X
-        !WLC_P__LBOX_Y = WLC_P__LBOX_Y
-        !WLC_P__LBOX_Z = WLC_P__LBOX_Z
         wlc_p%CONFINEMENTPARAMETER(1) = WLC_P__CONFINEMENTPARAMETER_1
         wlc_p%CONFINEMENTPARAMETER(2) = WLC_P__CONFINEMENTPARAMETER_2
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT

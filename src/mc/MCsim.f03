@@ -324,7 +324,7 @@ subroutine MCsim(wlc_p,wlc_d)
              call mc_adapt(wlc_p,wlc_d,MCTYPE)
 
              ! move each chain back if drifted though repeated BC
-             if (wlc_p%RECENTER_ON) then
+             if (WLC_P__RECENTER_ON) then
                  call wlcsim_params_recenter(wlc_p,wlc_d)  ! You don't need to do this if there is confinement
             endif
           endif
