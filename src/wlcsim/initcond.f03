@@ -10,7 +10,7 @@
 !
 !     Updated by Quinn in 2016
 !
-subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA,LBOX, &
+subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA, &
                     rand_stat,ring, wlc_p)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
@@ -55,6 +55,10 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 type(random_stat) rand_stat
 real urand(3)
 real nrand(3)
+
+LBOX(1)=WLC_P__LBOX_X
+LBOX(2)=WLC_P__LBOX_Y
+LBOX(3)=WLC_P__LBOX_Z
 
 GAM = PARA(4)
 

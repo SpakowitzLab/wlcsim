@@ -106,7 +106,6 @@ module params
     !   boundary/box things
         integer NBin     ! Number of bins
         integer NBinX(nDim) ! Number of MC bins on an edge
-        real(dp) lbox(nDim)  ! monte carlo field bin total box length (approximate)
         real(dp) confinementParameter(2)
 
     !   Monte Carlo Variables (for adaptation)
@@ -693,7 +692,7 @@ contains
         call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
 #endif
         call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, &
-            WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), wlc_p%LBOX, &
+            WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
             wlc_d%rand_stat, WLC_P__RING, wlc_p)
 
         if (wlc_p%FIELD_INT_ON) then
