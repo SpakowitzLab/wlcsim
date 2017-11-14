@@ -714,7 +714,7 @@ contains
 
             ! calculate volumes of bins
             if (WLC_P__CONFINETYPE.eq.'sphere') then
-                call MC_calcVolume(WLC_P__CONFINETYPE, wlc_p%NBINX, WLC_P__DBIN, &
+                call MC_calcVolume(wlc_p%NBINX, WLC_P__DBIN, &
                                 WLC_P__LBOX_X, wlc_d%Vol, wlc_d%rand_stat)
             else
                 do I = 1,NBin
