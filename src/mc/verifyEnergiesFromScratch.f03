@@ -19,7 +19,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = wlc_p%NT
         call MC_bind(wlc_p,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH, &
-                     wlc_d%DEBind,wlc_d%dx_mu)
+                     wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
     endif
 
     call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,pack_as_para(wlc_p),&
@@ -97,6 +97,12 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
                 wlc_d%DEBind," save point mc_ind = ",wlc_d%mc_ind
     endif
     wlc_d%EBind = wlc_d%DEBind
+    if(abs(wlc_d%EMu-wlc_d%DEMu) > eps) then
+        write(ERROR_UNIT,*) "Warning. Integrated chemical potential enrgy:", &
+                wlc_d%EMu," while absolute chemical potential energy:", &
+                wlc_d%DEMu," save point mc_ind = ",wlc_d%mc_ind
+    endif
+    wlc_d%EMu = wlc_d%DEMu
     wlc_d%x_mu = wlc_d%dx_mu
 
     ! --- Elastic Energy ---

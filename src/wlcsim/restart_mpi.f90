@@ -78,6 +78,9 @@ subroutine pt_restart(wlc_p,wlc_d)
             wlc_p%MU = temp(14)
             wlc_p%KAP = temp(15)
             wlc_p%HA = temp(16)
+            ! x_ms
+            ! chi_l2
+            ! E_mu
         else
             Exit
         endif
@@ -99,7 +102,7 @@ subroutine pt_restart(wlc_p,wlc_d)
         wlc_d%x_Field = wlc_d%EField/wlc_p%HA
     endif
     if (wlc_p%MU.ne.0.0) then
-        wlc_d%x_Mu = wlc_d%ebind/wlc_p%MU
+        wlc_d%x_Mu = wlc_d%eMu/wlc_p%MU
     endif
 
     ! read back in addaptation stuff, May make slight difference

@@ -296,7 +296,7 @@ function mu_path(s) result(mu)
     implicit none
     real(dp), intent(in) :: s
     real(dp) mu
-    mu = s
+    mu = s-2.5
 end function mu_path
 function kap_path(s) result(kap)
     use params, only: dp
@@ -378,9 +378,11 @@ subroutine worker_node(wlc_p, wlc_d)
         endif
         if (WLD_P__VARIABLE_CHEM_STATE) then
             wlc_d%ebind   =wlc_d%debind
+            wlc_d%eMu     =wlc_d%deMu
             wlc_d%x_mu    =wlc_d%dx_mu
         else
             wlc_d%ebind   =0.0_dp
+            wlc_d%eMu     =0.0_dp
             wlc_d%x_mu    =0.0_dp
         endif
     else
@@ -482,9 +484,11 @@ subroutine onlyNode(wlc_p, wlc_d)
         endif
         if (WLD_P__VARIABLE_CHEM_STATE) then
             wlc_d%ebind   =wlc_d%debind
+            wlc_d%eMu     =wlc_d%deMu
             wlc_d%x_mu    =wlc_d%dx_mu
         else
             wlc_d%ebind   =0.0_dp
+            wlc_d%eMu     =0.0_dp
             wlc_d%x_mu    =0.0_dp
         endif
     else

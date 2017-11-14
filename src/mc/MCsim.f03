@@ -133,10 +133,12 @@ subroutine MCsim(wlc_p,wlc_d)
 !   Calculate the change in the binding energy
           if (MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(wlc_p%NT,WLC_P__NBPM,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,WLC_P__EU,WLC_P__EM, &
-                          wlc_d%DEBind,wlc_p%MU,wlc_d%dx_mu)
+              call MC_bind(wlc_p,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,&
+                           wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
           else
               wlc_d%DEBind = 0.0
+              wlc_d%DEMu = 0.0
+              wlc_d%dx_mu = 0.0
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
               !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
@@ -204,7 +206,9 @@ subroutine MCsim(wlc_p,wlc_d)
 
 !   Change the position if appropriate
           ENERGY = wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3) &
-                 +wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind + wlc_d%ECon + wlc_d%DEField &
+                 + wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind &
+                 + wlc_d%deMu &
+                 + wlc_d%ECon + wlc_d%DEField &
                  +wlc_d%eKnot + wlc_d%deMaierSaupe
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_d%rand_stat)
@@ -246,6 +250,7 @@ subroutine MCsim(wlc_p,wlc_d)
                  stop 1
              endif
              wlc_d%EBind = wlc_d%EBind + wlc_d%DEBind
+             wlc_d%EMu = wlc_d%EMu + wlc_d%DEMu
              wlc_d%x_mu = wlc_d%x_mu + wlc_d%dx_mu
              wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
              wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)

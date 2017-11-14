@@ -181,7 +181,7 @@ use mpi
     endif
 
     wlc_d%EChi    =wlc_d%EChi    +wlc_d%x_chi      *(wlc_p%CHI      -chi_old)
-    wlc_d%ebind   =wlc_d%ebind   +wlc_d%x_mu       *(wlc_p%MU       -mu_old)
+    wlc_d%EMu     =wlc_d%EMu     +wlc_d%x_mu       *(wlc_p%MU       -mu_old)
     wlc_d%EField  =wlc_d%EField  +wlc_d%x_field    *(wlc_p%HA       -hA_old)
     wlc_d%ECouple =wlc_d%ECouple +wlc_d%x_couple   *(wlc_p%HP1_BIND -HP1_Bind_Old)
     wlc_d%EKap    =wlc_d%EKap    +wlc_d%x_Kap      *(wlc_p%KAP      -Kap_Old)

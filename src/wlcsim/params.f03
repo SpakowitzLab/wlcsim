@@ -188,6 +188,7 @@ module params
         real(dp) eKap     ! KAP energy
         real(dp) eCouple  ! Coupling
         real(dp) eBind    ! binding energy
+        real(dp) eMu      ! Chemical potential energy
         real(dp) eField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         real(dp) eKnot    ! 0-inf potential for if chain crossed itself
@@ -207,6 +208,7 @@ module params
         real(dp) DEChi    ! chi interaction energy
         real(dp) DEKap    ! compression energy
         real(dp) Debind   ! Change in binding energy
+        real(dp) DEMu   ! Change in binding energy
         real(dp) DEField  ! Change in field energy
         real(dp) DESelf   ! change in self interaction energy
         real(dp) ECon     ! Confinement Energy
@@ -738,6 +740,7 @@ contains
         wlc_d%eKap        = 0.0 ! KAP energy
         wlc_d%eCouple     = 0.0 ! Coupling
         wlc_d%eBind       = 0.0 ! binding energy
+        wlc_d%eMu         = 0.0 ! chemical potential energy
         wlc_d%eField      = 0.0 ! Field energy
         wlc_d%eSelf       = 0.0 ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         wlc_d%eKnot       = 0.0 ! 0-inf potential for if chain crossed itself
@@ -747,6 +750,7 @@ contains
         wlc_d%DEChi       = 0.0 ! chi interaction energy
         wlc_d%DEKap       = 0.0 ! compression energy
         wlc_d%Debind      = 0.0 ! Change in binding energy
+        wlc_d%DeMu        = 0.0 ! Change in chemcial potential energy
         wlc_d%DEField     = 0.0 ! Change in field energy
         wlc_d%DESelf      = 0.0 ! change in self interaction energy
         wlc_d%ECon        = 0.0 ! Confinement Energy
@@ -963,6 +967,7 @@ contains
         print*, "EField", wlc_d%EField
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind
+        print*, "eMu", wlc_d%eMu
     end subroutine
 
     subroutine calcTotalPolymerVolume(wlc_p,wlc_d,totalVpoly)
@@ -1239,13 +1244,13 @@ contains
             write(outFileUnit,*) "ind | id |",&
                        "  ebend    |  eparll   |  EShear   |  ECoupl   |  E Kap    |  E Chi    |",&
                        "  EField   |  ebind    |   x_Mu    |  Couple   |   Chi     |   mu      |",&
-                       "   Kap     |  Field    |   x_MS    |  chi_l2   |"
+                       "   Kap     |  Field    |   x_MS    |  chi_l2   |  E_Mu     |"
         endif
-        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5,f12.2)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_BIND*wlc_p%COUPLE_ON, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%MU, wlc_p%KAP*wlc_p%KAP_ON,&
-            wlc_p%HA, wlc_d%x_maierSaupe, wlc_p%CHI_L2
+            wlc_p%HA, wlc_d%x_maierSaupe, wlc_p%CHI_L2,wlc_d%EMu
         close(outFileUnit)
     end subroutine
 
