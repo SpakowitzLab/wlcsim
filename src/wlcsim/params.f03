@@ -547,7 +547,7 @@ contains
         integer ( kind = 4 ) source  !source id for messages
         integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
         integer ( kind = 4 ) error  ! error id for MIP functions
-        character*16 iostr  ! string for file name
+        character(MAXFILENAMELEN) iostr  ! string for file name
         nt = wlc_p%NT
         nbin = wlc_p%NBIN
 
