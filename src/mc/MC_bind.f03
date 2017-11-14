@@ -25,10 +25,10 @@ DEBind = 0.0_dp
 Dx_mu = 0.0_dp
 do I = IT1,IT2,WLC_P__NBPM
     if(METH(I) == 1) then
-        DEBind = DEBind + (-wlc_p%MU-WLC_P__EM)*real(ABP(I)-AB(I))
+        DEBind = DEBind + (-1.0_dp*wlc_p%MU-WLC_P__EM)*real(ABP(I)-AB(I))
         Dx_mu = Dx_mu-real(ABP(I)-AB(I))
     else
-        DEBind = DEBind + (-wlc_p%MU-WLC_P__EU)*real(ABP(I)-AB(I))
+        DEBind = DEBind + (-1.0_dp*wlc_p%MU-WLC_P__EU)*real(ABP(I)-AB(I))
         Dx_mu = Dx_mu-real(ABP(I)-AB(I))
         !print*, 'In MC_bind WLC_P__EU:',EU,' WLC_P__EM:',EM
     endif
