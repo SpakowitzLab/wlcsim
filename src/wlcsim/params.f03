@@ -572,7 +572,7 @@ contains
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
             if (WLC_P__CHANGINGCHEMICALIDENTITY) then
                 allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
-                wlc_d%ABP = nan
+                wlc_d%ABP = INT_MIN
             endif
             if (wlc_p%CHI_L2_ON) then
                 allocate(wlc_d%PHI_l2(-2:2,NT))
