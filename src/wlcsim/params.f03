@@ -66,6 +66,7 @@ module params
     !real(dp) :: inf = ieee_value(inf, ieee_positive_inf)
     real(dp) :: max_wlc_l0 = 0.01
     real(dp) :: max_sswlc_delta = 10.0
+    integer, parameter :: INT_MIN = -HUGE(nMoveTypes)-1
 
     ! for all parameters that cannot change during individual simulations
     ! these are documented more thoroughly where they are read in (see the
