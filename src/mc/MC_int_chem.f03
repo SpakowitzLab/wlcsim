@@ -62,93 +62,52 @@ do IB = I1,I2
    endif
    AminusB = real(wlc_d%ABP(IB)-wlc_d%AB(IB))
 
-   if (WLC_P__CONFINETYPE == 'none' .or. WLC_P__CONFINETYPE == 'periodicUnequal') then
-       ! If periodic than you can assume that all bins are included and have a volume
-       ! of dbin**3
-       temp = WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-       do ISX = 1,2
-          do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+   do ISX = 1,2
+      do ISY = 1,2
+         do ISZ = 1,2
+            WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            if (WLC_P__CONFINETYPE == 'none' .and.&
+                WLC_P__CONFINETYPE == 'periodicUnequal') then
+                contribution = WTOT*WLC_P__BEADVOLUME/&
+                                  (WLC_P__DBIN**3)
+            else
+                contribution = WTOT*WLC_P__BEADVOLUME/&
+                                  wlc_d%Vol(inDBin)
+            endif
 
-                contribution=temp*WTOT
-                ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
-                                     AminusB*phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
-                                  AminusB*phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
-             enddo
-          enddo
-       enddo
-    else ! not periodic
-       ! if not periodic you need to check wheter bin is outside and
-       ! also need to divide by volume of bin
-       temp = WLC_P__BEADVOLUME
-       do ISX = 1,2
-          do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-
-                contribution=temp*WTOT/wlc_d%Vol(indBin)
-                ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) =  +&
-                                  AminusB*phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
-                                  AminusB*phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
-             enddo
-          enddo
-       enddo
-    endif
+            ! Generate list of which phi's change and by how much
+            I = wlc_d%NPHI
+            do
+               if (I.eq.0) then
+                  wlc_d%NPHI = wlc_d%NPHI + 1
+                  wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                  wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
+                  wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                                 AminusB*phi2(m_index)*contribution
+                      enddo
+                  endif
+                  exit
+               elseif (inDBin == wlc_d%inDPHI(I)) then
+                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
+                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
+                              AminusB*phi2(m_index)*contribution
+                      enddo
+                  endif
+                  exit
+               else
+                  I = I-1
+               endif
+            enddo
+         enddo
+      enddo
+   enddo
 enddo ! loop over IB  A.k.a. beads
 ! ---------------------------------------------------------------------
 !

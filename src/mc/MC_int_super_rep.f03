@@ -39,6 +39,10 @@ integer AminusB
 NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
+if (WLC_P__TWO_TAIL) then
+    print*, "The Super Reptation move is not currently set up for two Tail"
+    stop 1
+endif
 ! -------------------------------------------------------------
 !
 !  Calculate end beads

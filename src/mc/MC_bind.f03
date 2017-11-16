@@ -22,18 +22,51 @@ real(dp), intent(out) :: DEBind    ! Change in binding energy
 real(dp), intent(out) :: DEMu    ! Change in chemcial potential energy
 real(dp), intent(out) :: dx_mu ! -n_bound
 integer I      ! Index of bead being compared
+
+real(dp), parameter :: selfInt= WLC_P__HP1_BIND* &
+                                 ((WLC_P__BEADVOLUME/(WLC_P__DBIN**3))**2)
+real(dp), parameter :: EM_cor = -1.0_dp*(WLC_P__EM) - selfInt
+real(dp), parameter :: EU_cor = -1.0_dp*(WLC_P__EU) - selfInt
+real(dp), parameter :: cor2 = -2.0_dp*selfInt
+
+! index(meth,bind)
+! bind 0=0,0  1=0,1  2=1,0 3=1,1
+! meth 0=0,0  1=0,1  2=1,1
+
+!       0,0          0,1          1,1
+! 0,0
+! 0,1
+! 1,0
+! 1,1
+
+real(dp), parameter, dimension(3,4) :: dEBind_table = &
+    reshape(&
+    [0.0_dp,            0.0_dp,                 0.0_dp, &
+     EU_cor,            EM_cor,                 EM_cor, &
+     EU_cor,            EU_cor,                 EM_cor, &
+     2.0_dp*EU_cor+cor2, WLC_P__EU+WLC_P__EM+cor2, 2.0_dp*EM_cor+cor2] &
+     ,[3,4])
+
+real(dp), parameter, dimension(4) :: dxMu_table = &
+    [0.0_dp, 1.0_dp, 1.0_dp, 2.0_dp]
+
 DEBind = 0.0_dp
-DEMu=0.0_dp
 Dx_mu = 0.0_dp
-do I = IT1,IT2,WLC_P__NBPM
-    if(METH(I) == 1) then
-        DEBind = DEBind - WLC_P__EM*real(ABP(I)-AB(I))
-        DEMu = DEMu - wlc_p%MU*real(ABP(I)-AB(I))
-        Dx_mu = Dx_mu-real(ABP(I)-AB(I))
-    else
-        DEBind = DEBind - WLC_P__EU*real(ABP(I)-AB(I))
-        DEBind = DEBind - wlc_p%MU*real(ABP(I)-AB(I))
-        Dx_mu = Dx_mu-real(ABP(I)-AB(I))
-    endif
-ENDdo
+if (WLC_P__TWO_TAIL) then
+    do I = IT1,IT2,WLC_P__NBPM
+        DEBind = DEBind + dEBind_table(METH(I),ABP(I)) &
+                        - dEBind_table(METH(I), AB(I))
+        Dx_mu = Dx_mu - (dxMu_table(ABP(I)) - dxMu_table(AB(I)))
+    ENDdo
+else
+    do I = IT1,IT2,WLC_P__NBPM
+        if(METH(I) == 1) then
+            DEBind = DEBind + EM_cor*real(ABP(I)-AB(I))
+        else
+            DEBind = DEBind + EU_cor*real(ABP(I)-AB(I))
+        endif
+        Dx_mu = Dx_mu - real(ABP(I)-AB(I))
+    ENDdo
+endif
+DEMu=Dx_mu*wlc_p%MU
 END

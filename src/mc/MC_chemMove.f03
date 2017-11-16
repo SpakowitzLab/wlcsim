@@ -40,6 +40,10 @@ real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
 integer exponential_random_int
 
+integer, parameter, dimension(4) :: changeBoth = [3, 2, 1, 0]
+integer, parameter, dimension(4) :: changeFirst = [2, 3, 0, 1]
+integer, parameter, dimension(4) :: changeSecond = [1,0, 3, 2]
+
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
@@ -75,9 +79,29 @@ IT2 = WLC_P__NB*(IP-1) + IB2
 IT1 = IT1-MOD(IT1-1,WLC_P__NBPM)
 IT2 = IT2-MOD(IT2-1,WLC_P__NBPM) + WLC_P__NBPM-1
 
-do J = IT1,IT2
-    ABP(J) = 1-AB(J)
-ENDdo
+
+if (WLC_P__TWO_TAIL) then
+    call random_number(urnd,rand_stat)
+    if (urnd(1)>WLC_P__PROBSINGLESWAP) then
+        do J = IT1, IT2
+            ABP(J) = changeBoth(AB(J))
+        enddo
+    elseif (urnd(1)<WLC_P__PROBSINGLESWAP/2.0_dp) then
+        do J = IT1, IT2
+            ABP(J) = changeFirst(AB(J))
+        enddo
+    else
+        do J = IT1, IT2
+            ABP(J) = changeSecond(AB(J))
+        enddo
+    endif
+else
+    do J = IT1,IT2
+        ABP(J) = 1-AB(J)
+    ENDdo
+endif
+
+
 
 !This loop may not be necessary
 do I = IT1,IT2

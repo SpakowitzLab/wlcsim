@@ -41,6 +41,10 @@ real(dp) contribution
 NBinX = wlc_p%NBINX
 
 
+if (WLC_P__TWO_TAIL) then
+    print*, "The swap move is not currently set up for two Tail"
+    stop 1
+endif
 if (I2-I1 + 1.ne.WLC_P__NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1

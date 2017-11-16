@@ -79,6 +79,10 @@ do II = 1,2
        RBin(3) = wlc_d%RP(3,IB)
    endif
    isA = wlc_d%AB(IB).eq.1
+   if (WLC_P__TWO_TAIL) then
+       print*, "The Reptation move is not currently set up for two Tail"
+       stop 1
+   endif
    if (wlc_p%CHI_L2_ON .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
