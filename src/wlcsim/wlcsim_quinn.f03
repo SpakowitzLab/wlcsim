@@ -353,6 +353,7 @@ subroutine worker_node(wlc_p, wlc_d)
     endif
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        wlc_d%eelas = wlc_d%deelas
         if (wlc_p%FIELD_INT_ON) then
             wlc_d%ECouple =wlc_d%dECouple
             wlc_d%EKap    =wlc_d%dEKap

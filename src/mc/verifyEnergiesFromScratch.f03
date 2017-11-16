@@ -18,7 +18,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = wlc_p%NT
-        call MC_bind(wlc_p,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH, &
+        call MC_bind(wlc_p,IT1,IT2,wlc_d%ABP,wlc_d%AB,wlc_d%METH, &
                      wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
     endif
 
