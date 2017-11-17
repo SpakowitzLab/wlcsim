@@ -39,7 +39,7 @@ real(dp), parameter :: cor2 = -2.0_dp*selfInt
 ! 1,0
 ! 1,1
 
-real(dp), parameter, dimension(3,4) :: dEBind_table = &
+real(dp), parameter, dimension(0:2,0:3) :: dEBind_table = &
     reshape(&
     [0.0_dp,            0.0_dp,                 0.0_dp, &
      EU_cor,            EM_cor,                 EM_cor, &
@@ -47,7 +47,7 @@ real(dp), parameter, dimension(3,4) :: dEBind_table = &
      2.0_dp*EU_cor+cor2, WLC_P__EU+WLC_P__EM+cor2, 2.0_dp*EM_cor+cor2] &
      ,[3,4])
 
-real(dp), parameter, dimension(4) :: dxMu_table = &
+real(dp), parameter, dimension(0:3) :: dxMu_table = &
     [0.0_dp, 1.0_dp, 1.0_dp, 2.0_dp]
 
 DEBind = 0.0_dp

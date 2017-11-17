@@ -40,9 +40,9 @@ real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
 integer exponential_random_int
 
-integer, parameter, dimension(4) :: changeBoth = [3, 2, 1, 0]
-integer, parameter, dimension(4) :: changeFirst = [2, 3, 0, 1]
-integer, parameter, dimension(4) :: changeSecond = [1,0, 3, 2]
+integer, parameter, dimension(0:3) :: changeBoth = [3, 2, 1, 0]
+integer, parameter, dimension(0:3) :: changeFirst = [2, 3, 0, 1]
+integer, parameter, dimension(0:3) :: changeSecond = [1,0, 3, 2]
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
