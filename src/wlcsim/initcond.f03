@@ -55,6 +55,7 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 type(random_stat) rand_stat
 real urand(3)
 real nrand(3)
+logical in_confinement
 
 LBOX(1)=WLC_P__LBOX_X
 LBOX(2)=WLC_P__LBOX_Y

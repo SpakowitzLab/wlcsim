@@ -7,7 +7,6 @@ pure function in_confinement(RP, NT, IT1, IT2)
 
     integer, intent(in) :: IT1, IT2, NT
     real(dp), intent(in) :: RP(3, NT)
-    type(wlcsim_params), intent(in) :: wlc_p
     logical in_confinement
     integer i
     real(dp) rad, length, r2
@@ -35,7 +34,7 @@ pure function in_confinement(RP, NT, IT1, IT2)
                 .or. (RP(2,I) < 0.0_dp+WLC_P__DBIN) &
                 .or. (RP(2,I) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
                 .or. (RP(3,I) < 0.0_dp+WLC_P__DBIN) &
-                .or. (RP(3,I) > WLC_P__CONFINEMENT_CUBE_LENGTH)-WLC_P__DBIN) then
+                .or. (RP(3,I) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN)) then
                 in_confinement = .False.
                 return
             endif
