@@ -153,13 +153,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
                 test(1) = Rold(1) + Uold(1)*GAM
                 test(2) = Rold(2) + Uold(2)*GAM
                 test(3) = Rold(3) + Uold(3)*GAM
-                search = .FALSE.
-                if (test(3).gt.LBOX(3))then
-                    search = .TRUE.
-                endif
-                if (test(3).lt.0)then
-                    search = .TRUE.
-                endif
+                search = .not. in_confinement(test, 1.0, 1.0, 1.0)
                 if (search) then
                      call random_number(urand,rand_stat)
                      theta = urand(1)*2*PI
@@ -214,25 +208,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
                test(1) = Rold(1) + Uold(1)*GAM
                test(2) = Rold(2) + Uold(2)*GAM
                test(3) = Rold(3) + Uold(3)*GAM
-               search = .FALSE.
-               if (test(1).gt.LBOX(1))then
-                   search = .TRUE.
-               endif
-               if (test(1).lt.0)then
-                   search = .TRUE.
-               endif
-               if (test(2).gt.LBOX(2))then
-                   search = .TRUE.
-               endif
-               if (test(2).lt.0)then
-                   search = .TRUE.
-               endif
-               if (test(3).gt.LBOX(3))then
-                   search = .TRUE.
-               endif
-               if (test(3).lt.0)then
-                   search = .TRUE.
-               endif
+               search = .not. in_confinement(test, 1.0, 1.0, 1.0)
                if (search) then
                     call random_number(urand,rand_stat)
                     theta = urand(1)*2_dp*PI
@@ -283,12 +259,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
                test(1) = Rold(1) + Uold(1)*GAM
                test(2) = Rold(2) + Uold(2)*GAM
                test(3) = Rold(3) + Uold(3)*GAM
-               search = .FALSE.
-               if ((test(1)-Rc)**2 + &
-                   (test(2)-Rc)**2 + &
-                   (test(3)-Rc)**2.gt.Rc**2)then
-                   search = .TRUE.
-               endif
+               search = .not. in_confinement(test, 1.0, 1.0, 1.0)
                if (search) then
                     call random_number(urand,rand_stat)
                     theta = urand(1)*2.0_dp*PI
@@ -319,11 +290,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomlyDistributeBeadsInSphere') then
              test(1) = urand(1)*LBox(1)
              test(2) = urand(2)*LBox(2)
              test(3) = urand(3)*LBox(3)
-             if (((test(1)-LBox(1)/2.0_dp)**2+ &
-                 (test(2)-LBox(1)/2.0_dp)**2+ &
-                 (test(3)-LBox(1)/2.0_dp)**2).lt.(LBox(1)*LBox(1)*0.25_dp)) then
-                 search = .false.
-             endif
+             search = .not. in_confinement(test, 1.0, 1.0, 1.0)
         enddo
         R(1,IB) = test(1)
         R(2,IB) = test(2)
@@ -570,7 +537,7 @@ subroutine make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
             R(1,IB) = R(1,IB-1) + wlc_p%SIGMA*nrand(1)
             R(2,IB) = R(2,IB-1) + wlc_p%SIGMA*nrand(2)
             R(3,IB) = R(3,IB-1) + wlc_p%SIGMA*nrand(3)
-            is_inside_boundary = in_confinement(R, NB, IB, IB, wlc_p)
+            is_inside_boundary = in_confinement(R, NB, IB, IB)
         enddo
         IB = IB + 1
     enddo

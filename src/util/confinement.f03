@@ -1,5 +1,5 @@
 #include "../defines.inc"
-pure function in_confinement(RP, NT, IT1, IT2, wlc_p)
+pure function in_confinement(RP, NT, IT1, IT2)
     use params, only : dp, wlcsim_params
     use inputparams, only : MAXPARAMLEN
 
@@ -22,19 +22,20 @@ pure function in_confinement(RP, NT, IT1, IT2, wlc_p)
         ! Confinement only in the z-direction
         ! limits: 0 and LBox(3)
         do I = IT1,IT2
-            if ((RP(3,I) < 0.0_dp) .or. (RP(3,I) > WLC_P__CONFINEMENT_SLIT_WIDTH)) then
+            if ((RP(3,I) < 0.0_dp+WLC_P__DBIN) .or.&
+                (RP(3,I) > WLC_P__CONFINEMENT_SLIT_WIDTH-WLC_P__DBIN)) then
                 in_confinement = .False.
                 return
             endif
         enddo
     elseif (WLC_P__CONFINETYPE == 'cube') then
         do I = IT1,IT2
-            if ((RP(1,I) < 0.0_dp) &
-                .or. (RP(1,I) > WLC_P__CONFINEMENT_CUBE_LENGTH) &
-                .or. (RP(2,I) < 0.0_dp) &
-                .or. (RP(2,I) > WLC_P__CONFINEMENT_CUBE_LENGTH) &
-                .or. (RP(3,I) < 0.0_dp) &
-                .or. (RP(3,I) > WLC_P__CONFINEMENT_CUBE_LENGTH)) then
+            if ((RP(1,I) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RP(1,I) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
+                .or. (RP(2,I) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RP(2,I) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
+                .or. (RP(3,I) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RP(3,I) > WLC_P__CONFINEMENT_CUBE_LENGTH)-WLC_P__DBIN) then
                 in_confinement = .False.
                 return
             endif
