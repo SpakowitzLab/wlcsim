@@ -107,7 +107,6 @@ module params
     !   boundary/box things
         integer NBin     ! Number of bins
         integer NBinX(nDim) ! Number of MC bins on an edge
-        real(dp) confinementParameter(2)
 
     !   Monte Carlo Variables (for adaptation)
         real(dp) PDesire(nMoveTypes) ! desired hit rate
@@ -280,8 +279,6 @@ contains
         wlc_p%NBINX(1) = WLC_P__NBINX_X
         wlc_p%NBINX(2) = WLC_P__NBINX_Y
         wlc_p%NBINX(3) = WLC_P__NBINX_Z
-        wlc_p%CONFINEMENTPARAMETER(1) = WLC_P__CONFINEMENTPARAMETER_1
-        wlc_p%CONFINEMENTPARAMETER(2) = WLC_P__CONFINEMENTPARAMETER_2
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
         wlc_p%PDESIRE(2) = WLC_P__PDESIRE_SLIDE_MOVE
         wlc_p%PDESIRE(3) = WLC_P__PDESIRE_PIVOT_MOVE
@@ -589,6 +586,7 @@ contains
             do I = 1,NBin
                 wlc_d%PHIA(I) = 0.0_dp
                 wlc_d%PHIB(I) = 0.0_dp
+                wlc_d%indphi(I) = INT_MIN
             enddo
         endif
         if (WLD_P__VARIABLE_CHEM_STATE) then
@@ -1691,24 +1689,24 @@ contains
        !     if ( .not. isnan(WLC_P__LBOX_Z) ) then
        !         print *, "WARNING: Overwriting lbox(3) value passed to match plate boundary."
        !     end if
-       !     WLC_P__LBOX_Z = wlc_p%CONFINEMENTPARAMETER(1)
+       !     WLC_P__LBOX_Z = WLC_P__CONFINEMENT_SLIT_WIDTH
        ! elseif (WLC_P__CONFINETYPE == 'cube') then
        !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
        !         print *, "WARNING: Overwriting lbox value passed to match cube boundary."
        !     end if
-       !     wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
+       !     wlc_p%LBOX = WLC_P__CONFINEMENT_CUBE_LENGTH
        ! elseif (WLC_P__CONFINETYPE == 'sphere') then
        !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
        !         print *, "WARNING: Overwriting lbox(:) values passed to match sphere diameter."
        !     end if
-       !     wlc_p%LBOX = wlc_p%CONFINEMENTPARAMETER(1)
+       !     wlc_p%LBOX = WLC_P__CONFINEMENT_SPHERE_DIAMETER
        ! elseif (WLC_P__CONFINETYPE == 'ecoli') then
        !     if (.not. all(isnan(wlc_p%LBOX))) then
        !         print *, "WARNING: Overwriting lbox(:) values passed to match cell size."
        !     end if
-       !     WLC_P__LBOX_X = wlc_p%CONFINEMENTPARAMETER(1)
-       !     WLC_P__LBOX_Y = wlc_p%CONFINEMENTPARAMETER(2)
-       !     WLC_P__LBOX_Z = wlc_p%CONFINEMENTPARAMETER(2)
+       !     WLC_P__LBOX_X = WLC_P__CONFINEMENT_ECOLI_LENGTH
+       !     WLC_P__LBOX_Y = WLC_P__CONFINEMENT_ECOLI_DIAMETER
+       !     WLC_P__LBOX_Z = WLC_P__CONFINEMENT_ECOLI_DIAMETER
        ! endif
     end subroutine setup_confinement_parameters
 
