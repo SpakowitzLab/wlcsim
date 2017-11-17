@@ -22,11 +22,9 @@ real(dp) WTOT       ! total weight ascribed to bin
 real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
-LOGICAL isA   ! The bead is of type A
 
 ! Copy so I don't have to type wlc_p% everywhere
 integer NBinX(3)
-real(dp) temp
 real(dp) contribution 
 integer m_index ! m from spherical harmonics
 real(dp), dimension(-2:2) :: phi2

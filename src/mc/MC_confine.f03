@@ -23,12 +23,11 @@ integer NT     ! Total number of beads in simulation
 real(dp) RP(3,NT)  ! Bead positions
 integer IT1    ! Start test bead
 integer IT2    ! Final test bead
-integer I      ! Index of bead being compared
 real(dp) ECon
 logical in_confinement
 
 ECon = 0.0_dp
-if (.not. in_confinement(RP, NT, IT1, IT2, wlc_p)) then
+if (.not. in_confinement(RP, NT, IT1, IT2)) then
     ECon = HUGE_ENERGY
 endif
 

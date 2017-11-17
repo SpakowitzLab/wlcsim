@@ -33,7 +33,6 @@ integer I ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
-real urnd(1) ! single random number
 integer irnd(1)
 ! Variables for the crank-shaft move
 

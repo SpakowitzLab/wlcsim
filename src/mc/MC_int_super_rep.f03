@@ -35,7 +35,6 @@ integer m_index  ! m from Ylm spherical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
-integer AminusB
 NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0

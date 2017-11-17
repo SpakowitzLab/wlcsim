@@ -37,7 +37,6 @@ integer m_index ! m quantum number for sphrical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 real(dp), dimension(-2:2) :: phi2
-real(dp) contribution
 NBinX = wlc_p%NBINX
 
 
