@@ -260,6 +260,9 @@ contains
         ! behavior will depend on which compiler is used
         type(wlcsim_params), intent(inout) :: wlc_p
 
+        wlc_p%L0 = WLC_P__L/real(WLC_P__NB-1.0_dp) ! -1.0 because one fewer segments then beads
+        wlc_p%EPS=wlc_p%L0/(2.0_dp*WLC_P__LP)
+        
         ! parallel temper variables
         wlc_p%CHI      = WLC_P__CHI
         wlc_p%MU       = WLC_p__MU
@@ -846,8 +849,6 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
 
-        wlc_p%L0 = WLC_P__L/real(WLC_P__NB-1.0_dp) ! -1.0 because one fewer segments then beads
-        wlc_p%EPS=wlc_p%L0/(2.0_dp*WLC_P__LP)
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters
         wlc_d%MCAMP(1) = 0.5_dp*PI
