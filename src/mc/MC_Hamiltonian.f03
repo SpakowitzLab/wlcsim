@@ -94,7 +94,8 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('chromatin')
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
+            !VV = wlc_d%Vol(I)
+            VV = WLC_P__DBIN**3
             if (VV.le.0.1_dp) CYCLE
             PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
             wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
@@ -216,7 +217,8 @@ else ! Calculate change in energy
     case('chromatin')
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
-            VV = wlc_d%Vol(J)
+            !VV = wlc_d%Vol(J)
+            VV = WLC_P__DBIN**3
             if (VV.le.0.1_dp) CYCLE
             ! new ...
             PHIPoly = wlc_d%PHIA(J) + wlc_d%DPHIA(I) + wlc_d%PHIB(J) + wlc_d%DPHIB(I)

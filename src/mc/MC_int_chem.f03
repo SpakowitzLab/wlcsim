@@ -67,14 +67,8 @@ do IB = I1,I2
          do ISZ = 1,2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-            if (WLC_P__CONFINETYPE == 'none' .and.&
-                WLC_P__CONFINETYPE == 'periodicUnequal') then
-                contribution = WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-            else
-                contribution = WTOT*WLC_P__BEADVOLUME/&
-                                  wlc_d%Vol(inDBin)
-            endif
+            contribution = WTOT*WLC_P__BEADVOLUME/&
+                              (WLC_P__DBIN**3)
 
             ! Generate list of which phi's change and by how much
             I = wlc_d%NPHI

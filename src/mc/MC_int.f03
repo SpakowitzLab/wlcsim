@@ -84,11 +84,11 @@ do IB = 1,wlc_p%NT
             if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
- 
+
             select case(wlc_d%AB(IB))
             case(1)  ! A, chrystal, singally bound
                 ! Set all phi values on initialize
-                contribution =  WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + contribution
                 if(wlc_p%CHI_L2_ON) then
                     do m_index = -2,2
@@ -97,11 +97,11 @@ do IB = 1,wlc_p%NT
                 endif
             case(0) ! B
                 ! Set all phi values on initialize
-                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
             case(2)
                 ! phiA + phiB = phi_poly
                 ! phiA = n_hp1*v/Vol**3
-                contribution =  WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + 2.0_dp*contribution
                 wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) - contribution
             end select
@@ -208,19 +208,13 @@ do IB = I1,I2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
-            if (WLC_P__CONFINETYPE == 'none' .and.&
-                WLC_P__CONFINETYPE == 'periodicUnequal') then
-                contribution = WTOT*rrdr*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-            else
-                contribution = WTOT*rrdr*WLC_P__BEADVOLUME/&
-                                  wlc_d%Vol(inDBin)
-            endif
+            contribution = WTOT*WLC_P__BEADVOLUME/&
+                              (WLC_P__DBIN**3)
 
+            I = wlc_d%NPHI
             select case(wlc_d%AB(IB))
             case(1)  ! A, chrystal, singally bound
                 ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
                 do
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
@@ -290,6 +284,8 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
+            case default
+                print*, "AB state",wlc_d%AB(IB)," not defined"
             end select
          enddo
       enddo

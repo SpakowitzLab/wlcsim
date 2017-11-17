@@ -110,11 +110,8 @@ do II = 1,2
    !   makes it faster.
    if (isA) then
        do ISX = 1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
           do ISY = 1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
              do ISZ = 1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
@@ -123,7 +120,7 @@ do II = 1,2
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       wlc_d%DPHIA(wlc_d%NPHI) = temp
                       wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
                       if(wlc_p%CHI_L2_ON) then
@@ -134,7 +131,7 @@ do II = 1,2
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
@@ -152,11 +149,8 @@ do II = 1,2
        enddo
    else
        do ISX = 1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
           do ISY = 1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
              do ISZ = 1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
@@ -166,7 +160,7 @@ do II = 1,2
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                       wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
@@ -175,7 +169,7 @@ do II = 1,2
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       exit
                    else
                       I = I-1
@@ -238,11 +232,8 @@ do IB = I1,I2-1
    ! ------------------------------------------------------
    !   Add or Subtract volume fraction with weighting from each bin
    do ISX = 1,2
-      if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
       do ISY = 1,2
-         if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
          do ISZ = 1,2
-            if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
             ! Generate list of which phi's change and by how much
@@ -251,7 +242,7 @@ do IB = I1,I2-1
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
                   if(wlc_p%CHI_L2_ON) then
@@ -262,7 +253,7 @@ do IB = I1,I2-1
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                  temp = AminusB*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
                   if(wlc_p%CHI_L2_ON) then

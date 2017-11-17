@@ -110,11 +110,8 @@ do IB = I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    do ISX = 1,2
-      if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
       do ISY = 1,2
-         if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
          do ISZ = 1,2
-            if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
             ! Generate list of which phi's change and by how much
@@ -123,7 +120,7 @@ do IB = I1,I2
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
                   if(wlc_p%CHI_L2_ON) then
@@ -133,7 +130,7 @@ do IB = I1,I2
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
                   if(wlc_p%CHI_L2_ON) then

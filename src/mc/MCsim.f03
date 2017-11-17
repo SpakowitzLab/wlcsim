@@ -56,6 +56,7 @@ subroutine MCsim(wlc_p,wlc_d)
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
+    logical in_confinement
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -88,8 +89,23 @@ subroutine MCsim(wlc_p,wlc_d)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-
           call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,wlc_d%rand_stat,dib)
+
+!   Calculate the change in confinement energy
+          if ((MCTYPE /= 4).and. &
+              (MCTYPE /= 7).and. &
+              (MCTYPE /= 8).and. &
+              (MCTYPE /= 9)) then
+              !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
+              ! Completely skip move if outside confinement
+              if (in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2, wlc_p)) then
+                  wlc_d%ECon = 0.0_dp
+              else
+                  cycle
+              endif
+          else
+              wlc_d%ECon = 0.0_dp;
+          endif
 
         if (WLC_P__RING) then
            wlc_d%CrossP = wlc_d%Cross
@@ -181,7 +197,7 @@ subroutine MCsim(wlc_p,wlc_d)
              elseif (MCTYPE == 11) then ! super reptation move
                  call MC_int_super_rep(wlc_p,wlc_d,IT1,IT2,forward)
              else ! motion of chain
-                 call MC_int_update(wlc_p,wlc_d,IT1,IT2,.false.)
+                 call MC_int_update(wlc_p,wlc_d,IT1,IT2)
              endif
           else
               wlc_d%DEKap = 0.0_dp
@@ -192,16 +208,6 @@ subroutine MCsim(wlc_p,wlc_d)
           endif
           if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
               print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
-          endif
-
-!   Calculate the change in confinement energy
-          if ((MCTYPE /= 4).and. &
-              (MCTYPE /= 7).and. &
-              (MCTYPE /= 8).and. &
-              (MCTYPE /= 9)) then
-              call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
-          else
-              wlc_d%ECon = 0.0_dp;
           endif
 
 !   Change the position if appropriate
@@ -265,7 +271,9 @@ subroutine MCsim(wlc_p,wlc_d)
                    endif
                    wlc_d%PHIA(J) = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
                    wlc_d%PHIB(J) = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-                   if ((wlc_d%PHIA(J).lt.-0.0001_dp) .or. (wlc_d%PHIB(J).lt.-0.00001_dp)) then
+
+                   if ((wlc_d%PHIA(J).lt.-0.0001_dp) .or. &
+                       (wlc_d%PHIB(J).lt.-0.00001_dp .and. (.not. WLC_P__TWO_TAIL))) then
                        print*, "IT1-4",IT1,IT2,IT3,IT4
                        print*, "Vol", wlc_d%Vol(I)
                        print*, "MCTYPE", MCTYPE
