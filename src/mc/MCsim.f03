@@ -48,7 +48,6 @@ subroutine MCsim(wlc_p,wlc_d)
     real(dp) ENERGY
 ! Things for random number generator
     real urnd(1) ! single random number
-    type(random_stat) :: rand_stat
 !   Load the input parameters
     Type(wlcsim_params), intent(inout) :: wlc_p      ! system varibles
     Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
@@ -80,8 +79,20 @@ subroutine MCsim(wlc_p,wlc_d)
     do while (ISTEP <= WLC_P__STEPSPEREXCHANGE)
 
        do MCTYPE = 1,nMoveTypes
+       if (wlc_p%MOVEON(MCTYPE) == 0) cycle
        do sweepIndex = 1,wlc_p%MOVESPERSTEP(MCTYPE)
-          if (wlc_p%MOVEON(MCTYPE) == 0) cycle
+          wlc_d%ECon = 0.0_dp
+          wlc_d%eKnot=0.0_dp
+          wlc_d%DEBind = 0.0_dp
+          wlc_d%DEMu = 0.0_dp
+          wlc_d%dx_mu = 0.0_dp
+          wlc_d%DESELF=0.0_dp
+          wlc_d%DEKap = 0.0_dp
+          wlc_d%DECouple = 0.0_dp
+          wlc_d%DEChi = 0.0_dp
+          wlc_d%DEField = 0.0_dp
+          wlc_d%deMaierSaupe = 0.0_dp
+          wlc_d%DEElas=0.0_dp
 
           ! Turn down poor moves
           if ((wlc_d%PHit(MCTYPE).lt.WLC_P__MIN_ACCEPT).and. &
@@ -98,13 +109,9 @@ subroutine MCsim(wlc_p,wlc_d)
               (MCTYPE /= 9)) then
               !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
               ! Completely skip move if outside confinement
-              if (in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2, wlc_p)) then
-                  wlc_d%ECon = 0.0_dp
-              else
+              if (.not. in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2)) then
                   cycle
               endif
-          else
-              wlc_d%ECon = 0.0_dp;
           endif
 
         if (WLC_P__RING) then
@@ -120,17 +127,12 @@ subroutine MCsim(wlc_p,wlc_d)
               CALL ALEXANDERP(wlc_d%RP,WLC_P__NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
            ENDif
            if (DELTA /= 1) then
-              wlc_d%eKnot = inf
-           else
-               wlc_d%eKnot = 0.0_dp
+              cycle
            ENDif
-        else
-            wlc_d%eKnot=0.0_dp
         ENDif
 
 
 !   Calculate the change in compression and bending energy
-          wlc_d%DEElas=0.0_dp
           if ((MCTYPE /= 5) .and. &
               (MCTYPE /= 6) .and. &
               (MCTYPE /= 7) .and. &
@@ -151,10 +153,6 @@ subroutine MCsim(wlc_p,wlc_d)
               !print*, 'MCsim says EM:',EM,'EU',EU
               call MC_bind(wlc_p,IT1,IT2,wlc_d%AB,wlc_d%ABP,wlc_d%METH,&
                            wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
-          else
-              wlc_d%DEBind = 0.0
-              wlc_d%DEMu = 0.0
-              wlc_d%dx_mu = 0.0
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
               !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
@@ -176,11 +174,7 @@ subroutine MCsim(wlc_p,wlc_d)
                   PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
                   PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
                   STOP 1
-              else
-                  wlc_d%DESELF = 0.0
               ENDif
-          else
-              wlc_d%DESELF=0.0
           endif
 
 !   Calculate the change in the self-interaction energy (actually all
@@ -199,12 +193,6 @@ subroutine MCsim(wlc_p,wlc_d)
              else ! motion of chain
                  call MC_int_update(wlc_p,wlc_d,IT1,IT2)
              endif
-          else
-              wlc_d%DEKap = 0.0_dp
-              wlc_d%DECouple = 0.0_dp
-              wlc_d%DEChi = 0.0_dp
-              wlc_d%DEField = 0.0_dp
-              wlc_d%deMaierSaupe = 0.0_dp
           endif
           if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
               print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
