@@ -29,6 +29,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     if (wlc_p%FIELD_INT_ON) then
         ! initialize phi
         call MC_int_initialize(wlc_p, wlc_d)
+        phiTot=0.0_dp
         do I = 1,wlc_p%NBIN
             phiTot = phiTot + (wlc_d%PHIA(I) + wlc_d%PHIB(I))*(WLC_P__DBIN**3)
         enddo
