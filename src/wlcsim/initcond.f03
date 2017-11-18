@@ -154,7 +154,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
                 test(1) = Rold(1) + Uold(1)*GAM
                 test(2) = Rold(2) + Uold(2)*GAM
                 test(3) = Rold(3) + Uold(3)*GAM
-                search = .not. in_confinement(test, 1.0, 1.0, 1.0)
+                search = .not. in_confinement(test, 1, 1, 1)
                 if (search) then
                      call random_number(urand,rand_stat)
                      theta = urand(1)*2*PI
@@ -209,7 +209,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
                test(1) = Rold(1) + Uold(1)*GAM
                test(2) = Rold(2) + Uold(2)*GAM
                test(3) = Rold(3) + Uold(3)*GAM
-               search = .not. in_confinement(test, 1.0, 1.0, 1.0)
+               search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
                     call random_number(urand,rand_stat)
                     theta = urand(1)*2_dp*PI
@@ -238,16 +238,16 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
     ! rerandomize when reaching boundary
     ! shpere boundary
     ! radius of LBox/2 centered at LBox/2
-    Rc = LBOX(1)/2.0_dp ! use LBOX as radius
+    Rc = WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp ! use LBOX as radius
     IB = 1
     do  I = 1,NP
        call random_number(urand,rand_stat)
        theta = urand(1)*2.0_dp*PI
        z = urand(2)*2.0_dp-1.0_dp
        rr = Rc*urand(3)  ! should have an r**2 from jacobian
-       Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + Rc
-       Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + Rc
-       Rold(3) = z*rr + Rc
+       Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
+       Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
+       Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
        call random_number(urand,rand_stat)
        theta = urand(1)*2_dp*PI
        z = urand(2)*2.0_dp-1.0_dp
@@ -256,12 +256,24 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
        Uold(3) = z
        do J = 1,NB
            search = .TRUE.
+           ii=0
            do while(search)
                test(1) = Rold(1) + Uold(1)*GAM
                test(2) = Rold(2) + Uold(2)*GAM
                test(3) = Rold(3) + Uold(3)*GAM
-               search = .not. in_confinement(test, 1.0, 1.0, 1.0)
+               search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
+                    ii = ii + 1
+                    if (ii.gt.100) then
+                        print*,'stuck in loop'
+                        print*,'Rold = ',Rold(1),Rold(2),Rold(3)
+                        print*,'test = ',test(1),test(2),test(3)
+                        print*,'diameter',WLC_P__CONFINEMENT_SPHERE_DIAMETER
+                        print*,'center',WLC_P__LBOX_X/2.0_dp,&
+                                        WLC_P__LBOX_Y/2.0_dp,&
+                                        WLC_P__LBOX_Z/2.0_dp
+                        stop
+                    endif
                     call random_number(urand,rand_stat)
                     theta = urand(1)*2.0_dp*PI
                     z = urand(2)*2.0_dp-1.0_dp
@@ -291,7 +303,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomlyDistributeBeadsInSphere') then
              test(1) = urand(1)*LBox(1)
              test(2) = urand(2)*LBox(2)
              test(3) = urand(3)*LBox(3)
-             search = .not. in_confinement(test, 1.0, 1.0, 1.0)
+             search = .not. in_confinement(test, 1, 1, 1)
         enddo
         R(1,IB) = test(1)
         R(2,IB) = test(2)

@@ -42,7 +42,7 @@ pure function in_confinement(RP, NT, IT1, IT2)
     elseif (WLC_P__CONFINETYPE == 'sphere') then
         ! sphere with given diameter
         do I = IT1,IT2
-            rad = WLC_P__CONFINEMENT_SPHERE_DIAMETER/2
+            rad = (WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp)**2
             if ((RP(1,I) - center(1))**2 + (RP(2,I) - center(2))**2 + &
                 (RP(3,I) - center(3))**2 > rad) then
                 in_confinement = .False.
