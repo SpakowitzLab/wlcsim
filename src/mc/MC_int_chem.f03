@@ -30,6 +30,8 @@ integer m_index ! m from spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) AminusB ! +1 if A and -1 if B
 
+real(dp), parameter, dimension(0:3) :: number_bound_table = [0.0_dp, 1.0_dp, &
+                                                             1.0_dp, 2.0_dp]
 NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
@@ -58,14 +60,17 @@ do IB = I1,I2
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0
    endif
-   AminusB = real(wlc_d%ABP(IB)-wlc_d%AB(IB))
+
+
+   AminusB = number_bound_table(wlc_d%ABP(IB))-&
+             number_bound_table(wlc_d%AB(IB)) 
 
    do ISX = 1,2
       do ISY = 1,2
          do ISZ = 1,2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-            contribution = WTOT*WLC_P__BEADVOLUME/&
+            contribution = AminusB*WTOT*WLC_P__BEADVOLUME/&
                               (WLC_P__DBIN**3)
 
             ! Generate list of which phi's change and by how much
@@ -74,22 +79,22 @@ do IB = I1,I2
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
-                  wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
+                  wlc_d%DPHIA(wlc_d%NPHI) = contribution
+                  wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution
                   if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
-                                 AminusB*phi2(m_index)*contribution
+                                     phi2(m_index)*contribution
                       enddo
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
-                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
+                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution
+                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution
                   if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
                           wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
-                              AminusB*phi2(m_index)*contribution
+                                                     phi2(m_index)*contribution
                       enddo
                   endif
                   exit
