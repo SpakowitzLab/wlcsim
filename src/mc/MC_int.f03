@@ -85,8 +85,7 @@ do IB = 1,wlc_p%NT
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
-            select case(wlc_d%AB(IB))
-            case(1)  ! A, chrystal, singally bound
+            if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
                 contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + contribution
@@ -95,16 +94,16 @@ do IB = 1,wlc_p%NT
                         wlc_d%PHI_l2(m_index,indBin) = wlc_d%PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
                 endif
-            case(0) ! B
+            else if (wlc_d%AB(IB) == 0) then
                 ! Set all phi values on initialize
                 wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-            case(2)
+            else if (wlc_d%AB(IB) == 3) then 
                 ! phiA + phiB = phi_poly
                 ! phiA = n_hp1*v/Vol**3
                 contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + 2.0_dp*contribution
                 wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) - contribution
-            end select
+            endif
          enddo
       enddo
    enddo
@@ -212,8 +211,7 @@ do IB = I1,I2
                               (WLC_P__DBIN**3)
 
             I = wlc_d%NPHI
-            select case(wlc_d%AB(IB))
-            case(1)  ! A, chrystal, singally bound
+            if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then ! A, chrystal, singally bound
                 ! Generate list of which phi's change and by how much
                 do
                    if (I.eq.0) then
@@ -241,7 +239,7 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            case(0)
+            else if (wlc_d%AB(IB) == 0) then
                 do
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
@@ -262,7 +260,7 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            case(2)
+            else if (wlc_d%AB(IB) == 3) then
                 do
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
@@ -284,9 +282,10 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            case default
+            else
                 print*, "AB state",wlc_d%AB(IB)," not defined"
-            end select
+                stop
+            endif
          enddo
       enddo
    enddo
