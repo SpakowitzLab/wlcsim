@@ -32,7 +32,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
         do I = 1,wlc_p%NBIN
             phiTot = phiTot + (wlc_d%PHIA(I) + wlc_d%PHIB(I))*(WLC_P__DBIN**3)
         enddo
-        print*, "phiTot", phiTot," NT:",wlc_p%NT
+        print*, "N-Tot", phiTot*(WLC_P__DBIN**3)/WLC_P__BEADVOLUME," NT:",wlc_p%NT
     endif
   if (WLC_P__RING) then
      ! --- Initial Writhe

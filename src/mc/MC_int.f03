@@ -77,17 +77,21 @@ do IB = 1,wlc_p%NT
    !
    ! ------------------------------------------------------
    do ISX = 1,2
-      if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
       do ISY = 1,2
-         if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
          do ISZ = 1,2
-            if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
+            if (((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) .or.&
+                ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) .or.&
+                ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1)))) then
+                print*, "Out of Bounds!"
+                stop
+            endif
+
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
 
             if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
-                contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + contribution
                 if(wlc_p%CHI_L2_ON) then
                     do m_index = -2,2
@@ -96,11 +100,10 @@ do IB = 1,wlc_p%NT
                 endif
             else if (wlc_d%AB(IB) == 0) then
                 ! Set all phi values on initialize
-                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
+                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + contribution
             else if (wlc_d%AB(IB) == 3) then 
                 ! phiA + phiB = phi_poly
                 ! phiA = n_hp1*v/Vol**3
-                contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                 wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + 2.0_dp*contribution
                 wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) - contribution
             endif
@@ -207,7 +210,7 @@ do IB = I1,I2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
-            contribution = WTOT*WLC_P__BEADVOLUME/&
+            contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
                               (WLC_P__DBIN**3)
 
             I = wlc_d%NPHI
