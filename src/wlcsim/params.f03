@@ -262,7 +262,7 @@ contains
 
         wlc_p%L0 = WLC_P__L/real(WLC_P__NB-1.0_dp) ! -1.0 because one fewer segments then beads
         wlc_p%EPS=wlc_p%L0/(2.0_dp*WLC_P__LP)
-        
+
         ! parallel temper variables
         wlc_p%CHI      = WLC_P__CHI
         wlc_p%MU       = WLC_p__MU
@@ -608,7 +608,7 @@ contains
                 print*, "Two many beas for ring calculation"
                 stop 1
             endif
-            ! In include 
+            ! In include
             allocate(wlc_d%Cross(wlc_d%CrossSize,6))
             allocate(wlc_d%CrossP(wlc_d%CrossSize,6))
         endif
@@ -709,7 +709,7 @@ contains
             else
                 call initchem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
             endif
-            
+
             ! initialize methalation sequence
             if (WLC_P__CHEM_SEQ_FROM_FILE) then
                 iostr='input/meth'
@@ -1099,7 +1099,7 @@ contains
         close(inFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC,stat)
+    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC)
     ! Writes R and AB to file for analysis
     ! Rx  Ry  Rz AB
         implicit none
@@ -1109,10 +1109,15 @@ contains
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
-        character(len = *), intent(in) :: stat
+        LOGICAL isfile
         fullName = trim(fileName) // trim(wlc_d%repSuffix)
         fullName = trim(fullName)
-        open (unit = outFileUnit, file = fullName, status = stat)
+        inquire(file = fullName, exist = isfile)
+        if (isfile) then
+            open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
+        else
+            open (unit = outFileUnit, file = fullName, status = 'NEW')
+        endif
         IB = 1
         if (repeatingBC) then
            do I = 1,WLC_P__NP
@@ -1508,9 +1513,13 @@ contains
         endif
 
         if (WLC_P__SAVER) then
-            write(filename,num2strFormatString) save_ind
-            filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
-            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.,stat)
+            if (WLC_P__APPEND_R) then
+                filename = trim(adjustL(outfile_base)) // 'rAll'
+            else
+                write(filename,num2strFormatString) save_ind
+                filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
+            endif
+            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.)
         endif
 
         if (WLC_P__SAVEU) then
@@ -1682,7 +1691,7 @@ contains
     subroutine setup_confinement_parameters(wlc_p)
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
-        
+
         ! Quinn broke this. Sorry.
        ! if (WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
        !     if ( .not. isnan(WLC_P__LBOX_Z) ) then

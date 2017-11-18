@@ -280,16 +280,7 @@ function h_path(s) result(h)
     real(dp), intent(in) :: s
     real(dp) h
     real(dp) h_max
-    if (.false.) then
-        h_max = 10.0_dp
-        if (s.lt.0.5_dp) then
-             h = h_max*s*2.0_dp
-        else
-             h = h_max*(1.0_dp-s)*2.0_dp
-        endif
-    else
-        h = 0.0_dp
-    endif
+    h = s
 end function h_path
 function mu_path(s) result(mu)
     use params, only: dp
