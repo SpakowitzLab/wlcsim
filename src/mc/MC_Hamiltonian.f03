@@ -34,6 +34,19 @@ wlc_d%dx_maierSaupe = 0.0_dp
 if (initialize) then  ! calculate absolute energy
 
     select case(WLC_P__FIELDINTERACTIONTYPE) ! pick which keyword, case matchign string must be all uppercase
+
+    !-------------------------------------------------------
+    !
+    !   Applied aligning field for Paul
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningField')
+        VV = WLC_P__DBIN**3
+        if (wlc_p%CHI_L2_ON) then
+            do I = 1,wlc_p%NBIN
+                wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%PHI_l2(0,I)
+            enddo
+        endif
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
@@ -41,7 +54,7 @@ if (initialize) then  ! calculate absolute energy
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/(simulation units cubed)
     ! If VV=1.0 than this is just kT/(bin volume)
-    case('MaierSaupe') 
+    case('MaierSaupe')
         VV = WLC_P__DBIN**3
 
         if (wlc_p%CHI_L2_ON) then
@@ -112,18 +125,30 @@ else ! Calculate change in energy
     select case(WLC_P__FIELDINTERACTIONTYPE) ! pick which keyword, case matchign string must be all uppercase
     !-------------------------------------------------------
     !
+    !   Applied aligning field for Paul
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningField')
+        VV = WLC_P__DBIN**3
+        if (wlc_p%CHI_L2_ON) then
+            do I = 1,wlc_d%NPHI
+                wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%DPHI_l2(0,I)
+            enddo
+        endif
+    !-------------------------------------------------------
+    !
     !   Maier Saupe Melt Interaction
     !
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/binVolume
-    case('MaierSaupe') 
+    case('MaierSaupe')
         VV = WLC_P__DBIN**3
         if (wlc_p%CHI_L2_ON) then
             do I = 1,wlc_d%NPHI
                 J = wlc_d%inDPHI(I)
                 ! minus old
-                phi_A = wlc_d%PHIA(J) 
-                phi_B = wlc_d%PHIB(J) 
+                phi_A = wlc_d%PHIA(J)
+                phi_B = wlc_d%PHIB(J)
                 wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
 
 
@@ -145,8 +170,8 @@ else ! Calculate change in energy
             do I = 1,wlc_d%NPHI
                 J = wlc_d%inDPHI(I)
                 ! minus old
-                phi_A = wlc_d%PHIA(J) 
-                phi_B = wlc_d%PHIB(J) 
+                phi_A = wlc_d%PHIA(J)
+                phi_B = wlc_d%PHIB(J)
                 wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
 
                 ! plus new
