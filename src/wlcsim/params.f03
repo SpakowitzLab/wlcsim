@@ -576,8 +576,8 @@ contains
                 wlc_d%ABP = INT_MIN
             endif
             if (wlc_p%CHI_L2_ON) then
-                allocate(wlc_d%PHI_l2(-2:2,NT))
-                allocate(wlc_d%dPHI_l2(-2:2,NT))
+                allocate(wlc_d%PHI_l2(-2:2,NBin))
+                allocate(wlc_d%dPHI_l2(-2:2,NBin))
             endif
             allocate(wlc_d%PHIA(NBin))
             allocate(wlc_d%PHIB(NBin))
@@ -767,8 +767,6 @@ contains
         wlc_d%time = 0
         wlc_d%time_ind = 0
         wlc_d%mc_ind = 0
-
-
 
     end subroutine initialize_wlcsim_data
 
