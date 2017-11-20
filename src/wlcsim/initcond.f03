@@ -11,7 +11,7 @@
 !     Updated by Quinn in 2016
 !
 subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA, &
-                    rand_stat,ring, wlc_p)
+                    rand_stat, wlc_p)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
@@ -22,7 +22,6 @@ implicit none
 
 type(wlcsim_params), intent(in) :: wlc_p
 
-logical ring, is_inside_boundary
 integer NB,NP,NT           ! Number of beads
 real(dp) R(3,NT)  ! Bead positions
 real(dp) U(3,NT)  ! Tangent vectors
@@ -38,8 +37,6 @@ real(dp) PARA(10)
 
 real(dp) Uold(3) ! save previous direction
 real(dp) Rold(3) ! save previous position
-real(dp) N1(3) !random perp vector
-real(dp) N2(3) !vector perp to random vector and tangent vector
 real(dp) theta   ! random angle
 real(dp) z       ! random z position
 real(dp) rr      ! random radial position
@@ -54,7 +51,6 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 !      Random number generator initiation
 type(random_stat) rand_stat
 real urand(3)
-real nrand(3)
 logical in_confinement
 
 LBOX(1)=WLC_P__LBOX_X
@@ -317,10 +313,8 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
     do  I = 1,NP
         call random_number(urand,rand_stat)
         R0(1) = urand(1)*LBOX(1)
-        call random_number(urand,rand_stat)
-        R0(2) = urand(1)*LBOX(1)
-        call random_number(urand,rand_stat)
-        R0(3) = urand(1)*LBOX(1)
+        R0(2) = urand(2)*LBOX(1)
+        R0(3) = urand(3)*LBOX(1)
         do  J = 1,NB
              R(1,IB) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
              R(2,IB) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
@@ -458,13 +452,13 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
         init_e2e = 0
         ib = 1
         do i = 1,WLC_P__NP
-            call make_rw_fix_end2end(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, wlc_p%SIGMA, init_e2e, wlc_p, rand_stat)
+            call make_rw_fix_end2end(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, init_e2e, wlc_p, rand_stat)
             IB = IB + WLC_P__NB
         enddo
     else
         ib = 1
         do i = 1, WLC_P__NP
-            call make_rw_with_boundary(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, wlc_p%SIGMA, wlc_p, rand_stat)
+            call make_rw_with_boundary(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, wlc_p, rand_stat)
             IB = IB + WLC_P__NB
         enddo
 
@@ -491,7 +485,7 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
      enddo
 end subroutine gaus_init
 
-subroutine make_rw_fix_end2end(R, NB, sigma, e2e, wlc_p, rand_stat)
+subroutine make_rw_fix_end2end(R, NB, e2e, wlc_p, rand_stat)
     ! for a GC, we should have
     ! SIGMA = sqrt(2.0_dp*WLC_P__LP*WLC_P__L/3.0_dp/WLC_P__NB)
 
@@ -502,13 +496,13 @@ subroutine make_rw_fix_end2end(R, NB, sigma, e2e, wlc_p, rand_stat)
 
     type(wlcsim_params), intent(in) :: wlc_p
     type(random_stat) rand_stat  ! state of random number chain
-    real(dp), intent(in) :: sigma, e2e(3)
+    real(dp), intent(in) :: e2e(3)
     integer, intent(in) :: nb
     real(dp), intent(out) :: R(3,nb)
-    integer :: ib, j
+    integer :: j
     real(dp) :: actual_e2e(3)
 
-    call make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
+    call make_rw_with_boundary(R, NB, wlc_p, rand_stat)
     actual_e2e = R(:,NB) - R(:,1)
     do J = 2,NB
         R(:,J) = R(:,J) - actual_e2e*(J-1)/(NB-1)
@@ -516,7 +510,7 @@ subroutine make_rw_fix_end2end(R, NB, sigma, e2e, wlc_p, rand_stat)
     enddo
 end subroutine
 
-subroutine make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
+subroutine make_rw_with_boundary(R, NB, wlc_p, rand_stat)
     ! for a GC, we should have
     ! SIGMA = sqrt(2.0_dp*WLC_P__LP*WLC_P__L/3.0_dp/WLC_P__NB)
 
@@ -527,11 +521,9 @@ subroutine make_rw_with_boundary(R, NB, sigma, wlc_p, rand_stat)
 
     type(wlcsim_params), intent(in) :: wlc_p
     type(random_stat) rand_stat  ! state of random number chain
-    real(dp), intent(in) :: sigma
     integer, intent(in) :: nb
     real(dp), intent(out) :: R(3,nb)
-    integer :: ib, i, j
-    real(dp) :: actual_e2e(3)
+    integer :: ib, j
     real nrand(3)
     logical in_confinement, is_inside_boundary
 

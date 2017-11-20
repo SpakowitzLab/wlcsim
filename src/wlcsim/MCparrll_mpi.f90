@@ -105,7 +105,6 @@ use mpi
     integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
-    integer i  ! working intiger
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
     integer (kind = 4) nThreads
@@ -120,7 +119,6 @@ use mpi
     real(dp) chi_l2_old
     real(dp) x(nTerms)
     real(dp) test(5)
-    logical isfile
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     if (nThreads.lt.3) return

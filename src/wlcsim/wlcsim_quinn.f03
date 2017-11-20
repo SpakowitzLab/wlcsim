@@ -9,7 +9,6 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
     integer, intent(in) :: save_ind ! 1, 2, ...
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
-    integer (kind = 4) error
 
     ! to minimize code rewriting, we use our old name for save_ind internally
     wlc_d%mc_ind = save_ind
@@ -48,19 +47,12 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer, intent(in) :: process ! number of therads
     integer ( kind = 4 ) dest   !destination id for messages
     integer ( kind = 4 ) source  !source id for messages
-    integer ( kind = 4 ) id     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
 
     !   variable for random number generator seeding
-    type(random_stat) rand_stat  ! state of random number chain
-    integer Irand     ! Seed
-    character(8) datedum  ! trash
-    character(10) timedum ! trash
-    character(5) zonedum  ! trash
-    integer seedvalues(8) ! clock readings
     real urand(1)
 
 !   for head node use only variables
@@ -190,7 +182,7 @@ subroutine head_node(wlc_p, wlc_d,process)
                 energy = energy-(xMtrx(rep + 1,term)-xMtrx(rep,term))*&
                               (cofMtrx(rep + 1,term)-cofMtrx(rep,term))
             enddo
-            call random_number(urand,rand_stat)
+            call random_number(urand,wlc_d%rand_stat)
             if (exp(-1.0_dp*energy).gt.urand(1)) then
                 if (WLC_P__PTON) then
                     temp = nodeNumber(rep)
@@ -279,7 +271,6 @@ function h_path(s) result(h)
     implicit none
     real(dp), intent(in) :: s
     real(dp) h
-    real(dp) h_max
     h = s
 end function h_path
 function mu_path(s) result(mu)
@@ -319,10 +310,8 @@ subroutine worker_node(wlc_p, wlc_d)
     implicit none
     integer ( kind = 4 ), save :: id = -1     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
-    integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
-    type(random_stat) rand_stat  ! state of random number chain
     integer i
     logical system_has_been_changed
     real :: start, finish
@@ -339,9 +328,6 @@ subroutine worker_node(wlc_p, wlc_d)
 
     call schedule(wlc_p, wlc_d,system_has_been_changed)
 
-    if (wlc_p%SIMTYPE == 1 .or. wlc_p%SIMTYPE == 2) then
-        call endendBounds(wlc_p, wlc_d)
-    endif
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%eelas = wlc_d%deelas
@@ -399,45 +385,6 @@ subroutine worker_node(wlc_p, wlc_d)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine worker_node
-subroutine endendBounds(wlc_p, wlc_d)
-    use params
-    implicit none
-    type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
-    integer i,j,jj
-    real(dp) REE
-    real(dp) dl
-    do i = 1,WLC_P__NP
-        REE=0.0_dp
-        do j = 1,3
-            REE=REE+(wlc_d%R(j,(i-1)*WLC_P__NB+1) - wlc_d%R(j,i*WLC_P__NB))**2
-        enddo
-        REE=sqrt(REE)
-        if (REE > 1.6_dp*WLC_P__L) then
-            !do j=(i-2)*WLC_P__NB+1,(i-1)*WLC_P__NB
-            !    dl=0.0
-            !    do jj =1,3
-            !        dl = dl + (wlc_d%R(jj,j) - wlc_d%R(jj,j+1)  )**2
-            !    enddo
-            !    print*, wlc_d%id, wlc_d%R(:,j), sqrt(dl)
-            !enddo
-            !do j=(i-1)*WLC_P__NB+1,i*WLC_P__NB
-            !    dl=0.0
-            !    do jj =1,3
-            !        dl = dl + (wlc_d%R(jj,j) - wlc_d%R(jj,j+1)  )**2
-            !    enddo
-            !    print*, wlc_d%id, wlc_d%R(:,j), sqrt(dl), j
-            !enddo
-            !print*, "REE",REE
-            !print*, "l0", wlc_p%L0
-            !print*, "Epar", wlc_p%EPAR
-            !print*, "EELAS",wlc_d%EElas
-            !print*, "Chain ",i
-            write(ERROR_UNIT,*) "Error: Chain Exceeds max l (nearly) inextensible chain"
-            call stop_if_err(1,"Error: Chain Exceeds max l (nearly) inextensible chain")
-        endif
-    enddo
-end subroutine
 #endif
 
 subroutine onlyNode(wlc_p, wlc_d)

@@ -14,11 +14,10 @@
 !    3         |  Circle of radius LBox, centered at LBox/2
 !    4         |  Periodic, non-equal lengths
 
-subroutine MC_confine(RP, NT, IT1, IT2, ECon, wlc_p)
+subroutine MC_confine(RP, NT, IT1, IT2, ECon)
 use params, only: dp, HUGE_ENERGY, wlcsim_params
 implicit none
 
-type(wlcsim_params), intent(in) :: wlc_p
 integer NT     ! Total number of beads in simulation
 real(dp) RP(3,NT)  ! Bead positions
 integer IT1    ! Start test bead

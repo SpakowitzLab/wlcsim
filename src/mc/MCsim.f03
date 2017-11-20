@@ -82,7 +82,6 @@ subroutine MCsim(wlc_p,wlc_d)
        if (wlc_p%MOVEON(MCTYPE) == 0) cycle
        do sweepIndex = 1,wlc_p%MOVESPERSTEP(MCTYPE)
           wlc_d%ECon = 0.0_dp
-          wlc_d%eKnot=0.0_dp
           wlc_d%DEBind = 0.0_dp
           wlc_d%DEMu = 0.0_dp
           wlc_d%dx_mu = 0.0_dp
@@ -107,7 +106,7 @@ subroutine MCsim(wlc_p,wlc_d)
               (MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
               (MCTYPE /= 9)) then
-              !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon,wlc_p)
+              !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon)
               ! Completely skip move if outside confinement
               if (.not. in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2)) then
                   cycle
@@ -203,7 +202,7 @@ subroutine MCsim(wlc_p,wlc_d)
                  + wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind &
                  + wlc_d%deMu &
                  + wlc_d%ECon + wlc_d%DEField &
-                 +wlc_d%eKnot + wlc_d%deMaierSaupe
+                 + wlc_d%deMaierSaupe
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_d%rand_stat)
           TEST = urnd(1)
@@ -326,7 +325,7 @@ subroutine MCsim(wlc_p,wlc_d)
 
              ! move each chain back if drifted though repeated BC
              if (WLC_P__RECENTER_ON) then
-                 call wlcsim_params_recenter(wlc_p,wlc_d)  ! You don't need to do this if there is confinement
+                 call wlcsim_params_recenter(wlc_d)  ! You don't need to do this if there is confinement
             endif
           endif
        enddo ! End of movetype loop

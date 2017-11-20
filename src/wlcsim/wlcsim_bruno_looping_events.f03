@@ -106,7 +106,7 @@ if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
 endif
 
 print*, '________________________________________'
-call printSimInfo(save_ind, wlc_p, wlc_d)
+call printSimInfo(save_ind, wlc_d)
 call printEnergies(wlc_d)
 
 end subroutine wlcsim_bruno_looping_events

@@ -15,7 +15,7 @@ program main
 
     ! structs that will hold simulation params and state
     use params, only: wlcsim_params, wlcsim_data, &
-        MAXFILENAMELEN, save_simulation_state, get_input_from_file, &
+        MAXFILENAMELEN, save_simulation_state, set_parameters, &
         initialize_wlcsim_data, save_parameters, setup_runtime_floats, &
         printDescription, printWindowStats
 
@@ -58,7 +58,7 @@ program main
 
     call setup_runtime_floats()
 
-    call get_input_from_file(infile, wlc_d, wlc_p)
+    call set_parameters(wlc_d, wlc_p)
 
     call initialize_wlcsim_data(wlc_d, wlc_p)
 

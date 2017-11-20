@@ -66,7 +66,7 @@ module params
     !real(dp) :: inf = ieee_value(inf, ieee_positive_inf)
     real(dp) :: max_wlc_l0 = 0.01
     real(dp) :: max_sswlc_delta = 10.0
-    integer, parameter :: INT_MIN = -HUGE(nMoveTypes)-1
+    integer, parameter :: INT_MIN = -HUGE(nMoveTypes)
 
     ! for all parameters that cannot change during individual simulations
     ! these are documented more thoroughly where they are read in (see the
@@ -396,7 +396,6 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         logical err
-        integer (kind = 4) mpi_err
 
         if (WLC_P__ASYMMETRICALTERNATINGCHEM .and. WLC_P__CHANGINGCHEMICALIDENTITY) then
             print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
@@ -499,25 +498,20 @@ contains
     end subroutine
 
 
-    subroutine get_input_from_file(infile, wlc_d, wlc_p)
+    subroutine set_parameters(wlc_d, wlc_p)
         ! Based on Elena's readkeys subroutine
         implicit none
         type(wlcsim_params), intent(out) :: wlc_p
         type(wlcsim_data), intent(out) :: wlc_d
-        character(MAXFILENAMELEN), intent(in) :: infile  ! file with parameters
 
         ! baseline defaults
         call set_param_defaults(wlc_p)
-
-        ! call read_input_file(infile, wlc_p)
 
         ! advanced defaults that require some inputs to specify
         call tweak_param_defaults(wlc_p, wlc_d)
 
         ! get derived parameters that aren't directly input from file
         call get_renormalized_chain_params(wlc_p)
-
-        call setup_confinement_parameters(wlc_p)
 
         !If parallel tempering is on, read the Lks
         if (WLC_P__PT_TWIST) then
@@ -697,15 +691,15 @@ contains
 #endif
         call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, &
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
-            wlc_d%rand_stat, WLC_P__RING, wlc_p)
+            wlc_d%rand_stat, wlc_p)
 
         if (wlc_p%FIELD_INT_ON) then
             ! initialize a/b sequence
             if (WLC_P__CHEM_STATE_FROM_FILE) then
                 iostr='input/ab'
-                call MCvar_loadAB(wlc_p,wlc_d,iostr)
+                call MCvar_loadAB(wlc_d,iostr)
             elseif (WLC_P__ASYMMETRICALTERNATINGCHEM) then
-                call alternChem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
+                call alternChem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, wlc_d%rand_stat)
             else
                 call initchem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
             endif
@@ -713,7 +707,7 @@ contains
             ! initialize methalation sequence
             if (WLC_P__CHEM_SEQ_FROM_FILE) then
                 iostr='input/meth'
-                call wlcsim_params_loadMeth(wlc_p,wlc_d,iostr)
+                call wlcsim_params_loadMeth(wlc_d,iostr)
             endif
 
             ! calculate volumes of bins
@@ -918,10 +912,9 @@ contains
 
     end subroutine
 
-    subroutine wlcsim_params_recenter(wlc_p,wlc_d)
+    subroutine wlcsim_params_recenter(wlc_d)
     !  Prevents drift in periodic BC
         implicit none
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         integer IB, I, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
@@ -941,10 +934,9 @@ contains
         enddo
     end subroutine
 
-    subroutine printSimInfo(i, wlc_p, wlc_d)
+    subroutine printSimInfo(i, wlc_d)
     ! print out current simulation metainformation
         implicit none
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(in) :: wlc_d
         integer, intent(in) :: i
         print*, 'Current time ', wlc_d%time
@@ -1064,10 +1056,9 @@ contains
         return
     end subroutine
 
-    subroutine wlcsim_params_loadAB(wlc_p,wlc_d,fileName)
+    subroutine wlcsim_params_loadAB(wlc_d,fileName)
     ! Loads AB for file...has not been tested
         implicit none
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
         integer IB, I, J ! counters
@@ -1081,10 +1072,9 @@ contains
         enddo
         close(inFileUnit)
     end subroutine
-    subroutine wlcsim_params_loadMeth(wlc_p,wlc_d,fileName)
+    subroutine wlcsim_params_loadMeth(wlc_d,fileName)
     ! Loads Methalation for file...has not been tested
         implicit none
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(inout) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
         integer IB, I, J ! counters
@@ -1099,13 +1089,12 @@ contains
         close(inFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveR(wlc_p,wlc_d,fileName,repeatingBC)
+    subroutine wlcsim_params_saveR(wlc_d,fileName,repeatingBC)
     ! Writes R and AB to file for analysis
     ! Rx  Ry  Rz AB
         implicit none
         logical, intent(in) :: repeatingBC  ! 1 for reapeating boundary conditions
         integer I,J,IB  ! counters
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
@@ -1182,11 +1171,10 @@ contains
         close(outFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_saveU(wlc_p,wlc_d,fileName,stat)
+    subroutine wlcsim_params_saveU(wlc_d,fileName,stat)
     ! Saves U to ASCII file for analisys
         implicit none
         integer I,J,IB  ! counters
-        type(wlcsim_params), intent(in) :: wlc_p
         type(wlcsim_data), intent(in) :: wlc_d
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
@@ -1519,13 +1507,13 @@ contains
                 write(filename,num2strFormatString) save_ind
                 filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
             endif
-            call wlcsim_params_saveR(wlc_p,wlc_d,filename,.false.)
+            call wlcsim_params_saveR(wlc_d,filename,.false.)
         endif
 
         if (WLC_P__SAVEU) then
             write(filename,num2strFormatString) save_ind
             filename = trim(adjustL(outfile_base)) // 'u' // trim(adjustL(filename))
-            call wlcsim_params_saveU(wlc_p,wlc_d,filename,stat)
+            call wlcsim_params_saveU(wlc_d,filename,stat)
         endif
 
         if (WLC_P__COLLISIONDETECTIONTYPE /= 0) then
@@ -1687,37 +1675,5 @@ contains
 
         return
     end subroutine get_renormalized_chain_params
-
-    subroutine setup_confinement_parameters(wlc_p)
-        implicit none
-        type(wlcsim_params), intent(inout) :: wlc_p
-
-        ! Quinn broke this. Sorry.
-       ! if (WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
-       !     if ( .not. isnan(WLC_P__LBOX_Z) ) then
-       !         print *, "WARNING: Overwriting lbox(3) value passed to match plate boundary."
-       !     end if
-       !     WLC_P__LBOX_Z = WLC_P__CONFINEMENT_SLIT_WIDTH
-       ! elseif (WLC_P__CONFINETYPE == 'cube') then
-       !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
-       !         print *, "WARNING: Overwriting lbox value passed to match cube boundary."
-       !     end if
-       !     wlc_p%LBOX = WLC_P__CONFINEMENT_CUBE_LENGTH
-       ! elseif (WLC_P__CONFINETYPE == 'sphere') then
-       !     if (.not. (isnan(WLC_P__LBOX_X) .or. isnan(WLC_P__LBOX_Y) .or. isnan(WLC_P__LBOX_Z))) then
-       !         print *, "WARNING: Overwriting lbox(:) values passed to match sphere diameter."
-       !     end if
-       !     wlc_p%LBOX = WLC_P__CONFINEMENT_SPHERE_DIAMETER
-       ! elseif (WLC_P__CONFINETYPE == 'ecoli') then
-       !     if (.not. all(isnan(wlc_p%LBOX))) then
-       !         print *, "WARNING: Overwriting lbox(:) values passed to match cell size."
-       !     end if
-       !     WLC_P__LBOX_X = WLC_P__CONFINEMENT_ECOLI_LENGTH
-       !     WLC_P__LBOX_Y = WLC_P__CONFINEMENT_ECOLI_DIAMETER
-       !     WLC_P__LBOX_Z = WLC_P__CONFINEMENT_ECOLI_DIAMETER
-       ! endif
-    end subroutine setup_confinement_parameters
-
-
 
 end module params

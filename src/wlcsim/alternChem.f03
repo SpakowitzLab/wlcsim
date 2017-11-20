@@ -4,7 +4,7 @@
 !   Quinn updated on 5/22/16 to use thread safe randum number generator
 !
 
-subroutine alternChem(AB,NT,N,G,NP,FA,LAM,rand_stat)
+subroutine alternChem(AB,NT,N,G,NP,FA,rand_stat)
 
 !  use mt19937, only : grnd, init_genrand, rnorm, mt, mti
     use mersenne_twister
@@ -15,7 +15,6 @@ subroutine alternChem(AB,NT,N,G,NP,FA,LAM,rand_stat)
   integer, intent(in) :: N           ! Number of monomers per polymer
   integer, intent(in) :: G           ! Number of beads per monomer
   integer, intent(in) :: NP          ! Number of polymer chains
-  real(dp), intent(in) :: LAM !Currently unused
 
   integer I,J,K,IB
   real TEST(1)   ! changed to real by Quinn
