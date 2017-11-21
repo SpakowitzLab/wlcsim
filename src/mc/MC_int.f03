@@ -60,7 +60,7 @@ do IB = 1,wlc_p%NT
        call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
+       phi2=0.0_dp
    endif
 
 
@@ -201,20 +201,18 @@ do IB = I1,I2
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
+       phi2=0.0_dp
    endif
 
-   do ISX = 1,2
-      do ISY = 1,2
-         do ISZ = 1,2
-            WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-
-            contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                              (WLC_P__DBIN**3)
-
-            I = wlc_d%NPHI
-            if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then ! A, chrystal, singally bound
+   if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then ! A, chrystal, singally bound
+       do ISX = 1,2
+          do ISY = 1,2
+             do ISZ = 1,2
+                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
+                                  (WLC_P__DBIN**3)
+                I = wlc_d%NPHI
                 ! Generate list of which phi's change and by how much
                 do
                    if (I.eq.0) then
@@ -242,7 +240,18 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            else if (wlc_d%AB(IB) == 0) then
+             enddo
+          enddo
+       enddo
+   else if (wlc_d%AB(IB) == 0) then
+       do ISX = 1,2
+          do ISY = 1,2
+             do ISZ = 1,2
+                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
+                                  (WLC_P__DBIN**3)
+                I = wlc_d%NPHI
                 do
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
@@ -251,7 +260,7 @@ do IB = I1,I2
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
                           enddo
                       endif
                       wlc_d%DPHIB(wlc_d%NPHI) = contribution
@@ -263,7 +272,18 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            else if (wlc_d%AB(IB) == 3) then
+             enddo
+          enddo
+       enddo
+   else if (wlc_d%AB(IB) == 3) then
+       do ISX = 1,2
+          do ISY = 1,2
+             do ISZ = 1,2
+                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
+                                  (WLC_P__DBIN**3)
+                I = wlc_d%NPHI
                 do
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
@@ -272,7 +292,7 @@ do IB = I1,I2
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
                           enddo
                       endif
                       wlc_d%DPHIB(wlc_d%NPHI) = -1.0_dp*contribution
@@ -285,13 +305,13 @@ do IB = I1,I2
                       I = I-1
                    endif
                 enddo
-            else
-                print*, "AB state",wlc_d%AB(IB)," not defined"
-                stop
-            endif
-         enddo
-      enddo
-   enddo
+             enddo
+          enddo
+       enddo
+   else
+       print*, "AB state",wlc_d%AB(IB)," not defined"
+       stop
+   endif
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
 ! ---------------------------------------------------------------------
