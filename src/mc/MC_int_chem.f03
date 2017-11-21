@@ -58,7 +58,7 @@ do IB = I1,I2
        call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
+       phi2=0.0_dp
    endif
 
 

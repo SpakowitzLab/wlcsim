@@ -51,7 +51,7 @@ module params
 
     !!!     universal constants
     ! fully accurate, adaptive precision
-    real(dp), parameter :: pi = 4 * atan(1.0_dp)
+    real(dp), parameter :: pi = 4.0_dp * atan(1.0_dp)
     real(dp) :: nan
     ! ! won't get optimized away by compiler, see e.g.
     ! ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680
@@ -64,8 +64,8 @@ module params
     ! real(dp) :: inf = -log(one - one)
     ! the following would be preferred, but generated compilation errors...
     !real(dp) :: inf = ieee_value(inf, ieee_positive_inf)
-    real(dp) :: max_wlc_l0 = 0.01
-    real(dp) :: max_sswlc_delta = 10.0
+    real(dp) :: max_wlc_l0 = 0.01_dp
+    real(dp) :: max_sswlc_delta = 10.0_dp
     integer, parameter :: INT_MIN = -HUGE(nMoveTypes)
 
     ! for all parameters that cannot change during individual simulations
@@ -191,7 +191,6 @@ module params
         real(dp) eMu      ! Chemical potential energy
         real(dp) eField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
-        real(dp) eKnot    ! 0-inf potential for if chain crossed itself
         real(dp) eMaierSaupe ! Maier Saupe energy
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
@@ -731,32 +730,26 @@ contains
         !  Set all energies to zero in case they aren't set later
         !
         !--------------------------------------
-        wlc_d%eElas       = 0.0 ! Elastic force
-        wlc_d%eChi        = 0.0 ! CHI energy
-        wlc_d%eKap        = 0.0 ! KAP energy
-        wlc_d%eCouple     = 0.0 ! Coupling
-        wlc_d%eBind       = 0.0 ! binding energy
-        wlc_d%eMu         = 0.0 ! chemical potential energy
-        wlc_d%eField      = 0.0 ! Field energy
-        wlc_d%eSelf       = 0.0 ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
-        wlc_d%eKnot       = 0.0 ! 0-inf potential for if chain crossed itself
-        wlc_d%eMaierSaupe = 0.0 ! Maier Saupe energy
-        wlc_d%DEELAS      = 0.0 ! Change in bending energy
-        wlc_d%DECouple    = 0.0 ! Coupling energy
-        wlc_d%DEChi       = 0.0 ! chi interaction energy
-        wlc_d%DEKap       = 0.0 ! compression energy
-        wlc_d%Debind      = 0.0 ! Change in binding energy
-        wlc_d%DeMu        = 0.0 ! Change in chemcial potential energy
-        wlc_d%DEField     = 0.0 ! Change in field energy
-        wlc_d%DESelf      = 0.0 ! change in self interaction energy
-        wlc_d%ECon        = 0.0 ! Confinement Energy
-        wlc_d%deMaierSaupe= 0.0 ! change in Maier Saupe energy
+        wlc_d%eElas       = 0.0_dp ! Elastic force
+        wlc_d%eChi        = 0.0_dp ! CHI energy
+        wlc_d%eKap        = 0.0_dp ! KAP energy
+        wlc_d%eCouple     = 0.0_dp ! Coupling
+        wlc_d%eBind       = 0.0_dp ! binding energy
+        wlc_d%eMu         = 0.0_dp ! chemical potential energy
+        wlc_d%eField      = 0.0_dp ! Field energy
+        wlc_d%eSelf       = 0.0_dp ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
+        wlc_d%eMaierSaupe = 0.0_dp ! Maier Saupe energy
+        wlc_d%DEELAS      = 0.0_dp ! Change in bending energy
+        wlc_d%DECouple    = 0.0_dp ! Coupling energy
+        wlc_d%DEChi       = 0.0_dp ! chi interaction energy
+        wlc_d%DEKap       = 0.0_dp ! compression energy
+        wlc_d%Debind      = 0.0_dp ! Change in binding energy
+        wlc_d%DeMu        = 0.0_dp ! Change in chemcial potential energy
+        wlc_d%DEField     = 0.0_dp ! Change in field energy
+        wlc_d%DESelf      = 0.0_dp ! change in self interaction energy
+        wlc_d%ECon        = 0.0_dp ! Confinement Energy
+        wlc_d%deMaierSaupe= 0.0_dp ! change in Maier Saupe energy
         wlc_d%NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
-        if(WLC_P__RING) then
-            wlc_d%eKnot   =1.0
-        else
-            wlc_d%eKnot = 0.0
-        endif
 
         wlc_d%time = 0
         wlc_d%time_ind = 0
@@ -867,10 +860,10 @@ contains
             print*, "Turning off movetype 9, chain exchange, because <2 polymers"
         endif
 
-        if (wlc_p%MINWINDOW(1).ne.wlc_p%MINWINDOW(1)) wlc_p%MINWINDOW(1) = dble(min(10,WLC_P__NB))
-        if (wlc_p%MINWINDOW(2).ne.wlc_p%MINWINDOW(2)) wlc_p%MINWINDOW(2) = dble(min(10,WLC_P__NB))
-        if (wlc_p%MINWINDOW(3).ne.wlc_p%MINWINDOW(3)) wlc_p%MINWINDOW(3) = dble(min(10,WLC_P__NB))
-        if (wlc_p%MINWINDOW(7).ne.wlc_p%MINWINDOW(7)) wlc_p%MINWINDOW(7) = dble(min(10,WLC_P__NB))
+        if (isnan(wlc_p%MINWINDOW(1))) wlc_p%MINWINDOW(1) = dble(min(10,WLC_P__NB))
+        if (isnan(wlc_p%MINWINDOW(2))) wlc_p%MINWINDOW(2) = dble(min(10,WLC_P__NB))
+        if (isnan(wlc_p%MINWINDOW(3))) wlc_p%MINWINDOW(3) = dble(min(10,WLC_P__NB))
+        if (isnan(wlc_p%MINWINDOW(7))) wlc_p%MINWINDOW(7) = dble(min(10,WLC_P__NB))
 
         ! Solution
         !WLC_P__LBOX_X = wlc_p%NBINX(1)*WLC_P__DBIN
@@ -881,7 +874,7 @@ contains
         if (WLC_P__CODENAME == 'brad') then
             ! initialize windows to number of beads
             wlc_p%MAXWINDOW = WLC_P__NB         ! Max Size of window for bead selection
-            wlc_p% MinWindoW  = 1         ! Min Size of window for bead selection
+            wlc_p% MinWindoW  = 1.0_dp         ! Min Size of window for bead selection
 
             ! Window amplitudes
             wlc_p%MINAMP = 0.0_dp ! minium amplitude
@@ -920,9 +913,9 @@ contains
         real(dp) R0(3)  ! Offset to move by
         do I = 1,WLC_P__NP
             IB=WLC_P__NB * (I-1) + 1
-            R0(1) = nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X
-            R0(2) = nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y
-            R0(3) = nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z
+            R0(1) = floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X
+            R0(2) = floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
+            R0(3) = floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
             if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
                 do J = 1,WLC_P__NB
                     wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
@@ -967,7 +960,7 @@ contains
         integer i
         real(dp), intent(out) :: totalVpoly
         real(dp) VV
-        totalVpoly=0.0
+        totalVpoly=0.0_dp
         do I = 1,wlc_p%NBIN
             VV = wlc_d%Vol(I)
             !if (VV.le.0.1_dp) cycle
@@ -1113,15 +1106,15 @@ contains
               do J = 1,WLC_P__NB
                  if (WLC_P__SAVEAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X, &
-                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y, &
-                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z, &
+                         wlc_d%R(1,IB)-floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X, &
+                         wlc_d%R(2,IB)-floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y, &
+                         wlc_d%R(3,IB)-floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z, &
                          wlc_d%AB(IB)
                  else
                     write(outFileUnit,"(3f10.3)") &
-                         wlc_d%R(1,IB)-0.*nint(wlc_d%R(1,IB)/WLC_P__LBOX_X-0.5_dp)*WLC_P__LBOX_X, &
-                         wlc_d%R(2,IB)-0.*nint(wlc_d%R(2,IB)/WLC_P__LBOX_Y-0.5_dp)*WLC_P__LBOX_Y, &
-                         wlc_d%R(3,IB)-0.*nint(wlc_d%R(3,IB)/WLC_P__LBOX_Z-0.5_dp)*WLC_P__LBOX_Z
+                         wlc_d%R(1,IB)-floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X, &
+                         wlc_d%R(2,IB)-floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y, &
+                         wlc_d%R(3,IB)-floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
                  endif
                  IB = IB + 1
               enddo
@@ -1588,7 +1581,7 @@ contains
             wlc_p%DEL = WLC_P__L/WLC_P__LP/(WLC_P__NB-1.0_dp)
         ENDif
         ! std dev of interbead distribution of nearest possible GC, used to initialize sometimes
-        wlc_p%SIGMA = sqrt(2.0_dp*WLC_P__LP*WLC_P__L/3.0_dp)/(WLC_P__NB - 1)
+        wlc_p%SIGMA = sqrt(2.0_dp*WLC_P__LP*WLC_P__L/3.0_dp)/real(WLC_P__NB - 1)
 
     !     Load the tabulated parameters
 

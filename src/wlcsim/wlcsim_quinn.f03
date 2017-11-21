@@ -119,9 +119,9 @@ subroutine head_node(wlc_p, wlc_d,process)
         else
             cofMtrx(rep,5) = wlc_p%KAP
         endif
-        cofMtrx(rep,6) = 0
-        cofMtrx(rep,7) = 0
-        cofMtrx(rep,8) = 0
+        cofMtrx(rep,6) = 0.0_dp
+        cofMtrx(rep,7) = 0.0_dp
+        cofMtrx(rep,8) = 0.0_dp
         if (WLC_P__PT_MAIERSAUPE) then
             cofMtrx(rep,9) = maierSaupe_path(s_vals(rep))
         else

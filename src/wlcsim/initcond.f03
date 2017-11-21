@@ -16,7 +16,6 @@ subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA, &
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params
-use inputparams, only: MAXPARAMLEN
 
 implicit none
 
@@ -110,9 +109,9 @@ else if (WLC_P__INITCONDTYPE.eq.'lineInY') then
           R(1,IB) = R0(1)
           R(2,IB) = R0(2) + GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
           R(3,IB) = R0(3)
-          U(1,IB) = 0.
-          U(2,IB) = 1.
-          U(3,IB) = 0.
+          U(1,IB) = 0.0_dp
+          U(2,IB) = 1.0_dp
+          U(3,IB) = 0.0_dp
           IB = IB + 1
 
        enddo
@@ -131,7 +130,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
         Rold(3) = urand(3)*LBOX(3)
         call random_number(urand,rand_stat)
         theta = urand(1)*2*PI
-        z = urand(2)*2-1
+        z = urand(2)*2.0_dp-1.0_dp
         Uold(1) = sqrt(1-z*z)*cos(theta)
         Uold(2) = sqrt(1-z*z)*sin(theta)
         Uold(3) = z
@@ -154,7 +153,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
                 if (search) then
                      call random_number(urand,rand_stat)
                      theta = urand(1)*2*PI
-                     z = urand(2)*2-1
+                     z = urand(2)*2.0_dp-1.0_dp
                      Uold(1) = sqrt(1-z*z)*cos(theta)
                      Uold(2) = sqrt(1-z*z)*sin(theta)
                      Uold(3) = z
@@ -186,7 +185,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
        Rold(3) = urand(3)*LBOX(3)
        call random_number(urand,rand_stat)
        theta = urand(1)*2*PI
-       z = urand(2)*2-1
+       z = urand(2)*2.0_dp-1.0_dp
        Uold(1) = sqrt(1-z*z)*cos(theta)
        Uold(2) = sqrt(1-z*z)*sin(theta)
        Uold(3) = z
@@ -357,9 +356,9 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
          call random_number(urand,rand_stat)
          theta = urand(1)*2.0_dp*pi
          z = (1.0_dp/EPS)*log(2.0_dp*sinh(EPS)*urand(2)+exp(-EPS))
-         N1(1) = 0
-         N1(2) = 0
-         N1(3) = 1
+         N1(1) = 0.0_dp
+         N1(2) = 0.0_dp
+         N1(3) = 1.0_dp
          N1(1) = N1(1)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(1,J-1)
          N1(2) = N1(2)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(2,J-1)
          N1(3) = N1(3)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(3,J-1)
@@ -449,7 +448,7 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
     ! init_e2e makes easy to add fixed distances between specific beads in future
     call random_number(urand,rand_stat)
     if (WLC_P__RING) then
-        init_e2e = 0
+        init_e2e = 0.0_dp
         ib = 1
         do i = 1,WLC_P__NP
             call make_rw_fix_end2end(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, init_e2e, wlc_p, rand_stat)

@@ -98,7 +98,7 @@ subroutine replicaExchange(wlc_p, wlc_d)
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
 ! 3: Recive assigned cof value
-use params, only : wlcsim_params, wlcsim_data, eps, dp, MAXFILENAMELEN, epsApprox
+use params, only : wlcsim_params, wlcsim_data, dp, MAXFILENAMELEN, epsApprox
 use mpi
     implicit none
     integer, parameter :: nTerms = 9  ! number of energy terms
