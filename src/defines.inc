@@ -544,8 +544,6 @@
 ! DEFAULTS COMMENT: ! You should set this variable if you intend to use it
 ! TYPE: REAL(DP)
 
-WLD_P__VARIABLE_CHEM_STATE
-
 ! --------------------------
 !
 !   Available MC Moves

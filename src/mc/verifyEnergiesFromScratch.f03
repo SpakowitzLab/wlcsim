@@ -14,7 +14,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     type(wlcsim_data), intent(inout) :: wlc_d
     integer Delta !transh
 
-    if (WLD_P__VARIABLE_CHEM_STATE.and.WLC_P__CHANGINGCHEMICALIDENTITY) then
+    if (WLC_P__VARIABLE_CHEM_STATE.and.WLC_P__CHANGINGCHEMICALIDENTITY) then
         wlc_d%ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = wlc_p%NT

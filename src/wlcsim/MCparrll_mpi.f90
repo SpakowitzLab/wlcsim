@@ -42,7 +42,7 @@ use mpi
     !----------------------------------------------
     if (wlc_d%id.eq.1) then
         do dest = 2,nThreads-1
-            if(WLD_P__VARIABLE_CHEM_STATE) then
+            if(WLC_P__VARIABLE_CHEM_STATE) then
                 call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
             else
@@ -52,7 +52,7 @@ use mpi
         enddo
     elseif (wlc_d%id.gt.1) then
         source = 1
-        if(WLD_P__VARIABLE_CHEM_STATE) then
+        if(WLC_P__VARIABLE_CHEM_STATE) then
             call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
         else

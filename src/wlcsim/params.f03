@@ -473,7 +473,7 @@ contains
            err = WLC_P__NNOINT.gt.WLC_P__N_KAP_ON
            call stop_if_err(err, "error in mcsim. Can't have kap without int on")
 
-           err = (wlc_p%MOVEON(7) /= 0 .and. (.not. WLD_P__VARIABLE_CHEM_STATE))
+           err = (wlc_p%MOVEON(7) /= 0 .and. (.not. WLC_P__VARIABLE_CHEM_STATE))
            call stop_if_err(err,"You need bindon if you have bindmove on")
 
         endif
@@ -585,7 +585,7 @@ contains
                 wlc_d%indphi(I) = INT_MIN
             enddo
         endif
-        if (WLD_P__VARIABLE_CHEM_STATE) then
+        if (WLC_P__VARIABLE_CHEM_STATE) then
             allocate(wlc_d%METH(NT)) !Underlying methalation profile
         endif
         !Allocate vector of writhe and elastic energies for replicas
@@ -720,7 +720,7 @@ contains
             endif
         endif
 
-        if (WLD_P__VARIABLE_CHEM_STATE) then
+        if (WLC_P__VARIABLE_CHEM_STATE) then
             call initchem(wlc_d%meth, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
         endif
 

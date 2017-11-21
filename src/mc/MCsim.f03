@@ -301,7 +301,7 @@ subroutine MCsim(wlc_p,wlc_d)
               wlc_d%UP(1,I) = nan
               wlc_d%UP(2,I) = nan
               wlc_d%UP(3,I) = nan
-              if (WLD_P__VARIABLE_CHEM_STATE) then
+              if (WLC_P__VARIABLE_CHEM_STATE) then
                   wlc_d%ABP(I) = INT_MIN
               endif
           enddo
