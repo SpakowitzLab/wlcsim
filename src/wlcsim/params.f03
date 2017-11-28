@@ -704,9 +704,14 @@ contains
             endif
 
             ! initialize methalation sequence
-            if (WLC_P__CHEM_SEQ_FROM_FILE) then
-                iostr='input/meth'
-                call wlcsim_params_loadMeth(wlc_d,iostr)
+            if (WLC_P__VARIABLE_CHEM_STATE) then
+                if (WLC_P__CHEM_SEQ_FROM_FILE) then
+                    print*, "Loding input meth seq..."
+                    iostr='input/meth'
+                    call wlcsim_params_loadMeth(wlc_d,iostr)
+                else
+                    call initchem(wlc_d%meth, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
+                endif
             endif
 
             ! calculate volumes of bins
@@ -718,10 +723,6 @@ contains
                     wlc_d%Vol(I) = WLC_P__DBIN**3
                 enddo
             endif
-        endif
-
-        if (WLC_P__VARIABLE_CHEM_STATE) then
-            call initchem(wlc_d%meth, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
         endif
 
         ! initialize energies
@@ -1127,8 +1128,13 @@ contains
            do I = 1,WLC_P__NP
               do J = 1,WLC_P__NB
                   if (WLC_P__SAVEAB) then
-                     write(outFileUnit,"(3f10.3,I2)") &
-                            wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB),wlc_d%AB(IB)
+                     if (WLC_P__CHANGINGCHEMICALIDENTITY) then
+                         write(outFileUnit,"(3f10.3,2I3)") &
+                                wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB),wlc_d%AB(IB),wlc_d%METH(IB)
+                     else
+                         write(outFileUnit,"(3f10.3,I2)") &
+                                wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB),wlc_d%AB(IB)
+                     endif
                   else
                      write(outFileUnit,"(3f10.3)") &
                            wlc_d%R(1,IB),wlc_d%R(2,IB),wlc_d%R(3,IB)
