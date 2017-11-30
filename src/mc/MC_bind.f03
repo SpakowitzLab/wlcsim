@@ -27,7 +27,8 @@ real(dp), parameter :: selfInt= WLC_P__HP1_BIND* &
                                  ((WLC_P__BEADVOLUME/(WLC_P__DBIN**3))**2)
 real(dp), parameter :: EM_cor = -1.0_dp*(WLC_P__EM) - selfInt
 real(dp), parameter :: EU_cor = -1.0_dp*(WLC_P__EU) - selfInt
-real(dp), parameter :: cor2 = -2.0_dp*selfInt
+real(dp), parameter :: intr = WLC_P__COUPLING_ENERGY - 2.0_dp*selfInt ! Interaction stregth between two HP1 on same bead
+
 
 ! index(meth,bind)
 ! bind 0=0,0  1=0,1  2=1,0 3=1,1
@@ -44,7 +45,7 @@ real(dp), parameter, dimension(0:2,0:3) :: dEBind_table = &
     [0.0_dp,            0.0_dp,                 0.0_dp, &
      EU_cor,            EM_cor,                 EM_cor, &
      EU_cor,            EU_cor,                 EM_cor, &
-     2.0_dp*EU_cor+cor2, WLC_P__EU+WLC_P__EM+cor2, 2.0_dp*EM_cor+cor2] &
+     2.0_dp*EU_cor+intr, EU_cor+EM_cor+intr, 2.0_dp*EM_cor+intr] &
      ,[3,4])
 
 real(dp), parameter, dimension(0:3) :: dxMu_table = &

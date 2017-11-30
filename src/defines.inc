@@ -285,6 +285,9 @@
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
+#define WLC_P__BINDING_R 0.0_DP
+! VARIABLE COMMENT: ! Binding Radius
+! DEFAULTS COMMENT: ! No binding
 
 ! ----------------------------
 !
@@ -315,6 +318,11 @@
 #define WLC_P__HA 0.0_DP
 ! VARIABLE COMMENT: ! Applied Field
 ! DEFAULTS COMMENT: ! no applied field
+! TYPE: REAL(DP)
+
+#define WLC_P__COUPLING_ENERGY 0.0_dp
+! VARIABLE COMMENT: ! Coupling energy between beads (negative = attractive)
+! DEFAULTS COMMENT: ! no coupling energy
 ! TYPE: REAL(DP)
 
 #define WLC_P__HP1_BIND 0.0_DP
@@ -858,9 +866,9 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_FULL_CHAIN_SLIDE 0.1*wlc_p%LBOX(1)
+#define WLC_P__MAXAMP_FULL_CHAIN_SLIDE 0.1*WLC_P__L
 ! VARIABLE COMMENT: ! maximum amplitude
-! DEFAULTS COMMENT: None
+! DEFAULTS COMMENT: ! a fraction of the change length
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_CHANGE_BINDING_STATE NAN
