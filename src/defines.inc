@@ -288,6 +288,13 @@
 #define WLC_P__BINDING_R 0.0_DP
 ! VARIABLE COMMENT: ! Binding Radius
 ! DEFAULTS COMMENT: ! No binding
+! TYPE: REAL(DP)
+
+#define WLC_P__CHAIN_D 0.0_DP
+! VARIABLE COMMENT: Diameter of chain for exclusion
+! DEFAULTS COMMENT: Set to zero for no exclusion
+! TYPE: REAL(DP)
+
 
 ! ----------------------------
 !
@@ -1020,4 +1027,6 @@
 ! VARIABLE COMMENT: ! distributionof segment size in crankshaft move (unif = 0, exp = 1)
 ! DEFAULTS COMMENT: ! exponential fragment sizes mix better
 ! TYPE: INTEGER
+
+
 
