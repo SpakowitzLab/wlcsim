@@ -126,6 +126,11 @@
 ! DEFAULTS COMMENT: ! Use old output format
 ! TYPE: LOGICAL
 
+#define WLC_P__NEIGHBOR_BINS .FALSE.
+! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
+! DEFAULTS COMMENT: ! Set off because expensive
+! TYPE: LOGICAL
+
 
 ! ----------------------------
 !
