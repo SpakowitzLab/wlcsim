@@ -15,7 +15,7 @@
 subroutine hamiltonian(wlc_p,wlc_d,initialize)
 use params,only: dp,wlcsim_params,wlcsim_data
 implicit none
-TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
+TYPE(wlcsim_params), intent(inout) :: wlc_p
 TYPE(wlcsim_data), intent(inout) :: wlc_d
 logical, intent(in) :: initialize ! Need to do all beads
 real(dp) PHIPoly ! fraction polymer

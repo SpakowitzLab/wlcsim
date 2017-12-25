@@ -14,6 +14,7 @@ subroutine MCsim(wlc_p,wlc_d)
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
     use params
+    use binning, only: addBead, removeBead
 
     implicit none
 
@@ -56,6 +57,7 @@ subroutine MCsim(wlc_p,wlc_d)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
     logical in_confinement
+    logical collide
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -99,7 +101,8 @@ subroutine MCsim(wlc_p,wlc_d)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,wlc_d%rand_stat,dib)
+          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,&
+                       MCTYPE,forward,wlc_d%rand_stat,dib)
 
 !   Calculate the change in confinement energy
           if ((MCTYPE /= 4).and. &
@@ -111,6 +114,14 @@ subroutine MCsim(wlc_p,wlc_d)
               if (.not. in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2)) then
                   cycle
               endif
+          endif
+
+          if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .and. &
+              (MCTYPE <=3 .or. MCTYPE == 5 .or. MCTYPE == 6 &
+               .or. MCTYPE == 10 .or. MCTYPE == 11 )) then
+              call MC_cylinder(wlc_p,wlc_d,collide,IB1,IB2,IT1,IT2, &
+                  MCTYPE,forward)
+              if (collide) cycle
           endif
 
         if (WLC_P__RING) then
@@ -196,6 +207,11 @@ subroutine MCsim(wlc_p,wlc_d)
           if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
               print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
           endif
+          if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
+              (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
+              WLC_P__APPLY_EXTERNAL_FIELD) then
+              call MC_external_field(wlc_p,wlc_d,IT1,IT2)
+          endif
 
 !   Change the position if appropriate
           ENERGY = wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3) &
@@ -218,21 +234,29 @@ subroutine MCsim(wlc_p,wlc_d)
              endif
              if(MCTYPE /= 7) then
                  do I = IT1,IT2
+                     if (WLC_P__NEIGHBOR_BINS) then
+                         call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
+                     endif
                      wlc_d%R(1,I) = wlc_d%RP(1,I)
                      wlc_d%R(2,I) = wlc_d%RP(2,I)
                      wlc_d%R(3,I) = wlc_d%RP(3,I)
                      wlc_d%U(1,I) = wlc_d%UP(1,I)
                      wlc_d%U(2,I) = wlc_d%UP(2,I)
                      wlc_d%U(3,I) = wlc_d%UP(3,I)
+                     if (WLC_P__NEIGHBOR_BINS) then
+                         call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                     endif
                  enddo
                  if (MCTYPE == 9) then
                      do I = IT3,IT4
+                         if (WLC_P__NEIGHBOR_BINS) call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
                          wlc_d%R(1,I) = wlc_d%RP(1,I)
                          wlc_d%R(2,I) = wlc_d%RP(2,I)
                          wlc_d%R(3,I) = wlc_d%RP(3,I)
                          wlc_d%U(1,I) = wlc_d%UP(1,I)
                          wlc_d%U(2,I) = wlc_d%UP(2,I)
                          wlc_d%U(3,I) = wlc_d%UP(3,I)
+                         if (WLC_P__NEIGHBOR_BINS) call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
                      enddo
                  endif
              endif

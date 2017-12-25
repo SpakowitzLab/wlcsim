@@ -228,6 +228,68 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
        enddo
     enddo
 
+else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
+    ! start in a sphercal shell
+    ! travel in radom direction
+    ! rerandomize when reaching boundary
+    ! internalshpere boundary
+    ! radius of LBox/2 centered at LBox/2
+    Rc = WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp ! use LBOX as radius
+    IB = 1
+    do  I = 1,NP
+       call random_number(urand,rand_stat)
+       theta = urand(1)*2.0_dp*PI
+       z = urand(2)*2.0_dp-1.0_dp
+       rr = Rc*(urand(3)+1.0_dp)  ! should have an r**2 from jacobian
+       Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
+       Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
+       Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
+       call random_number(urand,rand_stat)
+       theta = urand(1)*2_dp*PI
+       z = urand(2)*2.0_dp-1.0_dp
+       Uold(1) = sqrt(1-z*z)*cos(theta)
+       Uold(2) = sqrt(1-z*z)*sin(theta)
+       Uold(3) = z
+       do J = 1,NB
+           search = .TRUE.
+           ii=0
+           do while(search)
+               test(1) = Rold(1) + Uold(1)*GAM
+               test(2) = Rold(2) + Uold(2)*GAM
+               test(3) = Rold(3) + Uold(3)*GAM
+               search = .not. in_confinement(test, 1, 1, 1)
+               if (search) then
+                    ii = ii + 1
+                    if (ii.gt.100) then
+                        print*,'stuck in loop'
+                        print*,'Rold = ',Rold(1),Rold(2),Rold(3)
+                        print*,'test = ',test(1),test(2),test(3)
+                        print*,'diameter',WLC_P__CONFINEMENT_SPHERE_DIAMETER
+                        print*,'center',WLC_P__LBOX_X/2.0_dp,&
+                                        WLC_P__LBOX_Y/2.0_dp,&
+                                        WLC_P__LBOX_Z/2.0_dp
+                        stop
+                    endif
+                    call random_number(urand,rand_stat)
+                    theta = urand(1)*2.0_dp*PI
+                    z = urand(2)*2.0_dp-1.0_dp
+                    Uold(1) = sqrt(1.0_dp-z*z)*cos(theta)
+                    Uold(2) = sqrt(1.0_dp-z*z)*sin(theta)
+                    Uold(3) = z
+               endif
+           enddo
+           R(1,IB) = test(1)
+           R(2,IB) = test(2)
+           R(3,IB) = test(3)
+           Rold(1) = test(1)
+           Rold(2) = test(2)
+           Rold(3) = test(3)
+           U(1,IB) = Uold(1)
+           U(2,IB) = Uold(2)
+           U(3,IB) = Uold(3)
+           IB = IB + 1
+       enddo ! loop to N
+    enddo ! loop to np
 else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
     ! travel in radom direction
     ! rerandomize when reaching boundary

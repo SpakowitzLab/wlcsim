@@ -17,6 +17,7 @@ module params
     use mersenne_twister
     use precision, only: dp
     use inputparams, only: MAXPARAMLEN
+    use binning, only: constructBin, binType, addBead
 
     implicit none
 
@@ -165,6 +166,8 @@ module params
         ! simulation times at which (i,j)th bead pair first collided
         real(dp), allocatable, dimension(:,:) :: coltimes
         real(dp) :: wr
+
+        type(binType) bin ! Structure for keeping track of neighbors
 
     !   Twist variables
         real(dp), ALLOCATABLE :: CROSS(:,:)   !Matrix of information for crossings in a 2-D projection of the polymer
@@ -544,6 +547,9 @@ contains
         integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
         integer ( kind = 4 ) error  ! error id for MIP functions
         character(MAXFILENAMELEN) iostr  ! string for file name
+        real(dp) setBinSize(3)
+        real(dp) setMinXYZ(3) ! location of corner of bin
+        integer setBinShape(3)! Specify first level of binning
         nt = wlc_p%NT
         nbin = wlc_p%NBIN
 
@@ -723,6 +729,22 @@ contains
                     wlc_d%Vol(I) = WLC_P__DBIN**3
                 enddo
             endif
+        endif
+
+        ! -------------------------------------------
+        !
+        !  Set up binning proceedure for keeping track of neighbors
+        !
+        ! ------------------------------------------
+        if (WLC_P__NEIGHBOR_BINS) then
+            !  Set up binning object
+            setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
+            setMinXYZ = [0.0,0.0,0.0]  ! location of corner of bin
+            setBinShape = [10,10,10]   ! Specify first level of binning
+            call constructBin(wlc_d%bin,setBinShape,setMinXYZ,setBinSize)
+            do i=1,NT
+                call addBead(wlc_d%bin,wlc_d%R,NT,i)
+            enddo
         endif
 
         ! initialize energies
