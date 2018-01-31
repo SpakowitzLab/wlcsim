@@ -4,7 +4,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__CODENAME ""
+#define WLC_P__CODENAME "bruno_bd"
 ! VARIABLE COMMENT: ! which simulation code to run
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -21,17 +21,17 @@
 
 #define WLC_P__CONFINETYPE 'NONE'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
-! DEFAULTS COMMENT: ! 0 for no confinement
+! DEFAULTS COMMENT: ! NONE for no confinement
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
-#define WLC_P__INITCONDTYPE 'RANDOMWALKWITHBOUNDARY'
+#define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
 ! VARIABLE COMMENT: ! initial condition type
-! DEFAULTS COMMENT: ! 0 for initializing polymer in non-random straight line
+! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__INTRAPOLYMER_STICK_CROSSING_ENFORCED .FALSE.
 ! VARIABLE COMMENT: ! field-based self interactions on
-! DEFAULTS COMMENT: None
+! DEFAULTS COMMENT: ! not yet implemented, so better be false
 ! TYPE: LOGICAL
 
 #define WLC_P__CHEM_STATE_FROM_FILE .FALSE.
@@ -195,7 +195,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 0
+#define WLC_P__L 199
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: REAL(DP)
@@ -230,32 +230,34 @@
 ! DEFAULTS COMMENT: ! equivalent to collisionDetectionType = 1
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_X 0
+#define WLC_P__NBINX 20
+#define WLC_P__NBINX_X WLC_P__NBINX 
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Y 0
+#define WLC_P__NBINX_Y WLC_P__NBINX 
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Z 0
+#define WLC_P__NBINX_Z WLC_P__NBINX 
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX_X NAN
+#define WLC_P__LBOX 20
+#define WLC_P__LBOX_X WLC_P__LBOX 
+! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
+! DEFAULTS COMMENT: ! box size/conËfinment, *MUST* be set by user
+! TYPE: REAL(DP)
+
+#define WLC_P__LBOX_Y WLC_P__LBOX 
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Y NAN
-! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
-! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
-! TYPE: REAL(DP)
-
-#define WLC_P__LBOX_Z NAN
+#define WLC_P__LBOX_Z WLC_P__LBOX 
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -275,7 +277,7 @@
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SPHERE_DIAMETER NAN
+#define WLC_P__CONFINEMENT_SPHERE_DIAMETER 10
 ! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)

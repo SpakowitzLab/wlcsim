@@ -30,8 +30,8 @@
 !  call findNeighbors(bin,coordinate,radius,R,NT,maxN,neighbors,distances,nn)
 !
 ! ------------------------------------------------------
-Module binning
-    use params, only : dp
+module binning
+    use precision, only : dp
 
     Implicit none
 
@@ -168,7 +168,7 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
-        use params, only : eps
+        use precision, only : eps
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
