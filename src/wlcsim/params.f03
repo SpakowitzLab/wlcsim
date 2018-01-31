@@ -15,7 +15,7 @@ module params
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: IEEE_ARITHMETIC
     use mersenne_twister
-    use precision, only: dp
+    use precision, only: dp, eps
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
 

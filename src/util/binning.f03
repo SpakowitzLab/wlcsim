@@ -31,7 +31,7 @@
 !
 ! ------------------------------------------------------
 Module binning
-    use params, only : dp
+    use precision, only: dp, eps
 
     Implicit none
 
@@ -168,7 +168,6 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
-        use params, only : eps
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
@@ -288,7 +287,6 @@ contains
         integer XYZ(3)
         integer dd
 
-        !real(dp), parameter :: eps = 0.000001
         !do dd = 1,3
         !    if (location(dd) + eps.lt.bin%minXYZ(dd)) then
         !        print*, "Error, location out of bin.  Under."
