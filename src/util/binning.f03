@@ -30,8 +30,8 @@
 !  call findNeighbors(bin,coordinate,radius,R,NT,maxN,neighbors,distances,nn)
 !
 ! ------------------------------------------------------
-Module binning
-    use precision, only: dp, eps
+module binning
+    use precision, only : dp
 
     Implicit none
 
@@ -155,7 +155,6 @@ contains
             !    print*, "Number of beads doesn't add up"
             !    stop
             !endif
-            deallocate(bin%bins)
             bin%isSuperBin = .False.
         else
             do ii = 1,bin%numberOfBins
@@ -169,6 +168,7 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
+        use precision, only : eps
         implicit none
         Type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
@@ -288,6 +288,7 @@ contains
         integer XYZ(3)
         integer dd
 
+        !real(dp), parameter :: eps = 0.000001
         !do dd = 1,3
         !    if (location(dd) + eps.lt.bin%minXYZ(dd)) then
         !        print*, "Error, location out of bin.  Under."
