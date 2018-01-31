@@ -21,17 +21,17 @@
 
 #define WLC_P__CONFINETYPE 'NONE'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
-! DEFAULTS COMMENT: ! 0 for no confinement
+! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
-#define WLC_P__INITCONDTYPE 'RANDOMWALKWITHBOUNDARY'
+#define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
 ! VARIABLE COMMENT: ! initial condition type
-! DEFAULTS COMMENT: ! 0 for initializing polymer in non-random straight line
+! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__INTRAPOLYMER_STICK_CROSSING_ENFORCED .FALSE.
-! VARIABLE COMMENT: ! field-based self interactions on
-! DEFAULTS COMMENT: None
+! VARIABLE COMMENT: ! prevent polymer from ever crossing itself
+! DEFAULTS COMMENT: ! NOT IMPLEMENTED
 ! TYPE: LOGICAL
 
 #define WLC_P__CHEM_STATE_FROM_FILE .FALSE.
@@ -70,13 +70,18 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CHANGINGCHEMICALIDENTITY .FALSE.
-! VARIABLE COMMENT: None
-! DEFAULTS COMMENT: None
+! VARIABLE COMMENT: ! whether many types of bead exist
+! DEFAULTS COMMENT: ! Only one type of bead
 ! TYPE: LOGICAL
 
-#define WLC_P__VARIABLE_CHEM_STATE .FALSE.
-! VARIABLE COMMENT: None
-! DEFAULTS COMMENT: None
+#define WLC_P__VARIABLE_CHEM_STATE WLC_P__CHANGINGCHEMICALIDENTITY
+! VARIABLE COMMENT: !TODO figure out what subtle difference if any r.t.  WLC_P__CHANGINGCHEMICALIDENTITY
+! DEFAULTS COMMENT: !TODO
+! TYPE: LOGICAL
+
+#define WLC_P__FIELD_INT_ON .FALSE.
+! VARIABLE COMMENT: whether or not to execute mc_int
+! DEFAULTS COMMENT: ! no interactions by default
 ! TYPE: LOGICAL
 
 #define WLC_P__FIELDINTERACTIONTYPE 'NONE'
@@ -89,6 +94,20 @@
 ! DEFAULTS COMMENT: ! Not in periodic BC
 ! TYPE: LOGICAL
 
+#define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .FALSE.
+! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time
+! DEFAULTS COMMENT: ! We care about collisions
+! TYPE: LOGICAL
+
+#define WLC_P__NEIGHBOR_BINS .FALSE.
+! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
+! DEFAULTS COMMENT: ! Set off because expensive
+! TYPE: LOGICAL
+
+#define WLC_P__APPLY_EXTERNAL_FIELD .FALSE.
+! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
 
 ! ----------------------------
 !
@@ -97,8 +116,8 @@
 ! ---------------------------
 
 #define WLC_P__EXITWHENCOLLIDED .FALSE.
-! VARIABLE COMMENT: ! stop sim with coltimes is full
-! DEFAULTS COMMENT: ! stop sim when coltimes is full
+! VARIABLE COMMENT: ! stop sim after every n^2 loops have formed at least once
+! DEFAULTS COMMENT: ! don't stop sim when coltimes is full by default
 ! TYPE: LOGICAL
 
 #define WLC_P__SAVER .TRUE.
@@ -126,21 +145,15 @@
 ! DEFAULTS COMMENT: ! Use old output format
 ! TYPE: LOGICAL
 
-#define WLC_P__NEIGHBOR_BINS .FALSE.
-! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
-! DEFAULTS COMMENT: ! Set off because expensive
-! TYPE: LOGICAL
-
-
 ! ----------------------------
 !
 !   Number / Chemical identity variables
 !
 ! ---------------------------
 
-#define WLC_P__NB 200
+#define WLC_P__NB 201
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
-! DEFAULTS COMMENT: ! 200 beads per polymer
+! DEFAULTS COMMENT: ! 201 beads per polymer
 ! TYPE: INTEGER
 
 #define WLC_P__NMPP WLC_P__NB/WLC_P__NBPM
@@ -230,39 +243,41 @@
 ! DEFAULTS COMMENT: ! equivalent to collisionDetectionType = 1
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_X 0
+#define WLC_P__NBINX 20
+#define WLC_P__NBINX_X WLC_P__NBINX
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Y 0
+#define WLC_P__NBINX_Y WLC_P__NBINX
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Z 0
+#define WLC_P__NBINX_Z WLC_P__NBINX
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX_X NAN
+#define WLC_P__LBOX 20.0_dp
+#define WLC_P__LBOX_X WLC_P__LBOX
+! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
+! DEFAULTS COMMENT: ! box size/conËfinment, *MUST* be set by user
+! TYPE: REAL(DP)
+
+#define WLC_P__LBOX_Y WLC_P__LBOX
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Y NAN
+#define WLC_P__LBOX_Z WLC_P__LBOX
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Z NAN
-! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
-! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
-! TYPE: REAL(DP)
-
-#define WLC_P__DBIN 1
+#define WLC_P__DBIN 1.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin discretization size (approximate)
-! DEFAULTS COMMENT: ! should always be 1 according to quinn
+! DEFAULTS COMMENT: ! should always be 1.0_dp according to quinn
 ! TYPE: REAL(DP)
 
 #define WLC_P__CONFINEMENT_CUBE_LENGTH NAN
@@ -380,7 +395,7 @@
 ! DEFAULTS COMMENT: ! number of simulation steps to take
 ! TYPE: INTEGER
 
-#define WLC_P__NNOINT 100
+#define WLC_P__NNOINT 0
 ! VARIABLE COMMENT: ! save points before turning on NNoInt
 ! DEFAULTS COMMENT: ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
 ! TYPE: INTEGER
@@ -490,8 +505,8 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_H .FALSE.
-! VARIABLE COMMENT: None
-! DEFAULTS COMMENT: ! don't parallel temper h by default
+! VARIABLE COMMENT: ! Parallel temper applied field
+! DEFAULTS COMMENT: ! bindng energy is external appled field
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_KAP .FALSE.

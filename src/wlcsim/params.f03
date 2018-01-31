@@ -39,8 +39,6 @@ module params
     ! format string to use for num2str(save_ind)
     character(5), parameter :: num2strFormatString = '(I10)'
     real(dp), parameter :: HUGE_ENERGY = 9990000.0_dp
-    real(dp), parameter :: eps = 0.00000001_dp
-    real(dp), parameter :: epsApprox = 0.001_dp  ! for compairison but allows for more ronding error
 
     character(len = 20), parameter, dimension(nMoveTypes) :: moveNames(nMoveTypes) = &
         (/'crank-shaft         ','slide               ',&
@@ -279,7 +277,7 @@ contains
         wlc_p%kap_on = 1.0 ! on by default
         wlc_p%chi_on = 1.0 ! on by default
         wlc_p%chi_l2_on = .TRUE. ! on by default
-        wlc_p%field_int_on = .TRUE. ! on by default
+        wlc_p%field_int_on = WLC_P__FIELD_INT_ON ! on by default
 
         wlc_p%NBINX(1) = WLC_P__NBINX_X
         wlc_p%NBINX(2) = WLC_P__NBINX_Y
@@ -542,10 +540,12 @@ contains
         integer NBin ! total number of bins
         integer i
         integer irand
+#if MPI_VERSION
         integer ( kind = 4 ) dest   !destination id for messages
         integer ( kind = 4 ) source  !source id for messages
         integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
         integer ( kind = 4 ) error  ! error id for MIP functions
+#endif
         character(MAXFILENAMELEN) iostr  ! string for file name
         real(dp) setBinSize(3)
         real(dp) setMinXYZ(3) ! location of corner of bin
@@ -647,6 +647,9 @@ contains
         if (WLC_P__COLLISIONDETECTIONTYPE /= 0) then
             allocate(wlc_d%coltimes(NT,NT))
             wlc_d%coltimes = -1.0_dp
+        else
+            allocate(wlc_d%coltimes(1,1))
+            wlc_d%coltimes = nan
         endif
 
 #if MPI_VERSION
