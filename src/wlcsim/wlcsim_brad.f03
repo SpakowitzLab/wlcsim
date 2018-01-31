@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !These subroutines allow for a Monte Carlo simulation of 
 !a polymer chain to be performed
@@ -47,7 +48,7 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
   !If parallel tempering is on
-  if (wlc_p%pt_twist) then
+  if (WLC_P__PT_TWIST) then
 
 #if MPI_VERSION
      !Cases:
@@ -66,7 +67,7 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
         repEND = wlc_d%nLKs - 1
 
         !Begin replica exchange loop
-        do repinD = 1,wlc_p%nReplicaExchangePerSavePoint
+        do repinD = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
            
            !Send out Lk to the worker nodes to begin their simulations
            do rep = 1,wlc_d%nLKs
@@ -101,7 +102,7 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      else
         !Begin replica exchange loop
-        do repinD = 1,wlc_p%nReplicaExchangePerSavePoint
+        do repinD = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
            !Receive LK from head node to begin simulation
            source = 0
            call MPI_Recv(LK,1, MPI_integer, source,   0, &
@@ -109,12 +110,12 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
            wlc_p%LK = LK
 
            !Run a monte carlo simulation for NSTEPS
-           call MCsim(wlc_p,wlc_d,wlc_p%stepsPerExchange)
+           call MCsim(wlc_p,wlc_d,WLC_P__STEPSPEREXCHANGE)
          
            !Recalculate structural quantities and energies
-           call writhe(wlc_d%R,wlc_p%nB, wlc_d%Wr)
-           call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%nT,wlc_p%nB,wlc_p%nP,wlc_p%eb,wlc_p%epar, &
-                wlc_p%eperp,wlc_p%gam,wlc_p%eta,wlc_p%RinG,wlc_p%twist,wlc_p%LK,wlc_p%lt,wlc_p%lp,wlc_p%l)
+           call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
+           call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
+                wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
                     
 
            !Communicate with the head node for replica exchange
@@ -139,12 +140,12 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
   else
      !Run a MC simulation for nstepsPerExchange
 
-     call MCsim(wlc_p,wlc_d,wlc_p%StepsPerExchange)
+     call MCsim(wlc_p,wlc_d,WLC_P__STEPSPEREXCHANGE)
 
      !Recalculate structural quantities and energies
-     call writhe(wlc_d%R,wlc_p%nB, wlc_d%Wr)
-     call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%nT,wlc_p%nB,wlc_p%nP,wlc_p%eb,wlc_p%epar, &
-          wlc_p%eperp,wlc_p%gam,wlc_p%eta,wlc_p%RinG,wlc_p%twist,wlc_p%LK,wlc_p%lt,wlc_p%lp,wlc_p%l)
+     call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
+     call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
+          wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
 
   end if
 end subroutine wlcsim_brad
@@ -194,10 +195,10 @@ subroutine replicaEXCHANGE_brad(wlc_p,wlc_d)
      deEXCHANGE = -wlc_d%eelasREPLICAS(rep,4) - wlc_d%eelasREPLICAS(rep + 1,4)
 
      !Add change in twist energy due to rep taking LK from above
-     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep + 1)-wlc_d%Wrs(rep)))**2.0_dp)*wlc_p%lt/(2.0_dp*wlc_p%l)
+     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep + 1)-wlc_d%Wrs(rep)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
 
      !Add change in twist energy due to rep + 1 takign LK from below
-     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep)-wlc_d%Wrs(rep + 1)))**2.0_dp)*wlc_p%lt/(2.0_dp*wlc_p%l)
+     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep)-wlc_d%Wrs(rep + 1)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
 
      !Generate a random number and test for exchange
      call random_number(urand,wlc_d%rand_stat)

@@ -1,3 +1,4 @@
+#include "../defines.inc"
 #if MPI_VERSION
 subroutine pt_restart(wlc_p,wlc_d)
 ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
@@ -6,7 +7,7 @@ subroutine pt_restart(wlc_p,wlc_d)
 ! This function takes the place of PT_override in the case of restart
 ! This will read from a output directory and restart multiple replicas
 ! Override initialization with parallel setup parameters
-!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%mu, wlc_p%repSuffix
+!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%MU, wlc_p%repSuffix
     use mpi
     use params
     Implicit none
@@ -72,11 +73,14 @@ subroutine pt_restart(wlc_p,wlc_d)
             wlc_d%EField = temp(9)
             wlc_d%ebind = temp(10)
             wlc_d%x_Mu = temp(11)
-            wlc_p%HP1_Bind = temp(12)
-            wlc_p%chi = temp(13)
-            wlc_p%mu = temp(14)
-            wlc_p%Kap = temp(15)
-            wlc_p%hA = temp(16)
+            wlc_p%HP1_BIND = temp(12)
+            wlc_p%CHI = temp(13)
+            wlc_p%MU = temp(14)
+            wlc_p%KAP = temp(15)
+            wlc_p%HA = temp(16)
+            ! x_ms
+            ! chi_l2
+            ! E_mu
         else
             Exit
         endif
@@ -85,20 +89,20 @@ subroutine pt_restart(wlc_p,wlc_d)
     print*, "first set from file", iostrg
     print*, temp
     ! not sure if the following if statments are necessary
-    if (wlc_p%Chi.ne.0.0) then
-        wlc_d%x_Chi = wlc_d%EChi/wlc_p%Chi
+    if (wlc_p%CHI.ne.0.0) then
+        wlc_d%x_Chi = wlc_d%EChi/wlc_p%CHI
     endif
-    if (wlc_p%Chi.ne.0.0) then
-        wlc_d%x_Couple = wlc_d%ECouple/wlc_p%HP1_Bind
+    if (wlc_p%CHI.ne.0.0) then
+        wlc_d%x_Couple = wlc_d%ECouple/wlc_p%HP1_BIND
     endif
-    if (wlc_p%Kap.ne.0) then
-        wlc_d%x_Kap = wlc_d%EKap/wlc_p%Kap
+    if (wlc_p%KAP.ne.0) then
+        wlc_d%x_Kap = wlc_d%EKap/wlc_p%KAP
     endif
     if (wlc_d%x_Field.ne.0.0) then
-        wlc_d%x_Field = wlc_d%EField/wlc_p%hA
+        wlc_d%x_Field = wlc_d%EField/wlc_p%HA
     endif
-    if (wlc_p%Mu.ne.0.0) then
-        wlc_d%x_Mu = wlc_d%ebind/wlc_p%Mu
+    if (wlc_p%MU.ne.0.0) then
+        wlc_d%x_Mu = wlc_d%eMu/wlc_p%MU
     endif
 
     ! read back in addaptation stuff, May make slight difference
@@ -173,10 +177,10 @@ subroutine pt_restart(wlc_p,wlc_d)
     close(5)
 
     ! Let head node know what cof values you read
-    cof(1) = wlc_p%chi
-    cof(2) = wlc_p%mu
-    cof(3) = wlc_p%hA
-    cof(4) = wlc_p%HP1_Bind
+    cof(1) = wlc_p%CHI
+    cof(2) = wlc_p%MU
+    cof(3) = wlc_p%HA
+    cof(4) = wlc_p%HP1_BIND
     cof(5) = wlc_p%KAP
     cof(6) = 0
     cof(7) = 0

@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !     Written by Quinn 8/4/2017
@@ -21,17 +22,17 @@ real(dp) WTOT       ! total weight ascribed to bin
 real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
-LOGICAL isA   ! The bead is of type A
 
 ! Copy so I don't have to type wlc_p% everywhere
 integer NBinX(3)
-real(dp) temp
 real(dp) contribution 
-integer m_plus3 ! m from spherical harmonics
-real(dp) phi2(5)
+integer m_index ! m from spherical harmonics
+real(dp), dimension(-2:2) :: phi2
 real(dp) AminusB ! +1 if A and -1 if B
 
-NBinX = wlc_p%NBinX
+real(dp), parameter, dimension(0:3) :: number_bound_table = [0.0_dp, 1.0_dp, &
+                                                             1.0_dp, 2.0_dp]
+NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
 do IB = I1,I2
@@ -43,7 +44,7 @@ do IB = I1,I2
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
@@ -53,101 +54,57 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (wlc_p%chi_l2_on) then
+   if (wlc_p%CHI_L2_ON) then
        call Y2calc(wlc_d%U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
+       phi2=0.0_dp
    endif
-   AminusB = real(wlc_d%ABP(IB)-wlc_d%AB(IB))
 
-   if (wlc_p%confineType == 'none' .or. wlc_p%confineType == 'periodicUnequal') then
-       ! If periodic than you can assume that all bins are included and have a volume
-       ! of dbin**3
-       temp = wlc_p%beadVolume/(wlc_p%dbin**3)
-       do ISX = 1,2
-          do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
 
-                contribution=temp*WTOT
-                ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                                     AminusB*phi2(m_plus3)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution*AminusB
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
-                                  AminusB*phi2(m_plus3)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
-             enddo
-          enddo
-       enddo
-    else ! not periodic
-       ! if not periodic you need to check wheter bin is outside and
-       ! also need to divide by volume of bin
-       temp = wlc_p%beadVolume
-       do ISX = 1,2
-          do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+   AminusB = number_bound_table(wlc_d%ABP(IB))-&
+             number_bound_table(wlc_d%AB(IB)) 
 
-                contribution=temp*WTOT/wlc_d%Vol(indBin)
-                ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) =  +&
-                                  AminusB*phi2(m_plus3)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(wlc_d%NPHI) = wlc_d%DPHIA(wlc_d%NPHI) +  contribution*AminusB
-                      wlc_d%DPHIB(wlc_d%NPHI) = wlc_d%DPHIB(wlc_d%NPHI) -  contribution*AminusB
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) + &
-                                  AminusB*phi2(m_plus3)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
-             enddo
-          enddo
-       enddo
-    endif
+   do ISX = 1,2
+      do ISY = 1,2
+         do ISZ = 1,2
+            WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
+            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            contribution = AminusB*WTOT*WLC_P__BEADVOLUME/&
+                              (WLC_P__DBIN**3)
+
+            ! Generate list of which phi's change and by how much
+            I = wlc_d%NPHI
+            do
+               if (I.eq.0) then
+                  wlc_d%NPHI = wlc_d%NPHI + 1
+                  wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                  wlc_d%DPHIA(wlc_d%NPHI) = contribution
+                  wlc_d%DPHIB(wlc_d%NPHI) = -1.0*contribution
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                                     phi2(m_index)*contribution
+                      enddo
+                  endif
+                  exit
+               elseif (inDBin == wlc_d%inDPHI(I)) then
+                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) +  contribution
+                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I) -  contribution
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) + &
+                                                     phi2(m_index)*contribution
+                      enddo
+                  endif
+                  exit
+               else
+                  I = I-1
+               endif
+            enddo
+         enddo
+      enddo
+   enddo
 enddo ! loop over IB  A.k.a. beads
 ! ---------------------------------------------------------------------
 !

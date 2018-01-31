@@ -1,3 +1,4 @@
+#include "../defines.inc"
 Subroutine simpleSim(rand_stat)
 
 use mersenne_twister
@@ -69,20 +70,20 @@ do ISTEP = 1,wlc_p%NSTEP
     wlc_p%dx_couple = -(rp(4)**2-r(4)**2)
     wlc_p%dx_kap=   (rp(5)**2-r(5)**2)
 
-    wlc_p%DEBind = wlc_p%mu*(rp(2)**2-r(2)**2) + (rp(2)-r(2))
+    wlc_p%DEBind = wlc_p%MU*(rp(2)**2-r(2)**2) + (rp(2)-r(2))
 
     wlc_p%dx_chi = wlc_p%dx_chi*wlc_p%CHI_ON
-    wlc_p%dx_couple = wlc_p%dx_couple*wlc_p%Couple_ON
+    wlc_p%dx_couple = wlc_p%dx_couple*wlc_p%COUPLE_ON
     wlc_p%dx_Kap = wlc_p%dx_Kap*wlc_p%KAP_ON
 
-    wlc_p%DEChi = wlc_p%Chi*        wlc_p%dx_chi
-    wlc_p%DECouple = wlc_p%HP1_Bind*wlc_p%dx_couple
-    wlc_p%DEKap = wlc_p%Kap*        wlc_p%dx_Kap
+    wlc_p%DEChi = wlc_p%CHI*        wlc_p%dx_chi
+    wlc_p%DECouple = wlc_p%HP1_BIND*wlc_p%dx_couple
+    wlc_p%DEKap = wlc_p%KAP*        wlc_p%dx_Kap
     wlc_p%DEField = wlc_p%h_A*      wlc_p%dx_Field
 
-    wlc_p%deelas(1) = wlc_p%Para(1)*(rp(6)**2-r(6)**2)
-    wlc_p%deelas(2) = wlc_p%Para(2)*(rp(7)**2-r(7)**2)
-    wlc_p%deelas(3) = wlc_p%Para(3)*(rp(8)**2-r(8)**2)
+    ! wlc_p%deelas(1) = wlc_p%Para(1)*(rp(6)**2-r(6)**2)
+    ! wlc_p%deelas(2) = wlc_p%Para(2)*(rp(7)**2-r(7)**2)
+    ! wlc_p%deelas(3) = wlc_p%Para(3)*(rp(8)**2-r(8)**2)
 
     ! accept or reject
     ENERGY = wlc_p%DEELAS(1) + wlc_p%DEELAS(2) + wlc_p%DEELAS(3) &
@@ -107,12 +108,12 @@ do ISTEP = 1,wlc_p%NSTEP
         wlc_p%x_field = wlc_p%x_field + wlc_p%dx_field
 
     endif
-    if (abs(wlc_p%EChi-wlc_p%x_chi*wlc_p%Chi).gt.0.0000001_dp) then
+    if (abs(wlc_p%EChi-wlc_p%x_chi*wlc_p%CHI).gt.0.0000001_dp) then
         print*, "~~~~~~~~~~~~~~~"
-        print*, "Error. wlc_p%Echi", wlc_p%Echi," wlc_p%x_chi*wlc_p%Chi",wlc_p%x_chi*wlc_p%Chi
+        print*, "Error. wlc_p%Echi", wlc_p%Echi," wlc_p%x_chi*wlc_p%CHI",wlc_p%x_chi*wlc_p%CHI
         stop 1
     endif
-    chiOld = wlc_p%Chi
+    chiOld = wlc_p%CHI
     xchiOld = wlc_p%x_chi
     EchiOld = wlc_p%EChi
     if ((mod(ISTEP,4)).eq.0) then
@@ -121,7 +122,7 @@ do ISTEP = 1,wlc_p%NSTEP
 
 
     ! output
-    if ((mod(istep + wlc_p%NSTEP*(wlc_p%inD-1),1000).eq.0).and.(wlc_p%inD.gt.wlc_p%indEndRepAdapt)) then
+    if ((mod(istep + wlc_p%NSTEP*(wlc_p%inD-1),1000).eq.0).and.(wlc_p%inD.gt.WLC_P__INDENDREPADAPT)) then
         ! Record position
         fullName = 'data/r' // (wlc_p%repSufix)
         fullName = trim(fullName)
@@ -135,8 +136,9 @@ do ISTEP = 1,wlc_p%NSTEP
             inquire(file = fullName, exist = isfile)
             if (.not.isfile) then
                 open (UNIT = 2, FILE = fullName, STATUS = 'NEW')
-                write(2,*), wlc_p%chi, wlc_p%mu, wlc_p%h_A, wlc_p%HP1_Bind,wlc_p%kap,&
-                            wlc_p%Para(1),wlc_p%Para(2), wlc_p%Para(3), wlc_p%id
+                write(2,*), wlc_p%CHI, wlc_p%MU, wlc_p%h_A, wlc_p%HP1_BIND,wlc_p%KAP,&
+                            ! wlc_p%Para(1),wlc_p%Para(2), wlc_p%Para(3),
+                            wlc_p%id
                 close(2)
             endif
         endif

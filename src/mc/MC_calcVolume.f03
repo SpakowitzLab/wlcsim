@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !-----------------------------------------------------------!
 !
 !     Calculate volume of each Bin within the confinement
@@ -13,17 +14,15 @@
 !    2         |  Cube of size LBox**3,  range: 0-LBox
 !    3         |  Circle of radius LBox/2 inside box of size LBox
 
-subroutine MC_calcVolume(confineType,NBinX,dbin, LBox, &
+subroutine MC_calcVolume(NBinX,dbin, LBox, &
                          Vol,rand_stat)
 
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp
-use inputparams, only: MAXPARAMLEN
 implicit none
 
-character(MAXPARAMLEN), intent(in) :: confineType  ! Specifier for type of confinement
 real(dp) LBox ! Side length of box
 integer I      ! for loops
 integer ix,iy,iz      ! location of conder
@@ -49,19 +48,20 @@ if (abs(dbin*NBinX-LBOX).gt.0.000001_dp) then
     STOP 1
 endif
 
-if (confineType == 'none') then
+
+if (WLC_P__CONFINETYPE == 'none') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 'platesInZperiodicXY') then
+elseif(WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 'cube') then
+elseif(WLC_P__CONFINETYPE == 'cube') then
     print*, "Don't call MC_calcVolume with this type of boundary"
     STATUS = 1
     STOP 1
-elseif(confineType == 'sphere') then
+elseif(WLC_P__CONFINETYPE == 'sphere') then
     Rsqrd = (LBox/2.0_dp)**2
     Do ix = 1,NBinX
         Do iy = 1,NBinX

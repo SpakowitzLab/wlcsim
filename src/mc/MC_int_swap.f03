@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !
@@ -9,7 +10,7 @@
 !
 !---------------------------------------------------------------!
 subroutine MC_int_swap(wlc_p,wlc_d,I1,I2,I3,I4)
-use params
+use params,only:dp,wlcsim_params,wlcsim_data
 implicit none
 
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
@@ -32,19 +33,22 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 !LOGICAL isA   ! The bead is of type A
 integer AminusB
-integer m_plus3
+integer m_index ! m quantum number for sphrical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
-real(dp) phi2(5)
-real(dp) contribution
-NBinX = wlc_p%NBinX
+real(dp), dimension(-2:2) :: phi2
+NBinX = wlc_p%NBINX
 
 
-if (I2-I1 + 1.ne.wlc_p%NB) then
+if (WLC_P__TWO_TAIL) then
+    print*, "The swap move is not currently set up for two Tail"
+    stop 1
+endif
+if (I2-I1 + 1.ne.WLC_P__NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
-if (I4-I3 + 1.ne.wlc_p%NB) then
+if (I4-I3 + 1.ne.WLC_P__NB) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
@@ -78,7 +82,7 @@ do IB = I1,I2
        RBin(3) = wlc_d%RP(3,IB)
    endif
    AminusB = -1+2*wlc_d%AB(IB) ! -1 if B and +1 if A
-   if (wlc_p%chi_l2_on) then
+   if (wlc_p%CHI_L2_ON) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else
@@ -94,7 +98,7 @@ do IB = I1,I2
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
@@ -105,11 +109,8 @@ do IB = I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    do ISX = 1,2
-      if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
       do ISY = 1,2
-         if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
          do ISZ = 1,2
-            if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
             ! Generate list of which phi's change and by how much
@@ -118,23 +119,23 @@ do IB = I1,I2
                if (I.eq.0) then
                   wlc_d%NPHI = wlc_d%NPHI + 1
                   wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                  temp = AminusB*rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(wlc_d%NPHI) = temp
                   wlc_d%DPHIB(wlc_d%NPHI) = -temp
-                  if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%dPHI_l2(m_plus3,wlc_d%NPHI) = phi2(m_plus3)*temp
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%dPHI_l2(m_index,wlc_d%NPHI) = phi2(m_index)*temp
                       enddo
                   endif
                   exit
                elseif (inDBin == wlc_d%inDPHI(I)) then
-                  temp = AminusB*rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                   wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
                   wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
-                  if(wlc_p%chi_l2_on) then
-                      do m_plus3 =1,5
-                          wlc_d%dPHI_l2(m_plus3,I) = wlc_d%dPHI_l2(m_plus3,I) + &
-                                      phi2(m_plus3)*temp
+                  if(wlc_p%CHI_L2_ON) then
+                      do m_index = -2,2
+                          wlc_d%dPHI_l2(m_index,I) = wlc_d%dPHI_l2(m_index,I) + &
+                                      phi2(m_index)*temp
                       enddo
                   endif
                   exit

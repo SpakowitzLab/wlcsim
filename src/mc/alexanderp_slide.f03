@@ -1,15 +1,18 @@
+#include "../defines.inc"
 !This subroutine calculates the alexander polynomial of a chain represented by a set of
 !discrete beads after a slide move has been performed. The routine updates the values
 !in the Cross matrix that change during the move. This subroutine currently only works if there
 !is one polymer
 
-subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
-  use params, only : dp
+subroutine alexanderp_slide(wlc_p,R,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
+  use params, only : dp,wlcsim_params
   implicit none
+  type(wlcsim_params), intent(inout) :: wlc_p
+  !implicit none
   !inPUT VARIABLES
-  integer N                     ! Number of points in space curve
+  !integer wlc_p%NT                     ! Number of points in space curve
   integer CrossSize             !Size of the cross matrix (larger than the total number of crossings to prevent reallocation)
-  real(dp) R(3,N)       !Space curve
+  real(dp) R(3,wlc_p%NT)       !Space curve
   real(dp) Cross(CrossSize,6)        !Matrix of cross indices and coordinates
   real(dp) CrossNew(CrossSize,6)
   integer Ncross                !Total number of crossings
@@ -25,8 +28,8 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   integer IS1,IS2,IS1P1,IS2P1   !Indices of initial beads of the two segments that are "stretched" during the slide move
   real(dp), ALLOCATABLE ::  A(:,:) ! Alexander polynomial matrix evaluated at t = -1
   real(dp) NV(3)        ! normal vector for projection
-  real(dp) RP(3,N)      ! projection of R onto plane defined by NV
-  real(dp) RdoTN(N)        ! Dot product of R and NV
+  real(dp) RP(3,wlc_p%NT)      ! projection of R onto plane defined by NV
+  real(dp) RdoTN(wlc_p%NT)        ! Dot product of R and NV
   integer Ndegen                ! number of crossings for a given segment
   integer I,J,K,IP1,JP1,KP1           ! iteration indices
   real(dp) smax,tmax    ! length of segments in the projection
@@ -39,7 +42,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   real(dp) uri(3),urj(3) ! tangent vectors of unprojected segments
   real(dp) DRI(3),DRJ(3) !Displacement vectors of unprojected segments
   real(dp) thetai,thetaj ! angle between real segment and projected segment
-  integer, ALLOCATABLE :: over_ind(:) !Vector of over_pass indices (index of over-pass of Nth crossing)
+  integer, ALLOCATABLE :: over_ind(:) !Vector of over_pass indices (index of over-pass of wlc_p%NTth crossing)
   real(dp) delta_double ! real(dp) form of delta. To be converted to integer
   integer index,inD
   integer II,IO,IIP1,IOP1
@@ -50,19 +53,22 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   real(dp) TIME2
   real(dp) DT_PRUNE
   real(dp) DT_inTERSECT
-
+  if (WLC_P__NB.ne.wlc_p%NT) then
+      print*,"this section doesn't work for more than one polymer, fix this if more than one polymer"
+      stop
+  endif
   !Set the normal vector for the plane of projection. Currently set to parallel to z axis
-  NV = 0.
-  NV(3) = 1.
+   NV = 0.
+   NV(3) = 1.
 
   !Calculate the projection of R onto the projection plane
-  do I = 1,N
+  do I = 1,wlc_p%NT
      RdoTN(I) = R(1,I)*NV(1) + R(2,I)*NV(2) + R(3,I)*NV(3)
-  ENDdo
+  Enddo
 
-  !Calculate the projection of the curve into the plane with normal NV
+  !Calculate the projection of the curve into the plane with normal wlc_p%NTV
 
-  do I = 1,N
+  do I = 1,wlc_p%NT
      RP(:,I) = R(:,I)-RdoTN(I)*NV
   ENDdo
 
@@ -70,19 +76,19 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !During the slide move, two of the segments are deformed ("stretched"). These are the segments
   !immediately adjacent to the portion of the chain that is slid. Determine the indices of these beads
-  !Note that if IT1 = IT2 and DIB = N, then this subroutine should not be performed. The value of delta
+  !wlc_p%NTote that if IT1 = IT2 and DIB = N, then this subroutine should not be performed. The value of delta
   ! and the cross matrix do not change.
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   if (IT1 == 1) then
-     IS1 = N
+     IS1 = wlc_p%NT
   else
      IS1 = IT1-1
   ENDif
   IS1P1 = IT1
 
   IS2 = IT2
-  if (IT2 == N) then
+  if (IT2 == wlc_p%NT) then
      IS2P1 = 1
   else
      IS2P1 = IT2 + 1
@@ -95,7 +101,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   !slid segment and the portion not slid, and all instances that involve the two stretched segments
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
- DIO = N-DIB
+ DIO = wlc_p%NT-DIB
  II = IT1
  inD = 1
  NCrossNew = 0
@@ -150,10 +156,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
   do I = 1,DIB
 
-     if(II == N + 1) then
+     if(II == wlc_p%NT + 1) then
         II = 1
         IIP1 = 2
-     elseif (II == N) then
+     elseif (II == wlc_p%NT) then
         IIP1 = 1
      else
         IIP1 = II + 1
@@ -162,10 +168,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      !Loop over all segments outside of the portion of the chain that was moved
      IO = IT2
      do J = 1,DIO
-        if(IO == N + 1) then
+        if(IO == wlc_p%NT + 1) then
            IO = 1
            IOP1 = 2
-        elseif (IO == N) then
+        elseif (IO == wlc_p%NT) then
            IOP1 = 1
         else
            IOP1 = IO + 1
@@ -243,10 +249,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
   IO = IT2
 
   do J = 1,DIO-1
-     if(IO == N + 1) then
+     if(IO == wlc_p%NT + 1) then
         IO = 1
         IOP1 = 2
-     elseif (IO == N) then
+     elseif (IO == wlc_p%NT) then
         IOP1 = 1
      else
         IOP1 = IO + 1
@@ -254,10 +260,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
 
      !Check for intersections with the first stretched segment, IS1
      II = IS1
-     if(II == N + 1) then
+     if(II == wlc_p%NT + 1) then
         II = 1
         IIP1 = 2
-     elseif (II == N) then
+     elseif (II == wlc_p%NT) then
         IIP1 = 1
      else
         IIP1 = II + 1
@@ -329,10 +335,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      !Check for intersections with the first stretched segment, IS1
      II = IS2
 
-     if(II == N + 1) then
+     if(II == wlc_p%NT + 1) then
         II = 1
         IIP1 = 2
-     elseif (II == N) then
+     elseif (II == wlc_p%NT) then
         IIP1 = 1
      else
         IIP1 = II + 1
@@ -360,7 +366,7 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
      sint = (RP(1,IO)-RP(1,II) + uj(1)*tint)/ui(1)
 
      !If the intersection point is within length of segments, count as an intersection
-     if (sint >= 0.AND.sint < smax.AND.tint >= 0.AND.tint < tmax) then
+     if (sint >= 0.AnD.sint < smax.AND.tint >= 0.AND.tint < tmax) then
         !Determine if this is an undercrossing (RI under RJ) or overcrossing
 
         !Compute lengths and tangents  of true segments (not projected)
@@ -485,10 +491,10 @@ subroutine alexanderp_slide(R,N,Delta,Cross,CrossSize,NCross,IT1,IT2,DIB)
                  ENDif
                  inD = inD + 1
               ENDdo
-           ENDif
-        ENDif
+           endif
+        endif
 
-     ENDdo
+     enddo
 50   continue
 
   ENDdo

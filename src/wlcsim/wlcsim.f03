@@ -1,3 +1,4 @@
+#include "../defines.inc"
 program main
     ! Loads in parameters from the input file.
     ! Calculates parameters used in simulation from input parameters.
@@ -14,7 +15,7 @@ program main
 
     ! structs that will hold simulation params and state
     use params, only: wlcsim_params, wlcsim_data, &
-        MAXFILENAMELEN, save_simulation_state, get_input_from_file, &
+        MAXFILENAMELEN, save_simulation_state, set_parameters, &
         initialize_wlcsim_data, save_parameters, setup_runtime_floats, &
         printDescription, printWindowStats
 
@@ -57,7 +58,7 @@ program main
 
     call setup_runtime_floats()
 
-    call get_input_from_file(infile, wlc_d, wlc_p)
+    call set_parameters(wlc_d, wlc_p)
 
     call initialize_wlcsim_data(wlc_d, wlc_p)
 
@@ -67,31 +68,31 @@ program main
     i = 0
     call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
 
-    select case (trim(adjustL(wlc_p%codeName)))
+    select case (trim(adjustL(WLC_P__CODENAME)))
     case ('quinn', 'parallel temper continuous parameters')
-        do i = 1,wlc_p%numSavePoints
+        do i = 1,WLC_P__NUMSAVEPOINTS
             call wlcsim_quinn(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')
-        do i = 1,wlc_p%numSavePoints
+        do i = 1,WLC_P__NUMSAVEPOINTS
            call wlcsim_brad(wlc_d,wlc_p)
            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
            print *, 'i is', i
            print *, '*******************'
         enddo
     case ('bruno', 'brownian dynamics')
-        do i = 1,wlc_p%numSavePoints
+        do i = 1,WLC_P__NUMSAVEPOINTS
             call wlcsim_bruno(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_mc', 'simple monte carlo')
-        do i = 1,wlc_p%numSavePoints
+        do i = 1,WLC_P__NUMSAVEPOINTS
             call wlcsim_bruno_mc(i, wlc_d, wlc_p)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_loop', 'get looping events')
-        do i = 1,wlc_p%numSavePoints
+        do i = 1,WLC_P__NUMSAVEPOINTS
             call wlcsim_bruno_looping_events(i, wlc_d, wlc_p, outfile)
             call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
         enddo

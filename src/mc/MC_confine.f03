@@ -14,21 +14,19 @@
 !    3         |  Circle of radius LBox, centered at LBox/2
 !    4         |  Periodic, non-equal lengths
 
-subroutine MC_confine(RP, NT, IT1, IT2, ECon, wlc_p)
+subroutine MC_confine(RP, NT, IT1, IT2, ECon)
 use params, only: dp, HUGE_ENERGY, wlcsim_params
 implicit none
 
-type(wlcsim_params), intent(in) :: wlc_p
 integer NT     ! Total number of beads in simulation
 real(dp) RP(3,NT)  ! Bead positions
 integer IT1    ! Start test bead
 integer IT2    ! Final test bead
-integer I      ! Index of bead being compared
 real(dp) ECon
 logical in_confinement
 
 ECon = 0.0_dp
-if (.not. in_confinement(RP, NT, IT1, IT2, wlc_p)) then
+if (.not. in_confinement(RP, NT, IT1, IT2)) then
     ECon = HUGE_ENERGY
 endif
 

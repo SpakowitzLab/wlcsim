@@ -1,3 +1,4 @@
+#include "../defines.inc"
 ! file defines routines useful for parallel tempering continuous variables over
 ! MPI. Thus, only compiled if MPI is available.
 #if MPI_VERSION
@@ -6,7 +7,7 @@ subroutine startWorker(wlc_p, wlc_d)
 use params
 use mpi
 ! Override initialization with parallel setup parameters
-!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%mu, wlc_d%repSuffix
+!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%MU, wlc_d%repSuffix
     Implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
@@ -41,9 +42,11 @@ use mpi
     !----------------------------------------------
     if (wlc_d%id.eq.1) then
         do dest = 2,nThreads-1
-            if(wlc_p%bind_On) then
-                call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
-                               MPI_COMM_WORLD,error )
+            if(WLC_P__VARIABLE_CHEM_STATE) then
+                if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
+                    call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
+                                   MPI_COMM_WORLD,error )
+                endif
             else
                 call MPI_Send (wlc_d%AB,wlc_p%NT, MPI_integer, dest,   0, &
                                MPI_COMM_WORLD,error )
@@ -51,9 +54,11 @@ use mpi
         enddo
     elseif (wlc_d%id.gt.1) then
         source = 1
-        if(wlc_p%bind_On) then
-            call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
-                           MPI_COMM_WORLD, status, error )
+        if(WLC_P__VARIABLE_CHEM_STATE) then
+            if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
+                call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
+                               MPI_COMM_WORLD, status, error )
+            endif
         else
             call MPI_Recv (wlc_d%AB, wlc_p%NT, MPI_integer, source, 0, &
                            MPI_COMM_WORLD, status, error )
@@ -73,15 +78,15 @@ use mpi
     call MPI_Recv ( cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
       MPI_COMM_WORLD, status, error )
 
-    wlc_p%chi      =cof(1)
-    wlc_p%mu       =cof(2)
-    wlc_p%hA      =cof(3)
-    wlc_p%HP1_Bind =cof(4)
-    wlc_p%Kap      =cof(5)
-    !wlc_p%para(1)  =cof(6)
+    wlc_p%CHI      =cof(1)
+    wlc_p%MU       =cof(2)
+    wlc_p%HA      =cof(3)
+    wlc_p%HP1_BIND =cof(4)
+    wlc_p%KAP      =cof(5)
+    !wlc_p%para(1)  =cof(6) ! eb, eperp, epar
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
-    wlc_p%chi_l2   =cof(9)
+    wlc_p%CHI_L2   =cof(9)
 
     write(iostrg,"(I4)") wlc_d%rep
     iostrg = adjustL(iostrg)
@@ -97,14 +102,13 @@ subroutine replicaExchange(wlc_p, wlc_d)
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
 ! 3: Recive assigned cof value
-use params, only : wlcsim_params, wlcsim_data, eps, dp, MAXFILENAMELEN
+use params, only : wlcsim_params, wlcsim_data, dp, MAXFILENAMELEN, epsApprox
 use mpi
     implicit none
     integer, parameter :: nTerms = 9  ! number of energy terms
     integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
-    integer i  ! working intiger
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
     integer (kind = 4) nThreads
@@ -119,7 +123,6 @@ use mpi
     real(dp) chi_l2_old
     real(dp) x(nTerms)
     real(dp) test(5)
-    logical isfile
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     if (nThreads.lt.3) return
@@ -134,17 +137,17 @@ use mpi
     x(8) = 0.0_dp !x(8) = wlc_p%EElas(3)/wlc_p%para(3)
     x(9) = wlc_d%x_maierSaupe
 
-    test(1) = wlc_d%EChi/wlc_p%Chi
-    test(3) = wlc_d%EField/wlc_p%hA
-    test(4) = wlc_d%ECouple/wlc_p%HP1_Bind
-    test(5) = wlc_d%EKap/wlc_p%Kap
+    test(1) = wlc_d%EChi/wlc_p%CHI
+    test(3) = wlc_d%EField/wlc_p%HA
+    test(4) = wlc_d%ECouple/wlc_p%HP1_BIND
+    test(5) = wlc_d%EKap/wlc_p%KAP
 
-    chi_Old = wlc_p%chi
-    mu_old = wlc_p%mu
-    hA_Old = wlc_p%hA
-    HP1_Bind_Old = wlc_p%HP1_Bind
-    Kap_Old = wlc_p%Kap
-    chi_l2_old = wlc_p%chi_l2
+    chi_Old = wlc_p%CHI
+    mu_old = wlc_p%MU
+    hA_Old = wlc_p%HA
+    HP1_Bind_Old = wlc_p%HP1_BIND
+    Kap_Old = wlc_p%KAP
+    chi_l2_old = wlc_p%CHI_L2
 
     ! send number bound to head node
     dest = 0
@@ -163,35 +166,35 @@ use mpi
     call MPI_Recv(cof,nTerms,MPI_doUBLE_PRECISION,source,0,&
                   MPI_COMM_WORLD,status,error)
 
-    wlc_p%chi      =cof(1)
-    wlc_p%mu       =cof(2)
-    wlc_p%hA       =cof(3)
-    wlc_p%HP1_Bind =cof(4)
-    wlc_p%Kap      =cof(5)
+    wlc_p%CHI      =cof(1)
+    wlc_p%MU       =cof(2)
+    wlc_p%HA       =cof(3)
+    wlc_p%HP1_BIND =cof(4)
+    wlc_p%KAP      =cof(5)
     !wlc_p%para(1)  =cof(6)
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
-    wlc_p%chi_l2 = cof(9)
+    wlc_p%CHI_L2 = cof(9)
 
-    if (abs(wlc_d%EChi-wlc_d%x_chi*chi_old).gt.eps) then
+    if (abs(wlc_d%EChi-wlc_d%x_chi*chi_old).gt.epsApprox) then
         print*, "Error in replicaExchange"
         print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*CofOld(1)",wlc_d%x_chi*chi_old
         stop 1
     endif
 
-    wlc_d%EChi    =wlc_d%EChi    +wlc_d%x_chi      *(wlc_p%chi      -chi_old)
-    wlc_d%ebind   =wlc_d%ebind   +wlc_d%x_mu       *(wlc_p%mu       -mu_old)
-    wlc_d%EField  =wlc_d%EField  +wlc_d%x_field    *(wlc_p%hA       -hA_old)
-    wlc_d%ECouple =wlc_d%ECouple +wlc_d%x_couple   *(wlc_p%HP1_Bind -HP1_Bind_Old)
-    wlc_d%EKap    =wlc_d%EKap    +wlc_d%x_Kap      *(wlc_p%Kap      -Kap_Old)
+    wlc_d%EChi    =wlc_d%EChi    +wlc_d%x_chi      *(wlc_p%CHI      -chi_old)
+    wlc_d%EMu     =wlc_d%EMu     +wlc_d%x_mu       *(wlc_p%MU       -mu_old)
+    wlc_d%EField  =wlc_d%EField  +wlc_d%x_field    *(wlc_p%HA       -hA_old)
+    wlc_d%ECouple =wlc_d%ECouple +wlc_d%x_couple   *(wlc_p%HP1_BIND -HP1_Bind_Old)
+    wlc_d%EKap    =wlc_d%EKap    +wlc_d%x_Kap      *(wlc_p%KAP      -Kap_Old)
    ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
    ! wlc_p%EElas(2) = wlc_p%EElas(2) + x(7)*(Cof(7)-CofOld(7))
    ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
-    wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +wlc_d%x_maierSaupe*(wlc_p%chi_l2-chi_l2_old)
+    wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +wlc_d%x_maierSaupe*(wlc_p%CHI_L2-chi_l2_old)
 
-    if (abs(wlc_d%EChi-wlc_p%chi*wlc_d%x_chi).gt.eps) then
+    if (abs(wlc_d%EChi-wlc_p%CHI*wlc_d%x_chi).gt.epsApprox) then
         print*, "Error in replicaExchange"
-        print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*Cof(1)",wlc_p%chi*wlc_d%x_chi
+        print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*Cof(1)",wlc_p%CHI*wlc_d%x_chi
         stop 1
     endif
 

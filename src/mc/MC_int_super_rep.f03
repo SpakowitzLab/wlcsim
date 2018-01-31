@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------!
 !
 !     This subroutine calculates the change in the self energy for
@@ -29,15 +30,18 @@ real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
-real(dp) phi2(5)
-integer m_plus3  ! m from Ylm spherical harmonics
+real(dp), dimension(-2:2) ::  phi2
+integer m_index  ! m from Ylm spherical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
-integer AminusB
-NBinX = wlc_p%NBinX
+NBinX = wlc_p%NBINX
 
 wlc_d%NPHI = 0
+if (WLC_P__TWO_TAIL) then
+    print*, "The Super Reptation move is not currently set up for two Tail"
+    stop 1
+endif
 ! -------------------------------------------------------------
 !
 !  Calculate end beads
@@ -79,7 +83,7 @@ do II = 1,2
        RBin(3) = wlc_d%RP(3,IB)
        isA = wlc_d%ABP(IB).eq.1
    endif
-   if (wlc_p%chi_l2_on .and. isA) then
+   if (wlc_p%CHI_L2_ON .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_d%U(:,IB),phi2)
        else
@@ -94,7 +98,7 @@ do II = 1,2
    !  Interpolate beads into bins
    !
    ! --------------------------------------------------
-   call interp(wlc_p%confineType,RBin,wlc_p%LBOX,wlc_p%NBinX,wlc_p%dbin,IX,IY,IZ,WX,WY,WZ)
+   call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
    ! -------------------------------------------------------
    !
@@ -106,11 +110,8 @@ do II = 1,2
    !   makes it faster.
    if (isA) then
        do ISX = 1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
           do ISY = 1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
              do ISZ = 1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
@@ -119,23 +120,23 @@ do II = 1,2
                    if (I.eq.0) then
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       wlc_d%DPHIA(wlc_d%NPHI) = temp
                       wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = &
-                                  + phi2(m_plus3)*temp
+                      if(wlc_p%CHI_L2_ON) then
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                                  + phi2(m_index)*temp
                           enddo
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      temp = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
-                              wlc_d%DPHI_l2(m_plus3,I) = wlc_d%DPHI_l2(m_plus3,I) &
-                                  + phi2(m_plus3)*temp
+                      if(wlc_p%CHI_L2_ON) then
+                          do m_index = -2,2
+                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
+                                  + phi2(m_index)*temp
                           enddo
                       endif
                       exit
@@ -148,11 +149,8 @@ do II = 1,2
        enddo
    else
        do ISX = 1,2
-          if ((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) CYCLE
           do ISY = 1,2
-             if ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) CYCLE
              do ISZ = 1,2
-                if ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1))) cycle
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
@@ -162,16 +160,16 @@ do II = 1,2
                       wlc_d%NPHI = wlc_d%NPHI + 1
                       wlc_d%inDPHI(wlc_d%NPHI) = inDBin
                       wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
-                      if(wlc_p%chi_l2_on) then
-                          do m_plus3 =1,5
+                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
+                      if(wlc_p%CHI_L2_ON) then
+                          do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_plus3,wlc_d%NPHI) = 0.0
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
                           enddo
                       endif
                       exit
                    elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*wlc_p%beadVolume/wlc_d%Vol(inDBin)
+                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       exit
                    else
                       I = I-1

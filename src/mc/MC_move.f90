@@ -24,58 +24,64 @@ type(wlcsim_data), intent(inout) :: wlc_d
 
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1) 
-call MC_crank(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+call MC_crank(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
-       ,dib,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
+       ,dib)
 case(2)
-call MC_slide(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+call MC_slide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
-       ,dib,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
+       ,dib)
 case(3)
-call MC_pivot(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+call MC_pivot(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,wlc_p%winType &
-       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat)
 case(4)
-call MC_rotate(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,wlc_p%NP&
+call MC_rotate(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat &
-       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(5)
-call MC_fullChainRotation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB&
-       ,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat &
-       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+call MC_fullChainRotation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(6)
-call MC_fullChainSlide(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB&
-       ,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat &
-       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+call MC_fullChainSlide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
+       ,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,wlc_p%NT&
-       ,wlc_p%NB,wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%Window(MCTYPE),wlc_p%nBPM,rand_stat &
-       ,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+call MC_chemMove(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%Window(MCTYPE),rand_stat)
 case(8)
 case(9)
-call MC_chainSwap(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
-        wlc_p%NP,IP,IB1,IB2,IT1,IT2 &
+call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IB1,IB2,IT1,IT2 &
        ,rand_stat &
-       ,IT3,IT4,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,IT3,IT4)
 case(10)
-call MC_reptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,wlc_p%NB,&
-        wlc_p%NP,IP,IT1,IT2&
+call MC_reptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IT1,IT2,IB1,IB2&
        ,rand_stat &
-       ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+       ,forward)
 case(11)
-call MC_superReptation(wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
-        ,wlc_p%NT,wlc_p%NB,wlc_p%NP,IP,IT1,IT2,rand_stat &
-       ,forward,wlc_p%ring,wlc_p%inTERP_BEAD_LENNARD_JONES)
+call MC_superReptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
+        ,IP,IT1,IT2,IB1,IB2,rand_stat &
+       ,forward)
 end select 
 RETURN
 END
+function exponential_random_int(window,rand_stat) result(output)
+    ! this function gives a random exponentially distributed intiger
+    ! the most likely outcome is 0
+    use params, only: dp
+    use mersenne_twister
+    implicit none
+    type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
+    real urnd(1) ! single random number
+    real(dp), intent(in) :: window
+    integer output
+    call random_number(urnd,rand_stat)
+    output  = nint(-1.0_dp*log(urnd(1)+0.000001_dp)*window+0.0001_dp)
+    output = abs(output)
+end function exponential_random_int
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
 use params, only: dp, eps
 implicit none
@@ -166,9 +172,9 @@ subroutine random_perp(u,p,t,rand_stat)
 ! The output vectors, p and t, are perpendicular to eachother and u
 ! The triad is randomly left or right handed
 use mersenne_twister
-use params, only: dp, eps
+use params, only: pi, dp, eps
 implicit none
-real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
+!real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
 type(random_stat) rand_stat  ! status of random number generator
 real urnd(1) ! single random number
 

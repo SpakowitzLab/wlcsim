@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo Moves
@@ -8,87 +9,75 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_slide(R,U,RP,UP,NT,NB,NP,IP,IB1,IB2,IT1,IT2 &
-                  ,MCAMP,WindoW,rand_stat,winType &
-                  ,dib,ring,inTERP_BEAD_LENNARD_JONES)
+subroutine MC_slide(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+                  ,MCAMP,WindoW,rand_stat &
+                  ,dib)
 
 use mersenne_twister
-use params, only: dp
-
-!TODO: replace R,U,RP,UP .... with wlc_d
+use params, only: dp,wlcsim_params
 
 implicit none
-
-integer, intent(in) :: NB     ! Number of beads on a polymer
-integer, intent(in) :: NP     ! Number of polymers
-integer, intent(in) :: NT     ! Total beads in simulation
-real(dp), intent(in) :: R(3,NT)  ! Bead positions
-real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,NT)  ! Tangent vectors
+type(wlcsim_params), intent(in) :: wlc_p
+real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
 integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-integer, intent(out) :: dib   ! number of beads moved by move
-logical, intent(in) :: ring
-logical, intent(in) :: inTERP_BEAD_LENNARD_JONES
+integer, intent(out) :: dib   ! number of beads moved by move (plus or minus a few)
 
 integer I,J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urand(3)  ! random vector
 real urnd(1) ! single random number
-! Variables for the crank-shaft move
-
-real(dp) P1(3)    ! Point on rotation line
-
-
-!     MC adaptation variables
-
+integer irnd(1)
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-integer, intent(in) :: winType
+!integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
-
+integer exponential_random_int
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (RinG .OR. inTERP_BEAD_LENNARD_JONES) then
+if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
     RP = R
     UP = U
-    P1 = 0.0_dp
 endif
 
 !     Perform slide move (MCTYPE 2)
 
-call random_number(urand,rand_stat)
-IP = ceiling(urand(1)*NP)
-IB1 = ceiling(urand(2)*NB)
-! again, we use a window
-if (winType.eq.0) then
-    IB2 = IB1 + nint((urand(3)-0.5_dp)*(2.0_dp*WindoW + 1.0))
-elseif (winType.eq.1.and..not.RinG) then
+call random_index(WLC_P__NP,irnd,rand_stat)
+IP=irnd(1)
+call random_index(WLC_P__NB,irnd,rand_stat)
+IB1=irnd(1)
+if (WLC_P__WINTYPE.eq.0) then
     call random_number(urnd,rand_stat)
+    IB2 = IB1 +exponential_random_int(window,rand_stat)
+elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
+    call random_number(urand,rand_stat)
     IB2 = IB1 + (2*nint(urand(3))-1)* &
-            nint(-1.0*log(urnd(1))*WindoW)
-elseif (winType.eq.1.and.RinG) then
+           exponential_random_int(window,rand_stat)
+elseif (WLC_P__WINTYPE.eq.1.and.WLC_P__RING) then
     call random_number(urnd,rand_stat)
-    IB2 = IB1 + nint(-1.0*log(urnd(1))*WindoW)
-
+    IB2 = IB1 + exponential_random_int(window,rand_stat)
+else
+    call stop_if_err(1, "Warning: WLC_P__WINTYPE not recognized")
 endif
 
 DIB = IB2-IB1
 
-if (RinG) then
- if (IB2 > NB) then
-     IB2 = DIB-(NB-IB1)
+if (WLC_P__RING) then
+ if (IB2 > WLC_P__NB) then
+     IB2 = DIB-(WLC_P__NB-IB1)
  endif
 else
- if (IB2 > NB) then
-     IB2 = NB
+ if (IB2 > WLC_P__NB) then
+     IB2 = WLC_P__NB
  endif
  if (IB2 < 1) then
     IB2 = 1
@@ -98,12 +87,12 @@ else
      IB1 = IB2
      IB2 = TEMP
  endif
- IT2 = NB*(IP-1) + IB2
+ IT2 = WLC_P__NB*(IP-1) + IB2
  DIB = IB2-IB1
 endif
 
-IT1 = NB*(IP-1) + IB1
-IT2 = NB*(IP-1) + IB2
+IT1 = WLC_P__NB*(IP-1) + IB1
+IT2 = WLC_P__NB*(IP-1) + IB2
 
 call random_number(urand,rand_stat)
 DR(1) = MCAMP*(urand(1)-0.5)
@@ -113,8 +102,8 @@ DR(3) = MCAMP*(urand(3)-0.5)
 I = IT1
 do  J = 0,DIB
 
-   if (I == (NB*IP + 1).AND.RinG) then
-      I = NB*(IP-1) + 1
+   if (I == (WLC_P__NB*IP + 1).AND.WLC_P__RING) then
+      I = WLC_P__NB*(IP-1) + 1
    endif
 
    RP(1,I) = R(1,I) + DR(1)
