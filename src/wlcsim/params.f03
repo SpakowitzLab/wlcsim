@@ -15,7 +15,7 @@ module params
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: IEEE_ARITHMETIC
     use mersenne_twister
-    use precision, only: dp, eps
+    use precision, only: dp, eps, epsapprox
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
 
@@ -149,6 +149,7 @@ module params
         real(dp), allocatable, dimension(:,:):: U   ! Conformation of polymer chains
         real(dp), allocatable, dimension(:,:):: RP !Test Bead positions - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
+        real(dp), allocatable, dimension(:):: ExplicitBindingPair ! List of other points bound to this one
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
         real(dp), allocatable, dimension(:,:):: PHI_l2 ! l=2 oreientational field
