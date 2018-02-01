@@ -42,7 +42,7 @@ def write_depend(outfile="makefile.dep",dep=[],overwrite=False,build='',compile_
     for i in dep.keys():
         fil,_=os.path.splitext(i)
         # make each object file depend on it's source file
-        stri="\n"+os.path.join(build, fil+".o"+" : "+i)
+        stri="\n"+os.path.join(build, fil+".o"+" : src/defines.inc "+i)
         for j in dep[i]:
             fdep,_=os.path.splitext(j)
             stri=stri+" \\\n\t"+os.path.join(build, fdep+".o")

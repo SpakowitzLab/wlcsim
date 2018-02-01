@@ -31,17 +31,17 @@
 !
 ! ------------------------------------------------------
 module binning
-    use precision, only : dp
+    use precision, only : dp, eps
 
-    Implicit none
+    implicit none
 
     ! The following are optimization constants.
     ! Their optimal values will, in general, depend on the application
-    Integer, Parameter :: maxBeadsPerBin = 20
-    Integer, Parameter :: subdivisionRatio = 4
-    Integer, Parameter :: nBeadsToTrigerBinMerge = 3
+    integer, Parameter :: maxBeadsPerBin = 20
+    integer, Parameter :: subdivisionRatio = 4
+    integer, Parameter :: nBeadsToTrigerBinMerge = 3
 
-    Type binType
+    type binType
         !-----------
         ! General variables
         !-----------
@@ -64,13 +64,13 @@ module binning
         !type(binType), Allocatable, dimension(:):: bins ! (bin,element)
 
 
-    end Type
+    end type
 
 contains
 
     subroutine constructBin(bin,setBinShape,setMinXYZ,setBinSize)
         implicit none
-        Type(binType), intent(inout) :: bin
+        type(binType), intent(inout) :: bin
         integer, intent(in) :: setBinShape(3)
         real(dp), intent(in) :: setBinSize(3)
         real(dp), intent(in) :: setMinXYZ(3)
@@ -84,7 +84,7 @@ contains
 
     subroutine promoteBin(bin,R,NT)
         implicit none
-        Type(binType), intent(inout) :: bin
+        type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
         real(dp), intent(in) :: R(3,NT)  ! locations of all beads
         integer ii,ix,iy,iz,dd
@@ -132,7 +132,7 @@ contains
 
     recursive subroutine demote(bin)
         implicit none
-        Type(binType), intent(inout) :: bin
+        type(binType), intent(inout) :: bin
         integer ii
         integer numberOfMovedBeads,jj
         if (.not.bin%isSuperBin) then
@@ -168,9 +168,8 @@ contains
     end subroutine
 
     recursive subroutine addBead(bin,R,NT,beadID)
-        use precision, only : eps
         implicit none
-        Type(binType), intent(inout) :: bin
+        type(binType), intent(inout) :: bin
         integer, intent(in) :: NT ! total number of beads
         real(dp), intent(in) :: R(3,NT)  ! locations of all beads
         integer, intent(in) :: beadID
@@ -218,7 +217,7 @@ contains
 
     recursive subroutine countBeads(bin,numberInBin)
         implicit none
-        Type(binType), intent(in) :: bin
+        type(binType), intent(in) :: bin
         integer, intent(out) :: numberInBin
         integer ii, temp
         if (bin%isSuperBin) then
@@ -241,7 +240,7 @@ contains
 
     recursive subroutine removeBead(bin,location,beadID)
         implicit none
-        Type(binType), intent(inout) :: bin
+        type(binType), intent(inout) :: bin
         real(dp), intent(in) :: location(3)
         integer, intent(in) :: beadID
         integer indexOfBeadToBeRemoved, ii
@@ -282,13 +281,12 @@ contains
 
     subroutine getBinIndex(bin,location,binIndex)
         implicit none
-        Type(binType), intent(in) :: bin
+        type(binType), intent(in) :: bin
         real(dp), intent(in) :: location(3)
         integer, intent(out) :: binIndex
         integer XYZ(3)
         integer dd
 
-        !real(dp), parameter :: eps = 0.000001
         !do dd = 1,3
         !    if (location(dd) + eps.lt.bin%minXYZ(dd)) then
         !        print*, "Error, location out of bin.  Under."
@@ -322,7 +320,7 @@ contains
     recursive subroutine findNeighbors(bin,location,radius,R,NT,&
                   maxNeighbors,neighbors,distances,nNeighbors)
         implicit none
-        Type(binType), intent(in) :: bin
+        type(binType), intent(in) :: bin
         real(dp), intent(in) :: location(3) !
         real(dp), intent(in) :: radius ! cuttoff on interaction distance
         integer, intent(in) :: NT ! total number of beads

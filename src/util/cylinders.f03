@@ -8,8 +8,7 @@
 ! ---------------------------------------
 #include "../defines.inc"
 function cylinders(x1,y1,x2,y2) result(collide)
-    !use params, only : dp, eps
-    use precision, only: dp
+    use params, only: dp, eps
 
     implicit none
 
@@ -30,11 +29,9 @@ function cylinders(x1,y1,x2,y2) result(collide)
     real(dp) aa,bb,cc,dd,ee
     real(dp) denom
     logical linePoint !function
-    real(dp) eps
     real(dp) l1,l2,l3,l4
     real(dp) pp(3)
     real(dp) offset
-    eps = 0.000000001_dp
 
     ! exclude interaction if it has no chance of happening
     if ( min(x1(1),y1(1)) > max(x2(1),y2(1)) + WLC_P__CHAIN_D ) then
