@@ -79,7 +79,6 @@ subroutine MCsim(wlc_p,wlc_d)
     ISTEP = 1
 
     do while (ISTEP <= WLC_P__STEPSPEREXCHANGE)
-
        do MCTYPE = 1,nMoveTypes
        if (wlc_p%MOVEON(MCTYPE) == 0) cycle
        do sweepIndex = 1,wlc_p%MOVESPERSTEP(MCTYPE)
@@ -94,6 +93,7 @@ subroutine MCsim(wlc_p,wlc_d)
           wlc_d%DEField = 0.0_dp
           wlc_d%deMaierSaupe = 0.0_dp
           wlc_d%DEElas=0.0_dp
+          wlc_d%DEExplicitBinding = 0.0_dp
 
           ! Turn down poor moves
           if ((wlc_d%PHit(MCTYPE).lt.WLC_P__MIN_ACCEPT).and. &
@@ -213,17 +213,21 @@ subroutine MCsim(wlc_p,wlc_d)
               call MC_external_field(wlc_p,wlc_d,IT1,IT2)
           endif
 
+          if(WLC_P__EXPLICIT_BINDING) then
+              call MC_explicit_binding(wlc_p,wlc_d,IT1,IT2,IT3,IT4,MCTYPE)
+          endif
+
 !   Change the position if appropriate
           ENERGY = wlc_d%DEElas(1) + wlc_d%DEElas(2) + wlc_d%DEElas(3) &
                  + wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind &
                  + wlc_d%deMu &
                  + wlc_d%ECon + wlc_d%DEField &
-                 + wlc_d%deMaierSaupe
+                 + wlc_d%deMaierSaupe &
+                 + wlc_d%DEExplicitBinding
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_d%rand_stat)
           TEST = urnd(1)
           if (TEST <= PROB) then
-
              if(MCTYPE == 7 .or. MCTYPE == 11) then
                  if (.not.WLC_P__CHANGINGCHEMICALIDENTITY) then
                      call stop_if_err(1, "Tried to change chemical Identity when you can't")
@@ -269,6 +273,7 @@ subroutine MCsim(wlc_p,wlc_d)
              wlc_d%EBind = wlc_d%EBind + wlc_d%DEBind
              wlc_d%EMu = wlc_d%EMu + wlc_d%DEMu
              wlc_d%x_mu = wlc_d%x_mu + wlc_d%dx_mu
+             wlc_d%eExplicitBinding = wlc_d%eExplicitBinding + wlc_d%DEExplicitBinding
              wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
              wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)
              wlc_d%EElas(3) = wlc_d%EElas(3) + wlc_d%DEElas(3)
@@ -341,7 +346,6 @@ subroutine MCsim(wlc_p,wlc_d)
           endif
           !^^^^^^^^^^^End of check ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 !   Adapt the amplitude of step every NADAPT steps
-
        enddo ! End of sweepIndex loop
           !amplitude and window adaptations
           if (mod(ISTEP+wlc_d%ind_exchange*WLC_P__STEPSPEREXCHANGE,wlc_p%NADAPT(MCTYPE)) == 0) then  ! Addapt ever NADAPT moves

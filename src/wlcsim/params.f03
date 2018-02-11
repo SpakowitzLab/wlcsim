@@ -149,7 +149,7 @@ module params
         real(dp), allocatable, dimension(:,:):: U   ! Conformation of polymer chains
         real(dp), allocatable, dimension(:,:):: RP !Test Bead positions - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
-        real(dp), allocatable, dimension(:):: ExplicitBindingPair ! List of other points bound to this one
+        integer, allocatable, dimension(:):: ExplicitBindingPair ! List of other points bound to this one
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
         real(dp), allocatable, dimension(:,:):: PHI_l2 ! l=2 oreientational field
@@ -194,6 +194,7 @@ module params
         real(dp) eField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         real(dp) eMaierSaupe ! Maier Saupe energy
+        real(dp) eExplicitBinding
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
         real(dp) x_Chi,   dx_Chi
@@ -212,6 +213,7 @@ module params
         real(dp) DEMu   ! Change in binding energy
         real(dp) DEField  ! Change in field energy
         real(dp) DESelf   ! change in self interaction energy
+        real(dp) DEExplicitBinding
         real(dp) ECon     ! Confinement Energy
         real(dp) deMaierSaupe ! change in Maier Saupe energy
         integer NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
@@ -398,6 +400,10 @@ contains
         type(wlcsim_data), intent(inout) :: wlc_d
         logical err
 
+        if ((.not. WLC_P__FIELD_INT_ON) .and. (WLC_P__SAVEAB)) then
+            print*, "SAVE_AB = True is currently incompatable with Field_int_on=False"
+            print*, "because AB is only allocated if field_in_on=True"
+        endif
         if (WLC_P__ASYMMETRICALTERNATINGCHEM .and. WLC_P__CHANGINGCHEMICALIDENTITY) then
             print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
             stop
@@ -592,6 +598,21 @@ contains
                 wlc_d%indphi(I) = INT_MIN
             enddo
         endif
+        if (WLC_P__EXPLICIT_BINDING) then
+            allocate(wlc_d%ExplicitBindingPair(NT))
+            open(unit = 5,file = "input/bindpairs",status = 'OLD')
+            do I = 1,NT
+                Read(5,'(I10)') wlc_d%ExplicitBindingPair(I)
+                if (wlc_d%ExplicitBindingPair(I) .gt. NT) then
+                    print*, "Loop to nonexistant bead"
+                    stop 1
+                endif
+            enddo
+            close(5)
+            print*, "Read explidit binding"
+            print*, wlc_d%ExplicitBindingPair(1:10)
+            print*, "..."
+        endif
         if (WLC_P__VARIABLE_CHEM_STATE) then
             allocate(wlc_d%METH(NT)) !Underlying methalation profile
         endif
@@ -766,6 +787,7 @@ contains
         wlc_d%eField      = 0.0_dp ! Field energy
         wlc_d%eSelf       = 0.0_dp ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         wlc_d%eMaierSaupe = 0.0_dp ! Maier Saupe energy
+        wlc_d%eExplicitBinding = 0.0_dp ! Explicit Binding energy
         wlc_d%DEELAS      = 0.0_dp ! Change in bending energy
         wlc_d%DECouple    = 0.0_dp ! Coupling energy
         wlc_d%DEChi       = 0.0_dp ! chi interaction energy
@@ -776,6 +798,7 @@ contains
         wlc_d%DESelf      = 0.0_dp ! change in self interaction energy
         wlc_d%ECon        = 0.0_dp ! Confinement Energy
         wlc_d%deMaierSaupe= 0.0_dp ! change in Maier Saupe energy
+        wlc_d%DEExplicitBinding = 0.0_dp ! change in explicit binding energy
         wlc_d%NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
         wlc_d%time = 0
@@ -978,6 +1001,7 @@ contains
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind
         print*, "eMu", wlc_d%eMu
+        print*, "eExplicitBinding", wlc_d%eExplicitBinding
     end subroutine
 
     subroutine calcTotalPolymerVolume(wlc_p,wlc_d,totalVpoly)

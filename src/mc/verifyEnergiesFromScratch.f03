@@ -35,6 +35,10 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
         enddo
         print*, "N-Tot", phiTot*(WLC_P__DBIN**3)/WLC_P__BEADVOLUME," NT:",wlc_p%NT
     endif
+
+    if (WLC_P__EXPLICIT_BINDING) then
+        call MC_explicit_binding_from_scratch(wlc_p,wlc_d)
+    endif
   if (WLC_P__RING) then
      ! --- Initial Writhe
      call WRITHE(wlc_d%R,WLC_P__NB,wlc_d%Wr)
@@ -62,6 +66,7 @@ subroutine InitializeEnergiesForVerifier(wlc_p, wlc_d)
     wlc_d%EBind = wlc_d%DEBind
     wlc_d%x_mu = wlc_d%dx_mu
     wlc_d%EElas = wlc_d%DEElas ! copy array
+    wlc_d%eExplicitBinding = wlc_d%DEExplicitBinding
     ! --- Interaction Energy ---
     if (wlc_p%FIELD_INT_ON) then
         wlc_d%EChi = wlc_d%DEChi
@@ -116,6 +121,19 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
         write(ERROR_UNIT,*) " save point mc_ind = ",wlc_d%mc_ind
     endif
     wlc_d%EElas = wlc_d%DEElas ! copy array
+
+    ! --- Explicit Binding energy ---
+    if(abs(wlc_d%eExplicitBinding - wlc_d%DEExplicitBinding).gt.0.0001) then
+        write(ERROR_UNIT,*) "Warning. Explicit Binding enrgy:", &
+                wlc_d%eExplicitBinding, &
+                " while absolute explicit binding energy:", &
+                wlc_d%DEExplicitBinding
+        write(ERROR_UNIT,*) " save point mc_ind = ",wlc_d%mc_ind
+    endif
+    wlc_d%eExplicitBinding = wlc_d%DEExplicitBinding
+
+
+
 
     ! --- Interaction Energy ---
     if (wlc_p%FIELD_INT_ON) then
