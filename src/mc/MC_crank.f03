@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_crank(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+subroutine MC_crank(wlc_p,ExplicitBindingPair,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat  &
                   ,dib)
 
@@ -18,6 +18,7 @@ use params, only: dp,wlcsim_params
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
+integer, intent(in) :: ExplicitBindingPair(wlc_p%NT)
 real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
@@ -54,6 +55,7 @@ integer TEMP
 ! Variables for change of binding state move
 real(dp) d1,d2  !for testing
 integer exponential_random_int
+integer otherEnd
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR.WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -70,14 +72,12 @@ IP=irnd(1)
 call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
 if (WLC_P__WINTYPE.eq.0) then
-    call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
-    call random_number(urand,rand_stat)
-    IB2 = IB1 + (2*nint(urand(3))-1)* &
+    call random_number(urnd,rand_stat)
+    IB2 = IB1 + (2*nint(urnd(1))-1)* &
            exponential_random_int(window,rand_stat)
 elseif (WLC_P__WINTYPE.eq.1.and.WLC_P__RING) then
-    call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 else
     call stop_if_err(1, "Warning: winType not recognized")
@@ -109,6 +109,11 @@ if (WLC_P__RING) then                    !Polymer is a ring
       TA(2) = R(2,IT2)-R(2,IT1)
       TA(3) = R(3,IT2)-R(3,IT1)
    endif
+   if (WLC_P__EXPLICIT_BINDING) then
+       print*, "Ring polymer not set up to use explicit binding"
+       print*, "Need to write special loop skiping code"
+       stop
+   endif
 else                                 !Polymer is not a ring
    if (IB2 > WLC_P__NB) then
       IB2 =WLC_P__NB
@@ -126,9 +131,29 @@ else                                 !Polymer is not a ring
       IB1 = IB2
       IB2 = TEMP
    endif
-   DIB = IB2-IB1
-   IT1 = WLC_P__NB*(IP-1)+IB1
-   IT2 = WLC_P__NB*(IP-1)+IB2
+    if (WLC_P__EXPLICIT_BINDING) then
+        call random_number(urnd,rand_stat)
+        if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
+            do I =IT1,IT2
+                otherEnd=ExplicitBindingPair(I)
+                if (WLC_P__NP>1) then
+                    ! make sure the other end is on the same polymer
+                    if (IP .ne. (otherEnd-1)/WLC_P__NB+1) cycle
+                endif
+                if (otherEnd < 1) cycle
+                if (otherEnd < IT1) then  ! Loop to point before IT1
+                    print*, "move left. IT1",IT1," otherEnd",otherEnd," IT2", IT2
+                    IB1=IB1-IT1+otherEnd
+                    IT1=otherEnd
+                elseif (otherEnd > IT2) then ! Loop to point after IT2
+                    print*, "move right. IT1",IT1," otherEnd",otherEnd," IT2", IT2
+                    IB2=IB2-IT2+otherEnd
+                    IT2=otherEnd
+                endif
+            enddo
+        endif
+    endif
+    DIB = IB2-IB1
   if (IB1 == IB2.AND.IB1 == 1) then
       TA(1) = R(1,IT1 + 1)-R(1,IT1)
       TA(2) = R(2,IT1 + 1)-R(2,IT1)
