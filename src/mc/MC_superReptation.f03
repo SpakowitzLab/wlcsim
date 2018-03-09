@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_superReptation(wlc_p,R,U,RP,UP,AB,ABP,IP,IT1,IT2,IB1,IB2&
+subroutine MC_superReptation(wlc_p,R,U,RP,UP,AB,ABP,IT1,IT2,IB1,IB2&
                   ,rand_stat,forward)
 use mersenne_twister
 use params, only: dp,wlcsim_params
@@ -22,12 +22,12 @@ integer, intent(in) :: AB(wlc_p%NT)  ! Current chemical identity
 integer, intent(out) :: ABP(wlc_p%NT)  ! Proposed chemical identity
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: IB1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Index of test bead 2
 
+integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator

@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_reptation(wlc_p,R,U,RP,UP,IP,IT1,IT2,IB1,IB2 &
+subroutine MC_reptation(wlc_p,R,U,RP,UP,IT1,IT2,IB1,IB2 &
                   ,rand_stat,forward)
 use mersenne_twister
 use params, only: dp,wlcsim_params
@@ -20,12 +20,12 @@ real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: IB1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Index of test bead 2
 
+integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator

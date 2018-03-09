@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_fullChainRotation(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+subroutine MC_fullChainRotation(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,rand_stat)
 
 use mersenne_twister
@@ -23,12 +23,12 @@ real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 
+integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator

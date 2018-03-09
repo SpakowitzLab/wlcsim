@@ -25,7 +25,6 @@ subroutine MCsim(wlc_p,wlc_d)
     integer ISTEP             ! Current MC step index
     real(dp) PROB     ! Calculated test prob
     real(dp) TEST     ! Random test variable
-    integer IP                ! Test polymer
     integer IB1               ! Test bead position 1
     integer IT1               ! Index of test bead 1
     integer IB2               ! Test bead position 2
@@ -101,7 +100,7 @@ subroutine MCsim(wlc_p,wlc_d)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,&
+          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,&
                        MCTYPE,forward,wlc_d%rand_stat,dib)
 
 !   Calculate the change in confinement energy

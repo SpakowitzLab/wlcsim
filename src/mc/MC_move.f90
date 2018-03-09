@@ -8,12 +8,12 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
+subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib)
 use mersenne_twister
 use params, only: dp, pi, wlcsim_data, wlcsim_params
 implicit none
 
-integer, intent(out) :: IT1, IT2, IT3, IT4, IP, IB1, IB2, dib
+integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib
 integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
@@ -25,45 +25,45 @@ type(wlcsim_data), intent(inout) :: wlc_d
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1) 
 call MC_crank(wlc_p,wlc_d%ExplicitBindingPair,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
        ,dib)
 case(2)
 call MC_slide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
        ,dib)
 case(3)
 call MC_pivot(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat)
 case(4)
 call MC_rotate(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(5)
 call MC_fullChainRotation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(6)
 call MC_fullChainSlide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
+       ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IP,IB1,IB2,IT1,IT2 &
+call MC_chemMove(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IB1,IB2,IT1,IT2 &
        ,wlc_d%Window(MCTYPE),rand_stat)
 case(8)
 case(9)
-call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IB1,IB2,IT1,IT2 &
+call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2,IT1,IT2 &
        ,rand_stat &
        ,IT3,IT4)
 case(10)
-call MC_reptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IT1,IT2,IB1,IB2&
+call MC_reptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IT1,IT2,IB1,IB2&
        ,rand_stat &
        ,forward)
 case(11)
 call MC_superReptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
-        ,IP,IT1,IT2,IB1,IB2,rand_stat &
+        ,IT1,IT2,IB1,IB2,rand_stat &
        ,forward)
 end select 
 RETURN

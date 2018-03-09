@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chainSwap(wlc_p,R,U,RP,UP,IP,IB1,IB2,IT1,IT2 &
+subroutine MC_chainSwap(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
                   ,rand_stat &
                   ,IT3,IT4)
 
@@ -22,8 +22,8 @@ real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(out) :: IP    ! Test polymer
-integer IP2   ! Second Test polymer if applicable
+integer IP    ! Test polymer
+integer IP2   ! Second Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
