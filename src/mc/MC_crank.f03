@@ -142,11 +142,9 @@ else                                 !Polymer is not a ring
                 endif
                 if (otherEnd < 1) cycle
                 if (otherEnd < IT1) then  ! Loop to point before IT1
-                    print*, "move left. IT1",IT1," otherEnd",otherEnd," IT2", IT2
                     IB1=IB1-IT1+otherEnd
                     IT1=otherEnd
                 elseif (otherEnd > IT2) then ! Loop to point after IT2
-                    print*, "move right. IT1",IT1," otherEnd",otherEnd," IT2", IT2
                     IB2=IB2-IT2+otherEnd
                     IT2=otherEnd
                 endif
