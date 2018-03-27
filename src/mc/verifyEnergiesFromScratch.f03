@@ -26,7 +26,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
                      WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__L)
 
     ! --- Interaction Energy ---
-    if (wlc_p%FIELD_INT_ON) then
+    if (wlc_p%field_int_on_currently) then
         ! initialize phi
         call MC_int_initialize(wlc_p, wlc_d)
         phiTot=0.0_dp
@@ -68,7 +68,7 @@ subroutine InitializeEnergiesForVerifier(wlc_p, wlc_d)
     wlc_d%EElas = wlc_d%DEElas ! copy array
     wlc_d%eExplicitBinding = wlc_d%DEExplicitBinding
     ! --- Interaction Energy ---
-    if (wlc_p%FIELD_INT_ON) then
+    if (wlc_p%field_int_on_currently) then
         wlc_d%EChi = wlc_d%DEChi
         wlc_d%x_chi = wlc_d%dx_chi
         wlc_d%ECouple = wlc_d%DECouple
@@ -136,7 +136,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
 
 
     ! --- Interaction Energy ---
-    if (wlc_p%FIELD_INT_ON) then
+    if (wlc_p%field_int_on_currently) then
         ! test to see if sum of changes are same as calculating from scratch
         if(abs(wlc_d%EChi-wlc_d%DEChi) > eps) then
              write(ERROR_UNIT,*) "Warning. Intigrated chi energy:", &

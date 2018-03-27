@@ -125,7 +125,7 @@ module params
         real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
         real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
         real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
-        logical field_int_on ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
+        logical field_int_on_currently ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical chi_l2_on
 
     !   parallel Tempering parameters
@@ -280,7 +280,7 @@ contains
         wlc_p%kap_on = 1.0 ! on by default
         wlc_p%chi_on = 1.0 ! on by default
         wlc_p%chi_l2_on = .TRUE. ! on by default
-        wlc_p%field_int_on = WLC_P__FIELD_INT_ON ! on by default
+        wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
         wlc_p%NBINX(1) = WLC_P__NBINX_X
         wlc_p%NBINX(2) = WLC_P__NBINX_Y
@@ -402,7 +402,7 @@ contains
 
         if ((.not. WLC_P__FIELD_INT_ON) .and. (WLC_P__SAVEAB)) then
             print*, "SAVE_AB = True is currently incompatable with Field_int_on=False"
-            print*, "because AB is only allocated if field_in_on=True"
+            print*, "because AB is only allocated if field_int_on=True"
         endif
         if (WLC_P__ASYMMETRICALTERNATINGCHEM .and. WLC_P__CHANGINGCHEMICALIDENTITY) then
             print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
@@ -435,7 +435,7 @@ contains
             endif
         endif
 
-        if (wlc_p%FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
+        if (WLC_P__FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
             call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
         endif
 
@@ -575,7 +575,7 @@ contains
         !but it's not clear if that's possible without adding a bunch of dirty
         !if statements deep inside mc_move. which is fine, but I would want to
         !check with quinn *exactly* in which cases they're needed if i do that
-        if (wlc_p%FIELD_INT_ON) then
+        if (WLC_P__FIELD_INT_ON) then
             allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
             if (WLC_P__CHANGINGCHEMICALIDENTITY) then
                 allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
@@ -723,7 +723,7 @@ contains
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
             wlc_d%rand_stat, wlc_p)
 
-        if (wlc_p%FIELD_INT_ON) then
+        if (WLC_P__FIELD_INT_ON) then
             ! initialize a/b sequence
             if (WLC_P__CHEM_STATE_FROM_FILE) then
                 iostr='input/ab'
@@ -899,7 +899,7 @@ contains
 
         ! if we're not using field interactions
         ! energies, then this should never be on
-        if ((.not. wlc_p%FIELD_INT_ON) .and. wlc_p%MOVEON(9)/=0) then
+        if ((.not. WLC_P__FIELD_INT_ON) .and. wlc_p%MOVEON(9)/=0) then
             wlc_p%MOVEON(7) = 0  ! Change in Binding state
             print*, "turning off movetype 7, binding, becuase unneeded"
         endif

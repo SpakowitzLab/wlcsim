@@ -40,28 +40,30 @@ use mpi
     !     Copy from replica 1 to others.
     !
     !----------------------------------------------
-    if (wlc_d%id.eq.1) then
-        do dest = 2,nThreads-1
-            if(WLC_P__VARIABLE_CHEM_STATE) then
-                if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
-                    call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
+    if (WLC_P__FIELD_INT_ON) then
+        if (wlc_d%id.eq.1) then
+            do dest = 2,nThreads-1
+                if(WLC_P__VARIABLE_CHEM_STATE) then
+                    if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
+                        call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
+                                       MPI_COMM_WORLD,error )
+                    endif
+                else
+                    call MPI_Send (wlc_d%AB,wlc_p%NT, MPI_integer, dest,   0, &
                                    MPI_COMM_WORLD,error )
                 endif
+            enddo
+        elseif (wlc_d%id.gt.1) then
+            source = 1
+            if(WLC_P__VARIABLE_CHEM_STATE) then
+                if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
+                    call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
+                                   MPI_COMM_WORLD, status, error )
+                endif
             else
-                call MPI_Send (wlc_d%AB,wlc_p%NT, MPI_integer, dest,   0, &
-                               MPI_COMM_WORLD,error )
-            endif
-        enddo
-    elseif (wlc_d%id.gt.1) then
-        source = 1
-        if(WLC_P__VARIABLE_CHEM_STATE) then
-            if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
-                call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
+                call MPI_Recv (wlc_d%AB, wlc_p%NT, MPI_integer, source, 0, &
                                MPI_COMM_WORLD, status, error )
             endif
-        else
-            call MPI_Recv (wlc_d%AB, wlc_p%NT, MPI_integer, source, 0, &
-                           MPI_COMM_WORLD, status, error )
         endif
     endif
 

@@ -331,7 +331,7 @@ subroutine worker_node(wlc_p, wlc_d)
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%eelas = wlc_d%deelas
-        if (wlc_p%FIELD_INT_ON) then
+        if (wlc_p%field_int_on_currently) then
             wlc_d%ECouple =wlc_d%dECouple
             wlc_d%EKap    =wlc_d%dEKap
             wlc_d%ECHI    =wlc_d%dECHI
@@ -398,7 +398,7 @@ subroutine onlyNode(wlc_p, wlc_d)
     call schedule(wlc_p, wlc_d,system_has_been_changed)
     if (system_has_been_changed) then
         call CalculateEnergiesFromScratch(wlc_p, wlc_d)
-        if (wlc_p%FIELD_INT_ON) then
+        if (wlc_p%field_int_on_currently) then
             wlc_d%ECouple =wlc_d%dECouple
             wlc_d%EKap    =wlc_d%dEKap
             wlc_d%ECHI    =wlc_d%dECHI
@@ -453,10 +453,10 @@ subroutine schedule(wlc_p, wlc_d,system_has_been_changed)
     !  --------------------------------
     if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
     if (wlc_d%mc_ind <= WLC_P__NNOINT) then
-        wlc_p%FIELD_INT_ON = .false.
-    else
-        if (.not.wlc_p%FIELD_INT_ON)  system_has_been_changed = .TRUE.
-        wlc_p%FIELD_INT_ON = .true.
+        wlc_p%field_int_on_currently = .false.
+    elseif (WLC_P__FIELD_INT_ON) then
+        if (.not.wlc_p%field_int_on_currently)  system_has_been_changed = .TRUE.
+        wlc_p%field_int_on_currently = .true.
     endif
     if(wlc_d%mc_ind.lt.WLC_P__N_KAP_ON) then
         wlc_p%KAP_ON = 0.0_dp

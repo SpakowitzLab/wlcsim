@@ -188,7 +188,7 @@ subroutine MCsim(wlc_p,wlc_d)
 
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
-          if (wlc_p%FIELD_INT_ON) then
+          if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
              if (MCTYPE == 9) then !swap move
                  !skip if doesn't do anything
                  if (abs(wlc_p%CHI_ON).lt.0.00001) CYCLE
@@ -276,7 +276,7 @@ subroutine MCsim(wlc_p,wlc_d)
              wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
              wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)
              wlc_d%EElas(3) = wlc_d%EElas(3) + wlc_d%DEElas(3)
-             if (wlc_p%FIELD_INT_ON) then
+             if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)
                    if (wlc_p%CHI_L2_ON) then
