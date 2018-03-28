@@ -2,4 +2,10 @@
 
 make dataclean
 make
-/usr/bin/mpirun -np 10 wlcsim.exe -i input/params
+MPIEXE=
+if [[ -f /usr/local/bin/mpirun ]] ; then
+    MPIEXE=/usr/local/bin/mpirun
+else
+    MPIEXE=/usr/bin/mpirun
+fi
+$MPIEXE -np 10 wlcsim.exe -i input/params
