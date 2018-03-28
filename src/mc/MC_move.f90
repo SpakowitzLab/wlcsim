@@ -24,7 +24,7 @@ type(wlcsim_data), intent(inout) :: wlc_d
 
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1) 
-call MC_crank(wlc_p,wlc_d%ExplicitBindingPair,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
+call MC_crank(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
        ,dib)

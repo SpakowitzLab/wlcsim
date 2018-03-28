@@ -9,16 +9,17 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_crank(wlc_p,ExplicitBindingPair,R,U,RP,UP,IB1,IB2,IT1,IT2 &
+subroutine MC_crank(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat  &
                   ,dib)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params
+use params, only: dp,wlcsim_params, wlcsim_data
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
-integer, intent(in) :: ExplicitBindingPair(wlc_p%NT)
+type(wlcsim_data), intent(inout) :: wlc_d
+!integer, intent(in) :: ExplicitBindingPair(wlc_p%NT)
 real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
 real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
@@ -135,7 +136,7 @@ else                                 !Polymer is not a ring
         call random_number(urnd,rand_stat)
         if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
             do I =IT1,IT2
-                otherEnd=ExplicitBindingPair(I)
+                otherEnd=wlc_d%ExplicitBindingPair(I)
                 if (WLC_P__NP>1) then
                     ! make sure the other end is on the same polymer
                     if (IP .ne. (otherEnd-1)/WLC_P__NB+1) cycle
