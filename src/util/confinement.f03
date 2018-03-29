@@ -14,6 +14,8 @@ pure function in_confinement(RP, NT, IT1, IT2)
                                         WLC_P__LBOX_Y/2.0_dp,&
                                         WLC_P__LBOX_Z/2.0_dp]
 
+    real(dp) centers(3)
+    integer ix,iy,iz
     in_confinement = .True.
     ! if (WLC_P__CONFINETYPE == 'none') then
     !     in_confinement = .False.
@@ -52,14 +54,24 @@ pure function in_confinement(RP, NT, IT1, IT2)
     elseif (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
         ! Periodic boundary conditions with an excluded sphere
         do I = IT1,IT2
-            rad = (WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp)**2
-            if ((modulo(RP(1,I),WLC_P__LBOX_X) - center(1))**2 + &
-                (modulo(RP(2,I),WLC_P__LBOX_Y) - center(2))**2 + &
-                (modulo(RP(3,I),WLC_P__LBOX_Z) - center(3))**2 < rad) then
-                in_confinement = .False.
-                return
-            endif
+            do ix=1,WLC_P__N_SPHERES_TO_SIDE
+            do iy=1,WLC_P__N_SPHERES_TO_SIDE
+            do iz=1,WLC_P__N_SPHERES_TO_SIDE
+                centers(1)=(real(ix)-0.5_DP)*WLC_P__LBOX_X/real(WLC_P__N_SPHERES_TO_SIDE)
+                centers(2)=(real(ix)-0.5_DP)*WLC_P__LBOX_Y/real(WLC_P__N_SPHERES_TO_SIDE)
+                centers(3)=(real(ix)-0.5_DP)*WLC_P__LBOX_Z/real(WLC_P__N_SPHERES_TO_SIDE)
+                rad = (WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp)**2
+                if ((modulo(RP(1,I),WLC_P__LBOX_X) - centers(1))**2 + &
+                    (modulo(RP(2,I),WLC_P__LBOX_Y) - centers(2))**2 + &
+                    (modulo(RP(3,I),WLC_P__LBOX_Z) - centers(3))**2 < rad) then
+                    in_confinement = .False.
+                    return
+                endif
+            enddo
+            enddo
+            enddo
         enddo
+
     elseif (WLC_P__CONFINETYPE == 'ecoli') then
         ! cylinder with hemispherical caps, one tip at origin
         ! full length - lbox(1)/CONFINEMENT_ECOLI_LENGTH

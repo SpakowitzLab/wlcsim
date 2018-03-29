@@ -229,21 +229,20 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
     enddo
 
 else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
-    ! start in a sphercal shell
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! internalshpere boundary
-    ! radius of LBox/2 centered at LBox/2
     Rc = WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp ! use LBOX as radius
     IB = 1
     do  I = 1,NP
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2.0_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       rr = Rc*(urand(3)+1.0_dp)  ! should have an r**2 from jacobian
-       Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
-       Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
-       Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
+       search = .TRUE.
+       do while(search)
+           call random_number(urand,rand_stat)
+           Rold(1) = urand(1)*LBOX(1)
+           Rold(2) = urand(2)*LBOX(2)
+           Rold(3) = urand(3)*LBOX(3)
+           search = .not. in_confinement(test, 1, 1, 1)
+       enddo
        call random_number(urand,rand_stat)
        theta = urand(1)*2_dp*PI
        z = urand(2)*2.0_dp-1.0_dp
