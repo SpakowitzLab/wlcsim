@@ -90,6 +90,7 @@ subroutine MCsim(wlc_p,wlc_d)
           wlc_d%DECouple = 0.0_dp
           wlc_d%DEChi = 0.0_dp
           wlc_d%DEField = 0.0_dp
+          wlc_d%DEExternalField = 0.0_dp
           wlc_d%deMaierSaupe = 0.0_dp
           wlc_d%DEElas=0.0_dp
           wlc_d%DEExplicitBinding = 0.0_dp
@@ -111,6 +112,7 @@ subroutine MCsim(wlc_p,wlc_d)
               !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon)
               ! Completely skip move if outside confinement
               if (.not. in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2)) then
+                  wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
                   cycle
               endif
           endif
@@ -120,7 +122,10 @@ subroutine MCsim(wlc_p,wlc_d)
                .or. MCTYPE == 10 .or. MCTYPE == 11 )) then
               call MC_cylinder(wlc_p,wlc_d,collide,IB1,IB2,IT1,IT2, &
                   MCTYPE,forward)
-              if (collide) cycle
+              if (collide) then
+                  wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
+                  cycle
+              endif
           endif
 
         if (WLC_P__RING) then
@@ -136,6 +141,7 @@ subroutine MCsim(wlc_p,wlc_d)
               CALL ALEXANDERP(wlc_d%RP,WLC_P__NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
            ENDif
            if (DELTA /= 1) then
+              wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
               cycle
            ENDif
         ENDif
@@ -221,6 +227,7 @@ subroutine MCsim(wlc_p,wlc_d)
                  + wlc_d%DEKap + wlc_d%DECouple + wlc_d%DEChi + wlc_d%DEBind &
                  + wlc_d%deMu &
                  + wlc_d%ECon + wlc_d%DEField &
+                 + wlc_d%DEExternalField &
                  + wlc_d%deMaierSaupe &
                  + wlc_d%DEExplicitBinding
           PROB = exp(-ENERGY)
@@ -310,6 +317,12 @@ subroutine MCsim(wlc_p,wlc_d)
              wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
              wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)
              wlc_d%EElas(3) = wlc_d%EElas(3) + wlc_d%DEElas(3)
+             if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
+                 (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
+                 WLC_P__APPLY_EXTERNAL_FIELD) then
+                 wlc_d%EExternalField = wlc_d%EExternalField + wlc_d%DEExternalField
+                 wlc_d%x_ExternalField = wlc_d%x_Externalfield + wlc_d%dx_Externalfield
+             endif
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_d%NPHI
                    J = wlc_d%inDPHI(I)

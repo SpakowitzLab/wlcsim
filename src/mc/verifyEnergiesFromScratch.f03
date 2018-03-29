@@ -25,6 +25,10 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,pack_as_para(wlc_p),&
                      WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__L)
 
+    ! ---- External Field Energy ---
+    if(WLC_P__APPLY_EXTERNAL_FIELD) then
+        call MC_external_field_from_scratch(wlc_p,wlc_d)
+    endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
         ! initialize phi
@@ -67,6 +71,11 @@ subroutine InitializeEnergiesForVerifier(wlc_p, wlc_d)
     wlc_d%x_mu = wlc_d%dx_mu
     wlc_d%EElas = wlc_d%DEElas ! copy array
     wlc_d%eExplicitBinding = wlc_d%DEExplicitBinding
+    ! ---- External Field Energy ---
+    if(WLC_P__APPLY_EXTERNAL_FIELD) then
+        wlc_d%EExternalField = wlc_d%DEExternalField
+        wlc_d%x_ExternalField = wlc_d%dx_ExternalField
+    endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
         wlc_d%EChi = wlc_d%DEChi
@@ -133,7 +142,17 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
     wlc_d%eExplicitBinding = wlc_d%DEExplicitBinding
 
 
+    ! ---- External Field Energy ---
+    if(WLC_P__APPLY_EXTERNAL_FIELD) then
+        if(abs(wlc_d%eExternalField-wlc_d%DEExternalField) > eps) then
+            write(ERROR_UNIT,*) "Warning. Integrated external field enrgy:", &
+                    wlc_d%EExternalField," while absolute external field energy:", &
+                    wlc_d%DEExternalField," save point mc_ind = ",wlc_d%mc_ind
+        endif
+        wlc_d%EExternalField = wlc_d%DEExternalField
+        wlc_d%x_ExternalField = wlc_d%dx_ExternalField
 
+    endif
 
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then

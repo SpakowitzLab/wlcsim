@@ -59,7 +59,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms = 9  ! number of energy terms
+    integer, parameter :: nTerms = 10  ! number of energy terms
     real(dp) x(nTerms) ! slice of xMtrx
     real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
@@ -68,7 +68,7 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path,AEF_path ! functions
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -126,6 +126,11 @@ subroutine head_node(wlc_p, wlc_d,process)
             cofMtrx(rep,9) = maierSaupe_path(s_vals(rep))
         else
             cofMtrx(rep,9) = wlc_p%CHI_L2
+        endif
+        if (WLC_P__PT_AEF) then
+            cofMtrx(rep,10) = AEF_path(s_vals(rep))
+        else
+            cofMtrx(rep,10) = wlc_p%AEF
         endif
     enddo
 
@@ -271,7 +276,7 @@ function h_path(s) result(h)
     implicit none
     real(dp), intent(in) :: s
     real(dp) h
-    h = s
+    h = 1.0_dp*s
 end function h_path
 function mu_path(s) result(mu)
     use params, only: dp
@@ -301,6 +306,13 @@ function hp1_bind_path(s) result(hp1_bind)
     real(dp) hp1_bind
     hp1_bind = s
 end function hp1_bind_path
+function AEF_path(s) result(AEF)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: s
+    real(dp) AEF
+    AEF = -1.0_dp*s
+end function AEF_path
 
 #if MPI_VERSION
 subroutine worker_node(wlc_p, wlc_d)
@@ -362,6 +374,17 @@ subroutine worker_node(wlc_p, wlc_d)
             wlc_d%ebind   =0.0_dp
             wlc_d%eMu     =0.0_dp
             wlc_d%x_mu    =0.0_dp
+        endif
+        if(WLC_P__APPLY_EXTERNAL_FIELD) then
+            wlc_d%eExternalField = wlc_d%dEExternalField
+            wlc_d%x_externalField = wlc_d%dx_externalField
+            if (abs(wlc_d%eExternalField-wlc_p%AEF*wlc_d%x_ExternalField).gt.0.00001) then
+                print*, "error in wlcsim_quinn"
+                stop
+            endif
+        else
+            wlc_d%eExternalField = 0
+            wlc_d%x_externalField = 0
         endif
     else
         call VerifyEnergiesFromScratch(wlc_p, wlc_d)
@@ -429,6 +452,11 @@ subroutine onlyNode(wlc_p, wlc_d)
             wlc_d%ebind   =0.0_dp
             wlc_d%eMu     =0.0_dp
             wlc_d%x_mu    =0.0_dp
+        endif
+        if(WLC_P__APPLY_EXTERNAL_FIELD) then
+            wlc_d%eExternalField = wlc_d%dEExternalField
+        else
+            wlc_d%eExternalField = 0
         endif
     else
         call VerifyEnergiesFromScratch(wlc_p, wlc_d)

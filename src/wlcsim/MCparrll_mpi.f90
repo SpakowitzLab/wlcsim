@@ -17,7 +17,7 @@ use mpi
     integer (kind = 4) error  ! error id for MIP functions
     character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    integer, parameter :: nTerms = 9  ! number of energy terms
+    integer, parameter :: nTerms = 10  ! number of energy terms
     real(dp) cof(nTerms)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
@@ -89,6 +89,7 @@ use mpi
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
     wlc_p%CHI_L2   =cof(9)
+    wlc_p%AEF      =cof(10)
 
     write(iostrg,"(I4)") wlc_d%rep
     iostrg = adjustL(iostrg)
@@ -107,7 +108,7 @@ subroutine replicaExchange(wlc_p, wlc_d)
 use params, only : wlcsim_params, wlcsim_data, dp, MAXFILENAMELEN, epsApprox
 use mpi
     implicit none
-    integer, parameter :: nTerms = 9  ! number of energy terms
+    integer, parameter :: nTerms = 10  ! number of energy terms
     integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
@@ -123,8 +124,8 @@ use mpi
     real(dp) HP1_Bind_Old
     real(dp) Kap_Old
     real(dp) chi_l2_old
+    real(dp) AEF_old
     real(dp) x(nTerms)
-    real(dp) test(5)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     if (nThreads.lt.3) return
@@ -138,11 +139,7 @@ use mpi
     x(7) = 0.0_dp !x(7) = wlc_p%EElas(2)/wlc_p%para(2)
     x(8) = 0.0_dp !x(8) = wlc_p%EElas(3)/wlc_p%para(3)
     x(9) = wlc_d%x_maierSaupe
-
-    test(1) = wlc_d%EChi/wlc_p%CHI
-    test(3) = wlc_d%EField/wlc_p%HA
-    test(4) = wlc_d%ECouple/wlc_p%HP1_BIND
-    test(5) = wlc_d%EKap/wlc_p%KAP
+    x(10) = wlc_d%x_ExternalField
 
     chi_Old = wlc_p%CHI
     mu_old = wlc_p%MU
@@ -150,6 +147,7 @@ use mpi
     HP1_Bind_Old = wlc_p%HP1_BIND
     Kap_Old = wlc_p%KAP
     chi_l2_old = wlc_p%CHI_L2
+    AEF_Old = wlc_p%AEF
 
     ! send number bound to head node
     dest = 0
@@ -177,16 +175,25 @@ use mpi
     !wlc_p%para(2)  =cof(7)
     !wlc_p%para(3)  =cof(8)
     wlc_p%CHI_L2 = cof(9)
+    wlc_p%AEF      =cof(10)
 
     if (abs(wlc_d%EChi-wlc_d%x_chi*chi_old).gt.epsApprox) then
         print*, "Error in replicaExchange"
         print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*CofOld(1)",wlc_d%x_chi*chi_old
         stop 1
     endif
+    if (abs(wlc_d%eExternalField-AEF_old*wlc_d%x_ExternalField).gt.epsApprox) then
+        print*, "Error before replicaExchange"
+        print*, "wlc_d%eExternalField",wlc_d%eExternalField,"AEF_old*wlc_d%x_ExternalField",AEF_old*wlc_d%x_ExternalField
+        print*, "wlc_p%AEF",wlc_p%AEF,"- AEF_old",AEF_old,"=",wlc_p%AEF       -AEF_old
+        print*, "wlc_d%x_Externalfield",wlc_d%x_Externalfield
+        stop 1
+    endif
 
     wlc_d%EChi    =wlc_d%EChi    +wlc_d%x_chi      *(wlc_p%CHI      -chi_old)
     wlc_d%EMu     =wlc_d%EMu     +wlc_d%x_mu       *(wlc_p%MU       -mu_old)
     wlc_d%EField  =wlc_d%EField  +wlc_d%x_field    *(wlc_p%HA       -hA_old)
+    wlc_d%eExternalField  =wlc_d%eExternalField  +wlc_d%x_Externalfield    *(wlc_p%AEF       -AEF_old)
     wlc_d%ECouple =wlc_d%ECouple +wlc_d%x_couple   *(wlc_p%HP1_BIND -HP1_Bind_Old)
     wlc_d%EKap    =wlc_d%EKap    +wlc_d%x_Kap      *(wlc_p%KAP      -Kap_Old)
    ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
@@ -194,6 +201,13 @@ use mpi
    ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
     wlc_d%eMaierSaupe    =wlc_d%eMaierSaupe    +wlc_d%x_maierSaupe*(wlc_p%CHI_L2-chi_l2_old)
 
+    if (abs(wlc_d%eExternalField-wlc_p%AEF*wlc_d%x_ExternalField).gt.epsApprox) then
+        print*, "Error in replicaExchange"
+        print*, "wlc_d%eExternalField",wlc_d%eExternalField,"wlc_p%AEF*wlc_d%x_ExternalField)",wlc_p%AEF*wlc_d%x_ExternalField
+        print*, "wlc_p%AEF",wlc_p%AEF,"- AEF_old",AEF_old,"=",wlc_p%AEF       -AEF_old
+        print*, "wlc_d%x_Externalfield",wlc_d%x_Externalfield
+        stop 1
+    endif
     if (abs(wlc_d%EChi-wlc_p%CHI*wlc_d%x_chi).gt.epsApprox) then
         print*, "Error in replicaExchange"
         print*, "wlc_p%EChi",wlc_d%EChi,"x(1)*Cof(1)",wlc_p%CHI*wlc_d%x_chi

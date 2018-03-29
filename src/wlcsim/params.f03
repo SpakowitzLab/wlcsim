@@ -97,6 +97,7 @@ module params
 
     !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlc_p sims
         real(dp) hA       ! strength of applied sinusoidal field (used in PT to step around 1st order phase transition)
+        real(dp) AEF      ! strength of applied external field
         real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
 
     !   for simulating chromatin methylation
@@ -193,6 +194,7 @@ module params
         real(dp) eBind    ! binding energy
         real(dp) eMu      ! Chemical potential energy
         real(dp) eField   ! Field energy
+        real(dp) eExternalField   ! Field energy
         real(dp) eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         real(dp) eMaierSaupe ! Maier Saupe energy
         real(dp) eExplicitBinding
@@ -202,6 +204,7 @@ module params
         real(dp) x_Couple,dx_Couple
         real(dp) x_Kap,   dx_Kap
         real(dp) x_Field, dx_Field
+        real(dp) x_ExternalField, dx_ExternalField
         real(dp) x_Mu,    dx_Mu
         real(dp) x_maierSaupe, dx_maierSaupe ! Maier Saupe energy / chi_l2
 
@@ -213,6 +216,7 @@ module params
         real(dp) Debind   ! Change in binding energy
         real(dp) DEMu   ! Change in binding energy
         real(dp) DEField  ! Change in field energy
+        real(dp) DEExternalField  ! Change in field energy
         real(dp) DESelf   ! change in self interaction energy
         real(dp) DEExplicitBinding
         real(dp) ECon     ! Confinement Energy
@@ -274,6 +278,7 @@ contains
         wlc_p%HP1_BIND = WLC_P__HP1_BIND
         wlc_p%KAP      = WLC_P__KAP
         wlc_p%CHI_L2   = WLC_P__CHI_L2
+        wlc_p%AEF       = WLC_P__AmplitudeExternalField
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
@@ -808,6 +813,7 @@ contains
         wlc_d%eBind       = 0.0_dp ! binding energy
         wlc_d%eMu         = 0.0_dp ! chemical potential energy
         wlc_d%eField      = 0.0_dp ! Field energy
+        wlc_d%eExternalField      = 0.0_dp ! External Field energy
         wlc_d%eSelf       = 0.0_dp ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         wlc_d%eMaierSaupe = 0.0_dp ! Maier Saupe energy
         wlc_d%eExplicitBinding = 0.0_dp ! Explicit Binding energy
@@ -817,6 +823,7 @@ contains
         wlc_d%DEKap       = 0.0_dp ! compression energy
         wlc_d%Debind      = 0.0_dp ! Change in binding energy
         wlc_d%DeMu        = 0.0_dp ! Change in chemcial potential energy
+        wlc_d%DEExternalField     = 0.0_dp ! Change in external field energy
         wlc_d%DEField     = 0.0_dp ! Change in field energy
         wlc_d%DESelf      = 0.0_dp ! change in self interaction energy
         wlc_d%ECon        = 0.0_dp ! Confinement Energy
@@ -880,6 +887,7 @@ contains
         print*, " solvent-polymer CHI =",wlc_p%CHI
         print*, " compression cof, KAP =", wlc_p%KAP
         print*, " field strength, hA =", wlc_p%HA
+        print*, " field strength, AEF =", wlc_p%AEF
         print*, " -energy of binding unmethalated ", WLC_P__EU," more positive for favorable binding"
         print*, " -energy of binding methalated",WLC_P__EM
         print*, " HP1_Binding energy parameter", wlc_p%HP1_BIND
@@ -1021,6 +1029,7 @@ contains
         print*, "ECHI", wlc_d%ECHI
         print*, "ECHI l=2", wlc_d%eMaierSaupe
         print*, "EField", wlc_d%EField
+        print*, "EExtrnalField", wlc_d%EExternalField
         print*, "EKAP", wlc_d%EKAP
         print*, "ebind", wlc_d%ebind
         print*, "eMu", wlc_d%eMu
@@ -1307,13 +1316,13 @@ contains
             write(outFileUnit,*) "ind | id |",&
                        "  ebend    |  eparll   |  EShear   |  ECoupl   |  E Kap    |  E Chi    |",&
                        "  EField   |  ebind    |   x_Mu    |  Couple   |   Chi     |   mu      |",&
-                       "   Kap     |  Field    |   x_MS    |  chi_l2   |  E_Mu     |"
+                       "   Kap     |  Field    |   x_MS    |  chi_l2   |  E_Mu     |x_ExternalF|"
         endif
-        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5,f12.2)") save_ind, wlc_d%id, &
+        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5,2f12.2)") save_ind, wlc_d%id, &
             wlc_d%EELAS(1), wlc_d%EELAS(2), wlc_d%EELAS(3), wlc_d%ECouple, &
             wlc_d%EKap, wlc_d%ECHI, wlc_d%EField, wlc_d%ebind, wlc_d%x_Mu, &
             wlc_p%HP1_BIND*wlc_p%COUPLE_ON, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%MU, wlc_p%KAP*wlc_p%KAP_ON,&
-            wlc_p%HA, wlc_d%x_maierSaupe, wlc_p%CHI_L2,wlc_d%EMu
+            wlc_p%HA, wlc_d%x_maierSaupe, wlc_p%CHI_L2,wlc_d%EMu,wlc_d%x_ExternalField
         close(outFileUnit)
     end subroutine
 
