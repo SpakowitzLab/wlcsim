@@ -22,12 +22,16 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
 wlc_d%dx_Field = 0.0_dp
 do ii = IT1, IT2
-    vv = wlc_d%RP(:,ii)-center
+    vv(1) = modulo(wlc_d%RP(1,ii),WLC_P__LBOX_X)-center(1)
+    vv(2) = modulo(wlc_d%RP(2,ii),WLC_P__LBOX_Y)-center(2)
+    vv(3) = modulo(wlc_d%RP(3,ii),WLC_P__LBOX_Z)-center(3)
     if (dot_product(vv,vv) < &
         (WLC_P__BINDING_R + WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0)**2) then
         wlc_d%dx_Field = wlc_d%dx_Field + 1.0_dp
     endif
-    vv = wlc_d%R(:,ii)-center
+    vv(1) = modulo(wlc_d%R(1,ii),WLC_P__LBOX_X)-center(1)
+    vv(2) = modulo(wlc_d%R(2,ii),WLC_P__LBOX_Y)-center(2)
+    vv(3) = modulo(wlc_d%R(3,ii),WLC_P__LBOX_Z)-center(3)
     if (dot_product(vv,vv) < &
         (WLC_P__BINDING_R + WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0)**2) then
         wlc_d%dx_Field = wlc_d%dx_Field - 1.0_dp

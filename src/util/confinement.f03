@@ -53,8 +53,9 @@ pure function in_confinement(RP, NT, IT1, IT2)
         ! Periodic boundary conditions with an excluded sphere
         do I = IT1,IT2
             rad = (WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp)**2
-            if ((RP(1,I) - center(1))**2 + (RP(2,I) - center(2))**2 + &
-                (RP(3,I) - center(3))**2 < rad) then
+            if ((mod(RP(1,I),WLC_P__LBOX_X) - center(1))**2 + &
+                (mod(RP(2,I),WLC_P__LBOX_Y) - center(2))**2 + &
+                (mod(RP(3,I),WLC_P__LBOX_Z) - center(3))**2 < rad) then
                 in_confinement = .False.
                 return
             endif
