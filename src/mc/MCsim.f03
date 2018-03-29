@@ -238,7 +238,13 @@ subroutine MCsim(wlc_p,wlc_d)
              if(MCTYPE /= 7) then
                  do I = IT1,IT2
                      if (WLC_P__NEIGHBOR_BINS) then
-                         call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
+                         if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                             call removeBead(wlc_d%bin,wlc_d%R_period(:,I),I)
+                         elseif (WLC_P__CONFINETYPE == 'none') then
+                             ! call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
+                         else
+                             print*, "Not an option yet.  See MCsim."
+                         endif
                      endif
                      wlc_d%R(1,I) = wlc_d%RP(1,I)
                      wlc_d%R(2,I) = wlc_d%RP(2,I)
@@ -247,19 +253,47 @@ subroutine MCsim(wlc_p,wlc_d)
                      wlc_d%U(2,I) = wlc_d%UP(2,I)
                      wlc_d%U(3,I) = wlc_d%UP(3,I)
                      if (WLC_P__NEIGHBOR_BINS) then
-                         call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                         if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                             wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
+                             wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
+                             wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
+                             call addBead(wlc_d%bin,wlc_d%R_period,wlc_p%NT,I)
+                         elseif (WLC_P__CONFINETYPE == 'none') then
+                             call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                         else
+                             print*, "Not an option yet.  See MCsim."
+                         endif
                      endif
                  enddo
                  if (MCTYPE == 9) then
                      do I = IT3,IT4
-                         if (WLC_P__NEIGHBOR_BINS) call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
+                         if (WLC_P__NEIGHBOR_BINS) then
+                             if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                                 call removeBead(wlc_d%bin,wlc_d%R_period(:,I),I)
+                             elseif (WLC_P__CONFINETYPE == 'none') then
+                                 call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
+                             else
+                                 print*, "Not an option yet.  See MCsim."
+                             endif
+                         endif
                          wlc_d%R(1,I) = wlc_d%RP(1,I)
                          wlc_d%R(2,I) = wlc_d%RP(2,I)
                          wlc_d%R(3,I) = wlc_d%RP(3,I)
                          wlc_d%U(1,I) = wlc_d%UP(1,I)
                          wlc_d%U(2,I) = wlc_d%UP(2,I)
                          wlc_d%U(3,I) = wlc_d%UP(3,I)
-                         if (WLC_P__NEIGHBOR_BINS) call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                         if (WLC_P__NEIGHBOR_BINS) then
+                             if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                                 wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
+                                 wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
+                                 wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
+                                 call addBead(wlc_d%bin,wlc_d%R_period,wlc_p%NT,I)
+                             elseif (WLC_P__CONFINETYPE == 'none') then
+                                 call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                             else
+                                 print*, "Not an option yet.  See MCsim."
+                             endif
+                         endif
                      enddo
                  endif
              endif

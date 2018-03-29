@@ -178,7 +178,6 @@ function linePoint(vv,xx)
         linePoint = .FALSE.
         return
     else
-        print*, "Line point collision"
         linePoint = .TRUE.
         return
     endif

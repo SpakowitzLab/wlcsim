@@ -146,6 +146,7 @@ module params
         ! i coudl
         ! do this
         real(dp), allocatable, dimension(:,:):: R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj
+        real(dp), allocatable, dimension(:,:):: R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
         real(dp), allocatable, dimension(:,:):: U   ! Conformation of polymer chains
         real(dp), allocatable, dimension(:,:):: RP !Test Bead positions - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
@@ -400,6 +401,12 @@ contains
         type(wlcsim_data), intent(inout) :: wlc_d
         logical err
 
+        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')) then
+            print*, "The code is untested for Neighbor bins and other confinetypes"
+            print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
+            print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"
+            stop
+        endif
         if ((.not. WLC_P__FIELD_INT_ON) .and. (WLC_P__SAVEAB)) then
             print*, "SAVE_AB = True is currently incompatable with Field_int_on=False"
             print*, "because AB is only allocated if field_int_on=True"
@@ -545,7 +552,7 @@ contains
         integer seedvalues(8) ! clock readings
         integer NT  ! total number of beads
         integer NBin ! total number of bins
-        integer i
+        integer i, ii
         integer irand
 #if MPI_VERSION
         integer ( kind = 4 ) dest   !destination id for messages
@@ -564,6 +571,9 @@ contains
         call init_MPI(wlc_d)
 #endif
         allocate(wlc_d%R(3,NT))
+        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+            allocate(wlc_d%R_period(3,NT))
+        endif
         allocate(wlc_d%U(3,NT))
         if (WLC_P__CODENAME /= 'bruno' .OR. WLC_P__NINITMCSTEPS /= 0) then
             allocate(wlc_d%RP(3,NT))
@@ -723,6 +733,13 @@ contains
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
             wlc_d%rand_stat, wlc_p)
 
+        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+            do ii=1,wlc_p%NT
+                wlc_d%R_period(1,ii)=modulo(wlc_d%R(1,ii),WLC_P__LBOX_X)
+                wlc_d%R_period(2,ii)=modulo(wlc_d%R(2,ii),WLC_P__LBOX_Y)
+                wlc_d%R_period(3,ii)=modulo(wlc_d%R(3,ii),WLC_P__LBOX_Z)
+            enddo
+        endif
         if (WLC_P__FIELD_INT_ON) then
             ! initialize a/b sequence
             if (WLC_P__CHEM_STATE_FROM_FILE) then
@@ -768,7 +785,13 @@ contains
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_d%bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,NT
-                call addBead(wlc_d%bin,wlc_d%R,NT,i)
+                if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                    call addBead(wlc_d%bin,wlc_d%R_period,NT,i)
+                elseif (WLC_P__CONFINETYPE == 'none') then
+                    call addBead(wlc_d%bin,wlc_d%R,NT,i)
+                else
+                    print*, "Not an option yet.  See params."
+                endif
             enddo
         endif
 
