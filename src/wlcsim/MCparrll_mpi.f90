@@ -45,11 +45,11 @@ use mpi
             do dest = 2,nThreads-1
                 if(WLC_P__VARIABLE_CHEM_STATE) then
                     if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
-                        call MPI_Send (wlc_d%METH,wlc_p%NT, MPI_integer, dest,   0, &
+                        call MPI_Send (wlc_d%METH,WLC_P__NT, MPI_integer, dest,   0, &
                                        MPI_COMM_WORLD,error )
                     endif
                 else
-                    call MPI_Send (wlc_d%AB,wlc_p%NT, MPI_integer, dest,   0, &
+                    call MPI_Send (wlc_d%AB,WLC_P__NT, MPI_integer, dest,   0, &
                                    MPI_COMM_WORLD,error )
                 endif
             enddo
@@ -57,11 +57,11 @@ use mpi
             source = 1
             if(WLC_P__VARIABLE_CHEM_STATE) then
                 if (.not. WLC_P__CHEM_SEQ_FROM_FILE) then
-                    call MPI_Recv (wlc_d%METH, wlc_p%NT, MPI_integer, source, 0, &
+                    call MPI_Recv (wlc_d%METH, WLC_P__NT, MPI_integer, source, 0, &
                                    MPI_COMM_WORLD, status, error )
                 endif
             else
-                call MPI_Recv (wlc_d%AB, wlc_p%NT, MPI_integer, source, 0, &
+                call MPI_Recv (wlc_d%AB, WLC_P__NT, MPI_integer, source, 0, &
                                MPI_COMM_WORLD, status, error )
             endif
         endif

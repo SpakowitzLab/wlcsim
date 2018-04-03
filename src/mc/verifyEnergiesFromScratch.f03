@@ -17,12 +17,12 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     if (WLC_P__VARIABLE_CHEM_STATE.and.WLC_P__CHANGINGCHEMICALIDENTITY) then
         wlc_d%ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
-        IT1 = 1; IT2 = wlc_p%NT
+        IT1 = 1; IT2 = WLC_P__NT
         call MC_bind(wlc_p,IT1,IT2,wlc_d%ABP,wlc_d%AB,wlc_d%METH, &
                      wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
     endif
 
-    call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,pack_as_para(wlc_p),&
+    call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,WLC_P__NT,WLC_P__NB,WLC_P__NP,pack_as_para(wlc_p),&
                      WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__L)
 
     ! ---- External Field Energy ---
@@ -37,7 +37,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
         do I = 1,wlc_p%NBIN
             phiTot = phiTot + (wlc_d%PHIA(I) + wlc_d%PHIB(I))*(WLC_P__DBIN**3)
         enddo
-        print*, "N-Tot", phiTot*(WLC_P__DBIN**3)/WLC_P__BEADVOLUME," NT:",wlc_p%NT
+        print*, "N-Tot", phiTot*(WLC_P__DBIN**3)/WLC_P__BEADVOLUME," NT:",WLC_P__NT
     endif
 
     if (WLC_P__EXPLICIT_BINDING) then

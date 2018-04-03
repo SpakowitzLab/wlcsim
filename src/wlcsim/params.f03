@@ -469,18 +469,6 @@ contains
            err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
            call stop_if_err(err, "error in mcsim. Wrong number of bins")
 
-           !TOdo: replace with semantic descriptions of error encountered, instead
-           ! of simply outputting the input that the user put in
-           if (wlc_p%NT.ne.WLC_P__NMPP*WLC_P__NP*WLC_P__NBPM) then
-              print*, "error in mcsim.  NT = ",wlc_p%NT," nMpP = ",WLC_P__NMPP," NP = ",WLC_P__NP," nBpM = ",WLC_P__NBPM
-              stop 1
-           endif
-
-           if (WLC_P__NB.ne.WLC_P__NMPP*WLC_P__NBPM) then
-              print*, "error in mcsim.  NB = ",WLC_P__NB," nMpP = ",WLC_P__NMPP," nBpM = ",WLC_P__NBPM
-              stop 1
-           endif
-
            err = WLC_P__NNOINT.gt.WLC_P__INDSTARTREPADAPT
            call stop_if_err(err, "error in mcsim. don't run adapt without int on")
 
@@ -555,7 +543,6 @@ contains
         character(10) timedum ! trash
         character(5) zonedum  ! trash
         integer seedvalues(8) ! clock readings
-        integer NT  ! total number of beads
         integer NBin ! total number of bins
         integer i, ii
         integer irand
@@ -569,20 +556,19 @@ contains
         real(dp) setBinSize(3)
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
-        nt = wlc_p%NT
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
         call init_MPI(wlc_d)
 #endif
-        allocate(wlc_d%R(3,NT))
+        allocate(wlc_d%R(3,WLC_P__NT))
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
-            allocate(wlc_d%R_period(3,NT))
+            allocate(wlc_d%R_period(3,WLC_P__NT))
         endif
-        allocate(wlc_d%U(3,NT))
+        allocate(wlc_d%U(3,WLC_P__NT))
         if (WLC_P__CODENAME /= 'bruno' .OR. WLC_P__NINITMCSTEPS /= 0) then
-            allocate(wlc_d%RP(3,NT))
-            allocate(wlc_d%UP(3,NT))
+            allocate(wlc_d%RP(3,WLC_P__NT))
+            allocate(wlc_d%UP(3,WLC_P__NT))
             wlc_d%RP=nan  ! To prevent accidental use
             wlc_d%UP=nan
         endif
@@ -591,9 +577,9 @@ contains
         !if statements deep inside mc_move. which is fine, but I would want to
         !check with quinn *exactly* in which cases they're needed if i do that
         if (WLC_P__FIELD_INT_ON) then
-            allocate(wlc_d%AB(NT))   !Chemical identity aka binding state
+            allocate(wlc_d%AB(WLC_P__NT))   !Chemical identity aka binding state
             if (WLC_P__CHANGINGCHEMICALIDENTITY) then
-                allocate(wlc_d%ABP(NT))   !Chemical identity aka binding state
+                allocate(wlc_d%ABP(WLC_P__NT))   !Chemical identity aka binding state
                 wlc_d%ABP = INT_MIN
             endif
             if (wlc_p%CHI_L2_ON) then
@@ -614,11 +600,11 @@ contains
             enddo
         endif
         if (WLC_P__EXPLICIT_BINDING) then
-            allocate(wlc_d%ExplicitBindingPair(NT))
+            allocate(wlc_d%ExplicitBindingPair(WLC_P__NT))
             open(unit = 5,file = "input/bindpairs",status = 'OLD')
-            do I = 1,NT
+            do I = 1,WLC_P__NT
                 Read(5,'(I10)') wlc_d%ExplicitBindingPair(I)
-                if (wlc_d%ExplicitBindingPair(I) .gt. NT) then
+                if (wlc_d%ExplicitBindingPair(I) .gt. WLC_P__NT) then
                     print*, "Loop to nonexistant bead"
                     stop 1
                 endif
@@ -629,7 +615,7 @@ contains
             print*, "..."
         endif
         if (WLC_P__VARIABLE_CHEM_STATE) then
-            allocate(wlc_d%METH(NT)) !Underlying methalation profile
+            allocate(wlc_d%METH(WLC_P__NT)) !Underlying methalation profile
         endif
         !Allocate vector of writhe and elastic energies for replicas
         if (WLC_P__PT_TWIST) then
@@ -682,7 +668,7 @@ contains
         endif
 
         if (WLC_P__COLLISIONDETECTIONTYPE /= 0) then
-            allocate(wlc_d%coltimes(NT,NT))
+            allocate(wlc_d%coltimes(WLC_P__NT,WLC_P__NT))
             wlc_d%coltimes = -1.0_dp
         else
             allocate(wlc_d%coltimes(1,1))
@@ -734,12 +720,12 @@ contains
 
         call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
 #endif
-        call initcond(wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, &
+        call initcond(wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, &
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
             wlc_d%rand_stat, wlc_p)
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
-            do ii=1,wlc_p%NT
+            do ii=1,WLC_P__NT
                 wlc_d%R_period(1,ii)=modulo(wlc_d%R(1,ii),WLC_P__LBOX_X)
                 wlc_d%R_period(2,ii)=modulo(wlc_d%R(2,ii),WLC_P__LBOX_Y)
                 wlc_d%R_period(3,ii)=modulo(wlc_d%R(3,ii),WLC_P__LBOX_Z)
@@ -751,9 +737,9 @@ contains
                 iostr='input/ab'
                 call MCvar_loadAB(wlc_d,iostr)
             elseif (WLC_P__ASYMMETRICALTERNATINGCHEM) then
-                call alternChem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, wlc_d%rand_stat)
+                call alternChem(wlc_d%AB, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, wlc_d%rand_stat)
             else
-                call initchem(wlc_d%AB, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
+                call initchem(wlc_d%AB, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_d%rand_stat)
             endif
 
             ! initialize methalation sequence
@@ -763,7 +749,7 @@ contains
                     iostr='input/meth'
                     call wlcsim_params_loadMeth(wlc_d,iostr)
                 else
-                    call initchem(wlc_d%meth, wlc_p%NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
+                    call initchem(wlc_d%meth, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_d%rand_stat)
                 endif
             endif
 
@@ -789,11 +775,11 @@ contains
             setMinXYZ = [0.0,0.0,0.0]  ! location of corner of bin
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_d%bin,setBinShape,setMinXYZ,setBinSize)
-            do i=1,NT
+            do i=1,WLC_P__NT
                 if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-                    call addBead(wlc_d%bin,wlc_d%R_period,NT,i)
+                    call addBead(wlc_d%bin,wlc_d%R_period,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'none') then
-                    call addBead(wlc_d%bin,wlc_d%R,NT,i)
+                    call addBead(wlc_d%bin,wlc_d%R,WLC_P__NT,i)
                 else
                     print*, "Not an option yet.  See params."
                 endif
@@ -861,7 +847,7 @@ contains
         print*, " type of simulation, codeName", WLC_P__CODENAME
         print*, " WLC, DSSWLC, GC, simType", wlc_p%SIMTYPE
         print*, "Bead variables:"
-        print*, " Total number of beads, NT = ", wlc_p%NT
+        print*, " Total number of beads, NT = ", WLC_P__NT
         print*, " Number of beads in a polymer, NB = ", WLC_P__NB
         print*, " Number of monomers in a polymer, nMpP = ", WLC_P__NMPP
         print*, " Number of polymers, NP = ",WLC_P__NP
@@ -1050,7 +1036,7 @@ contains
             totalVpoly = totalVpoly + VV*(wlc_d%PHIA(I) + wlc_d%PHIB(I))
         enddo
         print*, "Total volume of polymer from density", totalVpoly,&
-                " and from beads ",wlc_p%NT*WLC_P__BEADVOLUME
+                " and from beads ",WLC_P__NT*WLC_P__BEADVOLUME
 
     end subroutine
 
@@ -1278,11 +1264,11 @@ contains
         type(wlcsim_params), intent(in) :: wlc_p
         character(len=*), intent(in) :: fileName
         open (unit =outFileUnit, file = fileName, status = 'NEW')
-            write(outFileUnit,"(I8)") wlc_p%NT ! 1 Number of beads in simulation
+            write(outFileUnit,"(I8)") WLC_P__NT ! 1 Number of beads in simulation
             write(outFileUnit,"(I8)") WLC_P__NMPP  ! 2 Number of monomers in a polymer
             write(outFileUnit,"(I8)") WLC_P__NB ! 3 Number of beads in a polymer
             write(outFileUnit,"(I8)") WLC_P__NP ! 4 Number of polymers in simulation
-            write(outFileUnit,"(I8)") wlc_p%NT ! 5 Number of beads in simulation
+            write(outFileUnit,"(I8)") WLC_P__NT ! 5 Number of beads in simulation
             write(outFileUnit,"(I8)") WLC_P__NBPM  ! 6 Number of beads per monomer
 
             write(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
@@ -1600,8 +1586,8 @@ contains
         if (WLC_P__COLLISIONDETECTIONTYPE /= 0) then
             filename = trim(adjustL(outfile_base)) // 'coltimes'
             open(unit = outFileUnit, file = filename, status = 'REPLACE')
-            do ind = 1,wlc_p%NT
-                write(outFileUnit,*) (wlc_d%coltimes(ind,j), j = 1,wlc_p%NT)
+            do ind = 1,WLC_P__NT
+                write(outFileUnit,*) (wlc_d%coltimes(ind,j), j = 1,WLC_P__NT)
             enddo
             close(outFileUnit)
         endif
@@ -1652,9 +1638,6 @@ contains
 
         type(wlcsim_params), intent(inout) :: wlc_p
         REAL(dp) :: pvec(679, 8) ! array holding dssWLC params calculated by Elena
-
-        !Calculate total number of beads
-        wlc_p%NT = WLC_P__NB*WLC_P__NP
 
         if (WLC_P__NB == 1.0d0) then
             ! since we use "DEL" as an intermediate, we need at least two beads

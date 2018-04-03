@@ -109,9 +109,9 @@ subroutine MCsim(wlc_p,wlc_d)
               (MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
               (MCTYPE /= 9)) then
-              !call MC_confine(wlc_d%RP, wlc_p%NT,IT1,IT2,wlc_d%ECon)
+              !call MC_confine(wlc_d%RP, WLC_P__NT,IT1,IT2,wlc_d%ECon)
               ! Completely skip move if outside confinement
-              if (.not. in_confinement(wlc_d%RP, wlc_p%NT, IT1, IT2)) then
+              if (.not. in_confinement(wlc_d%RP, WLC_P__NT, IT1, IT2)) then
                   wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
                   cycle
               endif
@@ -170,20 +170,20 @@ subroutine MCsim(wlc_p,wlc_d)
                            wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
-              !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_p%NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+              !call MC_self(DESELF,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
-                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
 
               elseif (MCTYPE == 2) then
-                  CALL ENERGY_SELF_SLIDE(wlc_d%ESELF,wlc_d%R,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                  CALL ENERGY_SELF_SLIDE(wlc_d%ESELF,wlc_d%R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
-                  CALL ENERGY_SELF_SLIDE(ESELFP,wlc_d%R,wlc_p%NT,WLC_P__NB,WLC_P__NP, &
+                  CALL ENERGY_SELF_SLIDE(ESELFP,wlc_d%R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
 
                   wlc_d%DESELF = ESELFP-wlc_d%ESELF
               elseif (MCTYPE == 3) then
-                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,wlc_p%NT,WLC_P__NB,WLC_P__NP,&
+                  CALL DE_SELF_CRANK(wlc_d%DESELF,wlc_d%R,wlc_d%RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
                       pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
               elseif (MCTYPE == 10) then
                   PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
@@ -264,9 +264,9 @@ subroutine MCsim(wlc_p,wlc_d)
                              wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
                              wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
                              wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
-                             call addBead(wlc_d%bin,wlc_d%R_period,wlc_p%NT,I)
+                             call addBead(wlc_d%bin,wlc_d%R_period,WLC_P__NT,I)
                          elseif (WLC_P__CONFINETYPE == 'none') then
-                             call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                             call addBead(wlc_d%bin,wlc_d%R,WLC_P__NT,I)
                          else
                              print*, "Not an option yet.  See MCsim."
                          endif
@@ -294,9 +294,9 @@ subroutine MCsim(wlc_p,wlc_d)
                                  wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
                                  wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
                                  wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
-                                 call addBead(wlc_d%bin,wlc_d%R_period,wlc_p%NT,I)
+                                 call addBead(wlc_d%bin,wlc_d%R_period,WLC_P__NT,I)
                              elseif (WLC_P__CONFINETYPE == 'none') then
-                                 call addBead(wlc_d%bin,wlc_d%R,wlc_p%NT,I)
+                                 call addBead(wlc_d%bin,wlc_d%R,WLC_P__NT,I)
                              else
                                  print*, "Not an option yet.  See MCsim."
                              endif

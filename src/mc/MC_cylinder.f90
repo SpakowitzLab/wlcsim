@@ -11,7 +11,7 @@ subroutine MC_cylinder(wlc_p,wlc_d,collide,IB1,IB2,&
                     MCTYPE,forward)
 
 use params, only: dp, pi,wlcsim_params, wlcsim_data
-use binning, only: binType, findNeighbors
+use binning, only: binType, findNeighbors, countBeads
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 Type(wlcsim_data), intent(inout) :: wlc_d
@@ -24,7 +24,7 @@ logical, intent(in) :: forward           ! direction of reptation move
 logical, intent(out) :: collide   ! Change in ECOM
 logical cylinders ! function for collision checking
 
-integer, parameter  :: maxNeighbors = 256 ! equal length of lists
+integer, parameter  :: maxNeighbors = WLC_P__NT ! equal length of lists
 integer nNeighbors !number of neighbors found (so far)
 integer neighbors(maxNeighbors) ! list of bead ID's
 real(dp) distances(maxNeighbors) ! list of |r-r| values
@@ -34,6 +34,7 @@ real(dp) R_11(3), R_12(3), R_21(3), R_22(3), new_origin(3), R_test(3), R_test2(3
 integer ix, iy, iz
 integer left, right
 integer leftExclude, rightExclude
+integer numberInBin
 radius = 1.0_dp*WLC_P__CHAIN_D + 2.2_dp*wlc_p%l0
 
 ! slide move moves all beads from IT1-IT2
@@ -113,7 +114,6 @@ do ii = left,right
         R_test(2) = modulo(wlc_d%RP(2,II),WLC_P__LBOX_Y)
         R_test(3) = modulo(wlc_d%RP(3,II),WLC_P__LBOX_Z)
         ! Loop over current an nearest periods to check for neighbors
-        R_test2=R_test
         do ix=-1,1
             if (ix==-1 .and. R_test(1) > radius) cycle
             if (ix==1 .and. R_test(1) < WLC_P__LBOX_X-radius) cycle
@@ -127,14 +127,14 @@ do ii = left,right
                     R_test2(2)=R_test(2)+iy*WLC_P__LBOX_Y
                     R_test2(3)=R_test(3)+iz*WLC_P__LBOX_Z
                     call findNeighbors(wlc_d%bin,R_test2,radius,wlc_d%R_period,&
-                        wlc_p%NT,maxNeighbors,neighbors,distances,nNeighbors)
+                        WLC_P__NT,maxNeighbors,neighbors,distances,nNeighbors)
 
                 enddo
             enddo
         enddo
     elseif (WLC_P__CONFINETYPE == 'none') then
         call findNeighbors(wlc_d%bin,wlc_d%RP(:,II),radius,wlc_d%R, &
-            wlc_p%NT,maxNeighbors,neighbors,distances,nNeighbors)
+            WLC_P__NT,maxNeighbors,neighbors,distances,nNeighbors)
     else
         print*, "you need to decide whether to use R or R_period"
         stop
@@ -151,6 +151,15 @@ do ii = left,right
         R_11(3)=modulo(wlc_d%RP(3,ii),new_origin(3))
         R_12=R_11+wlc_d%RP(:,ii+1)-wlc_d%RP(:,ii)
     endif
+    !if (nNeighbors>256) then
+    !    print*, "nNeighbors",nNeighbors,": ", distances(1), distances(2), distances(3), "..."
+    !    print*, "R_test",R_test
+    !    print*, "Radius ",sqrt((R_test(1)-WLC_P__LBOX_X/2.0_DP)**2+&
+    !                           (R_test(2)-WLC_P__LBOX_Y/2.0_DP)**2+&
+    !                           (R_test(3)-WLC_P__LBOX_Z/2.0_DP)**2)
+    !    call countBeads(wlc_d%bin,numberInBin)
+    !    print*, "numberInBin",numberInBin
+    !endif
     do jj = 1,nNeighbors
         ! Exclude self interactions
         if (neighbors(jj) >= leftExclude .and. neighbors(jj) <= rightExclude) cycle
@@ -160,7 +169,7 @@ do ii = left,right
         endif
 
         if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-            if (neighbors(jj)==wlc_p%NT) cycle ! no cylinder comming out of last bead
+            if (neighbors(jj)==WLC_P__NT) cycle ! no cylinder comming out of last bead
 
             !Choose one end of the other segment that is in the same repeat
             !Translate to get the other end (which may be in a different repeat

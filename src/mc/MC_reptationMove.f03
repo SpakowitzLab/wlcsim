@@ -16,10 +16,10 @@ use params, only: dp,wlcsim_params
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
+real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
+real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
+real(dp), intent(out) :: UP(3,WLC_P__NT)  ! Tangent vectors
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: IB1   ! Index of test bead 1
@@ -111,7 +111,7 @@ if (urnd(1).lt.0.5_dp) then
 
    ! RperpMag = sqrt(r_relative(2)**2 + r_relative(3)**2)
    ! RparaMag = r_relative(1)
-   ! call test_equiv_forward(U,R,UP,RP,wlc_p%NT,IT1,IT2,RparaMag,RperpMag)
+   ! call test_equiv_forward(U,R,UP,RP,WLC_P__NT,IT1,IT2,RparaMag,RperpMag)
 
 else
     forward = .false.

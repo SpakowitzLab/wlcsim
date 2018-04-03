@@ -148,9 +148,9 @@ subroutine pt_restart(wlc_p,wlc_d)
     iostrg = trim(iostrg)//trim(vNum)
     print*, "reading", iostrg
     open (unit = 5, file = iostrg, status = 'OLD')
-    print*, "NT = ",wlc_p%NT
+    print*, "NT = ",WLC_P__NT
     ios = 0;
-    do I = 1,wlc_p%NT
+    do I = 1,WLC_P__NT
        if (ios.ne.0) then
            print*, "Problem while reading R, Possible incomplete file"
            stop 1
@@ -167,7 +167,7 @@ subroutine pt_restart(wlc_p,wlc_d)
     iostrg = trim(iostrg)//trim(vNum)
     ! read U from file
     open (unit = 5, file = iostrg, status = 'OLD')
-    do I = 1,wlc_p%NT
+    do I = 1,WLC_P__NT
        read(5,*) wlc_d%U(1,I),wlc_d%U(2,I),wlc_d%U(3,I)
        mag = sqrt(wlc_d%U(1,I)**2 + wlc_d%U(2,I)**2 + wlc_d%U(3,I)**2)
        wlc_d%U(1,I) = wlc_d%U(1,I)/mag

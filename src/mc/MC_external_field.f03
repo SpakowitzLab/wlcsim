@@ -52,7 +52,7 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Y/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
 wlc_d%dx_ExternalField = 0.0_dp
-do ii = 1,wlc_p%NT
+do ii = 1,WLC_P__NT
     vv(1) = modulo(wlc_d%R(1,ii),WLC_P__LBOX_X)-center(1)
     vv(2) = modulo(wlc_d%R(2,ii),WLC_P__LBOX_Y)-center(2)
     vv(3) = modulo(wlc_d%R(3,ii),WLC_P__LBOX_Z)-center(3)

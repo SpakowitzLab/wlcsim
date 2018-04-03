@@ -15,9 +15,9 @@ implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 integer, intent(in) :: IT1    ! Start test bead
 integer, intent(in) :: IT2    ! Final test bead
-integer, intent(in) :: AB(wlc_p%NT)   ! Chemical identity (a.k.a. binding state)
-integer, intent(in) :: ABP(wlc_p%NT)  ! Test Chemical identity
-integer, intent(in) :: METH(wlc_p%NT) ! Methalation state (unerlyin chamical type)
+integer, intent(in) :: AB(WLC_P__NT)   ! Chemical identity (a.k.a. binding state)
+integer, intent(in) :: ABP(WLC_P__NT)  ! Test Chemical identity
+integer, intent(in) :: METH(WLC_P__NT) ! Methalation state (unerlyin chamical type)
 real(dp), intent(out) :: DEBind    ! Change in binding energy
 real(dp), intent(out) :: DEMu    ! Change in chemcial potential energy
 real(dp), intent(out) :: dx_mu ! -n_bound

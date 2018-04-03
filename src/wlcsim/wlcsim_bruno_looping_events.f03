@@ -53,14 +53,14 @@ if (save_ind == 1) then
     call VerifyEnergiesFromScratch(wlc_p, wlc_d)
     call save_simulation_state(0, wlc_d, wlc_p, outfile_base, 'REPLACE')
     ! for BDsim
-    allocate(R0(3,wlc_p%NT))
-    allocate(U0(3,wlc_p%NT))
+    allocate(R0(3,WLC_P__NT))
+    allocate(U0(3,WLC_P__NT))
     ! for get_looping events
     loop_file_name = trim(adjustL(outfile_base)) // 'loop_times'
-    allocate(events(wlc_p%NT,wlc_p%NT))
-    allocate(num_events(wlc_p%NT))
-    allocate(col_state(wlc_p%NT, wlc_p%NT))
-    do k2 = 1, wlc_p%NT
+    allocate(events(WLC_P__NT,WLC_P__NT))
+    allocate(num_events(WLC_P__NT))
+    allocate(col_state(WLC_P__NT, WLC_P__NT))
+    do k2 = 1, WLC_P__NT
         do k1 = 1, k2 - 1
             if (abs(wlc_d%r(1,k1) - wlc_d%r(1,k2)) < WLC_P__COLLISIONRADIUS &
                     .and. abs(wlc_d%r(2,k1) - wlc_d%r(2,k2)) < WLC_P__COLLISIONRADIUS &
@@ -80,28 +80,28 @@ endif
 TSAVE = save_ind*WLC_P__STEPSPERSAVE*wlc_p%DT
 do while (wlc_d%time < TSAVE)
     !brown always true
-    call BDsim(wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, WLC_P__NP, wlc_d%TIME, wlc_d%time + wlc_p%DT, &
+    call BDsim(wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, WLC_P__NP, wlc_d%TIME, wlc_d%time + wlc_p%DT, &
             wlc_p%DT, .true., WLC_P__INTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMTYPE, &
             wlc_d%coltimes, WLC_P__COLLISIONRADIUS, WLC_P__COLLISIONDETECTIONTYPE)
-    call get_looping_events(wlc_d%R, wlc_p%NT, WLC_P__COLLISIONRADIUS, &
+    call get_looping_events(wlc_d%R, WLC_P__NT, WLC_P__COLLISIONRADIUS, &
             col_state, num_events, events)
-    call print_loop_events(loop_file_name, wlc_d%time, wlc_p%NT, events, &
+    call print_loop_events(loop_file_name, wlc_d%time, WLC_P__NT, events, &
             num_events)
 enddo
 
 
-call stress(SIG, wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, WLC_P__NP, &
+call stress(SIG, wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, WLC_P__NP, &
             pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
-call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, wlc_p%NT, WLC_P__NB, &
+call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, WLC_P__NT, WLC_P__NB, &
              WLC_P__NP, pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
 
-call energy_elas(EELAS, wlc_d%R, wlc_d%U, wlc_p%NT, WLC_P__NB, &
+call energy_elas(EELAS, wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, &
                  WLC_P__NP, pack_as_para(wlc_p), WLC_P__RING, WLC_P__TWIST, &
                  wlc_p%LK, WLC_P__LT, WLC_P__L)
 EPONP = 0.
 if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me
-    call energy_self_chain(EPONP, wlc_d%R, wlc_p%NT, WLC_P__NB, &
+    call energy_self_chain(EPONP, wlc_d%R, WLC_P__NT, WLC_P__NB, &
                      pack_as_para(wlc_p), .FALSE.)
 endif
 

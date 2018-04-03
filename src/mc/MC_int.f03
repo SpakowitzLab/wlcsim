@@ -51,7 +51,7 @@ if (wlc_p%CHI_L2_ON) then
 endif
 
 wlc_d%NPHI = 0
-do IB = 1,wlc_p%NT
+do IB = 1,WLC_P__NT
    RBin(1) = wlc_d%R(1,IB)
    RBin(2) = wlc_d%R(2,IB)
    RBin(3) = wlc_d%R(3,IB)

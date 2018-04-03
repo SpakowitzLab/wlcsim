@@ -241,7 +241,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
            Rold(1) = urand(1)*LBOX(1)
            Rold(2) = urand(2)*LBOX(2)
            Rold(3) = urand(3)*LBOX(3)
-           search = .not. in_confinement(test, 1, 1, 1)
+           search = .not. in_confinement(Rold, 1, 1, 1)
        enddo
        call random_number(urand,rand_stat)
        theta = urand(1)*2_dp*PI

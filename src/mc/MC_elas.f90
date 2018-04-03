@@ -13,17 +13,17 @@ subroutine MC_eelas(wlc_p,DEELAS,R,U,RP,UP,IB1,IB2,&
 use params, only: dp, pi,wlcsim_params
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
-real(dp), intent(in) :: RP(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(in) :: UP(3,wlc_p%NT)  ! Tangent vectors
+real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
+real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
+real(dp), intent(in) :: RP(3,WLC_P__NT)  ! Bead positions
+real(dp), intent(in) :: UP(3,WLC_P__NT)  ! Tangent vectors
 integer, intent(in) :: IB1               ! Test bead position 1
 integer, intent(in) :: IT1               ! Index of test bead 1
 integer, intent(in) :: IB2               ! Test bead position 2
 integer, intent(in) :: IT2               ! Index of test bead 2
 
-real(dp) :: U0(3,wlc_p%NT)  ! dummy variable for calculating u in wlc case
-real(dp) :: UP0(3,wlc_p%NT)  ! dummy variable for calculating u in wlc case
+real(dp) :: U0(3,WLC_P__NT)  ! dummy variable for calculating u in wlc case
+real(dp) :: UP0(3,WLC_P__NT)  ! dummy variable for calculating u in wlc case
 real(dp) :: UNORM,U1U2
 
 real(dp), intent(out) :: DEELAS(4)   ! Change in ECOM
