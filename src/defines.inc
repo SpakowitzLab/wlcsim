@@ -74,9 +74,9 @@
 ! DEFAULTS COMMENT: ! Only one type of bead
 ! TYPE: LOGICAL
 
-#define WLC_P__VARIABLE_CHEM_STATE WLC_P__CHANGINGCHEMICALIDENTITY
-! VARIABLE COMMENT: !TODO figure out what subtle difference if any r.t.  WLC_P__CHANGINGCHEMICALIDENTITY
-! DEFAULTS COMMENT: !TODO
+#define WLC_P__VARIABLE_CHEM_STATE .FALSE.
+! VARIABLE COMMENT: !
+! DEFAULTS COMMENT: ! Only on type of bead
 ! TYPE: LOGICAL
 
 #define WLC_P__FIELD_INT_ON .FALSE.
@@ -107,6 +107,11 @@
 #define WLC_P__APPLY_EXTERNAL_FIELD .FALSE.
 ! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
 ! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__EXPLICIT_BINDING .FALSE.
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -171,6 +176,11 @@
 ! DEFAULTS COMMENT: ! one polymer
 ! TYPE: INTEGER
 
+#define WLC_P__NT WLC_P__NB*WLC_P__NP
+! VARIABLE COMMENT: ! Total Number of beads
+! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
+! TYPE: INTEGER
+
 #define WLC_P__FA 0.5_DP
 ! VARIABLE COMMENT: ! Fraction of A beads
 ! DEFAULTS COMMENT: ! half A, half B by default
@@ -200,6 +210,11 @@
 ! VARIABLE COMMENT: ! Chromatin with two histon tails per bead
 ! DEFAULTS COMMENT: ! Specific to Chromatin
 ! TYPE: LOGICAL
+
+#define WLC_P__N_SPHERES_TO_SIDE 1
+! VARIABLE COMMENT: ! Number of spheres
+! DEFAULTS COMMENT: ! one, wont be used unless you use corrisponding B.C.
+! TYPE: INTEGER
 
 
 ! ----------------------------
@@ -244,7 +259,6 @@
 ! TYPE: INTEGER
 
 #define WLC_P__NBINX 20
-#define WLC_P__NBINX_X WLC_P__NBINX
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
@@ -260,7 +274,6 @@
 ! TYPE: INTEGER
 
 #define WLC_P__LBOX 20.0_dp
-#define WLC_P__LBOX_X WLC_P__LBOX
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/conËfinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -367,7 +380,20 @@
 ! DEFAULTS COMMENT: ! zero for simplitity
 ! TYPE: REAL(DP)
 
+#define WLC_P__EXPLICIT_BIND_ENERGY 0.0_DP
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: REAL(DP)
 
+#define WLC_P__AmplitudeExternalField 0.0_DP
+! VARIABLE COMMENT: ! For an extra potential I wanted to put in
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: REAL(DP)
+
+#define WLC_P__AEF 0.0_DP
+! VARIABLE COMMENT: ! Applied Field
+! DEFAULTS COMMENT: ! no applied field
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -529,6 +555,11 @@
 ! DEFAULTS COMMENT: ! don't parallel temper maier Saupe by default
 ! TYPE: LOGICAL
 
+#define WLC_P__PT_AEF .TRUE.
+! VARIABLE COMMENT: ! parallel temper over external applied field
+! DEFAULTS COMMENT: ! don't parallel temper h by default
+! TYPE: LOGICAL
+
 #define WLC_P__NREPADAPT 1000
 ! VARIABLE COMMENT: ! number of exchange attemts between adapt
 ! DEFAULTS COMMENT: ! 1000 exchange attempts between adaptations
@@ -640,6 +671,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_SPIDER 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! Super Reptation
+! TYPE: INTEGER
 
 
 ! ----------------------------
@@ -1048,5 +1083,7 @@
 ! DEFAULTS COMMENT: ! exponential fragment sizes mix better
 ! TYPE: INTEGER
 
-
-
+#define WLC_P__PROB_BIND_RESPECTING_MOVE 0.5_DP
+! VARIABLE COMMENT: ! probability that we make sure move doesnt break loop
+! DEFAULTS COMMENT: ! about half, only used if explicit binding turned on
+! TYPE: REAL(DP)

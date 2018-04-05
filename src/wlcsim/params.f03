@@ -76,7 +76,6 @@ module params
     type wlcsim_params
     !   Simulation parameters
         integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
-        integer nT                ! Total number of beads  NT = nBpM*nMpP*np
         real(dp) dt ! sets time scale of simulation
         real(dp) l0       ! Path length between beads. (meaning unknown for gaussian chain?)
         real(dp) gam    ! average equilibrium interbead spacing
