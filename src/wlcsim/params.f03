@@ -272,7 +272,7 @@ contains
 
         ! parallel temper variables
         wlc_p%CHI      = WLC_P__CHI
-        wlc_p%MU       = WLC_p__MU
+        wlc_p%MU       = WLC_P__MU
         wlc_p%HA       = WLC_P__HA
         wlc_p%HP1_BIND = WLC_P__HP1_BIND
         wlc_p%KAP      = WLC_P__KAP
@@ -600,7 +600,17 @@ contains
         endif
         if (WLC_P__EXPLICIT_BINDING) then
             allocate(wlc_d%ExplicitBindingPair(WLC_P__NT))
-            open(unit = 5,file = "input/bindpairs",status = 'OLD')
+            if (WLC_P__ENSEMBLE_BIND .and. wlc_d%id>0) then
+                write(iostr,"(I4)") wlc_d%id
+                iostr = adjustL(iostr)
+                iostr = trim(iostr)
+                iostr = "input/L393216nloops50000_"//trim(iostr)//".txt"
+                iostr = trim(iostr)
+                print*, "reading ",iostr
+                open(unit = 5,file = iostr,status = 'OLD')
+            else
+                open(unit = 5,file = "input/bindpairs",status = 'OLD')
+            endif
             do I = 1,WLC_P__NT
                 Read(5,'(I10)') wlc_d%ExplicitBindingPair(I)
                 if (wlc_d%ExplicitBindingPair(I) .gt. WLC_P__NT) then

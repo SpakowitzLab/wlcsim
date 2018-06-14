@@ -333,7 +333,7 @@ subroutine worker_node(wlc_p, wlc_d)
         call stop_if_err(error, "Failed to get num_processes.")
     endif
     if (wlc_d%mc_ind == 1) then
-        if (WLC_P__PT_CHI .or. WLC_P__PT_H .or. WLC_P__PT_KAP .or. WLC_P__PT_MU .or. WLC_P__PT_COUPLE) then
+        if (WLC_P__PT_CHI .or. WLC_P__PT_H .or. WLC_P__PT_KAP .or. WLC_P__PT_MU .or. WLC_P__PT_COUPLE .or. WLC_P__ENSEMBLE_BIND) then
             call startWorker(wlc_p, wlc_d)
         endif
     endif
