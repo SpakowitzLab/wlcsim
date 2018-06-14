@@ -57,6 +57,7 @@ integer TEMP
 real(dp) d1,d2  !for testing
 integer exponential_random_int
 integer otherEnd
+integer IT1_temp, IT2_temp, IB1_temp, IB2_temp
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR.WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -135,6 +136,10 @@ else                                 !Polymer is not a ring
     if (WLC_P__EXPLICIT_BINDING) then
         call random_number(urnd,rand_stat)
         if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
+            IB1_temp=IB1
+            IT1_temp=IT1
+            IB2_temp=IB2
+            IT2_temp=IT2
             do I =IT1,IT2
                 otherEnd=wlc_d%ExplicitBindingPair(I)
                 if (WLC_P__NP>1) then
@@ -143,13 +148,21 @@ else                                 !Polymer is not a ring
                 endif
                 if (otherEnd < 1) cycle
                 if (otherEnd < IT1) then  ! Loop to point before IT1
-                    IB1=IB1-IT1+otherEnd
-                    IT1=otherEnd
+                    IB1_temp=IB1-IT1+otherEnd
+                    IT1_temp=otherEnd
                 elseif (otherEnd > IT2) then ! Loop to point after IT2
-                    IB2=IB2-IT2+otherEnd
-                    IT2=otherEnd
+                    IB2_temp=IB2-IT2+otherEnd
+                    IT2_temp=otherEnd
+                    exit
                 endif
             enddo
+            if (IB2_temp-IB1_temp<10*WLC_P__MINWINDOW_CRANK_SHAFT) then
+                ! prevent extremely long crank shaft moves
+                IB1=IB1_temp
+                IT1=IT1_temp
+                IB2=IB2_temp
+                IT2=IT2_temp
+            endif
         endif
     endif
     DIB = IB2-IB1
