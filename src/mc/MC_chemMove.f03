@@ -33,7 +33,6 @@ integer IP    ! Test polymer
 integer I,J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
 real urnd(1) ! single random number
 integer irnd(1)
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
@@ -56,8 +55,8 @@ call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
 call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
-call random_number(urand,rand_stat)
-IB2 = IB1 + (2*nint(urand(3))-1)* &
+call random_number(urnd,rand_stat)
+IB2 = IB1 + (2*nint(urnd(1))-1)* &
         exponential_random_int(window,rand_stat)
 
 if (IB2 < 1) then

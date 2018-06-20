@@ -34,15 +34,13 @@ integer IP    ! Test polymer
 integer I,J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
 real urnd(1) ! single random number
 integer irnd(1)
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
 real(dp) P1(3)    ! Point on rotation line
-real(dp) MAG      ! Magnitude of vector
-real(dp) ROT(4,4) ! Rotation matrix
+real(dp) ROT(3,4) ! Rotation matrix
 
 real(dp) ALPHA    ! Angle of move
 
@@ -185,34 +183,13 @@ else                                 !Polymer is not a ring
    endif
 endif
 
-
-  MAG = sqrt(TA(1)**2. + TA(2)**2. + TA(3)**2.)
-  TA(1) = TA(1)/MAG
-  TA(2) = TA(2)/MAG
-  TA(3) = TA(3)/MAG
   P1(1) = R(1,IT1)
   P1(2) = R(2,IT1)
   P1(3) = R(3,IT1)
-  call random_number(urand,rand_stat)
-  ALPHA = MCAMP*(urand(1)-0.5)
+  call random_number(urnd,rand_stat)
+  ALPHA = MCAMP*(urnd(1)-0.5_dp)
 
-  ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-  ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-  ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-  ROT(1,4) = (P1(1)*(1.-TA(1)**2.) &
-       -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-
-  ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-  ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-  ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-  ROT(2,4) = (P1(2)*(1.-TA(2)**2.) &
-       -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-
-  ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-  ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-  ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-  ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
-       -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+  call axisAngle(ROT,alpha,TA,P1)
 
   I = IT1
    do J = 0,DIB

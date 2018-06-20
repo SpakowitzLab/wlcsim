@@ -30,13 +30,12 @@ integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
 real urnd(1) ! single random number
 integer irnd(1)
 
 real(dp) TA(3)    ! Axis of rotation
 real(dp) P1(3)    ! Point on rotation line
-real(dp) ROT(4,4) ! Rotation matrix
+real(dp) ROT(3,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
 real(dp) BETA     ! Angle of move
 
@@ -60,6 +59,7 @@ endif
     IP=irnd(1)
     call random_index(WLC_P__NB,irnd,rand_stat)
     IB1=irnd(1)
+    call random_number(urnd,rand_stat)
     if (urnd(1).gt.0.5_dp) then
         IB2 = exponential_random_int(window,rand_stat) + 1
         if (IB2 > WLC_P__NB) then
@@ -84,32 +84,10 @@ endif
         P1(3) = R(3,IT1)
     endif
 
-   call random_number(urand,rand_stat)
-   ALPHA = 2.*PI*urand(1)
-   BETA = acos(2.*urand(2)-1.)
-   TA(1) = sin(BETA)*cos(ALPHA)
-   TA(2) = sin(BETA)*sin(ALPHA)
-   TA(3) = cos(BETA)
-
-   ALPHA = MCAMP*(urand(3)-0.5)
-
-   ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-   ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-   ROT(1,4) = (P1(1)*(1.-TA(1)**2.) &
-   -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
-
-   ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-   ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-   ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-   ROT(2,4) = (P1(2)*(1.-TA(2)**2.) &
-   -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
-
-   ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-   ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-   ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-   ROT(3,4) = (P1(3)*(1.-TA(3)**2.) &
-   -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+   call randomUnitVec(TA,rand_stat)
+   call random_number(urnd,rand_stat)
+   ALPHA = MCAMP*(urnd(1)-0.5_dp)
+   call axisAngle(ROT,alpha,TA,P1)
 
    do I = IT1,IT2
       RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)

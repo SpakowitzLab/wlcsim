@@ -32,14 +32,14 @@ integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
 integer irnd(1)  ! random vector
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
-real(dp) ROT(4,4) ! Rotation matrix
+real(dp) ROT(3,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
-real(dp) BETA     ! Angle of move
+real urnd(1) ! single random number
+real(dp), parameter, dimension(3) ::  P1 = [0.0_dp, 0.0_dp, 0.0_dp]
 
 !     MC adaptation variables
 
@@ -62,29 +62,10 @@ IB2 = IB1
 IT1 = WLC_P__NB*(IP-1) + IB1
 IT2 = WLC_P__NB*(IP-1) + IB2
 
-call random_number(urand,rand_stat)
-ALPHA = 2.*PI*urand(1)
-BETA = acos(2.*urand(2)-1.)
-TA(1) = sin(BETA)*cos(ALPHA)
-TA(2) = sin(BETA)*sin(ALPHA)
-TA(3) = cos(BETA)
-
-ALPHA = MCAMP*(urand(3)-0.5)
-
-ROT(1,1) = TA(1)**2. + (TA(2)**2. + TA(3)**2.)*cos(ALPHA)
-ROT(1,2) = TA(1)*TA(2)*(1.-cos(ALPHA))-TA(3)*sin(ALPHA)
-ROT(1,3) = TA(1)*TA(3)*(1.-cos(ALPHA)) + TA(2)*sin(ALPHA)
-ROT(1,4) = 0.0
-
-ROT(2,1) = TA(1)*TA(2)*(1.-cos(ALPHA)) + TA(3)*sin(ALPHA)
-ROT(2,2) = TA(2)**2. + (TA(1)**2. + TA(3)**2.)*cos(ALPHA)
-ROT(2,3) = TA(2)*TA(3)*(1.-cos(ALPHA))-TA(1)*sin(ALPHA)
-ROT(2,4) = 0.0
-
-ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
-ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
-ROT(3,3) = TA(3)**2. + (TA(1)**2. + TA(2)**2.)*cos(ALPHA)
-ROT(3,4) = 0.0
+call randomUnitVec(TA,rand_stat)
+call random_number(urnd,rand_stat)
+ALPHA = MCAMP*(urnd(1)-0.5_dp)
+call axisAngle(ROT,alpha,TA,P1)
 
 I = IT1
 UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)

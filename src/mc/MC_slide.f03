@@ -56,14 +56,12 @@ IP=irnd(1)
 call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
 if (WLC_P__WINTYPE.eq.0) then
-    call random_number(urnd,rand_stat)
     IB2 = IB1 +exponential_random_int(window,rand_stat)
 elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
-    call random_number(urand,rand_stat)
-    IB2 = IB1 + (2*nint(urand(3))-1)* &
+    call random_number(urnd,rand_stat)
+    IB2 = IB1 + (2*nint(urnd(1))-1)* &
            exponential_random_int(window,rand_stat)
 elseif (WLC_P__WINTYPE.eq.1.and.WLC_P__RING) then
-    call random_number(urnd,rand_stat)
     IB2 = IB1 + exponential_random_int(window,rand_stat)
 else
     call stop_if_err(1, "Warning: WLC_P__WINTYPE not recognized")

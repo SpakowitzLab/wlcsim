@@ -31,16 +31,16 @@ if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt.eps) then
 endif
 
 call random_number(urnd,rand_stat)
-v(1) = cos(2*PI*urnd(1))
-v(2) = sin(2*PI*urnd(1))
+v(1) = cos(2.0_dp*PI*urnd(1))
+v(2) = sin(2.0_dp*PI*urnd(1))
 
 if (u(3).gt.0.0) then
-    f = 1.0_dp/(1 + u(3))
+    f = 1.0_dp/(1.0_dp + u(3))
     p(1) = (u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
     p(2) = (u(3) + f*u(1)**2)*v(2) - u(2)*u(1)*v(1)*f
     p(3) = -1.0_dp*(u(2)*v(2) + u(1)*v(1))
 else
-    f = 1.0_dp/(1-u(3))
+    f = 1.0_dp/(1.0_dp-u(3))
     p(1) = (-u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
     p(2) = (-u(3) + f*u(1)**2)*v(2) - u(2)*u(1)*v(1)*f
     p(3) = (u(2)*v(2) + u(1)*v(1))

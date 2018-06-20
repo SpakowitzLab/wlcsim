@@ -128,12 +128,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
         Rold(1) = urand(1)*LBOX(1)
         Rold(2) = urand(2)*LBOX(2)
         Rold(3) = urand(3)*LBOX(3)
-        call random_number(urand,rand_stat)
-        theta = urand(1)*2*PI
-        z = urand(2)*2.0_dp-1.0_dp
-        Uold(1) = sqrt(1-z*z)*cos(theta)
-        Uold(2) = sqrt(1-z*z)*sin(theta)
-        Uold(3) = z
+        call randomUnitVec(Uold,rand_stat)
 
         do J = 1,NB
            search = .TRUE.
@@ -151,12 +146,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
                 test(3) = Rold(3) + Uold(3)*GAM
                 search = .not. in_confinement(test, 1, 1, 1)
                 if (search) then
-                     call random_number(urand,rand_stat)
-                     theta = urand(1)*2*PI
-                     z = urand(2)*2.0_dp-1.0_dp
-                     Uold(1) = sqrt(1-z*z)*cos(theta)
-                     Uold(2) = sqrt(1-z*z)*sin(theta)
-                     Uold(3) = z
+                     call randomUnitVec(Uold,rand_stat)
                 endif
            enddo
            R(1,IB) = test(1)
@@ -183,12 +173,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
        Rold(1) = urand(1)*LBOX(1)
        Rold(2) = urand(2)*LBOX(2)
        Rold(3) = urand(3)*LBOX(3)
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
+       call randomUnitVec(Uold,rand_stat)
 
        do J = 1,NB
           search = .TRUE.
@@ -206,12 +191,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
                test(3) = Rold(3) + Uold(3)*GAM
                search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1-z*z)*cos(theta)
-                    Uold(2) = sqrt(1-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
                endif
           enddo
           R(1,IB) = test(1)
@@ -243,12 +223,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
            Rold(3) = urand(3)*LBOX(3)
            search = .not. in_confinement(Rold, 1, 1, 1)
        enddo
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
+       call randomUnitVec(Uold,rand_stat)
        do J = 1,NB
            search = .TRUE.
            ii=0
@@ -269,12 +244,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
                                         WLC_P__LBOX_Z/2.0_dp
                         stop
                     endif
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2.0_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1.0_dp-z*z)*cos(theta)
-                    Uold(2) = sqrt(1.0_dp-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
                endif
            enddo
            R(1,IB) = test(1)
@@ -304,12 +274,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
        Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
        Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
        Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
+       call randomUnitVec(Uold,rand_stat)
        do J = 1,NB
            search = .TRUE.
            ii=0
@@ -330,12 +295,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
                                         WLC_P__LBOX_Z/2.0_dp
                         stop
                     endif
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2.0_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1.0_dp-z*z)*cos(theta)
-                    Uold(2) = sqrt(1.0_dp-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
                endif
            enddo
            R(1,IB) = test(1)
@@ -476,9 +436,7 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
         R(2,IB) = urand(2)*WLC_P__LBOX_Y
         R(3,IB) = urand(3)*WLC_P__LBOX_Z
         ! uniformly from unit sphere first tan vec
-        call random_gauss(urand, rand_stat)
-        U(:,IB) = urand
-        U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        call randomUnitVec(U(:,IB),rand_stat)
         IB = IB + 1
         do J = 2,WLC_P__NB
             tmpR(:,1) = R(:,IB-1)
