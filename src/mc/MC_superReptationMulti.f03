@@ -13,6 +13,7 @@ subroutine MC_superReptationMulti(wlc_p,R,U,RP,UP,AB,ABP,IP,IT1,IT2,IB1,IB2&
                   ,rand_stat,forward)
 use mersenne_twister
 use params, only: dp,wlcsim_params
+use vector_utils, only: random_perp
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
