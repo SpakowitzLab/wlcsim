@@ -404,6 +404,7 @@ end subroutine wlc_init
 subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
     use mersenne_twister
     use params, only : wlcsim_params, dp, max_wlc_l0, max_sswlc_delta
+    use vector_utils, only: randomUnitVec
     implicit none
     integer, intent(in) :: nt
     type(wlcsim_params), intent(in) :: wlc_p
