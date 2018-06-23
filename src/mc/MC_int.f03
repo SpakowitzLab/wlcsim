@@ -17,7 +17,7 @@ implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
 TYPE(wlcsim_data), intent(inout) :: wlc_d
-LOGICAL initialize   ! if true, calculate absolute energy
+LOGICAL,parameter :: initialize = .TRUE.   ! if true, calculate absolute energy
 
 !   Internal variables
 integer IB                ! Bead index
@@ -116,7 +116,6 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte abosolute energy
 !
 !---------------------------------------------------------------------
-initialize = .True.
 call hamiltonian(wlc_p,wlc_d,initialize)
 
 RETURN
@@ -138,10 +137,42 @@ END
 subroutine MC_int_update(wlc_p,wlc_d,I1,I2)
 use params, only: dp, wlcsim_params, wlcsim_data
 implicit none
+TYPE(wlcsim_params), intent(in) :: wlc_p
+TYPE(wlcsim_data), intent(inout) :: wlc_d
+integer, intent(in) :: I1           ! Test bead position 1
+integer, intent(in) :: I2           ! Test bead position 2
+LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+
+wlc_d%NPHI = 0
+
+call CalcDphi(wlc_p,wlc_d,I1,I2)
+call hamiltonian(wlc_p,wlc_d,initialize) ! calculate change in energy based on density change
+end subroutine MC_int_update
+
+subroutine MC_int_update_spider(wlc_p,wlc_d,spider_id)
+use params, only: dp, wlcsim_params, wlcsim_data
+implicit none
+TYPE(wlcsim_params), intent(in) :: wlc_p
+TYPE(wlcsim_data), intent(inout) :: wlc_d
+integer, intent(in) :: spider_id
+LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+integer section_n,I1,I2
+
+wlc_d%NPHI = 0
+do section_n = 1, wlc_d%spiders(spider_id)%nSections
+    I1 = wlc_d%spiders(spider_id)%moved_sections(1,section_n)
+    I2 = wlc_d%spiders(spider_id)%moved_sections(2,section_n)
+    call CalcDphi(wlc_p,wlc_d,I1,I2)
+enddo
+call hamiltonian(wlc_p,wlc_d,initialize) ! calculate change in energy based on density change
+end subroutine MC_int_update_spider
+
+subroutine CalcDphi(wlc_p,wlc_d,I1,I2)
+use params, only: dp, wlcsim_params, wlcsim_data
+implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p
 TYPE(wlcsim_data), intent(inout) :: wlc_d
-LOGICAL initialize   ! if true, calculate absolute energy
 integer, intent(in) :: I1           ! Test bead position 1
 integer, intent(in) :: I2           ! Test bead position 2
 
@@ -164,7 +195,6 @@ real(dp) contribution
 
 NBinX = wlc_p%NBINX
 
-wlc_d%NPHI = 0
 do IB = I1,I2
   do rrdr = -1,1,2
    ! on initialize only add current position
@@ -314,13 +344,6 @@ do IB = I1,I2
    endif
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
-! ---------------------------------------------------------------------
-!
-! Calcualte change in energy
-!
-!---------------------------------------------------------------------
-initialize = .False.
-call hamiltonian(wlc_p,wlc_d,initialize)
 
 RETURN
 END

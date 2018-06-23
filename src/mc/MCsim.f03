@@ -57,6 +57,8 @@ subroutine MCsim(wlc_p,wlc_d)
     integer sweepIndex
     logical in_confinement
     logical collide
+    logical success
+    integer section_n, spider_id
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -102,24 +104,35 @@ subroutine MCsim(wlc_p,wlc_d)
               CYCLE
           endif
           call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,&
-                       MCTYPE,forward,wlc_d%rand_stat,dib)
-
+                       MCTYPE,forward,wlc_d%rand_stat,dib,spider_id,success)
+          if (.not. success) then
+              wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
+              cycle
+          endif
 !   Calculate the change in confinement energy
           if ((MCTYPE /= 4).and. &
               (MCTYPE /= 7).and. &
               (MCTYPE /= 8).and. &
-              (MCTYPE /= 9)) then
+              (MCTYPE /= 9).and. &
+              (MCTYPE /= 12)) then
               !call MC_confine(wlc_d%RP, WLC_P__NT,IT1,IT2,wlc_d%ECon)
               ! Completely skip move if outside confinement
               if (.not. in_confinement(wlc_d%RP, WLC_P__NT, IT1, IT2)) then
                   wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
                   cycle
               endif
+          elseif (MCTYPE == 12) then
+              do section_n = 1, wlc_d%spiders(spider_id)%nSections
+                  IT1 = wlc_d%spiders(spider_id)%moved_sections(1,section_n)
+                  IT2 = wlc_d%spiders(spider_id)%moved_sections(2,section_n)
+                  if (.not. in_confinement(wlc_d%RP, WLC_P__NT, IT1, IT2)) then
+                      wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
+                      cycle
+                  endif
+              enddo
           endif
 
-          if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .and. &
-              (MCTYPE <=3 .or. MCTYPE == 5 .or. MCTYPE == 6 &
-               .or. MCTYPE == 10 .or. MCTYPE == 11 )) then
+          if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
               call MC_cylinder(wlc_p,wlc_d,collide,IB1,IB2,IT1,IT2, &
                   MCTYPE,forward)
               if (collide) then
@@ -128,37 +141,36 @@ subroutine MCsim(wlc_p,wlc_d)
               endif
           endif
 
-        if (WLC_P__RING) then
-           wlc_d%CrossP = wlc_d%Cross
-           wlc_d%NCrossP = wlc_d%NCross
-           if (MCTYPE == 1) then
-              CALL alexanderp_crank(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
-           elseif (MCTYPE == 2) then
-              if (DIB /= WLC_P__NB) then
-                 CALL alexanderp_slide(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
+          if (WLC_P__RING) then
+              wlc_d%CrossP = wlc_d%Cross
+              wlc_d%NCrossP = wlc_d%NCross
+              if (MCTYPE == 1) then
+                 CALL alexanderp_crank(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
+              elseif (MCTYPE == 2) then
+                 if (DIB /= WLC_P__NB) then
+                    CALL alexanderp_slide(wlc_p,wlc_d%RP,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP,IT1,IT2,DIB)
+                 ENDif
+              else
+                 CALL ALEXANDERP(wlc_d%RP,WLC_P__NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
               ENDif
-           else
-              CALL ALEXANDERP(wlc_d%RP,WLC_P__NB,DELTA,wlc_d%CrossP,wlc_d%CrossSize,wlc_d%NCrossP)
-           ENDif
-           if (DELTA /= 1) then
-              wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
-              cycle
-           ENDif
-        ENDif
+              if (DELTA /= 1) then
+                 wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
+                 cycle
+              ENDif
+          ENDif
 
 
 !   Calculate the change in compression and bending energy
-          if ((MCTYPE /= 5) .and. &
-              (MCTYPE /= 6) .and. &
-              (MCTYPE /= 7) .and. &
-              (MCTYPE /= 8) .and. &
-              (MCTYPE /= 9) .and. &
-              (MCTYPE /= 10) .and. &
-              (MCTYPE /= 11) ) then
+          if (MCTYPE<5) then
               call MC_eelas(wlc_p,wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2, &
                             IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
                             mctype,wlc_d%wr,wrp)
+          elseif (MCTYPE==12) then
+              call MC_eelas_spider(wlc_p,wlc_d,wlc_d%DEELAS,spider_id,&
+                                   EB,EPAR,EPERP,GAM,ETA)
           endif
+
+
           if (MCTYPE.eq.8) then
               print*, "Flop move not working!  Chain energy isn't symmetric"
               stop 1
@@ -205,12 +217,11 @@ subroutine MCsim(wlc_p,wlc_d)
                  call MC_int_rep(wlc_p,wlc_d,IT1,IT2,forward)
              elseif (MCTYPE == 11) then ! super reptation move
                  call MC_int_super_rep(wlc_p,wlc_d,IT1,IT2,forward)
+             elseif (MCTYPE == 12) then
+                 call MC_int_update_spider(wlc_p,wlc_d,spider_id)
              else ! motion of chain
                  call MC_int_update(wlc_p,wlc_d,IT1,IT2)
              endif
-          endif
-          if ((MCTYPE.eq.8).and.(wlc_d%DEKap.gt.0.00001)) then
-              print*, "Error in MCsim. Kappa energy shouldn't change on move 8"
           endif
           if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
               (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
@@ -242,67 +253,23 @@ subroutine MCsim(wlc_p,wlc_d)
                       wlc_d%AB(I) = wlc_d%ABP(I)
                  ENDdo
              endif
-             if(MCTYPE /= 7) then
+             if(MCTYPE /= 7 .and. MCTYPE /= 12) then
                  do I = IT1,IT2
-                     if (WLC_P__NEIGHBOR_BINS) then
-                         if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-                             call removeBead(wlc_d%bin,wlc_d%R_period(:,I),I)
-                         elseif (WLC_P__CONFINETYPE == 'none') then
-                             ! call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
-                         else
-                             print*, "Not an option yet.  See MCsim."
-                         endif
-                     endif
-                     wlc_d%R(1,I) = wlc_d%RP(1,I)
-                     wlc_d%R(2,I) = wlc_d%RP(2,I)
-                     wlc_d%R(3,I) = wlc_d%RP(3,I)
-                     wlc_d%U(1,I) = wlc_d%UP(1,I)
-                     wlc_d%U(2,I) = wlc_d%UP(2,I)
-                     wlc_d%U(3,I) = wlc_d%UP(3,I)
-                     if (WLC_P__NEIGHBOR_BINS) then
-                         if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-                             wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
-                             wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
-                             wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
-                             call addBead(wlc_d%bin,wlc_d%R_period,WLC_P__NT,I)
-                         elseif (WLC_P__CONFINETYPE == 'none') then
-                             call addBead(wlc_d%bin,wlc_d%R,WLC_P__NT,I)
-                         else
-                             print*, "Not an option yet.  See MCsim."
-                         endif
-                     endif
+                     call updateR(wlc_d,I)
                  enddo
                  if (MCTYPE == 9) then
                      do I = IT3,IT4
-                         if (WLC_P__NEIGHBOR_BINS) then
-                             if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-                                 call removeBead(wlc_d%bin,wlc_d%R_period(:,I),I)
-                             elseif (WLC_P__CONFINETYPE == 'none') then
-                                 call removeBead(wlc_d%bin,wlc_d%R(:,I),I)
-                             else
-                                 print*, "Not an option yet.  See MCsim."
-                             endif
-                         endif
-                         wlc_d%R(1,I) = wlc_d%RP(1,I)
-                         wlc_d%R(2,I) = wlc_d%RP(2,I)
-                         wlc_d%R(3,I) = wlc_d%RP(3,I)
-                         wlc_d%U(1,I) = wlc_d%UP(1,I)
-                         wlc_d%U(2,I) = wlc_d%UP(2,I)
-                         wlc_d%U(3,I) = wlc_d%UP(3,I)
-                         if (WLC_P__NEIGHBOR_BINS) then
-                             if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
-                                 wlc_d%R_period(1,I)=modulo(wlc_d%R(1,I),WLC_P__LBOX_X)
-                                 wlc_d%R_period(2,I)=modulo(wlc_d%R(2,I),WLC_P__LBOX_Y)
-                                 wlc_d%R_period(3,I)=modulo(wlc_d%R(3,I),WLC_P__LBOX_Z)
-                                 call addBead(wlc_d%bin,wlc_d%R_period,WLC_P__NT,I)
-                             elseif (WLC_P__CONFINETYPE == 'none') then
-                                 call addBead(wlc_d%bin,wlc_d%R,WLC_P__NT,I)
-                             else
-                                 print*, "Not an option yet.  See MCsim."
-                             endif
-                         endif
+                         call updateR(wlc_d,I)
                      enddo
                  endif
+             elseif(MCTYPE == 12) then
+                 do section_n = 1, wlc_d%spiders(spider_id)%nSections
+                     IT1 = wlc_d%spiders(spider_id)%moved_sections(1,section_n)
+                     IT2 = wlc_d%spiders(spider_id)%moved_sections(2,section_n)
+                     do I = IT1,IT2
+                         call updateR(wlc_d,I)
+                     enddo
+                 enddo
              endif
              if (wlc_d%ECon.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
@@ -314,9 +281,7 @@ subroutine MCsim(wlc_p,wlc_d)
              wlc_d%EMu = wlc_d%EMu + wlc_d%DEMu
              wlc_d%x_mu = wlc_d%x_mu + wlc_d%dx_mu
              wlc_d%eExplicitBinding = wlc_d%eExplicitBinding + wlc_d%DEExplicitBinding
-             wlc_d%EElas(1) = wlc_d%EElas(1) + wlc_d%DEElas(1)
-             wlc_d%EElas(2) = wlc_d%EElas(2) + wlc_d%DEElas(2)
-             wlc_d%EElas(3) = wlc_d%EElas(3) + wlc_d%DEElas(3)
+             wlc_d%EElas = wlc_d%EElas + wlc_d%DEElas
              if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
                  (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
                  WLC_P__APPLY_EXTERNAL_FIELD) then

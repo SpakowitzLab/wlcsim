@@ -18,6 +18,7 @@ module params
     use precision, only: dp, eps, epsapprox
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
+    use precalc_spider, only: spider
 
     implicit none
 
@@ -25,7 +26,7 @@ module params
 
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
-    integer, parameter :: nMoveTypes = 11
+    integer, parameter :: nMoveTypes = 12
     integer, parameter :: nDim = 3
 
     !!!     arbitrary technical choices
@@ -46,7 +47,7 @@ module params
           'fullChainRotation   ','fullChianSlide      ',&
           'chem-identity       ','end-end filp        ',&
           'chain swap          ','reptation           ',&
-          'superReptation      '/)
+          'superReptation      ','spider              '/)
 
     !!!     universal constants
     ! fully accurate, adaptive precision
@@ -166,6 +167,8 @@ module params
         ! simulation times at which (i,j)th bead pair first collided
         real(dp), allocatable, dimension(:,:) :: coltimes
         real(dp) :: wr
+        type(spider), allocatable, dimension(:) :: spiders ! spiders based on polymer network
+        integer numberOfSpiders
 
         type(binType) bin ! Structure for keeping track of neighbors
 
@@ -301,6 +304,7 @@ contains
         wlc_p%PDESIRE(9) = WLC_P__PDESIRE_CHAIN_EXCHANGE
         wlc_p%PDESIRE(10) = WLC_P__PDESIRE_REPTATION
         wlc_p%PDESIRE(11) = WLC_P__PDESIRE_SUPER_REPTATION
+        wlc_p%PDESIRE(12) = WLC_P__PDESIRE_SPIDER
         wlc_p%MAXWINDOW(1) = WLC_P__MAXWINDOW_CRANK_SHAFT
         wlc_p%MAXWINDOW(2) = WLC_P__MAXWINDOW_SLIDE_MOVE
         wlc_p%MAXWINDOW(3) = WLC_P__MAXWINDOW_PIVOT_MOVE
@@ -312,6 +316,7 @@ contains
         wlc_p%MAXWINDOW(9) = WLC_P__MAXWINDOW_CHAIN_EXCHANGE
         wlc_p%MAXWINDOW(10) = WLC_P__MAXWINDOW_REPTATION
         wlc_p%MAXWINDOW(11) = WLC_P__MAXWINDOW_SUPER_REPTATION
+        wlc_p%MAXWINDOW(12) = 0 ! max window spider
         wlc_p%MINWINDOW(1) = WLC_P__MINWINDOW_CRANK_SHAFT
         wlc_p%MINWINDOW(2) = WLC_P__MINWINDOW_SLIDE_MOVE
         wlc_p%MINWINDOW(3) = WLC_P__MINWINDOW_PIVOT_MOVE
@@ -323,6 +328,7 @@ contains
         wlc_p%MINWINDOW(9) = WLC_P__MINWINDOW_CHAIN_EXCHANGE
         wlc_p%MINWINDOW(10) = WLC_P__MINWINDOW_REPTATION
         wlc_p%MINWINDOW(11) = WLC_P__MINWINDOW_SUPER_REPTATION
+        wlc_p%MINWINDOW(12) = 0 ! min window spider
         wlc_p%MINAMP(1) = WLC_P__MINAMP_CRANK_SHAFT
         wlc_p%MINAMP(2) = WLC_P__MINAMP_SLIDE_MOVE
         wlc_p%MINAMP(3) = WLC_P__MINAMP_PIVOT_MOVE
@@ -334,6 +340,7 @@ contains
         wlc_p%MINAMP(9) = WLC_P__MINAMP_CHAIN_EXCHANGE
         wlc_p%MINAMP(10) = WLC_P__MINAMP_REPTATION
         wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
+        wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
         wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
         wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
         wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -345,6 +352,7 @@ contains
         wlc_p%MAXAMP(9) = WLC_P__MAXAMP_CHAIN_EXCHANGE
         wlc_p%MAXAMP(10) = WLC_P__MAXAMP_REPTATION
         wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
+        wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
         wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
         wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
         wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -356,6 +364,7 @@ contains
         wlc_p%MOVEON(9) = WLC_P__MOVEON_CHAIN_EXCHANGE
         wlc_p%MOVEON(10) = WLC_P__MOVEON_REPTATION
         wlc_p%MOVEON(11) = WLC_P__MOVEON_SUPER_REPTATION
+        wlc_p%MOVEON(12) = WLC_P__MOVEON_SPIDER
         wlc_p%WINTARGET(1) = WLC_P__WINTARGET_CRANK_SHAFT
         wlc_p%WINTARGET(2) = WLC_P__WINTARGET_SLIDE_MOVE
         wlc_p%WINTARGET(3) = WLC_P__WINTARGET_PIVOT_MOVE
@@ -367,6 +376,7 @@ contains
         wlc_p%WINTARGET(9) = WLC_P__WINTARGET_CHAIN_EXCHANGE
         wlc_p%WINTARGET(10) = WLC_P__WINTARGET_REPTATION
         wlc_p%WINTARGET(11) = WLC_P__WINTARGET_SUPER_REPTATION
+        wlc_p%WINTARGET(12) = NAN
         wlc_p%NADAPT(1) = WLC_P__NADAPT_CRANK_SHAFT
         wlc_p%NADAPT(2) = WLC_P__NADAPT_SLIDE_MOVE
         wlc_p%NADAPT(3) = WLC_P__NADAPT_PIVOT_MOVE
@@ -378,6 +388,7 @@ contains
         wlc_p%NADAPT(9) = WLC_P__NADAPT_CHAIN_EXCHANGE
         wlc_p%NADAPT(10) = WLC_P__NADAPT_REPTATION
         wlc_p%NADAPT(11) = WLC_P__NADAPT_SUPER_REPTATION
+        wlc_p%NADAPT(12) = WLC_P__NADAPT_SPIDER
         wlc_p%MOVESPERSTEP(1) = WLC_P__MOVESPERSTEP_CRANK_SHAFT
         wlc_p%MOVESPERSTEP(2) = WLC_P__MOVESPERSTEP_SLIDE_MOVE
         wlc_p%MOVESPERSTEP(3) = WLC_P__MOVESPERSTEP_PIVOT_MOVE
@@ -389,6 +400,7 @@ contains
         wlc_p%MOVESPERSTEP(9) = WLC_P__MOVESPERSTEP_CHAIN_EXCHANGE
         wlc_p%MOVESPERSTEP(10) = WLC_P__MOVESPERSTEP_REPTATION
         wlc_p%MOVESPERSTEP(11) = WLC_P__MOVESPERSTEP_SUPER_REPTATION
+        wlc_p%MOVESPERSTEP(12) = WLC_P__MOVESPERSTEP_SPIDER
 
     end subroutine set_param_defaults
 
@@ -623,6 +635,10 @@ contains
             print*, wlc_d%ExplicitBindingPair(1:10)
             print*, "..."
         endif
+        if (WLC_P__MOVEON_SPIDER .ne. 0) then
+            call load_precalc_spiders('input/spiders',wlc_d%spiders,wlc_d%numberOfSpiders)
+        endif
+
         if (WLC_P__VARIABLE_CHEM_STATE) then
             allocate(wlc_d%METH(WLC_P__NT)) !Underlying methalation profile
         endif

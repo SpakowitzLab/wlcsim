@@ -22,7 +22,6 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
 real(dp) centers(3)
 integer ix,iy,iz
-wlc_d%dx_externalField = 0.0_dp
 do ii = IT1, IT2
     if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE

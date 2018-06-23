@@ -8,12 +8,13 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib)
+subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,spider_id,success)
 use mersenne_twister
 use params, only: dp, pi, wlcsim_data, wlcsim_params
 implicit none
 
-integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib
+integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib,spider_id
+logical, intent(out) :: success
 integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
@@ -22,8 +23,10 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 type(wlcsim_params), intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 
+success = .TRUE.
+spider_id = 0
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
-case(1) 
+case(1)
 call MC_crank(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
@@ -65,7 +68,9 @@ case(11)
 call MC_superReptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
         ,IT1,IT2,IB1,IB2,rand_stat &
        ,forward)
-end select 
+case(12)
+call MC_spider(wlc_d,wlc_d%MCAMP,rand_stat,success,spider_id)
+end select
 RETURN
 END
 function exponential_random_int(window,rand_stat) result(output)

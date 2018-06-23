@@ -24,7 +24,7 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     wlc_d%SUCCESS(MCTYPE) = 0
     wlc_d%ATTEMPTS(MCTYPE) = 0
 
-    if ((MCTYPE.eq.8).or.(MCTYPE.eq.9)) then
+    if ((MCTYPE.eq.8).or.(MCTYPE.eq.9).or.(MCTYPE.eq.10).or.(MCTYPE.eq.11)) then
         return
     endif
 
@@ -47,7 +47,8 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     ! If move has no window it doesn't need to be ajusted
     if ((MCTYPE.eq.4) .or. &
         (MCTYPE.eq.5) .or. &
-        (MCTYPE.eq.6)) then
+        (MCTYPE.eq.6) .or. &
+        (MCTYPE.eq.12)) then
         ! Adjust Amplidtude
         if (wlc_d%PHIT(MCTYPE) > wlc_p%PDESIRE(MCTYPE)) then
            wlc_d%MCAMP(MCTYPE) = wlc_d%MCAMP(MCTYPE)*1.05_dp

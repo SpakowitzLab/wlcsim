@@ -44,8 +44,10 @@ radius = 1.0_dp*WLC_P__CHAIN_D + 2.2_dp*wlc_p%l0
 ! left = bead to left that doesn't move
 ! right = right most bead that does move
 ! left/right-exclude don't check collision with this range of beads
-
-if (MCTYPE == 1 .or. MCTYPE == 3 ) then ! Crank-shaft or pivot
+if (MCTYPE == 4 .or. MCTYPE == 7 .or. MCTYPE == 8 .or. MCTYPE == 9) then
+    collide = .FALSE.
+    return
+elseif (MCTYPE == 1 .or. MCTYPE == 3 ) then ! Crank-shaft or pivot
     if (IT1 == IT2) then
         collide = .FALSE. ! Bead only rotated
         return
