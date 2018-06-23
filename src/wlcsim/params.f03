@@ -745,7 +745,7 @@ contains
 
         call random_setseed(wlc_d%rand_seed, wlc_d%rand_stat)
 #endif
-        call initcond(wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, &
+        call initcond(wlc_d,wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, &
             WLC_P__NP, WLC_P__FRMFILE, pack_as_para(wlc_p), &
             wlc_d%rand_stat, wlc_p)
 

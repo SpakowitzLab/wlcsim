@@ -10,15 +10,16 @@
 !
 !     Updated by Quinn in 2016
 !
-subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA, &
+subroutine initcond(wlc_d,R,U,NT,NB,NP,FRMFILE,PARA, &
                     rand_stat, wlc_p)
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use params, only: dp, pi, wlcsim_params
+use params, only: dp, pi, wlcsim_params, wlcsim_data
 use vector_utils, only: randomUnitVec
 implicit none
 
+Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
 type(wlcsim_params), intent(in) :: wlc_p
 
 integer NB,NP,NT           ! Number of beads
@@ -51,6 +52,13 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 type(random_stat) rand_stat
 real urand(3)
 logical in_confinement
+
+real(dp) center(3)
+real(dp) RloopVec(3)
+real(dp) perpVec(3)
+real(dp) trash(3)
+real(dp) length
+integer otherEnd
 
 LBOX(1)=WLC_P__LBOX_X
 LBOX(2)=WLC_P__LBOX_Y
@@ -345,6 +353,42 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
              IB = IB + 1
         ENDdo
     ENDdo
+elseif (WLC_P__INITCONDTYPE == 'multiRing') then
+    IB = 1
+    center(1) = WLC_P__LBOX_X/2.0_dp
+    center(2) = WLC_P__LBOX_X/2.0_dp
+    center(3) = WLC_P__LBOX_X/2.0_dp
+    do while (IB .le. WLC_P__NT)
+        otherEnd = IB+1
+        do
+            if (wlc_d%ExplicitBindingPair(otherEnd) /= -1) exit
+            if (wlc_d%ExplicitBindingPair(otherEnd) == WLC_P__NT) exit
+            otherEnd=otherEnd+1
+        enddo
+
+        call randomUnitVec(RloopVec,rand_stat)
+        if (otherEnd == IB) then
+            R(:,I) = center
+            U(:,I) = RloopVec
+        endif
+        call random_perp(RloopVec,perpVec,trash,rand_stat)
+        RloopVec = RloopVec
+        perpVec = perpVec
+
+        length = ((otherEnd-IB)*GAM/(2.0_dp*PI))
+
+        do I = IB,otherEnd
+            R(:,I) = center + length*( &
+                     + cos(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*RloopVec &
+                     + sin(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*perpVec &
+                     - RloopVec)
+            U(:,I) = cos(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*perpVec &
+                    -sin(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*RloopVec
+        enddo
+        IB=otherEnd+1
+    enddo
+
+
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 else if (WLC_P__INITCONDTYPE == 'randomWalkWithBoundary') then
