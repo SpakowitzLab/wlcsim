@@ -14,7 +14,7 @@ subroutine MC_pivot(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
 
 use mersenne_twister
 use params, only: dp, pi,wlcsim_params
-use vector_utils, only: randomUnitVec
+use vector_utils, only: randomUnitVec, rotateR, rotateU
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
@@ -69,9 +69,7 @@ endif
         IB1 = 1
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
-        P1(1) = R(1,IT2)
-        P1(2) = R(2,IT2)
-        P1(3) = R(3,IT2)
+        P1 = R(:,IT2)
     else
         IB1 = WLC_P__NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
@@ -80,9 +78,7 @@ endif
         IB2 = WLC_P__NB
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
-        P1(1) = R(1,IT1)
-        P1(2) = R(2,IT1)
-        P1(3) = R(3,IT1)
+        P1 = R(:,IT1)
     endif
 
    call randomUnitVec(TA,rand_stat)
@@ -91,11 +87,7 @@ endif
    call axisAngle(ROT,alpha,TA,P1)
 
    do I = IT1,IT2
-      RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
-      RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
-      RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
-      UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-      UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-      UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+      RP(:,I) = rotateR(ROT,R(:,I))
+      UP(:,I) = rotateU(ROT,U(:,I))
    enddo
 end subroutine

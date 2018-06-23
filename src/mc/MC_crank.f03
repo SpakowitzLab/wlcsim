@@ -15,6 +15,7 @@ subroutine MC_crank(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
 
 use mersenne_twister
 use params, only: dp,wlcsim_params, wlcsim_data
+use vector_utils, only: rotateR, rotateU
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
@@ -196,14 +197,9 @@ endif
      if (I == (WLC_P__NB*IP+1).and.WLC_P__RING) then
           I = WLC_P__NB*(IP-1)+1
      endif
-     RP(1,I) = ROT(1,4) + ROT(1,1)*R(1,I) + ROT(1,2)*R(2,I) + ROT(1,3)*R(3,I)
-     RP(2,I) = ROT(2,4) + ROT(2,1)*R(1,I) + ROT(2,2)*R(2,I) + ROT(2,3)*R(3,I)
-     RP(3,I) = ROT(3,4) + ROT(3,1)*R(1,I) + ROT(3,2)*R(2,I) + ROT(3,3)*R(3,I)
-     UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-     UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-     UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
+     RP(:,I) = rotateR(ROT,R(:,I))
+     UP(:,I) = rotateU(ROT,U(:,I))
      I = I + 1
-
   ENDdo
 
 !  ------begining testing---------

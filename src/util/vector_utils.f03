@@ -3,9 +3,17 @@ implicit none
 
 contains 
 
+function distance(a,b)
+    use params, only: dp
+    implicit none
+    real(dp), dimension(3), intent(in) :: a,b
+    real(dp) distance
+    distance = sqrt( (a(1)-b(1))**2 + (a(2)-b(2))**2 + (a(3)-b(3))**2 )
+end function distance
 
 function cross(a,b)
     use params, only: dp
+    implicit none
     real(dp), dimension(3) :: cross
     real(dp), dimension(3), intent(in) :: a,b
 
@@ -14,6 +22,45 @@ function cross(a,b)
     cross(3) = a(1) * b(2) - a(2) * b(1)
 
 end function cross
+
+function rotateR(ROT,R)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: ROT(3,4) ! Rotation matrix
+    real(dp), intent(in) :: R(3)
+    real(dp) rotateR(3)
+    rotateR(1) = ROT(1,4) + ROT(1,1)*R(1) + ROT(1,2)*R(2) + ROT(1,3)*R(3)
+    rotateR(2) = ROT(2,4) + ROT(2,1)*R(1) + ROT(2,2)*R(2) + ROT(2,3)*R(3)
+    rotateR(3) = ROT(3,4) + ROT(3,1)*R(1) + ROT(3,2)*R(2) + ROT(3,3)*R(3)
+end function rotateR
+
+function rotateU(ROT,U)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: ROT(3,4) ! Rotation matrix
+    real(dp), intent(in) :: U(3)
+    real(dp) rotateU(3)
+    rotateU(1) = ROT(1,1)*U(1) + ROT(1,2)*U(2) + ROT(1,3)*U(3)
+    rotateU(2) = ROT(2,1)*U(1) + ROT(2,2)*U(2) + ROT(2,3)*U(3)
+    rotateU(3) = ROT(3,1)*U(1) + ROT(3,2)*U(2) + ROT(3,3)*U(3)
+end function rotateU
+
+function angle_of_triangle(a,b,c)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: a,b,c
+    real(dp) angle_of_triangle
+    angle_of_triangle=acos((a**2 - b**2 -c**2)/(-2.0_dp*b*c))
+end function angle_of_triangle
+
+function round_into_pm1(x)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: x
+    real(dp) round_into_pm1
+    round_into_pm1 = min(x,1.0_dp)
+    round_into_pm1 = max(x,-1.0_dp)
+end function round_into_pm1
 
 !! ---------------------------------------------------------------
 !
