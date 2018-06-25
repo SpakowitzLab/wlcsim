@@ -30,16 +30,16 @@ case(1)
 call MC_crank(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
-       ,dib)
+       ,dib,success)
 case(2)
-call MC_slide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
+call MC_slide(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
-       ,dib)
+       ,dib,success)
 case(3)
-call MC_pivot(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
+call MC_pivot(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat)
+       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,success)
 case(4)
 call MC_rotate(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
@@ -73,20 +73,6 @@ call MC_spider(wlc_d,wlc_d%MCAMP,rand_stat,success,spider_id)
 end select
 RETURN
 END
-function exponential_random_int(window,rand_stat) result(output)
-    ! this function gives a random exponentially distributed intiger
-    ! the most likely outcome is 0
-    use params, only: dp
-    use mersenne_twister
-    implicit none
-    type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-    real urnd(1) ! single random number
-    real(dp), intent(in) :: window
-    integer output
-    call random_number(urnd,rand_stat)
-    output  = nint(-1.0_dp*log(urnd(1)+0.000001_dp)*window+0.0001_dp)
-    output = abs(output)
-end function exponential_random_int
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
 use params, only: dp, eps
 implicit none

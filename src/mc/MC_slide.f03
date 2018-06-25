@@ -9,15 +9,17 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_slide(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
+subroutine MC_slide(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat &
-                  ,dib)
+                  ,dib,success)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params
+use params, only: dp,wlcsim_params, wlcsim_data
+use windowToos, only: exponential_random_int, enforceBinding
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
+type(wlcsim_data), intent(in) :: wlc_d
 real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
 real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
 real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
@@ -27,6 +29,7 @@ integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move (plus or minus a few)
+logical, intent(out) :: success
 
 integer IP    ! Test polymer
 integer I,J  ! Test indices
@@ -40,7 +43,6 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer TEMP
-integer exponential_random_int
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -91,6 +93,13 @@ endif
 
 IT1 = WLC_P__NB*(IP-1) + IB1
 IT2 = WLC_P__NB*(IP-1) + IB2
+
+if (WLC_P__EXPLICIT_BINDING) then
+    call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,WLC_P__MAXWINDOW_SLIDE_MOVE,success)
+else
+    success = .TRUE.
+endif
+DIB = IB2-IB1
 
 call random_number(urand,rand_stat)
 DR(1) = MCAMP*(urand(1)-0.5)

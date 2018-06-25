@@ -11,11 +11,12 @@
 ! please move other variables in as you see fit
 subroutine MC_crank(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat  &
-                  ,dib)
+                  ,dib,success)
 
 use mersenne_twister
 use params, only: dp,wlcsim_params, wlcsim_data
 use vector_utils, only: rotateR, rotateU
+use windowToos, only: exponential_random_int, enforceBinding
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
@@ -30,6 +31,7 @@ integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move
+logical, intent(inout) :: success
 
 integer IP    ! Test polymer
 integer I,J  ! Test indices
@@ -54,7 +56,6 @@ integer TEMP
 
 ! Variables for change of binding state move
 real(dp) d1,d2  !for testing
-integer exponential_random_int
 integer otherEnd
 integer IT1_temp, IT2_temp, IB1_temp, IB2_temp
 
@@ -133,36 +134,9 @@ else                                 !Polymer is not a ring
       IB2 = TEMP
    endif
     if (WLC_P__EXPLICIT_BINDING) then
-        call random_number(urnd,rand_stat)
-        if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
-            IB1_temp=IB1
-            IT1_temp=IT1
-            IB2_temp=IB2
-            IT2_temp=IT2
-            do I =IT1,IT2
-                otherEnd=wlc_d%ExplicitBindingPair(I)
-                if (WLC_P__NP>1) then
-                    ! make sure the other end is on the same polymer
-                    if (IP .ne. (otherEnd-1)/WLC_P__NB+1) cycle
-                endif
-                if (otherEnd < 1) cycle
-                if (otherEnd < IT1) then  ! Loop to point before IT1
-                    IB1_temp=IB1-IT1+otherEnd
-                    IT1_temp=otherEnd
-                elseif (otherEnd > IT2) then ! Loop to point after IT2
-                    IB2_temp=IB2-IT2+otherEnd
-                    IT2_temp=otherEnd
-                    exit
-                endif
-            enddo
-            if (IB2_temp-IB1_temp<10*WLC_P__MINWINDOW_CRANK_SHAFT) then
-                ! prevent extremely long crank shaft moves
-                IB1=IB1_temp
-                IT1=IT1_temp
-                IB2=IB2_temp
-                IT2=IT2_temp
-            endif
-        endif
+        call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,WLC_P__MAXWINDOW_CRANK_SHAFT,success)
+    else
+        success = .TRUE.
     endif
     DIB = IB2-IB1
   if (IB1 == IB2.AND.IB1 == 1) then
