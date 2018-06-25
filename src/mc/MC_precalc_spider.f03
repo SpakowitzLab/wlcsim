@@ -34,7 +34,7 @@ contains
     integer numberOfSections
     integer ii
     integer numberOfLegs
-    
+
 
     open (UNIT = 5, FILE = filename, STATUS = 'OLD')
     read(5,*) numberOfSpiders
@@ -68,7 +68,7 @@ contains
         !read moved sections
         do ii = 1,numberOfSections
             read(5,*) spiders(spider_id)%moved_sections(:,ii)
-        enddo 
+        enddo
 
     enddo
     CLOSE(5)
@@ -107,9 +107,9 @@ contains
         print*, "moveable sections"
         do ii = 1,numberOfSections
             print*, spiders(spider_id)%moved_sections(:,ii)
-        enddo 
+        enddo
 
     enddo
-    end subroutine 
+    end subroutine
 
-end module 
+end module

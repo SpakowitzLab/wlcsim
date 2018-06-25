@@ -1,7 +1,7 @@
 module vector_utils
 implicit none
 
-contains 
+contains
 
 function distance(a,b)
     use params, only: dp
@@ -71,7 +71,7 @@ subroutine randomUnitVec(U,rand_stat)
 
     use mersenne_twister
     use params, only: dp, pi
-    
+
     implicit none
     type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
     real(dp), intent(out) :: U(3)
@@ -79,7 +79,7 @@ subroutine randomUnitVec(U,rand_stat)
     real(dp) theta
     real(dp) temp
     real urand(2)
-    
+
     call random_number(urand,rand_stat)
     theta = urand(1)*2.0_dp*PI
     z = urand(2)*2.0_dp-1.0_dp
@@ -87,7 +87,7 @@ subroutine randomUnitVec(U,rand_stat)
     U(1) = temp*cos(theta)
     U(2) = temp*sin(theta)
     U(3) = z
-    
+
     ! Alturnative algorithem
     !call random_number(urand,rand_stat)
     !ALPHA = 2.0_dp*PI*urand(1)
@@ -95,7 +95,7 @@ subroutine randomUnitVec(U,rand_stat)
     !U(1) = sin(BETA)*cos(ALPHA)
     !U(2) = sin(BETA)*sin(ALPHA)
     !U(3) = cos(BETA)
-    
+
     ! Alturnative algorithem
     !real urand(3)
     !call random_gauss(urand, rand_stat)
@@ -123,23 +123,23 @@ subroutine random_perp(u,p,t,rand_stat)
     !real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
     type(random_stat) rand_stat  ! status of random number generator
     real urnd(1) ! single random number
-    
+
     real(dp) v(2) ! random 2-vec
     real(dp), intent(in) :: u(3) ! input
     real(dp), intent(out) :: p(3) ! output: random perpendicular to u
     real(dp), intent(out) :: t(3) ! orthogonal to p and u
     real(dp) f
-    
+
     if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt.eps) then
         print*, u
         print*, "Error in random_perp, please give me a unit vector"
         stop 1
     endif
-    
+
     call random_number(urnd,rand_stat)
     v(1) = cos(2.0_dp*PI*urnd(1))
     v(2) = sin(2.0_dp*PI*urnd(1))
-    
+
     if (u(3).gt.0.0) then
         f = 1.0_dp/(1.0_dp + u(3))
         p(1) = (u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
@@ -150,13 +150,13 @@ subroutine random_perp(u,p,t,rand_stat)
         p(1) = (-u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
         p(2) = (-u(3) + f*u(1)**2)*v(2) - u(2)*u(1)*v(1)*f
         p(3) = (u(2)*v(2) + u(1)*v(1))
-    
+
     endif
-    
+
     t(1) = u(2)*p(3)-u(3)*p(2)
     t(2) = u(3)*p(1)-u(1)*p(3)
     t(3) = u(1)*p(2)-u(2)*p(1)
-    
+
     ! random sign
     call random_number(urnd,rand_stat)
     if (urnd(1).lt.0.5_dp) then
@@ -164,7 +164,7 @@ subroutine random_perp(u,p,t,rand_stat)
         t(2) = -1.0_dp*t(2)
         t(3) = -1.0_dp*t(3)
     endif
-    
+
     ! Testing
     !if (abs(p(1)*u(1) + p(2)*u(2) + p(3)*u(3)).gt.0.000001_dp) then
     !    print*, "Error in random_perp, 1"
@@ -187,7 +187,7 @@ subroutine random_perp(u,p,t,rand_stat)
     !    stop 1
     !endif
     ! END Testing
-    
+
     return
 end subroutine
 

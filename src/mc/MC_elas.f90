@@ -23,8 +23,6 @@ integer, intent(in) :: IT1               ! Index of test bead 1
 integer, intent(in) :: IB2               ! Test bead position 2
 integer, intent(in) :: IT2               ! Index of test bead 2
 
-real(dp) :: UNORM,U1U2
-
 real(dp), intent(out) :: DEELAS(4)   ! Change in ECOM
 
 !     Polymer properties
@@ -45,9 +43,6 @@ integer IT1P1
 integer IT2M1
 integer IT2P1
 integer MCTYPE            ! MC move type
-
-real(dp) DR(3),DRPAR,DRPERP(3)
-real(dp) GI(3)
 
 ! Setup parameters
 
@@ -78,8 +73,8 @@ real(dp) GI(3)
              print*, "You will need to update this section before use."
              print*, "Finish implementing IT1 and IT2"
              stop 1
-             DEELAS(1) = E_wlc(RP(:,IT1M1), RP(:,IT1), RP(:,IT1P1), EB ) 
-             DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT1M1), R(:,IT1), R(:,IT1P1), EB) 
+             DEELAS(1) = E_wlc(RP(:,IT1M1), RP(:,IT1), RP(:,IT1P1), EB )
+             DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT1M1), R(:,IT1), R(:,IT1P1), EB)
 
          elseif (wlc_p%SIMTYPE == 2) then
 
@@ -112,8 +107,8 @@ real(dp) GI(3)
              Print*, "This section is out of date"
              print*, "The variable IT2M1 is never used!"
              stop
-             DEELAS(1) = E_wlc(RP(:,IT2M1),RP(:,IT2),RP(:,IT2P1),EB)  
-             DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT2M1),R(:,IT2),R(:,IT2P1),EB) 
+             DEELAS(1) = E_wlc(RP(:,IT2M1),RP(:,IT2),RP(:,IT2P1),EB)
+             DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT2M1),R(:,IT2),R(:,IT2P1),EB)
 
          elseif (wlc_p%SIMTYPE == 2) then
              !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)

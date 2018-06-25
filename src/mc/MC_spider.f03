@@ -70,7 +70,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     toeR=wlc_d%R(:,toe)
     thigh = distance(kneeR,hipR)
     shin = distance(kneeR,toeR)
-    
+
     rold = hipR-toeR
     dold = norm2(rold)
     rnew = hipR+dr-toeR
@@ -116,9 +116,9 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     call axisAngle(ROT,dbeta+theta,direction,hipR)
 
     ! Check knee
-    I = knee 
+    I = knee
     temp = rotateR(ROT,wlc_d%R(:,I)) + dr
-    if ( distance(wlc_d%RP(:,knee),temp) > eps ) then 
+    if ( distance(wlc_d%RP(:,knee),temp) > eps ) then
         print*, "Broken knee"
         stop 1
     endif
@@ -134,7 +134,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     wlc_d%UP(:,toe)=wlc_d%U(:,toe)
 
     ! chack to make sure hip moved the correct amount
-    if ( distance(wlc_d%RP(:,hip),hipR+dr) > eps ) then 
+    if ( distance(wlc_d%RP(:,hip),hipR+dr) > eps ) then
         print*, "Broken hip"
     endif
 

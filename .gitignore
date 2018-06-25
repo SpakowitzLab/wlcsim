@@ -24,4 +24,5 @@ doc/_build
 *.out
 *.aux
 input/params
+input/*loops*txt
 stdout.txt

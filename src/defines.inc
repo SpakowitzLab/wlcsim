@@ -320,7 +320,12 @@
 
 #define WLC_P__BINDING_R 0.0_DP
 ! VARIABLE COMMENT: ! Binding Radius
-! DEFAULTS COMMENT: ! No binding
+! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
+! TYPE: REAL(DP)
+
+#define WLC_P__HP1_BINDING_R 0.0_DP
+! VARIABLE COMMENT: ! Binding Radius
+! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__CHAIN_D 0.0_DP
@@ -388,11 +393,6 @@
 #define WLC_P__AmplitudeExternalField 0.0_DP
 ! VARIABLE COMMENT: ! For an extra potential I wanted to put in
 ! DEFAULTS COMMENT: ! Not included by default
-! TYPE: REAL(DP)
-
-#define WLC_P__AEF 0.0_DP
-! VARIABLE COMMENT: ! Applied Field
-! DEFAULTS COMMENT: ! no applied field
 ! TYPE: REAL(DP)
 
 ! ----------------------------
@@ -499,7 +499,12 @@
 
 #define WLC_P__MOVESPERSTEP_SUPER_REPTATION 57
 ! VARIABLE COMMENT: ! how many times each move is done per step
-! DEFAULTS COMMENT: ! super-reptation
+! DEFAULTS COMMENT: ! super-reptation <default 57>
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_SPIDER 3
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.5_dp
@@ -518,6 +523,11 @@
 #define WLC_P__PTON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
+! TYPE: LOGICAL
+
+# define WLC_P__ENSEMBLE_BIND .FALSE.
+! VARIABLE COMMENT: ! set but not parrallel temered
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_TWIST .FALSE.
@@ -738,6 +748,11 @@
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
 
+#define WLC_P__PDESIRE_SPIDER 0.25_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXWINDOW_CRANK_SHAFT DBLE(MIN(150,WLC_P__NB))
 ! VARIABLE COMMENT: ! Max Size of window for bead selection
 ! DEFAULTS COMMENT: None
@@ -903,6 +918,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_SPIDER 1.0_dp*wlc_p%L0
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
@@ -954,6 +974,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_SUPER_REPTATION NAN
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_SPIDER 5.0_dp*wlc_p%L0
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1064,6 +1089,11 @@
 ! TYPE: INTEGER
 
 #define WLC_P__NADAPT_SUPER_REPTATION 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_SPIDER 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
