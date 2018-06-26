@@ -53,7 +53,7 @@
                 IBP1 = IB + 1
             ENDif
             ! call the potential function
-            EELAS(1:3) = E_SSWLC( R(:,IBP1), R(:,IB), U(:,IBP1), U(:,IB), EB, EPAR, EPERP,ETA, GAM)
+            EELAS(1:4) = E_SSWLC( R(:,IBP1), R(:,IB), U(:,IBP1), U(:,IB), EB, EPAR, EPERP,ETA, GAM)
             IB = IB + 1
          ENDdo
          IB = IB + 1
