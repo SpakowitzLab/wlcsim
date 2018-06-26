@@ -16,7 +16,7 @@ subroutine initcond(wlc_d,R,U,NT,NB,NP,FRMFILE,PARA, &
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params, wlcsim_data
-use vector_utils, only: randomUnitVec
+use vector_utils, only: randomUnitVec, random_perp
 implicit none
 
 Type(wlcsim_data), intent(inout) :: wlc_d     ! system allocated data
@@ -59,6 +59,7 @@ real(dp) perpVec(3)
 real(dp) trash(3)
 real(dp) length
 integer otherEnd
+real(dp) nloops
 
 LBOX(1)=WLC_P__LBOX_X
 LBOX(2)=WLC_P__LBOX_Y
@@ -376,14 +377,16 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         perpVec = perpVec
 
         length = ((otherEnd-IB)*GAM/(2.0_dp*PI))
+        nloops = ceiling(length/(WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.25_dp))
+        length = length/nloops
 
         do I = IB,otherEnd
             R(:,I) = center + length*( &
-                     + cos(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*RloopVec &
-                     + sin(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*perpVec &
+                     + cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*RloopVec &
+                     + sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*perpVec &
                      - RloopVec)
-            U(:,I) = cos(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*perpVec &
-                    -sin(2.0_dp*PI*(I-IB)/real(otherEnd-IB))*RloopVec
+            U(:,I) = cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*perpVec &
+                    -sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*RloopVec
         enddo
         IB=otherEnd+1
     enddo
