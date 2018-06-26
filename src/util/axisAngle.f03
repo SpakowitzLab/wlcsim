@@ -19,7 +19,7 @@ real(dp), intent(out) :: ROT(3,4) ! Rotation matrix
 real(dp) MAG      ! Magnitude of vector
 real(dp) TA(3)    ! Normalized vector
 
-MAG = sqrt(TA(1)**2 + TA(2)**2 + TA(3)**2)
+MAG = sqrt(TAin(1)**2 + TAin(2)**2 + TAin(3)**2)
 TA(1) = TAin(1)/MAG
 TA(2) = TAin(2)/MAG
 TA(3) = TAin(3)/MAG
