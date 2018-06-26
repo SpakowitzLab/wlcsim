@@ -8,6 +8,7 @@
 
       subroutine energy_elas(EELAS,R,U,NT,NB,NP,PARA,RinG,TWIST,Lk,lt,L)
       use params, only: dp, pi
+      use MC_wlc, only: E_SSWLC
       implicit none
       integer, intent(in) :: NB           ! Number of beads in a polymer
       integer, intent(in) :: NT           ! Number of beads total
@@ -37,9 +38,6 @@
       GAM = PARA(4)
       ETA = PARA(5)
 
-      EELAS(1) = 0.0_dp
-      EELAS(2) = 0.0_dp
-      EELAS(3) = 0.0_dp
       IB = 1
       do I = 1,NP
          do J = 1,NB
@@ -54,25 +52,8 @@
             else
                 IBP1 = IB + 1
             ENDif
-            DR(1) = R(1,IBP1)-R(1,IB)
-            DR(2) = R(2,IBP1)-R(2,IB)
-            DR(3) = R(3,IBP1)-R(3,IB)
-            DRPAR = DR(1)*U(1,IB) + DR(2)*U(2,IB) + DR(3)*U(3,IB)
-
-            DRPERP(1) = DR(1)-DRPAR*U(1,IB)
-            DRPERP(2) = DR(2)-DRPAR*U(2,IB)
-            DRPERP(3) = DR(3)-DRPAR*U(3,IB)
-            ! energy does not depend on u\cdot{}u
-            !U1U2 = U(1,IB)*U(1,IBP1) + U(2,IB)*U(2,IBP1) + U(3,IB)*U(3,IBP1)
-
-            GI(1) = (U(1,IBP1)-U(1,IB)-ETA*DRPERP(1))
-            GI(2) = (U(2,IBP1)-U(2,IB)-ETA*DRPERP(2))
-            GI(3) = (U(3,IBP1)-U(3,IB)-ETA*DRPERP(3))
-
-            EELAS(1) = EELAS(1) + 0.5*EB*(GI(1)**2. + GI(2)**2. + GI(3)**2.)
-            EELAS(2) = EELAS(2) + 0.5*EPAR*(DRPAR-GAM)**2.
-            EELAS(3) = EELAS(3) + 0.5*EPERP*(DRPERP(1)**2. + DRPERP(2)**2. + DRPERP(3)**2.)
-
+            ! call the potential function
+            EELAS(1:3) = E_SSWLC( R(:,IBP1), R(:,IB), U(:,IBP1), U(:,IB), EB, EPAR, EPERP,ETA, GAM)
             IB = IB + 1
          ENDdo
          IB = IB + 1
