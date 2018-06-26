@@ -36,7 +36,7 @@ function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
     real(dp), intent(in), dimension(3) :: UM1 ! U of bead i-1
     real(dp), intent(in), dimension(3) :: U ! U of bead i
     real(dp), intent(in) :: EB, EPAR, EPERP, ETA, GAM ! SSWLC constants
-    real(dp), dimension(3) :: E_SSWLC
+    real(dp), dimension(4) :: E_SSWLC
     real(dp) GI(3)
     real(dp) DR(3)
     real(dp) DRPAR
@@ -49,6 +49,7 @@ function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
     E_SSWLC(1)=0.5_dp*EB*dot_product(GI,GI)
     E_SSWLC(2)=0.5_dp*EPAR*(DRPAR-GAM)**2
     E_SSWLC(3)=0.5_dp*EPERP*dot_product(DRPERP,DRPERP)
+    E_SSWLC(4)=0.0_dp
 end function E_SSWLC
 
 function E_GAUSS(R,RM1,EPAR)

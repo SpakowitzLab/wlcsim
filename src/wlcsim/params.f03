@@ -18,7 +18,7 @@ module params
     use precision, only: dp, eps, epsapprox
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
-    use precalc_spider, only: spider
+    use precalc_spider, only: spider, load_precalc_spiders
 
     implicit none
 
@@ -636,7 +636,8 @@ contains
             print*, "..."
         endif
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
-            call load_precalc_spiders('input/spiders',wlc_d%spiders,wlc_d%numberOfSpiders)
+            iostr='input/spiders'
+            call load_precalc_spiders(iostr,wlc_d%spiders,wlc_d%numberOfSpiders)
         endif
 
         if (WLC_P__VARIABLE_CHEM_STATE) then

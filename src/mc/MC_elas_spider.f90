@@ -70,7 +70,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
             DEELAS = DEELAS + E_SSWLC(wlc_d%RP(:,I+1),wlc_d%RP(:,I),&
                                       wlc_d%UP(:,I+1),wlc_d%UP(:,I),&
                                       EB,EPAR,EPERP,ETA,GAM)
-            DEELAS = DEELAS + E_SSWLC( wlc_d%R(:,I+1), wlc_d%R(:,I),&
+            DEELAS = DEELAS - E_SSWLC( wlc_d%R(:,I+1), wlc_d%R(:,I),&
                                        wlc_d%U(:,I+1), wlc_d%U(:,I),&
                                        EB,EPAR,EPERP,ETA,GAM)
         

@@ -73,18 +73,17 @@ integer MCTYPE            ! MC move type
              print*, "You will need to update this section before use."
              print*, "Finish implementing IT1 and IT2"
              stop 1
-             DEELAS(1) = E_wlc(RP(:,IT1M1), RP(:,IT1), RP(:,IT1P1), EB )
+             DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT1M1), RP(:,IT1), RP(:,IT1P1), EB )
              DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT1M1), R(:,IT1), R(:,IT1P1), EB)
 
          elseif (wlc_p%SIMTYPE == 2) then
-
              !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-             DEELAS = DEELAS + E_SSWLC(RP(:,IT1),RP(:,IT1M1),UP(:,IT1),UP(:,IT1M1),EB,EPAR,EPERP,ETA,GAM)
-             DEELAS = DEELAS + E_SSWLC( R(:,IT1), R(:,IT1M1), U(:,IT1), U(:,IT1M1),EB,EPAR,EPERP,ETA,GAM)
+             DEELAS = DEELAS + E_SSWLC(RP(:,IT1),R(:,IT1M1),UP(:,IT1),U(:,IT1M1),EB,EPAR,EPERP,ETA,GAM)
+             DEELAS = DEELAS - E_SSWLC( R(:,IT1),R(:,IT1M1), U(:,IT1),U(:,IT1M1),EB,EPAR,EPERP,ETA,GAM)
 
          elseif (wlc_p%SIMTYPE == 3) then
-             DEELAS(2) = DEELAS(2) + E_GAUSS(RP(:,IT1),RP(:,IT1M1),EPAR)
-             DEELAS(2) = DEELAS(2) - E_GAUSS( R(:,IT1), R(:,IT1M1),EPAR)
+             DEELAS(2) = DEELAS(2) + E_GAUSS(RP(:,IT1),R(:,IT1M1),EPAR)
+             DEELAS(2) = DEELAS(2) - E_GAUSS( R(:,IT1),R(:,IT1M1),EPAR)
          endif
       endif
 
@@ -107,17 +106,17 @@ integer MCTYPE            ! MC move type
              Print*, "This section is out of date"
              print*, "The variable IT2M1 is never used!"
              stop
-             DEELAS(1) = E_wlc(RP(:,IT2M1),RP(:,IT2),RP(:,IT2P1),EB)
+             DEELAS(1) = DEELAS(1) - E_wlc(RP(:,IT2M1),RP(:,IT2),R(:,IT2P1),EB)
              DEELAS(1) = DEELAS(1) - E_wlc(R(:,IT2M1),R(:,IT2),R(:,IT2P1),EB)
 
          elseif (wlc_p%SIMTYPE == 2) then
              !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-             DEELAS = DEELAS + E_SSWLC(RP(:,IT2P1),RP(:,IT2),UP(:,IT2P1),UP(:,IT2),EB,EPAR,EPERP,ETA,GAM)
-             DEELAS = DEELAS - E_SSWLC(R(:,IT2P1),R(:,IT2),U(:,IT2P1),U(:,IT2),EB,EPAR,EPERP,ETA,GAM)
+             DEELAS = DEELAS + E_SSWLC(R(:,IT2P1),RP(:,IT2),U(:,IT2P1),UP(:,IT2),EB,EPAR,EPERP,ETA,GAM)
+             DEELAS = DEELAS - E_SSWLC(R(:,IT2P1), R(:,IT2),U(:,IT2P1), U(:,IT2),EB,EPAR,EPERP,ETA,GAM)
 
          elseif (wlc_p%SIMTYPE == 3) then
-             DEELAS(2) = DEELAS(2) + E_GAUSS(RP(:,IT2P1),RP(:,IT2),EPAR)
-             DEELAS(2) = DEELAS(2) - E_GAUSS( R(:,IT2P1), R(:,IT2),EPAR)
+             DEELAS(2) = DEELAS(2) + E_GAUSS(R(:,IT2P1),RP(:,IT2),EPAR)
+             DEELAS(2) = DEELAS(2) - E_GAUSS(R(:,IT2P1), R(:,IT2),EPAR)
          endif
 
       endif

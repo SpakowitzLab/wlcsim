@@ -14,6 +14,7 @@ subroutine MC_chemMove(wlc_p,R,U,RP,UP,AB,ABP,IB1,IB2,IT1,IT2 &
 
 use mersenne_twister
 use params, only: dp,wlcsim_params
+use windowToos, only: exponential_random_int
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
@@ -37,7 +38,6 @@ real urnd(1) ! single random number
 integer irnd(1)
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
-integer exponential_random_int
 
 integer, parameter, dimension(0:3) :: changeBoth = [3, 2, 1, 0]
 integer, parameter, dimension(0:3) :: changeFirst = [2, 3, 0, 1]
