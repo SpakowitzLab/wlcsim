@@ -38,6 +38,9 @@
       GAM = PARA(4)
       ETA = PARA(5)
 
+      EELAS(1) = 0.0_dp
+      EELAS(2) = 0.0_dp
+      EELAS(3) = 0.0_dp
       IB = 1
       do I = 1,NP
          do J = 1,NB
@@ -52,8 +55,7 @@
             else
                 IBP1 = IB + 1
             ENDif
-            ! call the potential function
-            EELAS(1:4) = E_SSWLC( R(:,IBP1), R(:,IB), U(:,IBP1), U(:,IB), EB, EPAR, EPERP,ETA, GAM)
+            EELAS = EELAS +  E_SSWLC( R(:,IBP1), R(:,IB), U(:,IBP1), U(:,IB), EB, EPAR, EPERP,ETA, GAM)
             IB = IB + 1
          ENDdo
          IB = IB + 1
