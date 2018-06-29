@@ -14,6 +14,7 @@ subroutine MC_rotate(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
 
 use mersenne_twister
 use params, only: dp, pi,wlcsim_params
+use vector_utils, only: axisAngle
 use vector_utils, only: randomUnitVec
 
 !TODO: replace R,U,RP,UP .... with wlc_d
