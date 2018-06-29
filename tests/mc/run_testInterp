@@ -1,2 +1,3 @@
-gfortran test_interp.f95 MC_interp.f95 -o interp.out
+gfortran test_interp.f95 MC_interp.f95 ../../src/mersenne_twister.mod
+../../src/mc/ -o interp.out
 ./interp.out

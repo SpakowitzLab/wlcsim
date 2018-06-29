@@ -15,6 +15,7 @@ subroutine MCsim(wlc_p,wlc_d)
     use mersenne_twister
     use params
     use binning, only: addBead, removeBead
+    use updateRU, only: updateR
 
     implicit none
 

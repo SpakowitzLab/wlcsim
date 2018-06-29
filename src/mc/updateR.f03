@@ -1,4 +1,8 @@
 #include "../defines.inc"
+module updateRU
+! use updateRU, only: updateR, checkR
+contains
+
 subroutine updateR(wlc_d,I)
 use params, only: wlcsim_data, dp
 implicit none
@@ -30,3 +34,47 @@ if (WLC_P__NEIGHBOR_BINS) then
 endif
 
 end subroutine updateR
+
+
+function checkR(wlc_d,I,IT1,IT2)
+use params, only: wlcsim_data, dp,eps
+implicit none
+Type(wlcsim_data), intent(in) :: wlc_d     ! system allocated data
+integer, intent(in) :: IT1,IT2
+integer, intent(in) :: I
+logical checkR
+
+integer otherEnd
+otherEnd= wlc_d%ExplicitBindingPair(I)
+if (otherEnd == -1) then
+    checkR = .False.
+    return
+endif
+
+if (IT1 <= otherend .and. otherEnd<=IT2) then
+
+    if (norm2(wlc_d%RP(:,I) - wlc_d%RP(:,otherEnd)) > eps) then
+        print*, "moved apart"
+        print*, "I",I,"otherEnd",otherEnd
+        print*, " R(I)",wlc_d%R(:,I)
+        print*, " R(o)",wlc_d%R(:,otherEnd)
+        print*, "RP(I)",wlc_d%RP(:,I)
+        print*, "RP(o)",wlc_d%RP(:,otherEnd)
+        print*, "error", norm2(wlc_d%RP(:,I) - wlc_d%RP(:,otherEnd))
+        checkR = .True.
+    endif
+else
+    if (norm2(wlc_d%RP(:,I) - wlc_d%R(:,otherEnd)) > eps) then
+        print*, "moved apart"
+        print*, "I",I,"otherEnd",otherEnd
+        print*, " R(I)",wlc_d%R(:,I)
+        print*, " R(o)",wlc_d%R(:,otherEnd)
+        print*, "RP(I)",wlc_d%RP(:,I)
+        print*, "R(o)",wlc_d%R(:,otherEnd)
+        print*, "error", norm2(wlc_d%RP(:,I) - wlc_d%RP(:,otherEnd))
+        checkR = .True.
+    endif
+endif
+end function checkR
+
+end module
