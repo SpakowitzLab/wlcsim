@@ -14,7 +14,8 @@ subroutine MC_spider(wlc_d,MCAMP,rand_stat,success,spider_id)
 use mersenne_twister
 use params, only: wlcsim_params, wlcsim_data, pi
 use precision, only: dp, eps
-use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, round_into_pm1, rotateR, rotateU
+use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
+                        round_into_pm1, rotateR, rotateU, axisAngle, rotateAintoB, random_perp
 
 implicit none
 type(wlcsim_data), intent(inout) :: wlc_d
@@ -33,9 +34,10 @@ real(dp) thigh, shin, dold, dnew
 real(dp) theta ! extra abount to rotate each leg
 real(dp) dalpha ! amount to rotate shin
 real(dp) dbeta ! amount to rotate thigh
-real(dp), dimension(3) :: hipR,kneeR,toeR,direction, temp,rold,rnew
+real(dp), dimension(3) :: hipR,kneeR,toeR,direction, temp,rold,rnew,rinter
 real(dp) ROT(3,4) ! Rotation matrix
 logical swing_past
+
 ! choose spider
 call random_index(wlc_d%numberOfSpiders,irnd,rand_stat)
 spider_id=irnd(1)
@@ -53,7 +55,12 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     hipR=wlc_d%R(:,hip)
     kneeR=wlc_d%R(:,knee)
     toeR=wlc_d%R(:,toe)
+    ! check triangle inequlity
     if (distance(hipR,kneeR)+distance(kneeR,toeR) < distance(hipR+dr,toeR)) then
+        success = .FALSE.
+        return
+    endif
+    if (abs(distance(hipR,kneeR)-distance(kneeR,toeR)) > distance(hipR+dr,toeR)) then
         success = .FALSE.
         return
     endif
@@ -76,35 +83,52 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     rnew = hipR+dr-toeR
     dnew = norm2(rnew)
 
-    ! Calculate how much to rotate each leg to get new |distance|
-    swing_past = dot_product(rold,rnew) < 0.0_dp  ! toe passes hip
-    if (swing_past) then
-        dalpha = angle_of_triangle(thigh,shin,dold) - (PI - angle_of_triangle(thigh,shin,dnew))
-        dbeta = (PI - angle_of_triangle(thigh,shin,dnew)) - angle_of_triangle(thigh,shin,dold)
+    if (dold<=0.001_dp*eps) then
+        ! if hip and toe are in the same place, extend in random direction
+        call random_perp((kneeR-toeR)/shin,direction,rinter,rand_stat)
+        if (dot_product(rinter,rnew)<0.0_dp) then
+            rinter=-1.0_dp*rinter
+        endif
+        direction = cross((kneeR-toeR),rinter)
+        direction = direction/norm2(direction)
+        rinter = rinter*dnew
+        dalpha = asin(dnew/(2.0_dp*shin))
+        dbeta = -dalpha
+        swing_past = .False.
     else
-        dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
-        dbeta = angle_of_triangle(thigh,shin,dnew) - angle_of_triangle(thigh,shin,dold)
-    endif
-
-    ! direction needs to be consistant with other angles
-    direction = cross(kneeR-toeR,hipR-kneeR)
-    direction = direction/norm2(direction)
-
-    ! claculate the angle the vector between toe and hip must turn
-    if (swing_past) then
-        theta = asin(round_into_pm1( dot_product(cross(-rold,rnew),direction)/(dold*dnew) ))
-    else
-        theta = asin(round_into_pm1( dot_product(cross( rold,rnew),direction)/(dold*dnew) ))
+        ! Calculate how much to rotate each leg to get new |distance|
+        swing_past = dot_product(rold,rnew) < 0.0_dp  ! toe passes hip
+        if (swing_past) then
+            dalpha = angle_of_triangle(thigh,shin,dold) - (PI - angle_of_triangle(thigh,shin,dnew))
+            dbeta = (PI - angle_of_triangle(shin,thigh,dnew)) - angle_of_triangle(shin,thigh,dold)
+        else
+            dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
+            dbeta = angle_of_triangle(shin,thigh,dnew) - angle_of_triangle(shin,thigh,dold)
+        endif
+        ! direction needs to be consistant with other angles
+        direction = cross(kneeR-toeR,hipR-kneeR)
+        if (norm2(direction)<0.01_dp*eps) then
+            ! if fully exteded/contracted then contract/extend in random direction
+            call random_perp(rnew/norm2(rnew),direction,rinter,rand_stat)
+        else
+            direction = direction/norm2(direction)
+        endif
+        if (swing_past) then
+            rinter = -dnew*rold/dold
+        else
+            rinter = dnew*rold/dold
+        endif
     endif
 
     ! angle to rotate shin
-    call axisAngle(ROT,dalpha+theta,direction,toeR)
+    call axisAngle(ROT,dalpha,direction,toeR)
 
-    ! rotate shin
+    ! rotate shin to intermediate position
     do I = min(knee,toe),max(knee,toe)
         wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I))
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
     enddo
+    temp = wlc_d%RP(:,toe)
 
     !Check toe stayed in the sampe place
     if ( distance(wlc_d%RP(:,toe),wlc_d%R(:,toe)) > eps ) then
@@ -113,26 +137,41 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     endif
 
     ! angle to rotate thigh
-    call axisAngle(ROT,dbeta+theta,direction,hipR)
+    call axisAngle(ROT,dbeta,direction,hipR)
+
+    ! Rotation matrix for hip to intermediate position
+    I = knee
+    temp = rotateR(ROT,wlc_d%R(:,I)) + rinter - rold
 
     ! Check knee
-    I = knee
-    temp = rotateR(ROT,wlc_d%R(:,I)) + dr
     if ( distance(wlc_d%RP(:,knee),temp) > eps ) then
         print*, "Broken knee"
         stop 1
     endif
 
     ! rotate thigh
+
     do I = min(knee,hip),max(knee,hip)
-        wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I)) + dr
+        wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I)) + rinter - rold
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
+    enddo
+
+    ! rotate from intermediate position to final position
+    call rotateAIntoB(rinter,rnew,toeR,ROT)
+    do I = min(toe,hip),max(toe,hip)
+        wlc_d%RP(:,I) = rotateR(ROT,wlc_d%RP(:,I))
+        wlc_d%UP(:,I) = rotateU(ROT,wlc_d%UP(:,I))
     enddo
 
     ! don't rotatie hip and toe
     wlc_d%UP(:,hip)=wlc_d%U(:,hip)
     wlc_d%UP(:,toe)=wlc_d%U(:,toe)
 
+    !Check toe stayed in the sampe place
+    if ( distance(wlc_d%RP(:,toe),wlc_d%R(:,toe)) > eps ) then
+        print*, "Broken toe in second half of spider move"
+        stop 1
+    endif
     ! chack to make sure hip moved the correct amount
     if ( distance(wlc_d%RP(:,hip),hipR+dr) > eps ) then
         print*, "Broken hip"
