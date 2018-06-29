@@ -11,6 +11,15 @@ function distance(a,b)
     distance = sqrt( (a(1)-b(1))**2 + (a(2)-b(2))**2 + (a(3)-b(3))**2 )
 end function distance
 
+function angle(a,b,c)
+    use params, only: dp
+    implicit none
+    real(dp) angle
+    real(dp), dimension(3), intent(in) :: a,b,c
+    angle = acos(dot_product(a-b,c-b)/(norm2(a-b)*norm2(c-b)))
+
+end function angle
+
 function cross(a,b)
     use params, only: dp
     implicit none
@@ -166,7 +175,7 @@ subroutine random_perp(u,p,t,rand_stat)
     endif
 
     ! Testing
-    !if (abs(p(1)*u(1) + p(2)*u(2) + p(3)*u(3)).gt.0.000001_dp) then
+    !if (abs(dot_product(p,u)) > 0.000001_dp) then
     !    print*, "Error in random_perp, 1"
     !    stop 1
     !endif
@@ -178,11 +187,11 @@ subroutine random_perp(u,p,t,rand_stat)
     !    print*, "Error in random_perp, 3"
     !    stop 1
     !endif
-    !if (abs(t(1)*p(1) + t(2)*p(2) + t(3)*p(3)).gt.0.0000001_dp) then
+    !if (abs(dot_product(t,p)) > 0.0000001_dp) then
     !    print*, "Error in random_perp, 4"
     !    stop 1
     !endif
-    !if (abs(t(1)*u(1) + t(2)*u(2) + t(3)*u(3)).gt.0.0000001_dp) then
+    !if (abs(dot_product(t,u)) > 0.0000001_dp) then
     !    print*, "Error in random_perp, 5"
     !    stop 1
     !endif
@@ -191,4 +200,64 @@ subroutine random_perp(u,p,t,rand_stat)
     return
 end subroutine
 
+!--------------------------------------------------------------*
+!
+!    Calculates axis angle rotation matrix
+!    The forth column is the offset
+!
+!    Quinn split out this file on 6/20/18
+!
+!---------------------------------------------------------------
+
+subroutine axisAngle(ROT,alpha,TAin,P1)
+
+use params, only: dp
+
+implicit none
+real(dp), intent(in) :: TAin(3)    ! Axis of rotation  (Need not be unit vector!!)
+real(dp), intent(in) :: P1(3)    ! Point on rotation line
+real(dp), intent(in) :: ALPHA    ! Angle of move
+real(dp), intent(out) :: ROT(3,4) ! Rotation matrix
+real(dp) MAG      ! Magnitude of vector
+real(dp) TA(3)    ! Normalized vector
+
+!print*, "PA", P1
+MAG = sqrt(TAin(1)**2 + TAin(2)**2 + TAin(3)**2)
+TA(1) = TAin(1)/MAG
+TA(2) = TAin(2)/MAG
+TA(3) = TAin(3)/MAG
+
+ROT(1,1) = TA(1)**2 + (TA(2)**2 + TA(3)**2)*cos(ALPHA)
+ROT(1,2) = TA(1)*TA(2)*(1.0_dp-cos(ALPHA))-TA(3)*sin(ALPHA)
+ROT(1,3) = TA(1)*TA(3)*(1.0_dp-cos(ALPHA)) + TA(2)*sin(ALPHA)
+ROT(1,4) = (P1(1)*(1.0_dp-TA(1)**2) &
+     -TA(1)*(P1(2)*TA(2) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(2)*TA(3)-P1(3)*TA(2))*sin(ALPHA)
+
+ROT(2,1) = TA(1)*TA(2)*(1.0_dp-cos(ALPHA)) + TA(3)*sin(ALPHA)
+ROT(2,2) = TA(2)**2 + (TA(1)**2 + TA(3)**2)*cos(ALPHA)
+ROT(2,3) = TA(2)*TA(3)*(1.0_dp-cos(ALPHA))-TA(1)*sin(ALPHA)
+ROT(2,4) = (P1(2)*(1.0_dp-TA(2)**2) &
+     -TA(2)*(P1(1)*TA(1) + P1(3)*TA(3)))*(1.-cos(ALPHA)) + (P1(3)*TA(1)-P1(1)*TA(3))*sin(ALPHA)
+
+ROT(3,1) = TA(1)*TA(3)*(1.-cos(ALPHA))-TA(2)*sin(ALPHA)
+ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
+ROT(3,3) = TA(3)**2 + (TA(1)**2 + TA(2)**2)*cos(ALPHA)
+ROT(3,4) = (P1(3)*(1.0_dp-TA(3)**2) &
+     -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.0_dp-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+end subroutine
+
+subroutine rotateAIntoB(A,B,P1,ROT)
+use params, only: dp
+implicit none
+real(dp), intent(in) :: A(3)
+real(dp), intent(in) :: B(3)
+real(dp), intent(in) :: P1(3)    ! Point on rotation line
+real(dp), intent(out) :: ROT(3,4) ! Rotation matrix
+real(dp) ALPHA    ! Angle of move
+real(dp) TA(3)    ! Normalized vector
+
+TA = cross(A,B)
+alpha = asin(norm2(TA)/(norm2(A)*norm2(B)))
+call axisAngle(ROT,alpha,TA,P1)
+end subroutine rotateAIntoB
 end module
