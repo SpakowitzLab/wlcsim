@@ -233,6 +233,10 @@ def makeSections(bindpairs,end1,leglength=5,moveable_loop=25):
 
     for key in sections:
         section=sections[key]
+        if section['L_toe'] == None:
+            continue
+        if section['R_toe'] == None:
+            continue
         if section['L_toe'] >= section['L_knee']:
             raise ValueError('left knee and toe out of order')
         if section['L_knee'] >= section['L_slide_bead']:

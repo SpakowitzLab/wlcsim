@@ -150,7 +150,6 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     endif
 
     ! rotate thigh
-
     do I = min(knee,hip),max(knee,hip)
         wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I)) + rinter - rold
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
@@ -183,6 +182,7 @@ enddo
 do section_n = 1,wlc_d%spiders(spider_id)%nLegs
     do I = wlc_d%spiders(spider_id)%sections(1,section_n), wlc_d%spiders(spider_id)%sections(2,section_n)
         wlc_d%RP(:,I) = wlc_d%R(:,I) + dr
+        wlc_d%UP(:,I) = wlc_d%U(:,I)
     enddo
 enddo
 end subroutine
