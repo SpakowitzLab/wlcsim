@@ -90,7 +90,7 @@ subroutine InitializeEnergiesForVerifier(wlc_p, wlc_d)
 end subroutine
 
 subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
-    use params, only : wlcsim_params, wlcsim_data, eps, ERROR_UNIT
+    use params, only : wlcsim_params, wlcsim_data, epsapprox, ERROR_UNIT
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
     type(wlcsim_data), intent(inout) :: wlc_d
@@ -106,13 +106,13 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
    call CalculateEnergiesFromScratch(wlc_p, wlc_d)
 
     ! --- Binding Energy ---
-    if(abs(wlc_d%EBind-wlc_d%DEBind) > eps) then
+    if(abs(wlc_d%EBind-wlc_d%DEBind) > epsapprox) then
         write(ERROR_UNIT,*) "Warning. Integrated binding enrgy:", &
                 wlc_d%EBind," while absolute binding energy:", &
                 wlc_d%DEBind," save point mc_ind = ",wlc_d%mc_ind
     endif
     wlc_d%EBind = wlc_d%DEBind
-    if(abs(wlc_d%EMu-wlc_d%DEMu) > eps) then
+    if(abs(wlc_d%EMu-wlc_d%DEMu) > epsapprox) then
         write(ERROR_UNIT,*) "Warning. Integrated chemical potential enrgy:", &
                 wlc_d%EMu," while absolute chemical potential energy:", &
                 wlc_d%DEMu," save point mc_ind = ",wlc_d%mc_ind
@@ -144,7 +144,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
 
     ! ---- External Field Energy ---
     if(WLC_P__APPLY_EXTERNAL_FIELD) then
-        if(abs(wlc_d%eExternalField-wlc_d%DEExternalField) > eps) then
+        if(abs(wlc_d%eExternalField-wlc_d%DEExternalField) > epsapprox) then
             write(ERROR_UNIT,*) "Warning. Integrated external field enrgy:", &
                     wlc_d%EExternalField," while absolute external field energy:", &
                     wlc_d%DEExternalField," save point mc_ind = ",wlc_d%mc_ind
@@ -157,21 +157,21 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
         ! test to see if sum of changes are same as calculating from scratch
-        if(abs(wlc_d%EChi-wlc_d%DEChi) > eps) then
+        if(abs(wlc_d%EChi-wlc_d%DEChi) > epsapprox) then
              write(ERROR_UNIT,*) "Warning. Intigrated chi energy:", &
                      wlc_d%EChi,"  while absolute chi energy:", &
                      wlc_d%DEChi," save point mc_ind = ",wlc_d%mc_ind
         endif
         wlc_d%EChi = wlc_d%DEChi
         wlc_d%x_chi = wlc_d%dx_chi
-        if(abs(wlc_d%ECouple-wlc_d%DECouple) > eps) then
+        if(abs(wlc_d%ECouple-wlc_d%DECouple) > epsapprox) then
              write(ERROR_UNIT,*) "Warning. Intigrated couple energy:", &
                      wlc_d%ECouple,"  while absolute couple energy:", &
                      wlc_d%DECouple," save point mc_ind = ",wlc_d%mc_ind
         endif
         wlc_d%ECouple = wlc_d%DECouple
         wlc_d%x_Couple = wlc_d%dx_couple
-        if(abs(wlc_d%EKap-wlc_d%DEKap) > eps) then
+        if(abs(wlc_d%EKap-wlc_d%DEKap) > epsapprox) then
              write(ERROR_UNIT,*) "Warning. Intigrated Kap energy:", &
                      wlc_d%EKap,"  while absolute Kap energy:", &
                      wlc_d%DEKap," save point mc_ind = ",wlc_d%mc_ind
@@ -179,7 +179,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%EKap = wlc_d%DEKap
         wlc_d%x_Kap = wlc_d%dx_Kap
 
-        if(abs(wlc_d%EField-wlc_d%DEField) > eps) then
+        if(abs(wlc_d%EField-wlc_d%DEField) > epsapprox) then
             write(ERROR_UNIT,*) "Warning. Integrated field enrgy:", &
                     wlc_d%EField," while absolute field energy:", &
                     wlc_d%DEField," save point mc_ind = ",wlc_d%mc_ind
@@ -188,7 +188,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p, wlc_d)
         wlc_d%x_Field = wlc_d%dx_Field
 
         if(wlc_p%CHI_L2_ON) then
-            if(abs(wlc_d%EMaiersaupe-wlc_d%deMaierSaupe) > eps) then
+            if(abs(wlc_d%EMaiersaupe-wlc_d%deMaierSaupe) > epsapprox) then
                 write(ERROR_UNIT,*) "Warning. Integerated Maier Saupe energy:", &
                     wlc_d%EMaiersaupe," while absolute Maier Saupe energy:", &
                     wlc_d%deMaierSaupe," save points mc_ind = ",wlc_d%mc_ind
