@@ -360,10 +360,16 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
     center(2) = WLC_P__LBOX_X/2.0_dp
     center(3) = WLC_P__LBOX_X/2.0_dp
     do while (IB .le. WLC_P__NT)
+        if (IB == WLC_P__NT) then
+            R(:,IB) = center
+            call randomUnitVec(RloopVec,rand_stat)
+            U(:,IB) = RloopVec
+            exit
+        endif
         otherEnd = IB+1
         do
+            if (otherEnd == WLC_P__NT) exit
             if (wlc_d%ExplicitBindingPair(otherEnd) /= -1) exit
-            if (wlc_d%ExplicitBindingPair(otherEnd) == WLC_P__NT) exit
             otherEnd=otherEnd+1
         enddo
 
@@ -373,8 +379,6 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
             U(:,I) = RloopVec
         endif
         call random_perp(RloopVec,perpVec,trash,rand_stat)
-        RloopVec = RloopVec
-        perpVec = perpVec
 
         length = ((otherEnd-IB)*GAM/(2.0_dp*PI))
         nloops = ceiling(length/(WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.25_dp))

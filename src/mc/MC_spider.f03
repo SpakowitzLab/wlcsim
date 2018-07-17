@@ -61,6 +61,10 @@ else
         knee = IT2
         do I = 1,WLC_P__SPIDER_LEG_LENGTH
             knee = knee + 1
+            if (knee > WLC_P__NT) then
+                success = .False.
+                return
+            endif
             otherEnd = wlc_d%explicitbindingpair(knee)
             if (otherEnd < 0) continue
 
@@ -73,6 +77,10 @@ else
         toe=knee
         do I = 1,WLC_P__SPIDER_LEG_LENGTH
             toe = toe + 1
+            if (toe > WLC_P__NT) then
+                success = .False.
+                return
+            endif
             otherEnd = wlc_d%explicitbindingpair(toe)
             if (otherEnd < 0) continue
 
@@ -88,6 +96,10 @@ else
         knee = IT1
         do I = 1,WLC_P__SPIDER_LEG_LENGTH
             knee = knee - 1
+            if (knee > WLC_P__NT) then
+                success = .False.
+                return
+            endif
             otherEnd = wlc_d%explicitbindingpair(knee)
             if (otherEnd < 0) continue
 
@@ -100,6 +112,10 @@ else
         toe=knee
         do I = 1,WLC_P__SPIDER_LEG_LENGTH
             toe = toe - 1
+            if (toe > WLC_P__NT) then
+                success = .False.
+                return
+            endif
             otherEnd = wlc_d%explicitbindingpair(knee)
             if (otherEnd < 0) continue
 

@@ -125,6 +125,7 @@ else
         IB2 = TEMP
     endif
     IT2 = WLC_P__NB*(IP-1) + IB2
+    IT1 = WLC_P__NB*(IP-1) + IB1
     if (WLC_P__EXPLICIT_BINDING .and. enforceBind) then
         call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,maxWindow,success)
     else
