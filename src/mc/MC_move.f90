@@ -53,8 +53,8 @@ call MC_fullChainSlide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
        ,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%Window(MCTYPE),rand_stat)
+call MC_chemMove(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IB1,IB2,IT1,IT2 &
+       ,wlc_d%Window(MCTYPE),rand_stat,success)
 case(8)
 case(9)
 call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2,IT1,IT2 &

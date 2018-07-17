@@ -15,7 +15,7 @@ subroutine initcond(wlc_d,R,U,NT,NB,NP,FRMFILE,PARA, &
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use params, only: dp, pi, wlcsim_params, wlcsim_data
+use params, only: dp, pi, wlcsim_params, wlcsim_data, nan
 use vector_utils, only: randomUnitVec, random_perp
 implicit none
 

@@ -8,7 +8,7 @@
 !-----------------------------------------------------------
 
 subroutine MC_external_field(wlc_p,wlc_d,IT1,IT2)
-use params, only: dp,wlcsim_params,wlcsim_data
+use params, only: dp,wlcsim_params,wlcsim_data, nan
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 TYPE(wlcsim_data), intent(inout) :: wlc_d
@@ -69,7 +69,7 @@ wlc_d%DEExternalField = wlc_p%AEF * wlc_d%dx_ExternalField
 
 END
 subroutine MC_external_field_from_scratch(wlc_p,wlc_d)
-use params, only: dp,wlcsim_params,wlcsim_data
+use params, only: dp,wlcsim_params,wlcsim_data, nan
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 TYPE(wlcsim_data), intent(inout) :: wlc_d

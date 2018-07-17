@@ -258,32 +258,32 @@
 ! DEFAULTS COMMENT: ! equivalent to collisionDetectionType = 1
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX 20
+#define WLC_P__NBIN_X 20
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Y WLC_P__NBINX
+#define WLC_P__NBIN_Y WLC_P__NBIN_X
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Z WLC_P__NBINX
+#define WLC_P__NBIN_Z WLC_P__NBIN_X
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX 20.0_dp
+#define WLC_P__LBOX_X 20.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/conËfinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Y WLC_P__LBOX
+#define WLC_P__LBOX_Y WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Z WLC_P__LBOX
+#define WLC_P__LBOX_Z WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -355,7 +355,7 @@
 ! DEFAULTS COMMENT: ! Not in simple Hamiltonian
 ! TYPE: REAL(DP)
 
-#define WLC_p__MU 0.0_DP
+#define WLC_P__MU 0.0_DP
 ! VARIABLE COMMENT: ! HP1 chemical potential
 ! DEFAULTS COMMENT: ! Not in simple Hamiltonian
 ! TYPE: REAL(DP)
@@ -1116,4 +1116,24 @@
 #define WLC_P__PROB_BIND_RESPECTING_MOVE 0.5_DP
 ! VARIABLE COMMENT: ! probability that we make sure move doesnt break loop
 ! DEFAULTS COMMENT: ! about half, only used if explicit binding turned on
+! TYPE: REAL(DP)
+
+#define WLC_P__SPIDER_LEG_LENGTH 5
+! VARIABLE COMMENT: ! number of beads from hip-knee (and knee to toe)
+! DEFAULTS COMMENT: ! several but not too many
+! TYPE: Integer
+
+#define WLC_P__MAX_SPIDER_LEG_LENGTH 25
+! VARIABLE COMMENT: ! max number of beads from knee-toe
+! DEFAULTS COMMENT:
+! TYPE: Integer
+
+#define WLC_P__SPIDER_WINDOW 30.0_DP
+! VARIABLE COMMENT: ! mean of segment size distibution
+! DEFAULTS COMMENT:
+! TYPE: REAL(DP)
+
+#define WLC_P__PROBABILITY_PRECALC_SPIDER 0.0_DP
+! VARIABLE COMMENT: ! probability that we use precalculated spider
+! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)

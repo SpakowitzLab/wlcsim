@@ -290,9 +290,9 @@ contains
         wlc_p%chi_l2_on = .TRUE. ! on by default
         wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
-        wlc_p%NBINX(1) = WLC_P__NBINX_X
-        wlc_p%NBINX(2) = WLC_P__NBINX_Y
-        wlc_p%NBINX(3) = WLC_P__NBINX_Z
+        wlc_p%NBINX(1) = WLC_P__NBIN_X
+        wlc_p%NBINX(2) = WLC_P__NBIN_Y
+        wlc_p%NBINX(3) = WLC_P__NBIN_Z
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
         wlc_p%PDESIRE(2) = WLC_P__PDESIRE_SLIDE_MOVE
         wlc_p%PDESIRE(3) = WLC_P__PDESIRE_PIVOT_MOVE

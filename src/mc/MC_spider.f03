@@ -16,6 +16,7 @@ use params, only: wlcsim_params, wlcsim_data, pi
 use precision, only: dp, eps
 use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
                         round_into_pm1, rotateR, rotateU, axisAngle, rotateAintoB, random_perp
+use windowTools, only: drawWindow
 
 implicit none
 type(wlcsim_data), intent(inout) :: wlc_d
@@ -37,10 +38,113 @@ real(dp) dbeta ! amount to rotate thigh
 real(dp), dimension(3) :: hipR,kneeR,toeR,direction, temp,rold,rnew,rinter
 real(dp) ROT(3,4) ! Rotation matrix
 logical swing_past
+integer dib, IT1,IT2,IB1,IB2,IP,otherEnd
 
 ! choose spider
-call random_index(wlc_d%numberOfSpiders,irnd,rand_stat)
-spider_id=irnd(1)
+call random_number(urnd,rand_stat)
+if (WLC_P__PROBABILITY_PRECALC_SPIDER < urnd(1)) then
+    call random_index(wlc_d%numberOfSpiders,irnd,rand_stat)
+    spider_id=irnd(1)
+else
+    call drawWindow(wlc_d,WLC_P__SPIDER_WINDOW,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
+                    IT1,IT2,IB1,IB2,IP,DIB,success)
+    if (success .eqv. .false.) return
+
+
+    spider_id=wlc_d%numberOfSpiders+1
+    wlc_d%spiders(spider_id)%nSections=1
+    wlc_d%spiders(spider_id)%nLegs=2
+    wlc_d%spiders(spider_id)%sections(:,1) = [IT1,IT2]
+
+    if (WLC_P__EXPLICIT_BINDING) then
+        !  Right Leg
+        knee = IT2
+        do I = 1,WLC_P__SPIDER_LEG_LENGTH
+            knee = knee + 1
+            otherEnd = wlc_d%explicitbindingpair(knee)
+            if (otherEnd < 0) continue
+
+            if (otherEnd < knee) then
+                success = .False.
+                return
+            endif
+            knee = otherEnd
+        enddo
+        toe=knee
+        do I = 1,WLC_P__SPIDER_LEG_LENGTH
+            toe = toe + 1
+            otherEnd = wlc_d%explicitbindingpair(toe)
+            if (otherEnd < 0) continue
+
+            if (otherEnd < toe) then
+                success = .False.
+                return
+            endif
+            toe = otherEnd
+        enddo
+        wlc_d%spiders(spider_id)%legs(:,1) = [IT2,knee,toe]
+
+        !  Left Leg
+        knee = IT1
+        do I = 1,WLC_P__SPIDER_LEG_LENGTH
+            knee = knee - 1
+            otherEnd = wlc_d%explicitbindingpair(knee)
+            if (otherEnd < 0) continue
+
+            if (otherEnd > knee) then
+                success = .False.
+                return
+            endif
+            knee = otherEnd
+        enddo
+        toe=knee
+        do I = 1,WLC_P__SPIDER_LEG_LENGTH
+            toe = toe - 1
+            otherEnd = wlc_d%explicitbindingpair(knee)
+            if (otherEnd < 0) continue
+
+            if (otherEnd > toe) then
+                success = .False.
+                return
+            endif
+            toe = otherEnd
+        enddo
+        wlc_d%spiders(spider_id)%legs(:,2) = [IT1,knee,toe]
+    else
+        knee = IT2+WLC_P__SPIDER_LEG_LENGTH
+        toe = knee + WLC_P__SPIDER_LEG_LENGTH
+        wlc_d%spiders(spider_id)%legs(:,1) = [IT2,knee,toe]
+
+        knee = IT1-WLC_P__SPIDER_LEG_LENGTH
+        toe = knee - WLC_P__SPIDER_LEG_LENGTH
+        wlc_d%spiders(spider_id)%legs(:,2) = [IT1,knee,toe]
+    endif
+
+    toe = wlc_d%spiders(spider_id)%legs(3,1)
+    if ((toe-1)/WLC_P__NB .ne. (IT2-1)/WLC_P__NB) then ! is on a different polyme
+        success = .False.
+        return
+    endif
+    if (toe-IT2 > WLC_P__MAX_SPIDER_LEG_LENGTH) then
+        success = .False.
+        return
+    endif
+    wlc_d%spiders(spider_id)%moved_sections(2,1) = toe
+
+    toe = wlc_d%spiders(spider_id)%legs(3,2)
+    if ((toe-1)/WLC_P__NB .ne. (IT1-1)/WLC_P__NB) then
+        success = .False.
+        return
+    endif
+    if (IT1-toe > WLC_P__MAX_SPIDER_LEG_LENGTH) then
+        success = .False.
+        return
+    endif
+    wlc_d%spiders(spider_id)%moved_sections(1,1) = toe
+
+
+endif
+
 
 ! choose random offset.  Here we use p~r^(-2) between 0 and MCAMP
 call randomUnitVec(dr,rand_stat)

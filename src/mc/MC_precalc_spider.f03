@@ -38,7 +38,7 @@ contains
 
     open (UNIT = 5, FILE = filename, STATUS = 'OLD')
     read(5,*) numberOfSpiders
-    allocate( spiders(numberOfSpiders)  )
+    allocate( spiders(numberOfSpiders+1)  )  ! +1 for the extra variable-spider
     Do spider_id = 1,numberOfSpiders
         !read number of sections
         read(5,*) numberOfSections

@@ -9,15 +9,16 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(wlc_p,R,U,RP,UP,AB,ABP,IB1,IB2,IT1,IT2 &
-                  ,WindoW,rand_stat)
+subroutine MC_chemMove(wlc_p,wlc_d,R,U,RP,UP,AB,ABP,IB1,IB2,IT1,IT2 &
+                  ,WindoW,rand_stat,success)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params
-use windowToos, only: exponential_random_int
+use params, only: dp,wlcsim_params,wlcsim_data
+use windowTools, only: drawWindow
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
+type(wlcsim_data), intent(in) :: wlc_d
 real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
 real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
 integer, intent(in) :: AB(WLC_P__NT)  ! Tangent vectors
@@ -29,13 +30,14 @@ integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
+logical, intent(out) ::success
+integer dib   ! number of beads moved by move
 
 integer IP    ! Test polymer
 integer I,J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urnd(1) ! single random number
-integer irnd(1)
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 integer TEMP
 
@@ -50,33 +52,16 @@ if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
 endif
 
 ! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
-! Move amplitude is ignored for this move type
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP=irnd(1)
-call random_index(WLC_P__NB,irnd,rand_stat)
-IB1=irnd(1)
-call random_number(urnd,rand_stat)
-IB2 = IB1 + (2*nint(urnd(1))-1)* &
-        exponential_random_int(window,rand_stat)
 
-if (IB2 < 1) then
-   IB2 = 1
-endif
-if (IB2 > WLC_P__NB) then
-   IB2 = WLC_P__NB
-endif
-
-if (IB2 < IB1) then
-   TEMP = IB1
-   IB1 = IB2
-   IB2 = TEMP
-endif
-IT1 = WLC_P__NB*(IP-1) + IB1
-IT2 = WLC_P__NB*(IP-1) + IB2
+call drawWindow(wlc_d,window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
+                IT1,IT2,IB1,IB2,IP,DIB,success)
+if (success .eqv.  .false.) return
 
 !keep binding constant within monomers
 IT1 = IT1-MOD(IT1-1,WLC_P__NBPM)
 IT2 = IT2-MOD(IT2-1,WLC_P__NBPM) + WLC_P__NBPM-1
+IB1 = MOD(IT1,WLC_P__NB)
+IB2 = MOD(IT2,WLC_P__NB)
 
 
 if (WLC_P__TWO_TAIL) then

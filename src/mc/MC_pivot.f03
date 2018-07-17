@@ -15,7 +15,7 @@ subroutine MC_pivot(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
 use mersenne_twister
 use params, only: dp, pi,wlcsim_params, wlcsim_data
 use vector_utils, only: randomUnitVec, rotateR, rotateU, axisAngle
-use windowToos, only: exponential_random_int, enforceBinding
+use windowTools, only: exponential_random_int, enforceBinding
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
