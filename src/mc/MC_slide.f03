@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_slide(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
+subroutine MC_slide(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat &
                   ,dib,success)
 
@@ -19,11 +19,7 @@ use windowTools, only: drawWindow
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(in) :: wlc_d
-real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,WLC_P__NT)  ! Tangent vectors
+type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -44,8 +40,8 @@ real(dp) DR(3)    ! Displacement for slide move
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
+    wlc_d%RP = wlc_d%R
+    wlc_d%UP = wlc_d%U
 endif
 
 !     Perform slide move (MCTYPE 2)
@@ -61,17 +57,14 @@ DR(3) = MCAMP*(urand(3)-0.5)
 I = IT1
 do  J = 0,DIB
 
-   if (I == (WLC_P__NB*IP + 1).AND.WLC_P__RING) then
-      I = WLC_P__NB*(IP-1) + 1
-   endif
+    if (I == (WLC_P__NB*IP + 1).AND.WLC_P__RING) then
+       I = WLC_P__NB*(IP-1) + 1
+    endif
 
-   RP(1,I) = R(1,I) + DR(1)
-   RP(2,I) = R(2,I) + DR(2)
-   RP(3,I) = R(3,I) + DR(3)
-   UP(1,I) = U(1,I)
-   UP(2,I) = U(2,I)
-   UP(3,I) = U(3,I)
-   I = I + 1
+    wlc_d%RP(:,I) = wlc_d%R(:,I) + DR
+    wlc_d%UP(:,I) = wlc_d%U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = wlc_d%V(:,I)
+    I = I + 1
 
 ENDdo
 end subroutine

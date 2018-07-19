@@ -9,19 +9,14 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chainSwap(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
-                  ,rand_stat &
-                  ,IT3,IT4)
+subroutine MC_chainSwap(wlc_p,wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params
+use params, only: dp,wlcsim_params, wlcsim_data
 
 implicit none
 type(wlcsim_params),intent(in) :: wlc_p
-real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,WLC_P__NT)  ! Tangent vectors
+type(wlcsim_data),intent(inout) :: wlc_d
 integer IP    ! Test polymer
 integer IP2   ! Second Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -39,8 +34,8 @@ integer I
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
+    wlc_d%RP = wlc_d%R
+    wlc_d%UP = wlc_d%U
 endif
 
 ! switch two chains
@@ -60,18 +55,14 @@ IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
 IT3 = WLC_P__NB*(IP2-1) + 1
 IT4 = WLC_P__NB*(IP2-1) + WLC_P__NB
 do I = 0,WLC_P__NB-1
-   RP(1,IT1 + I) = R(1,IT3 + I)
-   RP(2,IT1 + I) = R(2,IT3 + I)
-   RP(3,IT1 + I) = R(3,IT3 + I)
-   UP(1,IT1 + I) = U(1,IT3 + I)
-   UP(2,IT1 + I) = U(2,IT3 + I)
-   UP(3,IT1 + I) = U(3,IT3 + I)
-   RP(1,IT3 + I) = R(1,IT1 + I)
-   RP(2,IT3 + I) = R(2,IT1 + I)
-   RP(3,IT3 + I) = R(3,IT1 + I)
-   UP(1,IT3 + I) = U(1,IT1 + I)
-   UP(2,IT3 + I) = U(2,IT1 + I)
-   UP(3,IT3 + I) = U(3,IT1 + I)
+    wlc_d%RP(:,IT1 + I) = wlc_d%R(:,IT3 + I)
+    wlc_d%UP(:,IT1 + I) = wlc_d%U(:,IT3 + I)
+    wlc_d%RP(:,IT3 + I) = wlc_d%R(:,IT1 + I)
+    wlc_d%UP(:,IT3 + I) = wlc_d%U(:,IT1 + I)
+    if (WLC_P__LOCAL_TWIST) then
+        wlc_d%VP(:,IT1 + I) = wlc_d%V(:,IT3 + I)
+        wlc_d%VP(:,IT3 + I) = wlc_d%V(:,IT1 + I)
+    endif
 ENDdo
 IB1 = -2000000
 IB2 = -2000000

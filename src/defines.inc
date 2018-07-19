@@ -14,6 +14,11 @@
 ! DEFAULTS COMMENT: ! not a ring by default
 ! TYPE: LOGICAL
 
+#define WLC_P__LOCAL_TWIST .FALSE.
+! VARIABLE COMMENT: ! whether to include twist energy (local)
+! DEFAULTS COMMENT: ! don't include twist by default
+! TYPE: LOGICAL
+
 #define WLC_P__TWIST .FALSE.
 ! VARIABLE COMMENT: ! whether to include twist (wlc_p only for now)
 ! DEFAULTS COMMENT: ! don't include twist by default

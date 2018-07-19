@@ -27,47 +27,35 @@ success = .TRUE.
 spider_id = 0
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1)
-call MC_crank(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_crank(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
        ,dib,success)
 case(2)
-call MC_slide(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_slide(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
        ,dib,success)
 case(3)
-call MC_pivot(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_pivot(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,success)
 case(4)
-call MC_rotate(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_rotate(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(5)
-call MC_fullChainRotation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_fullChainRotation(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(6)
-call MC_fullChainSlide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IB1,IB2,IT1,IT2 &
+call MC_fullChainSlide(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_p,wlc_d,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IB1,IB2,IT1,IT2 &
+call MC_chemMove(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
        ,wlc_d%Window(MCTYPE),rand_stat,success)
 case(8)
 case(9)
-call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2,IT1,IT2 &
-       ,rand_stat &
-       ,IT3,IT4)
+call MC_chainSwap(wlc_p,wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 case(10)
-call MC_reptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IT1,IT2,IB1,IB2&
-       ,rand_stat &
-       ,forward)
+call MC_reptation(wlc_p,wlc_d,IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
 case(11)
-call MC_superReptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
-        ,IT1,IT2,IB1,IB2,rand_stat &
-       ,forward)
+call MC_reptation(wlc_p,wlc_d,IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
 call MC_spider(wlc_d,wlc_d%MCAMP,rand_stat,success,spider_id)
 end select

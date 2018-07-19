@@ -149,8 +149,10 @@ module params
         real(dp), allocatable, dimension(:,:):: R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj
         real(dp), allocatable, dimension(:,:):: R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
         real(dp), allocatable, dimension(:,:):: U   ! Conformation of polymer chains
+        real(dp), allocatable, dimension(:,:):: V   ! Conformation of polymer chains
         real(dp), allocatable, dimension(:,:):: RP !Test Bead positions - only valid from IT1 to IT2
         real(dp), allocatable, dimension(:,:):: UP !Test target vectors - only valid from IT1 to IT2
+        real(dp), allocatable, dimension(:,:):: VP !Test target vectors - only valid from IT1 to IT2
         integer, allocatable, dimension(:):: ExplicitBindingPair ! List of other points bound to this one
         real(dp), allocatable, dimension(:):: PHIA ! Volume fraction of A
         real(dp), allocatable, dimension(:):: PHIB ! Volume fraction of B
@@ -577,11 +579,20 @@ contains
             allocate(wlc_d%R_period(3,WLC_P__NT))
         endif
         allocate(wlc_d%U(3,WLC_P__NT))
+        if (WLC_P__LOCAL_TWIST) then
+            allocate(wlc_d%V(3,WLC_P__NT))
+        endif
         if (WLC_P__CODENAME /= 'bruno' .OR. WLC_P__NINITMCSTEPS /= 0) then
             allocate(wlc_d%RP(3,WLC_P__NT))
             allocate(wlc_d%UP(3,WLC_P__NT))
+            if (WLC_P__LOCAL_TWIST) then
+                allocate(wlc_d%VP(3,WLC_P__NT))
+            endif
             wlc_d%RP=nan  ! To prevent accidental use
             wlc_d%UP=nan
+            if (WLC_P__LOCAL_TWIST) then
+                wlc_d%VP=nan
+            endif
         endif
         !TOdo these should in principle be inside the following if statement,
         !but it's not clear if that's possible without adding a bunch of dirty
@@ -1277,7 +1288,12 @@ contains
         IB = 1
         do I = 1,WLC_P__NP
             do J = 1,WLC_P__NB
-                write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(1,IB),wlc_d%U(2,IB),wlc_d%U(3,IB)
+                if (WLC_P__LOCAL_TWIST) then
+                    write(outFileUnit,"(6f8.3,2I2)") wlc_d%U(1,IB),wlc_d%U(2,IB),wlc_d%U(3,IB) &
+                                                   , wlc_d%V(1,IB),wlc_d%V(2,IB),wlc_d%V(3,IB)
+                else
+                    write(outFileUnit,"(3f8.3,2I2)") wlc_d%U(1,IB),wlc_d%U(2,IB),wlc_d%U(3,IB)
+                endif
                 IB = IB + 1
             enddo
         enddo

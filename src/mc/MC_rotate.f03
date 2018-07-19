@@ -9,22 +9,16 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_rotate(wlc_p,R,U,RP,UP,IB1,IB2,IT1,IT2 &
+subroutine MC_rotate(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
                   ,MCAMP,rand_stat)
 
 use mersenne_twister
-use params, only: dp, pi,wlcsim_params
-use vector_utils, only: axisAngle
-use vector_utils, only: randomUnitVec
-
-!TODO: replace R,U,RP,UP .... with wlc_d
+use params, only: dp, pi,wlcsim_params,wlcsim_data
+use vector_utils, only: axisAngle, randomUnitVec, rotateU
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,WLC_P__NT)  ! Tangent vectors
+type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -50,8 +44,8 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
+    wlc_d%RP = wlc_d%R
+    wlc_d%UP = wlc_d%U
 endif
 
 !     Perform rotate move (MCTYPE 4)
@@ -62,7 +56,7 @@ call random_index(WLC_P__NB,irnd,rand_stat)
 IB1=irnd(1)
 IB2 = IB1
 IT1 = WLC_P__NB*(IP-1) + IB1
-IT2 = WLC_P__NB*(IP-1) + IB2
+IT2 = IT1
 
 call randomUnitVec(TA,rand_stat)
 call random_number(urnd,rand_stat)
@@ -70,10 +64,7 @@ ALPHA = MCAMP*(urnd(1)-0.5_dp)
 call axisAngle(ROT,alpha,TA,P1)
 
 I = IT1
-UP(1,I) = ROT(1,1)*U(1,I) + ROT(1,2)*U(2,I) + ROT(1,3)*U(3,I)
-UP(2,I) = ROT(2,1)*U(1,I) + ROT(2,2)*U(2,I) + ROT(2,3)*U(3,I)
-UP(3,I) = ROT(3,1)*U(1,I) + ROT(3,2)*U(2,I) + ROT(3,3)*U(3,I)
-RP(1,I) = R(1,I)
-RP(2,I) = R(2,I)
-RP(3,I) = R(3,I)
+wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
+wlc_d%RP(:,I) = wlc_d%R(:,I)
+if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = rotateU(ROT,wlc_d%V(:,I))
 end subroutine

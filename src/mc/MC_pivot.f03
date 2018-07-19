@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_pivot(wlc_p,wlc_d,R,U,RP,UP,IB1,IB2,IT1,IT2 &
+subroutine MC_pivot(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat,success)
 
 use mersenne_twister
@@ -19,11 +19,7 @@ use windowTools, only: exponential_random_int, enforceBinding
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(in) :: wlc_d
-real(dp), intent(in) :: R(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(in) :: U(3,WLC_P__NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,WLC_P__NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,WLC_P__NT)  ! Tangent vectors
+type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -41,18 +37,16 @@ real(dp) TA(3)    ! Axis of rotation
 real(dp) P1(3)    ! Point on rotation line
 real(dp) ROT(3,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
-real(dp) BETA     ! Angle of move
 
 !     MC adaptation variables
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-!integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
+    wlc_d%RP = wlc_d%R
+    wlc_d%UP = wlc_d%U
     P1 = 0.0_dp
 endif
 
@@ -71,7 +65,7 @@ endif
         IB1 = 1
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
-        P1 = R(:,IT2)
+        P1 = wlc_d%R(:,IT2)
     else
         IB1 = WLC_P__NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
@@ -80,7 +74,7 @@ endif
         IB2 = WLC_P__NB
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
-        P1 = R(:,IT1)
+        P1 = wlc_d%R(:,IT1)
     endif
 
    call randomUnitVec(TA,rand_stat)
@@ -93,8 +87,12 @@ endif
     else
         success = .TRUE.
     endif
-   do I = IT1,IT2
-      RP(:,I) = rotateR(ROT,R(:,I))
-      UP(:,I) = rotateU(ROT,U(:,I))
-   enddo
+
+    do I=IT1,IT2
+        wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I))
+        wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
+        if (WLC_P__LOCAL_TWIST) then
+            wlc_d%VP(:,I) = rotateU(ROT,wlc_d%V(:,I))
+        endif
+    enddo
 end subroutine

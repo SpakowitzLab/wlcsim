@@ -247,6 +247,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     do I = min(knee,toe),max(knee,toe)
         wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I))
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
+        if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = rotateU(ROT,wlc_d%V(:,I))
     enddo
     temp = wlc_d%RP(:,toe)
 
@@ -273,6 +274,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     do I = min(knee,hip),max(knee,hip)
         wlc_d%RP(:,I) = rotateR(ROT,wlc_d%R(:,I)) + rinter - rold
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
+        if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = rotateU(ROT,wlc_d%V(:,I))
     enddo
 
     ! rotate from intermediate position to final position
@@ -280,11 +282,16 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
     do I = min(toe,hip),max(toe,hip)
         wlc_d%RP(:,I) = rotateR(ROT,wlc_d%RP(:,I))
         wlc_d%UP(:,I) = rotateU(ROT,wlc_d%UP(:,I))
+        if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = rotateU(ROT,wlc_d%VP(:,I))
     enddo
 
     ! don't rotatie hip and toe
     wlc_d%UP(:,hip)=wlc_d%U(:,hip)
     wlc_d%UP(:,toe)=wlc_d%U(:,toe)
+    if (WLC_P__LOCAL_TWIST) then
+        wlc_d%VP(:,hip) = wlc_d%V(:,hip)
+        wlc_d%VP(:,toe) = wlc_d%V(:,toe)
+    endif
 
     !Check toe stayed in the sampe place
     if ( distance(wlc_d%RP(:,toe),wlc_d%R(:,toe)) > eps ) then
@@ -300,9 +307,11 @@ enddo
 
 ! translate sections
 do section_n = 1,wlc_d%spiders(spider_id)%nLegs
-    do I = wlc_d%spiders(spider_id)%sections(1,section_n), wlc_d%spiders(spider_id)%sections(2,section_n)
+    do I = wlc_d%spiders(spider_id)%sections(1,section_n), &
+           wlc_d%spiders(spider_id)%sections(2,section_n)
         wlc_d%RP(:,I) = wlc_d%R(:,I) + dr
         wlc_d%UP(:,I) = wlc_d%U(:,I)
+        if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = wlc_d%V(:,I)
     enddo
 enddo
 end subroutine
