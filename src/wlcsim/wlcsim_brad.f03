@@ -114,9 +114,7 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
          
            !Recalculate structural quantities and energies
            call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
-           call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,WLC_P__NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
-                wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
-                    
+           call energy_elas(wlc_d%eelas,wlc_d,wlc_p)
 
            !Communicate with the head node for replica exchange
          
@@ -144,8 +142,7 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
 
      !Recalculate structural quantities and energies
      call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
-     call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,WLC_P__NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
-          wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
+     call energy_elas(wlc_d%eelas,wlc_d,wlc_p)
 
   end if
 end subroutine wlcsim_brad

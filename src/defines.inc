@@ -119,6 +119,11 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
+#define WLC_P__ELASTICITY_TYPE "constant"
+! VARIABLE COMMENT: ! which simulation code to run
+! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
+! TYPE: CHARACTER(MAXPARAMLEN)
+
 ! ----------------------------
 !
 !   Output
@@ -221,6 +226,10 @@
 ! DEFAULTS COMMENT: ! one, wont be used unless you use corrisponding B.C.
 ! TYPE: INTEGER
 
+#define WLC_P__MAX_BACEPAIRS_PER_BEAD 350
+! VARIABLE COMMENT: ! Number of spheres
+! DEFAULTS COMMENT: ! 203 linker + 147 wrap
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -228,19 +237,24 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 0
+#define WLC_P__L 0.0_DP
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: REAL(DP)
 
-#define WLC_P__LP 1
+#define WLC_P__LP 1.0_DP
 ! VARIABLE COMMENT: ! persistence length
 ! DEFAULTS COMMENT: ! units of lp by default
 ! TYPE: REAL(DP)
 
-#define WLC_P__LT 1
+#define WLC_P__LT 1.0_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
+! TYPE: REAL(DP)
+
+#define WLC_P__LENGTH_PER_BP 0.33
+! VARIABLE COMMENT: ! length along dna for one bace pair
+! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.1_DP

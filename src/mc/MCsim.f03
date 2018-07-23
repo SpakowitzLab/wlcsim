@@ -163,9 +163,7 @@ subroutine MCsim(wlc_p,wlc_d)
 
 !   Calculate the change in compression and bending energy
           if (MCTYPE<5) then
-              call MC_eelas(wlc_p,wlc_d%DEElas,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IB1,IB2, &
-                            IT1,IT2,EB,EPAR,EPERP,GAM,ETA, &
-                            mctype,wlc_d%wr,wrp)
+              call MC_eelas(wlc_p,wlc_d,IB1,IB2,IT1,IT2,EB,EPAR,EPERP,GAM,ETA,MCTYPE,WRP)
           elseif (MCTYPE==12) then
               call MC_eelas_spider(wlc_p,wlc_d,wlc_d%DEELAS,spider_id,&
                                    EB,EPAR,EPERP,GAM,ETA)

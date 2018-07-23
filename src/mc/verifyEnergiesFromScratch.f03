@@ -22,8 +22,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
                      wlc_d%DEBind,wlc_d%dx_mu,wlc_d%demu)
     endif
 
-    call energy_elas(wlc_d%DEELAS,wlc_d%R,wlc_d%U,WLC_P__NT,WLC_P__NB,WLC_P__NP,pack_as_para(wlc_p),&
-                     WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__L)
+    call energy_elas(wlc_d%DEELAS,wlc_d,wlc_p)
 
     ! ---- External Field Energy ---
     if(WLC_P__APPLY_EXTERNAL_FIELD) then

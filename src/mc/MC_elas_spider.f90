@@ -1,7 +1,5 @@
 #include "../defines.inc"
 !---------------------------------------------------------------*
-
-!     subroutine MC_eelas
 !
 !     Calculate the change in the polymer elastic energy
 !     due to the displacement from a MC move

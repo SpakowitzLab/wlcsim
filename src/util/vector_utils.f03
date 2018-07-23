@@ -1,10 +1,10 @@
 module vector_utils
+use precision, only: dp, eps, pi
 implicit none
 
 contains
 
 function distance(a,b)
-    use params, only: dp
     implicit none
     real(dp), dimension(3), intent(in) :: a,b
     real(dp) distance
@@ -12,7 +12,6 @@ function distance(a,b)
 end function distance
 
 function angle(a,b,c)
-    use params, only: dp
     implicit none
     real(dp) angle
     real(dp), dimension(3), intent(in) :: a,b,c
@@ -21,7 +20,6 @@ function angle(a,b,c)
 end function angle
 
 function cross(a,b)
-    use params, only: dp
     implicit none
     real(dp), dimension(3) :: cross
     real(dp), dimension(3), intent(in) :: a,b
@@ -33,7 +31,6 @@ function cross(a,b)
 end function cross
 
 function rotateR(ROT,R)
-    use params, only: dp
     implicit none
     real(dp), intent(in) :: ROT(3,4) ! Rotation matrix
     real(dp), intent(in) :: R(3)
@@ -44,7 +41,6 @@ function rotateR(ROT,R)
 end function rotateR
 
 function rotateU(ROT,U)
-    use params, only: dp
     implicit none
     real(dp), intent(in) :: ROT(3,4) ! Rotation matrix
     real(dp), intent(in) :: U(3)
@@ -55,7 +51,6 @@ function rotateU(ROT,U)
 end function rotateU
 
 function angle_of_triangle(a,b,c)
-    use params, only: dp
     implicit none
     real(dp), intent(in) :: a,b,c
     real(dp) angle_of_triangle
@@ -63,7 +58,6 @@ function angle_of_triangle(a,b,c)
 end function angle_of_triangle
 
 function round_into_pm1(x)
-    use params, only: dp
     implicit none
     real(dp), intent(in) :: x
     real(dp) round_into_pm1
@@ -77,9 +71,7 @@ end function round_into_pm1
 !
 !------------------------------------------------------------
 subroutine randomUnitVec(U,rand_stat)
-
     use mersenne_twister
-    use params, only: dp, pi
 
     implicit none
     type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
@@ -127,7 +119,6 @@ subroutine random_perp(u,p,t,rand_stat)
     ! The output vectors, p and t, are perpendicular to eachother and u
     ! The triad is randomly left or right handed
     use mersenne_twister
-    use params, only: pi, dp, eps
     implicit none
     !real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
     type(random_stat) rand_stat  ! status of random number generator
@@ -203,6 +194,9 @@ end subroutine
 !--------------------------------------------------------------*
 !
 !    Calculates axis angle rotation matrix
+!    Calculates the rotation in the right handed sense by angle alpha
+!    in the TA direction.
+!    The magnitude of TA is disreguarded.
 !    The forth column is the offset
 !
 !    Quinn split out this file on 6/20/18
@@ -210,9 +204,6 @@ end subroutine
 !---------------------------------------------------------------
 
 subroutine axisAngle(ROT,alpha,TAin,P1)
-
-use params, only: dp
-
 implicit none
 real(dp), intent(in) :: TAin(3)    ! Axis of rotation  (Need not be unit vector!!)
 real(dp), intent(in) :: P1(3)    ! Point on rotation line
@@ -247,7 +238,6 @@ ROT(3,4) = (P1(3)*(1.0_dp-TA(3)**2) &
 end subroutine
 
 subroutine rotateAIntoB(A,B,P1,ROT)
-use params, only: dp
 implicit none
 real(dp), intent(in) :: A(3)
 real(dp), intent(in) :: B(3)

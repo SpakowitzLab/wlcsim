@@ -60,9 +60,7 @@ call stress(SIG, wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, WLC_P__NP, &
 call stressp(COR, wlc_d%R, wlc_d%U, R0, U0, WLC_P__NT, WLC_P__NB, &
              WLC_P__NP, pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
 
-call energy_elas(EELAS, wlc_d%R, wlc_d%U, WLC_P__NT, WLC_P__NB, &
-                 WLC_P__NP, pack_as_para(wlc_p), WLC_P__RING, WLC_P__TWIST, &
-                 wlc_p%LK, WLC_P__LT, WLC_P__L)
+call energy_elas(EELAS, wlc_d,wlc_p)
 EPONP = 0.
 if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
     ! ring is always false for me
