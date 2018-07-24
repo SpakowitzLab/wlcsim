@@ -14,9 +14,10 @@ program main
     use flap, only: command_line_interface
 
     ! structs that will hold simulation params and state
+    use precision, only: setup_runtime_floats
     use params, only: wlcsim_params, wlcsim_data, &
         MAXFILENAMELEN, save_simulation_state, set_parameters, &
-        initialize_wlcsim_data, save_parameters, setup_runtime_floats, &
+        initialize_wlcsim_data, save_parameters, &
         printDescription, printWindowStats
 
     implicit none

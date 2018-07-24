@@ -27,7 +27,7 @@ integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move
-logical, intent(inout) :: success
+logical, intent(out) :: success
 
 integer IP    ! Test polymer
 integer I,J  ! Test indices

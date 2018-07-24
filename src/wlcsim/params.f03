@@ -15,7 +15,7 @@ module params
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: IEEE_ARITHMETIC
     use mersenne_twister
-    use precision, only: dp, eps, epsapprox, pi
+    use precision, only: dp, eps, epsapprox, pi, nan
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
     use precalc_spider, only: spider, load_precalc_spiders
@@ -51,14 +51,10 @@ module params
 
     !!!     universal constants
     ! fully accurate, adaptive precision
-    real(dp) :: nan
     ! ! won't get optimized away by compiler, see e.g.
     ! ! https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/294680
     ! real(dp) :: nan = transfer((/ Z'00000000', Z'7FF80000' /),1.0_dp)
     ! the following would be preferred, but generated compilation errors...
-    !real(dp) :: nan = IEEE_VALUE(nan, IEEE_QUIET_NAN)
-    real(dp) :: inf
-    ! ! doesn't work, inf needs to happen at runtime in fortran
     ! real(dp) :: one = 1.0_dp
     ! real(dp) :: inf = -log(one - one)
     ! the following would be preferred, but generated compilation errors...
@@ -1077,6 +1073,24 @@ contains
         print*, "eExplicitBinding", wlc_d%eExplicitBinding
     end subroutine
 
+    subroutine printEnergyChanges(wlc_d)
+        implicit none
+        type(wlcsim_data), intent(in) :: wlc_d
+        print*, "ECouple:", wlc_d%dECouple
+        print*, "Bending energy", wlc_d%dEELAS(1)
+        print*, "Par compression energy", wlc_d%dEELAS(2)
+        print*, "Shear energy", wlc_d%dEELAS(3)
+        print*, "ECHI", wlc_d%dECHI
+        print*, "ECHI l=2", wlc_d%deMaierSaupe
+        print*, "EField", wlc_d%dEField
+        print*, "EExtrnalField", wlc_d%dEExternalField
+        print*, "EKAP", wlc_d%dEKAP
+        print*, "ebind", wlc_d%debind
+        print*, "eMu", wlc_d%deMu
+        print*, "eExplicitBinding", wlc_d%deExplicitBinding
+        print*, "confinement energy", wlc_d%Econ
+    end subroutine
+
     subroutine calcTotalPolymerVolume(wlc_p,wlc_d,totalVpoly)
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
@@ -1662,11 +1676,6 @@ contains
             close(outFileUnit)
         endif
     end subroutine save_simulation_state
-
-    subroutine setup_runtime_floats()
-        inf = ieee_value(inf, ieee_positive_inf)
-        nan = ieee_value(nan, ieee_quiet_nan)
-    end subroutine
 
     !Get Lks for parallel tempering from file
     subroutine get_LKs_from_file(wlc_d)

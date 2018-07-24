@@ -1,7 +1,7 @@
 #include "../defines.inc"
 !   --------------------------------------------------------------
 !
-!    This module is designed to handle the various geometrical 
+!    This module is designed to handle the various geometrical
 !    considerations of nucleosomes.
 !
 !   --------------------------------------------------------------
@@ -20,22 +20,22 @@ contains
 ! -------------------------------------------------------------
 !
 !  nucleosomeProp calculates the final position and orientation
-!  Rout,Uout,Vout 
-!  based on the the incomming position and orientation 
+!  Rout,Uout,Vout
+!  based on the the incomming position and orientation
 !  Rin, Uin, Vin
 !  for a nucleosome with wrapBP bace paris of DNA wrapped around it.
 !  The intrisic rotation of a liner that follows.
-! 
+!
 ! -------------------------------------------------------------
 subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     use vector_utils, only: cross
     implicit none
-    real(dp), intent(in), dimension(3) :: Uin 
-    real(dp), intent(in), dimension(3) :: Vin 
-    real(dp), intent(in), dimension(3) :: Rin 
+    real(dp), intent(in), dimension(3) :: Uin
+    real(dp), intent(in), dimension(3) :: Vin
+    real(dp), intent(in), dimension(3) :: Rin
     integer, intent(in) :: linkBP
     integer, intent(in) :: wrapBP
-    real(dp), intent(out), dimension(3) :: Uout 
+    real(dp), intent(out), dimension(3) :: Uout
     real(dp), intent(out), dimension(3) :: Vout
     real(dp), intent(out), dimension(3) :: Rout
 
@@ -66,7 +66,7 @@ end subroutine nucleosomeProp
 !
 !  nucleosome_energy caltulate the bending energy of a nucleosome
 !  at position R and orientation U, V
-!  with wrapBP of DNA wrapped around it followed by a liner linkBP 
+!  with wrapBP of DNA wrapped around it followed by a liner linkBP
 !  bace pairs long that ends at RP1, UP1, and VP1.
 !  It does this assuming a SSWLCWT linker.
 !
@@ -87,7 +87,7 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
     real(dp) Utemp(3)
     real(dp) Vtemp(3)
 
-    
+
     call nucleosomeProp(U,V,R,linkBP,wrapBP,Utemp,Vtemp,Rtemp)
 
     nucleosome_energy =  E_SSWLCWT(RP1,Rtemp,UP1,Utemp,VP1,Vtemp, &
@@ -108,15 +108,15 @@ subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
     integer, intent(in) :: i
     real(dp), intent(out) :: EB, EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype
 
-        EB     = multiParams(1,i) 
-        EPAR   = multiParams(2,i) 
-        EPERP  = multiParams(3,i)  
-        GAM    = multiParams(4,i)  
-        ETA    = multiParams(5,i) 
-        XIR    = multiParams(6,i) 
-        XIU    = multiParams(7,i) 
-        sigma  = multiParams(8,i)    
-        etwist = multiParams(9,i)  
+        EB     = multiParams(1,i)
+        EPAR   = multiParams(2,i)
+        EPERP  = multiParams(3,i)
+        GAM    = multiParams(4,i)
+        ETA    = multiParams(5,i)
+        XIR    = multiParams(6,i)
+        XIU    = multiParams(7,i)
+        sigma  = multiParams(8,i)
+        etwist = multiParams(9,i)
         simtype = nint(multiParams(10,i))
 end subroutine get_params
 
@@ -127,7 +127,7 @@ end subroutine get_params
 !
 ! ----------------------------------------------------------------------
 subroutine setup_nucleosome_constants()
-    use params, only: nan 
+    use precision, only: nan
     use MC_wlc, only: calc_elastic_constants
     implicit none
     integer i,j, simtype
@@ -146,7 +146,7 @@ subroutine setup_nucleosome_constants()
         multiParams(5,i) = ETA
         multiParams(6,i) = XIR
         multiParams(7,i) = XIU
-        multiParams(8,i) = sigma  
+        multiParams(8,i) = sigma
         multiParams(9,i) = etwist
         multiParams(10,i) = real(simtype)
 
@@ -168,4 +168,4 @@ subroutine setup_nucleosome_constants()
     !close(5)
 end subroutine setup_nucleosome_constants
 
-end module nucleosome 
+end module nucleosome

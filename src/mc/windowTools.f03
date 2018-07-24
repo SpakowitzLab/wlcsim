@@ -26,10 +26,11 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 type(wlcsim_data), intent(in) :: wlc_d
 integer, intent(inout) :: IT1,IT2,IB1,IB2
 real(dp), intent(in) :: max_window
-logical, intent(inout) :: success
+logical, intent(out) :: success
 integer otherEnd
 real urnd(1) ! single random number
 integer IT1_temp, IT2_temp, IB1_temp, IB2_temp, I
+success = .True.
 call random_number(urnd,rand_stat)
 if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
     IB1_temp=IB1
@@ -60,6 +61,7 @@ if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
         IT2=IT2_temp
     else
         if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp)  success=.FALSE.
+        return
     endif
 endif
 end subroutine
@@ -84,6 +86,7 @@ integer irnd(1)
 real urnd(1) ! single random number
 integer TEMP
 
+success = .TRUE.  ! True unless set to false
 call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
 call random_index(WLC_P__NB,irnd,rand_stat)
@@ -111,7 +114,6 @@ if (WLC_P__RING) then
         print*, "Need to write special loop skiping code"
         stop
     endif
-    success = .TRUE.
 else
     if (IB2 > WLC_P__NB) then
         IB2 = WLC_P__NB
@@ -128,8 +130,7 @@ else
     IT1 = WLC_P__NB*(IP-1) + IB1
     if (WLC_P__EXPLICIT_BINDING .and. enforceBind) then
         call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,maxWindow,success)
-    else
-        success = .TRUE.
+        if (success .eqv. .False.) return
     endif
 endif
 
