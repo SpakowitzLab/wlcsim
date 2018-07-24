@@ -1015,6 +1015,8 @@ contains
             wlc_p%MOVEON(8) = 0  ! Chain flip
             wlc_p%MOVEON(9) = 0  ! Chain exchange
             wlc_p%MOVEON(10) = 0 ! Reptation
+            wlc_p%MOVEON(11) = 0 ! SuperReptation
+            wlc_p%MOVEON(12) = 0 ! Spider
 
         endif
 
@@ -1385,14 +1387,22 @@ contains
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
         else
             open (unit = outFileUnit, file = fullName, status = 'new')
+            write(outFileUnit,*) "        ",&
+                       " ----- Crank ------    |  -----  Slide -----   |",&
+                       " ----- Pivot ------    |  -----  rotate ----   |",&
+                       " full Chain Rotation   |  full Chain Slide     |",&
+                       "    chem-move  |  end-end flip |",&
+                       "  chian swap   |  reptation    |super reptation|",&
+                       "    spider     |"
             write(outFileUnit,*) "ind| id|",&
                        " Win 1 | AMP 1 | SUC 1 | Win 2 | AMP 2 | SUC 2 |",&
                        " Win 3 | AMP 3 | SUC 3 | ON  4 | AMP 4 | SUC 4 |",&
                        " ON  5 | AMP 5 | SUC 5 | ON  6 | AMP 6 | SUC 6 |",&
                        " ON  7 | SUC 7 | ON  8 | SUC 8 |", &
-                       " ON  9 | SUC 9 | ON 10 | SUC 10|"
+                       " ON  9 | SUC 9 | ON 10 | SUC 10| ON 11 | SUC11 |",&
+                       " AMP12 | SUC12 |"
         endif
-        write(outFileUnit,"(2I4,26f8.3)") save_ind,wlc_d%id,&
+        write(outFileUnit,"(2I4,30f8.3)") save_ind,wlc_d%id,&
             real(wlc_d%WindoW(1)),wlc_d%MCAMP(1),wlc_d%PHIT(1), &
             real(wlc_d%WindoW(2)),wlc_d%MCAMP(2),wlc_d%PHIT(2), &
             real(wlc_d%WindoW(3)),wlc_d%MCAMP(3),wlc_d%PHIT(3), &
@@ -1402,7 +1412,9 @@ contains
             real(wlc_p%MOVEON(7)),wlc_d%PHIT(7), &
             real(wlc_p%MOVEON(8)),wlc_d%PHIT(8), &
             real(wlc_p%MOVEON(9)),wlc_d%PHIT(9), &
-            real(wlc_p%MOVEON(10)),wlc_d%PHIT(10)
+            real(wlc_p%MOVEON(10)),wlc_d%PHIT(10), &
+            real(wlc_p%MOVEON(11)),wlc_d%PHIT(11), &
+            wlc_d%MCAMP(12),wlc_d%PHIT(12)
         close(outFileUnit)
     end subroutine
     subroutine wlcsim_params_writebinary(wlc_p,wlc_d,baseName)
