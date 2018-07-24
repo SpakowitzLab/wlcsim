@@ -42,7 +42,7 @@ integer dib, IT1,IT2,IB1,IB2,IP,otherEnd
 
 ! choose spider
 call random_number(urnd,rand_stat)
-if (WLC_P__PROBABILITY_PRECALC_SPIDER < urnd(1)) then
+if (WLC_P__PROBABILITY_PRECALC_SPIDER > urnd(1)) then
     call random_index(wlc_d%numberOfSpiders,irnd,rand_stat)
     spider_id=irnd(1)
 else
@@ -306,7 +306,7 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
 enddo
 
 ! translate sections
-do section_n = 1,wlc_d%spiders(spider_id)%nLegs
+do section_n = 1,wlc_d%spiders(spider_id)%nSections
     do I = wlc_d%spiders(spider_id)%sections(1,section_n), &
            wlc_d%spiders(spider_id)%sections(2,section_n)
         wlc_d%RP(:,I) = wlc_d%R(:,I) + dr
