@@ -29,6 +29,11 @@
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__FRACTIONAL_BIN .FALSE.
+! VARIABLE COMMENT: ! whether to use fractional bin volumes in field treatment
+! DEFAULTS COMMENT: ! If in doubt make it false
+! TYPE: LOGICAL
+
 #define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
 ! VARIABLE COMMENT: ! initial condition type
 ! DEFAULTS COMMENT: ! based on geometery of current problem

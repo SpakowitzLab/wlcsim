@@ -461,6 +461,10 @@ contains
             endif
         endif
 
+        if ((WLC_P__FRACTIONAL_BIN) .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
+            call stop_if_err(err, "Fractional bin only implimented for sphere")
+        endif
+
         if (WLC_P__FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
             call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
         endif
@@ -803,7 +807,7 @@ contains
             endif
 
             ! calculate volumes of bins
-            if (WLC_P__CONFINETYPE.eq.'sphere') then
+            if (WLC_P__CONFINETYPE.eq.'sphere' .and. WLC_P__FRACTIONAL_BIN) then
                 call MC_calcVolume(wlc_p%NBINX, WLC_P__DBIN, &
                                 WLC_P__LBOX_X, wlc_d%Vol, wlc_d%rand_stat)
             else

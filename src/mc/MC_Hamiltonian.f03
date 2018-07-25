@@ -31,6 +31,7 @@ wlc_d%Dx_Couple = 0.0_dp
 wlc_d%Dx_Kap = 0.0_dp
 wlc_d%Dx_Field = 0.0_dp
 wlc_d%dx_maierSaupe = 0.0_dp
+VV = WLC_P__DBIN**3
 if (initialize) then  ! calculate absolute energy
 
     select case(WLC_P__FIELDINTERACTIONTYPE) ! pick which keyword, case matchign string must be all uppercase
@@ -41,9 +42,9 @@ if (initialize) then  ! calculate absolute energy
     !
     !-------------------------------------------------------
     case('AppliedAligningField')
-        VV = WLC_P__DBIN**3
         if (wlc_p%CHI_L2_ON) then
             do I = 1,wlc_p%NBIN
+                if (WLC_P__FRACTIONAL_BIN) VV = wlc_d%Vol(I)
                 wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%PHI_l2(0,I)
             enddo
         endif
@@ -55,18 +56,19 @@ if (initialize) then  ! calculate absolute energy
     ! In this problem Kap and chi are in units of kT/(simulation units cubed)
     ! If VV=1.0 than this is just kT/(bin volume)
     case('MaierSaupe')
-        VV = WLC_P__DBIN**3
-
         if (wlc_p%CHI_L2_ON) then
             do I = 1,wlc_p%NBIN
                 do m_index = -2,2
+                    if (WLC_P__FRACTIONAL_BIN) VV = wlc_d%Vol(I)
                     wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%PHI_l2(m_index,I)**2
                 enddo
             enddo
         endif
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             wlc_d%Dx_Kap = wlc_d%dx_Kap + VV*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
         enddo
     !------------------------------------------------------------
@@ -77,8 +79,10 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABmelt') ! Melt Hamiltonian
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
             wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/WLC_P__BEADVOLUME)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
             wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
@@ -91,8 +95,10 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABsolution') ! A,B,Solvent Hamiltonian
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
             PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
             if(PHIPoly > 1.0_dp) then
@@ -107,14 +113,15 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('chromatin')
         do I = 1,wlc_p%NBIN
-            !VV = wlc_d%Vol(I)
-            VV = WLC_P__DBIN**3
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
             wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
             wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(I))**2
-            if(PHIPoly > 1.0_dp) then
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            if(PHIPoly > 0.5_dp) then
+                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
             endif
         enddo
     end select
@@ -129,7 +136,7 @@ else ! Calculate change in energy
     !
     !-------------------------------------------------------
     case('AppliedAligningField')
-        VV = WLC_P__DBIN**3
+        if (WLC_P__FRACTIONAL_BIN) VV = wlc_d%Vol(I)
         if (wlc_p%CHI_L2_ON) then
             do I = 1,wlc_d%NPHI
                 wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%DPHI_l2(0,I)
@@ -142,9 +149,12 @@ else ! Calculate change in energy
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/binVolume
     case('MaierSaupe')
-        VV = WLC_P__DBIN**3
         if (wlc_p%CHI_L2_ON) then
             do I = 1,wlc_d%NPHI
+                if (WLC_P__FRACTIONAL_BIN) then
+                    VV = wlc_d%Vol(I)
+                    if (VV.le.0.1_dp) CYCLE
+                endif
                 J = wlc_d%inDPHI(I)
                 ! minus old
                 phi_A = wlc_d%PHIA(J)
@@ -168,6 +178,10 @@ else ! Calculate change in energy
             enddo
         else
             do I = 1,wlc_d%NPHI
+                if (WLC_P__FRACTIONAL_BIN) then
+                    VV = wlc_d%Vol(I)
+                    if (VV.le.0.1_dp) CYCLE
+                endif
                 J = wlc_d%inDPHI(I)
                 ! minus old
                 phi_A = wlc_d%PHIA(J)
@@ -190,8 +204,10 @@ else ! Calculate change in energy
     case('ABmelt') ! Melt Hamiltonian
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
-            VV = wlc_d%Vol(J)
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new
             phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
             phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
@@ -213,8 +229,10 @@ else ! Calculate change in energy
     case('ABsolution') ! Melt Hamiltonian
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
-            VV = wlc_d%Vol(J)
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new
             phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
             phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
@@ -242,22 +260,23 @@ else ! Calculate change in energy
     case('chromatin')
         do I = 1,wlc_d%NPHI
             J = wlc_d%inDPHI(I)
-            !VV = wlc_d%Vol(J)
-            VV = WLC_P__DBIN**3
-            if (VV.le.0.1_dp) CYCLE
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_d%Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new ...
             PHIPoly = wlc_d%PHIA(J) + wlc_d%DPHIA(I) + wlc_d%PHIB(J) + wlc_d%DPHIB(I)
             wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
             wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(J) + wlc_d%DPHIA(I))**2
-            if(PHIPoly > 1.0_dp) then
-               wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            if(PHIPoly > 0.5_dp) then
+               wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
             endif
             ! minus old
             PHIPoly = wlc_d%PHIA(J) + wlc_d%PHIB(J)
             wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
             wlc_d%Dx_Couple = wlc_d%Dx_Couple-VV*(wlc_d%PHIA(J))**2
-            if(PHIPoly > 1.0_dp) then
-               wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            if(PHIPoly > 0.5_dp) then
+               wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
             endif
         enddo
     end select
