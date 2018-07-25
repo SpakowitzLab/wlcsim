@@ -62,11 +62,11 @@ if (WLC_P__TWO_TAIL) then
 else
     do I = IT1,IT2,WLC_P__NBPM
         if(METH(I) == 1) then
-            DEBind = DEBind + EM_cor*real(ABP(I)-AB(I))
+            DEBind = DEBind + EM_cor*real(ABP(I)-AB(I),dp)
         else
-            DEBind = DEBind + EU_cor*real(ABP(I)-AB(I))
+            DEBind = DEBind + EU_cor*real(ABP(I)-AB(I),dp)
         endif
-        Dx_mu = Dx_mu - real(ABP(I)-AB(I))
+        Dx_mu = Dx_mu - real(ABP(I)-AB(I),dp)
     ENDdo
 endif
 DEMu=Dx_mu*wlc_p%MU

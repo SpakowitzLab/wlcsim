@@ -79,7 +79,6 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     E_SSWLCWT(1)=0.5_dp*EB*dot_product(GI,GI)
     E_SSWLCWT(2)=0.5_dp*EPAR*(DRPAR-GAM)**2
     E_SSWLCWT(3)=0.5_dp*EPERP*dot_product(DRPERP,DRPERP)
-    E_SSWLCWT(4)=0.0_dp
 
     TA = cross(UM1,U)
     mag = norm2(TA)
@@ -99,6 +98,7 @@ function E_GAUSS(R,RM1,EPAR)
     real(dp), intent(in) :: EPAR
     real(dp) E_GAUSS
     real(dp) DR(3)
+    DR = R-RM1
     E_GAUSS = 0.5_dp*EPAR*dot_product(DR,DR)
     ! in gaussian chain, there's only parallel stretching energy. DEELAS init'd to zeros, so sum(DEELAS) == DEELAS(2) later
 end function E_GAUSS

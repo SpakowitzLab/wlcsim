@@ -10,7 +10,6 @@
 !---------------------------------------------------------------
 subroutine interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 use params, only: dp, wlcsim_params
-use inputparams, only: MAXPARAMLEN
 implicit none
 Type(wlcsim_params), intent(in) :: wlc_p      ! system varibles
 
@@ -24,9 +23,9 @@ real(dp), intent(out) :: WZ(2) ! Output
 SELECT CASE (WLC_P__CONFINETYPE)
 CASE ('none') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_X)*WLC_P__LBOX_X
-    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
-    RBin(3) = RBin(3)-floor(RBin(3)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
+    RBin(1) = MODULO(RBin(1),WLC_P__LBOX_X)
+    RBin(2) = MODULO(RBin(2),WLC_P__LBOX_Y)
+    RBin(3) = MODULO(RBin(3),WLC_P__LBOX_Z)
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
@@ -46,16 +45,16 @@ CASE ('none') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     WZ(1) = 1.0_dp-WZ(2)
 
     ! Periodic BC on Bins:
-    IX(1) = IX(1)-floor(REAL((IX(1)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IX(2) = IX(2)-floor(REAL((IX(2)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IY(1) = IY(1)-floor(REAL((IY(1)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
-    IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
-    IZ(1) = IZ(1)-floor(REAL((IZ(1)-1))/REAL(wlc_p%NBINX(3))) * wlc_p%NBINX(3)
-    IZ(2) = IZ(2)-floor(REAL((IZ(2)-1))/REAL(wlc_p%NBINX(3))) * wlc_p%NBINX(3)
+    IX(1) = MODULO(IX(1)-1,wlc_p%NBINX(1))
+    IX(2) = MODULO(IX(2)-1,wlc_p%NBINX(1))
+    IY(1) = MODULO(IY(1)-1,wlc_p%NBINX(2))
+    IY(2) = MODULO(IY(2)-1,wlc_p%NBINX(2))
+    IZ(1) = MODULO(IZ(1)-1,wlc_p%NBINX(3))
+    IZ(2) = MODULO(IZ(2)-1,wlc_p%NBINX(3))
 CASE ('platesInZperiodicXY')
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_Y)*WLC_P__LBOX_X
-    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_X)*WLC_P__LBOX_Y
+    RBin(1) = MODULO(RBin(1),WLC_P__LBOX_X)
+    RBin(2) = MODULO(RBin(2),WLC_P__LBOX_Y)
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
@@ -80,10 +79,10 @@ CASE ('platesInZperiodicXY')
     endif
 
     ! Periodic BC on Bins:
-    IX(1) = IX(1)-floor(REAL((IX(1)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IX(2) = IX(2)-floor(REAL((IX(2)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IY(1) = IY(1)-floor(REAL((IY(1)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
-    IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
+    IX(1) = MODULO(IX(1)-1,wlc_p%NBINX(1))
+    IX(2) = MODULO(IX(2)-1,wlc_p%NBINX(1))
+    IY(1) = MODULO(IY(1)-1,wlc_p%NBINX(2))
+    IY(2) = MODULO(IY(2)-1,wlc_p%NBINX(2))
 CASE ('cube') ! Box confinement
     ! Binning
     IX(1) = nint(RBin(1)/WLC_P__DBIN) + 1
@@ -120,9 +119,9 @@ CASE ('sphere')
     WZ(1) = 1.0_dp-WZ(2)
 CASE ('periodicUnequal') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     ! Periodic BC
-    RBin(1) = RBin(1)-floor(RBin(1)/WLC_P__LBOX_X)*WLC_P__LBOX_X
-    RBin(2) = RBin(2)-floor(RBin(2)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
-    RBin(3) = RBin(3)-floor(RBin(3)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
+    RBin(1) = MODULO(RBin(1),WLC_P__LBOX_X)
+    RBin(2) = MODULO(RBin(2),WLC_P__LBOX_Y)
+    RBin(3) = MODULO(RBin(3),WLC_P__LBOX_Z)
 
     ! Binning
     IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
@@ -142,12 +141,12 @@ CASE ('periodicUnequal') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     WZ(1) = 1.0_dp-WZ(2)
 
     ! Periodic BC on Bins:
-    IX(1) = IX(1)-floor(REAL((IX(1)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IX(2) = IX(2)-floor(REAL((IX(2)-1))/REAL(wlc_p%NBINX(1))) * wlc_p%NBINX(1)
-    IY(1) = IY(1)-floor(REAL((IY(1)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
-    IY(2) = IY(2)-floor(REAL((IY(2)-1))/REAL(wlc_p%NBINX(2))) * wlc_p%NBINX(2)
-    IZ(1) = IZ(1)-floor(REAL((IZ(1)-1))/REAL(wlc_p%NBINX(3))) * wlc_p%NBINX(3)
-    IZ(2) = IZ(2)-floor(REAL((IZ(2)-1))/REAL(wlc_p%NBINX(3))) * wlc_p%NBINX(3)
+    IX(1) = MODULO(IX(1)-1,wlc_p%NBINX(1))
+    IX(2) = MODULO(IX(2)-1,wlc_p%NBINX(1))
+    IY(1) = MODULO(IY(1)-1,wlc_p%NBINX(2))
+    IY(2) = MODULO(IY(2)-1,wlc_p%NBINX(2))
+    IZ(1) = MODULO(IZ(1)-1,wlc_p%NBINX(3))
+    IZ(2) = MODULO(IZ(2)-1,wlc_p%NBINX(3))
 END SELECT
 return
 end subroutine

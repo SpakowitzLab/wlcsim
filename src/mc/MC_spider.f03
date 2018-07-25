@@ -32,7 +32,6 @@ integer spider_id ! which spider
 real(dp) dr(3) ! ranslation
 integer hip, knee, toe
 real(dp) thigh, shin, dold, dnew
-real(dp) theta ! extra abount to rotate each leg
 real(dp) dalpha ! amount to rotate shin
 real(dp) dbeta ! amount to rotate thigh
 real(dp), dimension(3) :: hipR,kneeR,toeR,direction, temp,rold,rnew,rinter

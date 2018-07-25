@@ -91,7 +91,7 @@ do II = 1,2
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
-       phi2=0.0
+       phi2=0.0_dp
    endif
    ! --------------------------------------------------
    !
@@ -164,7 +164,7 @@ do II = 1,2
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0
+                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
                           enddo
                       endif
                       exit

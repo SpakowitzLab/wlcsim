@@ -287,9 +287,9 @@ contains
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
-        wlc_p%couple_on = 1.0 ! on by default
-        wlc_p%kap_on = 1.0 ! on by default
-        wlc_p%chi_on = 1.0 ! on by default
+        wlc_p%couple_on = 1.0_dp ! on by default
+        wlc_p%kap_on = 1.0_dp ! on by default
+        wlc_p%chi_on = 1.0_dp ! on by default
         wlc_p%chi_l2_on = .TRUE. ! on by default
         wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
@@ -319,7 +319,7 @@ contains
         wlc_p%MAXWINDOW(9) = WLC_P__MAXWINDOW_CHAIN_EXCHANGE
         wlc_p%MAXWINDOW(10) = WLC_P__MAXWINDOW_REPTATION
         wlc_p%MAXWINDOW(11) = WLC_P__MAXWINDOW_SUPER_REPTATION
-        wlc_p%MAXWINDOW(12) = 0 ! max window spider
+        wlc_p%MAXWINDOW(12) = NAN ! max window spider
         wlc_p%MINWINDOW(1) = WLC_P__MINWINDOW_CRANK_SHAFT
         wlc_p%MINWINDOW(2) = WLC_P__MINWINDOW_SLIDE_MOVE
         wlc_p%MINWINDOW(3) = WLC_P__MINWINDOW_PIVOT_MOVE
@@ -331,7 +331,7 @@ contains
         wlc_p%MINWINDOW(9) = WLC_P__MINWINDOW_CHAIN_EXCHANGE
         wlc_p%MINWINDOW(10) = WLC_P__MINWINDOW_REPTATION
         wlc_p%MINWINDOW(11) = WLC_P__MINWINDOW_SUPER_REPTATION
-        wlc_p%MINWINDOW(12) = 0 ! min window spider
+        wlc_p%MINWINDOW(12) = NAN ! min window spider
         wlc_p%MINAMP(1) = WLC_P__MINAMP_CRANK_SHAFT
         wlc_p%MINAMP(2) = WLC_P__MINAMP_SLIDE_MOVE
         wlc_p%MINAMP(3) = WLC_P__MINAMP_PIVOT_MOVE
@@ -825,7 +825,7 @@ contains
         if (WLC_P__NEIGHBOR_BINS) then
             !  Set up binning object
             setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-            setMinXYZ = [0.0,0.0,0.0]  ! location of corner of bin
+            setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_d%bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
@@ -870,7 +870,7 @@ contains
         wlc_d%DEExplicitBinding = 0.0_dp ! change in explicit binding energy
         wlc_d%NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
-        wlc_d%time = 0
+        wlc_d%time = 0.0_dp
         wlc_d%time_ind = 0
         wlc_d%mc_ind = 0
 
@@ -993,7 +993,7 @@ contains
 
         if (WLC_P__CODENAME == 'brad') then
             ! initialize windows to number of beads
-            wlc_p%MAXWINDOW = WLC_P__NB         ! Max Size of window for bead selection
+            wlc_p%MAXWINDOW = real(WLC_P__NB,dp)! Max Size of window for bead selection
             wlc_p% MinWindoW  = 1.0_dp         ! Min Size of window for bead selection
 
             ! Window amplitudes
@@ -1031,21 +1031,22 @@ contains
     !  Prevents drift in periodic BC
         implicit none
         type(wlcsim_data), intent(inout) :: wlc_d
-        integer IB, I, J   ! Couners
+        integer IB, I,ii, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
         do I = 1,WLC_P__NP
             IB=WLC_P__NB * (I-1) + 1
-            R0(1) = floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X
-            R0(2) = floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y
-            R0(3) = floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
-            if (abs(R0(1)*R0(2)*R0(3)) .gt. 0.0001_dp) then
-                do J = 1,WLC_P__NB
-                    wlc_d%R(1,IB) = wlc_d%R(1,IB)-R0(1)
-                    wlc_d%R(2,IB) = wlc_d%R(2,IB)-R0(2)
-                    wlc_d%R(3,IB) = wlc_d%R(3,IB)-R0(3)
-                    IB = IB + 1
-                enddo
-            endif
+            R0(1) = wlc_d%R(1,IB) - MODULO(wlc_d%R(1,IB),WLC_P__LBOX_X)
+            R0(2) = wlc_d%R(2,IB) - MODULO(wlc_d%R(2,IB),WLC_P__LBOX_Y)
+            R0(3) = wlc_d%R(3,IB) - MODULO(wlc_d%R(3,IB),WLC_P__LBOX_Z)
+            do ii =1,3
+                if ((abs(R0(ii)) .gt. eps)) then
+                    IB=WLC_P__NB * (I-1) + 1
+                    do J = 1,WLC_P__NB
+                        wlc_d%R(ii,IB) = wlc_d%R(ii,IB)-R0(ii)
+                        IB = IB + 1
+                    enddo
+                endif
+            enddo
         enddo
     end subroutine
 
@@ -1248,15 +1249,15 @@ contains
               do J = 1,WLC_P__NB
                  if (WLC_P__SAVEAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
-                         wlc_d%R(1,IB)-floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X, &
-                         wlc_d%R(2,IB)-floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y, &
-                         wlc_d%R(3,IB)-floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z, &
-                         wlc_d%AB(IB)
+                          modulo(wlc_d%R(1,IB),WLC_P__LBOX_X)&
+                         ,modulo(wlc_d%R(2,IB),WLC_P__LBOX_Y)&
+                         ,modulo(wlc_d%R(3,IB),WLC_P__LBOX_Z)&
+                         ,wlc_d%AB(IB)
                  else
                     write(outFileUnit,"(3f10.3)") &
-                         wlc_d%R(1,IB)-floor(wlc_d%R(1,IB)/WLC_P__LBOX_X)*WLC_P__LBOX_X, &
-                         wlc_d%R(2,IB)-floor(wlc_d%R(2,IB)/WLC_P__LBOX_Y)*WLC_P__LBOX_Y, &
-                         wlc_d%R(3,IB)-floor(wlc_d%R(3,IB)/WLC_P__LBOX_Z)*WLC_P__LBOX_Z
+                          modulo(wlc_d%R(1,IB),WLC_P__LBOX_X)&
+                         ,modulo(wlc_d%R(2,IB),WLC_P__LBOX_Y)&
+                         ,modulo(wlc_d%R(3,IB),WLC_P__LBOX_Z)
                  endif
                  IB = IB + 1
               enddo

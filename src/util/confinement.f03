@@ -57,9 +57,9 @@ pure function in_confinement(RP, NT, IT1, IT2)
             do ix=1,WLC_P__N_SPHERES_TO_SIDE
             do iy=1,WLC_P__N_SPHERES_TO_SIDE
             do iz=1,WLC_P__N_SPHERES_TO_SIDE
-                centers(1)=(real(ix)-0.5_DP)*WLC_P__LBOX_X/real(WLC_P__N_SPHERES_TO_SIDE)
-                centers(2)=(real(ix)-0.5_DP)*WLC_P__LBOX_Y/real(WLC_P__N_SPHERES_TO_SIDE)
-                centers(3)=(real(ix)-0.5_DP)*WLC_P__LBOX_Z/real(WLC_P__N_SPHERES_TO_SIDE)
+                centers(1)=(real(ix,dp)-0.5_DP)*WLC_P__LBOX_X/real(WLC_P__N_SPHERES_TO_SIDE,dp)
+                centers(2)=(real(ix,dp)-0.5_DP)*WLC_P__LBOX_Y/real(WLC_P__N_SPHERES_TO_SIDE,dp)
+                centers(3)=(real(ix,dp)-0.5_DP)*WLC_P__LBOX_Z/real(WLC_P__N_SPHERES_TO_SIDE,dp)
                 rad = (WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp)**2
                 if ((modulo(RP(1,I),WLC_P__LBOX_X) - centers(1))**2 + &
                     (modulo(RP(2,I),WLC_P__LBOX_Y) - centers(2))**2 + &

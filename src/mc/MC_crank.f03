@@ -9,17 +9,16 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_crank(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
+subroutine MC_crank(wlc_d,IB1,IB2,IT1,IT2 &
                   ,MCAMP,WindoW,rand_stat  &
                   ,dib,success)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params, wlcsim_data, eps
+use params, only: dp, wlcsim_data, eps
 use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
 use windowTools, only: drawWindow
 
 implicit none
-type(wlcsim_params),intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 !integer, intent(in) :: ExplicitBindingPair(WLC_P__NT)
 integer, intent(out) :: IB1   ! Test bead position 1

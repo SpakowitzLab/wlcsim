@@ -33,8 +33,8 @@ subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
     do rep = 1,nPTReplicas
         write(outFileUnit,"(2I6,2f7.4,f7.4,f9.1,f7.4,f9.1,f7.4,f9.1,f7.4)")&
                  rep, nodeNumber(rep), &
-                 real(upSuccess(rep))/real(N_average), &
-                 real(downSuccess(rep))/real(N_average),&
+                 real(upSuccess(rep),dp)/real(N_average,dp), &
+                 real(downSuccess(rep),dp)/real(N_average,dp),&
                  cofMtrx(rep,1), xMtrx(rep,1),&
                  cofMtrx(rep,3), xMtrx(rep,3),&
                  cofMtrx(rep,2), xMtrx(rep,2),s(rep)

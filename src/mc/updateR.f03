@@ -38,7 +38,7 @@ end subroutine updateR
 
 
 function checkR(wlc_d,I,IT1,IT2)
-use params, only: wlcsim_data, dp,eps
+use params, only: wlcsim_data, eps
 implicit none
 Type(wlcsim_data), intent(in) :: wlc_d     ! system allocated data
 integer, intent(in) :: IT1,IT2

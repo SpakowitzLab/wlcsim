@@ -9,15 +9,14 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
+subroutine MC_chemMove(wlc_d,IB1,IB2,IT1,IT2 &
                   ,WindoW,rand_stat,success)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params,wlcsim_data
+use params, only: dp,wlcsim_data
 use windowTools, only: drawWindow
 
 implicit none
-type(wlcsim_params), intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
@@ -32,7 +31,6 @@ integer J  ! Test indices
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urnd(1) ! single random number
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
-integer TEMP
 
 integer, parameter, dimension(0:3) :: changeBoth = [3, 2, 1, 0]
 integer, parameter, dimension(0:3) :: changeFirst = [2, 3, 0, 1]

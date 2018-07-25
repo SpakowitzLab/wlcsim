@@ -417,11 +417,11 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
 
         do I = IB,otherEnd
             R(:,I) = center + length*( &
-                     + cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*RloopVec &
-                     + sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*perpVec &
+                     + cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*RloopVec &
+                     + sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*perpVec &
                      - RloopVec)
-            U(:,I) = cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*perpVec &
-                    -sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB))*RloopVec
+            U(:,I) = cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*perpVec &
+                    -sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*RloopVec
             if (WLC_P__LOCAL_TWIST) wlc_d%V(:,I) = trash
         enddo
         IB=otherEnd+1

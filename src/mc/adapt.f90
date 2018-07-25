@@ -19,7 +19,8 @@ Subroutine MC_adapt(wlc_p,wlc_d,MCTYPE)
     endif
 
 !   Change the position if appropriate
-    wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE))/real(wlc_d%ATTEMPTS(MCTYPE))
+    wlc_d%PHIT(MCTYPE) = real(wlc_d%SUCCESS(MCTYPE),dp) &
+                        /real(wlc_d%ATTEMPTS(MCTYPE),dp)
 
     wlc_d%SUCCESS(MCTYPE) = 0
     wlc_d%ATTEMPTS(MCTYPE) = 0

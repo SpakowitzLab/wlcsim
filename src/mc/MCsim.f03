@@ -104,7 +104,7 @@ subroutine MCsim(wlc_p,wlc_d)
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               CYCLE
           endif
-          call MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,&
+          call MC_move(wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,&
                        MCTYPE,forward,wlc_d%rand_stat,dib,spider_id,success)
           if (.not. success) then
               wlc_d%ATTEMPTS(MCTYPE) = wlc_d%ATTEMPTS(MCTYPE) + 1
@@ -229,7 +229,7 @@ subroutine MCsim(wlc_p,wlc_d)
           endif
 
           if(WLC_P__EXPLICIT_BINDING) then
-              call MC_explicit_binding(wlc_p,wlc_d,IT1,IT2,IT3,IT4,MCTYPE)
+              call MC_explicit_binding(wlc_d,IT1,IT2,MCTYPE)
           endif
 
 !   Change the position if appropriate

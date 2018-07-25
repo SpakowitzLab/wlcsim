@@ -40,7 +40,7 @@ subroutine CalculateEnergiesFromScratch(wlc_p, wlc_d)
     endif
 
     if (WLC_P__EXPLICIT_BINDING) then
-        call MC_explicit_binding_from_scratch(wlc_p,wlc_d)
+        call MC_explicit_binding_from_scratch(wlc_d)
     endif
   if (WLC_P__RING) then
      ! --- Initial Writhe

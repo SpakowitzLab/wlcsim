@@ -9,13 +9,12 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chainSwap(wlc_p,wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
+subroutine MC_chainSwap(wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params, wlcsim_data
+use params, only: wlcsim_data
 
 implicit none
-type(wlcsim_params),intent(in) :: wlc_p
 type(wlcsim_data),intent(inout) :: wlc_d
 integer IP    ! Test polymer
 integer IP2   ! Second Test polymer

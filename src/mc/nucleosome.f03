@@ -117,7 +117,7 @@ subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
         XIU    = multiParams(7,i)
         sigma  = multiParams(8,i)
         etwist = multiParams(9,i)
-        simtype = nint(multiParams(10,i))
+        simtype = int(multiParams(10,i)+0.1_dp) ! the +0.1 is to prevent round down due to lack of precision
 end subroutine get_params
 
 ! ----------------------------------------------------------------------
@@ -139,6 +139,11 @@ subroutine setup_nucleosome_constants()
         DEL = WLC_P__LENGTH_PER_BP*i/WLC_P__LP
         call calc_elastic_constants(DEL,WLC_P__LP,WLC_P__LT,EB,EPAR,GAM,XIR,EPERP,ETA,XIU,DT,&
                                 SIGMA,ETWIST,simtype)
+        if (simtype .ne. 2) then
+            print*, "Error!  nucleosomes only setup for SSWLCWT"
+            print*, "Simtype ",simtype, " encountered"
+            stop
+        endif
         multiParams(1,i) = EB
         multiParams(2,i) = EPAR
         multiParams(3,i) = EPERP
@@ -148,7 +153,7 @@ subroutine setup_nucleosome_constants()
         multiParams(7,i) = XIU
         multiParams(8,i) = sigma
         multiParams(9,i) = etwist
-        multiParams(10,i) = real(simtype)
+        multiParams(10,i) = real(simtype,dp)
 
     enddo
 

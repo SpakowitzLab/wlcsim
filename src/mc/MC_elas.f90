@@ -165,8 +165,8 @@ if (WLC_P__RING.AND.WLC_P__TWIST) then
         DWR = 0.0_dp
     ENDif
     WRP = wlc_d%WR + DWR
-    tw = REAL(wlc_p%LK)-wlc_d%WR
-    twP = REAL(wlc_p%LK)-WRP
+    tw = REAL(wlc_p%LK,dp)-wlc_d%WR
+    twP = REAL(wlc_p%LK,dp)-WRP
     wlc_d%DEELAS(4) = wlc_d%DEELAS(4) + &
                       (((2.0_dp*pi*twP)**2)*WLC_P__LT/(2.0_dp*WLC_P__L))&
                       -(((2.0_dp*pi*TW)**2)*WLC_P__LT/(2.0_dp*WLC_P__L))

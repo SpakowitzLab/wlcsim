@@ -12,17 +12,14 @@
 !
 !     Edited by Quinn in 2016
 
-subroutine MC_explicit_binding(wlc_p,wlc_d,IT1,IT2,IT3,IT4,MCTYPE)
-use params
+subroutine MC_explicit_binding(wlc_d,IT1,IT2,MCTYPE)
+use params, only: wlcsim_data, dp
 implicit none
 
 !   iputs
-TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
 TYPE(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: IT1  ! Test bead position 1
 integer, intent(in) :: IT2  ! Test bead position 2
-integer, intent(in) :: IT3  ! Test bead position 1
-integer, intent(in) :: IT4  ! Test bead position 2
 integer, intent(in) :: MCTYPE
 
 !   Internal variables
@@ -30,15 +27,10 @@ integer, intent(in) :: MCTYPE
 integer ii
 integer otherEnd
 real(dp) r(3)
-real(dp) before, after, delta
 
 wlc_d%DEExplicitBinding = 0.0_dp
 
 if(MCTYPE==4 .or. MCTYPE==7 .or. MCTYPE==12) RETURN
-if(MCTYPE==9) then
-    print*, "swap move not finished for explicit binding"
-    stop 1
-endif
 
 do ii = IT1, IT2
     otherEnd = wlc_d%ExplicitBindingPair(ii) 
@@ -66,12 +58,11 @@ RETURN
 END
 
 !---------------------------------------------------------------!
-subroutine MC_explicit_binding_from_scratch(wlc_p,wlc_d)
-use params
+subroutine MC_explicit_binding_from_scratch(wlc_d)
+use params, only: wlcsim_data, dp
 implicit none
 
 !   iputs
-TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
 TYPE(wlcsim_data), intent(inout) :: wlc_d
 
 !   Internal variables

@@ -1,7 +1,7 @@
 #include "../defines.inc"
 !--------------------------------------------------------------*
 !
-!           Makes Monti Carlo Moves
+!           Makes Monti Carlo Move
 !
 !    Quinn separated out this file on 8/9/17
 !
@@ -9,15 +9,13 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_rotate(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
-                  ,MCAMP,rand_stat)
+subroutine MC_rotate(wlc_d,IB1,IB2,IT1,IT2,MCAMP,rand_stat)
 
 use mersenne_twister
-use params, only: dp, pi,wlcsim_params,wlcsim_data
+use params, only: dp,wlcsim_data
 use vector_utils, only: axisAngle, randomUnitVec, rotateU
 
 implicit none
-type(wlcsim_params), intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1

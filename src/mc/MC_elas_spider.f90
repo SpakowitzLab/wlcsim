@@ -6,7 +6,7 @@
 !
 subroutine MC_eelas_spider(wlc_p,wlc_d,DEELAS,spider_id,EB,EPAR,EPERP,GAM,ETA)
 
-use params, only: dp, pi,wlcsim_params, wlcsim_data
+use params, only: dp, wlcsim_params, wlcsim_data
 use MC_wlc, only: E_wlc, E_SSWLC, E_GAUSS
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p

@@ -9,14 +9,13 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_reptationMulti(wlc_p,wlc_d,IT1,IT2,IB1,IB2 &
+subroutine MC_reptationMulti(wlc_d,IT1,IT2,IB1,IB2 &
                   ,rand_stat,forward,super,nsteps)
 use mersenne_twister
-use params, only: dp,wlcsim_params, wlcsim_data
+use params, only: dp, wlcsim_data
 use vector_utils, only: random_perp, cross
 
 implicit none
-type(wlcsim_params), intent(in) :: wlc_p
 type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: nsteps
 logical, intent(in) :: super
@@ -26,12 +25,10 @@ integer, intent(out) :: IB1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Index of test bead 2
 
 integer IP    ! Test polymer
-integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real urnd(1) ! single random number
 integer irnd(1)
-real(dp) MAG      ! Magnitude of vector
 real(dp) DR(3)    ! Displacement for slide move
 real(dp) Uvec(3) ! parallel component of triad
 real(dp) pDir(3) ! perp component of triad

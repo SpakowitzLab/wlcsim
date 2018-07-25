@@ -18,11 +18,6 @@
       integer WR,TW ! writhe, twist
       integer I,J,IB,ibp1            ! Index holders
 
-
-      real(dp) DR(3),DRPAR,DRPERP(3)
-      real(dp) GI(3) !,U1U2
-
-
       EELAS = 0.0_dp
       IB = 1
       do I = 1,WLC_P__NP
