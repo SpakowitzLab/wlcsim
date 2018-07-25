@@ -14,8 +14,8 @@ subroutine MC_crank(wlc_p,wlc_d,IB1,IB2,IT1,IT2 &
                   ,dib,success)
 
 use mersenne_twister
-use params, only: dp,wlcsim_params, wlcsim_data
-use vector_utils, only: rotateR, rotateU, axisAngle
+use params, only: dp,wlcsim_params, wlcsim_data, eps
+use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
 use windowTools, only: drawWindow
 
 implicit none
@@ -85,6 +85,9 @@ else                                 !Polymer is not a ring
       TA = wlc_d%R(:,IT2)-wlc_d%R(:,IT1)
    endif
 endif
+  if (norm2(TA)<eps) then
+      call randomUnitVec(TA,rand_stat)
+  endif
 
   P1 = wlc_d%R(:,IT1)
   call random_number(urnd,rand_stat)
