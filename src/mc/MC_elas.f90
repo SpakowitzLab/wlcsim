@@ -6,14 +6,16 @@
 !     Calculate the change in the polymer elastic energy
 !     due to the displacement from a MC move
 !
-subroutine MC_eelas(wlc_p,wlc_d,IB1,IB2,IT1,IT2,EB,EPAR,EPERP,GAM,ETA,MCTYPE,WRP)
+subroutine MC_eelas(wlc_p,IB1,IB2,IT1,IT2,EB,EPAR,EPERP,GAM,ETA,MCTYPE,WRP)
+! values from wlcsim_data
+use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V, wlc_DEELAS&
+    , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_WR
 
-use params, only: dp, pi,wlcsim_params,wlcsim_data
+use params, only: dp, pi,wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_GAUSS
 use nucleosome, only: nucleosome_energy
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: IB1               ! Test bead position 1
 integer, intent(in) :: IT1               ! Index of test bead 1
 integer, intent(in) :: IB2               ! Test bead position 2
@@ -36,13 +38,14 @@ integer IT1P1
 integer IT2M1
 integer IT2P1
 integer MCTYPE            ! MC move type
+real(dp) energy_change(4)
 
 ! Setup parameters
 
-wlc_d%DEELAS(1) = 0.0_dp ! bending energy
-wlc_d%DEELAS(2) = 0.0_dp ! parallel stretch energy
-wlc_d%DEELAS(3) = 0.0_dp ! perpendicular stretch energy
-wlc_d%DEELAS(4) = 0.0_dp ! WLC_P__TWIST energy
+wlc_DEELAS(1) = 0.0_dp ! bending energy
+wlc_DEELAS(2) = 0.0_dp ! parallel stretch energy
+wlc_DEELAS(3) = 0.0_dp ! perpendicular stretch energy
+wlc_DEELAS(4) = 0.0_dp ! WLC_P__TWIST energy
 
 !     Calculate the change in the energy
 
@@ -67,36 +70,38 @@ if ((IB1 /= 1).or.(WLC_P__RING)) then
             print*, "You will need to update this section before use."
             print*, "Finish implementing IT1 and IT2"
             stop 1
-            wlc_d%DEELAS(1) = wlc_d%DEELAS(1) - E_wlc(wlc_d%R(:,IT1M1),wlc_d%RP(:,IT1),&
-                                          wlc_d%RP(:,IT1P1), EB )
-            wlc_d%DEELAS(1) = wlc_d%DEELAS(1) - E_wlc(wlc_d%R(:,IT1M1),wlc_d%R(:,IT1),&
-                                          wlc_d%R(:,IT1P1), EB)
+            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_R(:,IT1M1),wlc_RP(:,IT1),&
+                                          wlc_RP(:,IT1P1), EB )
+            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_R(:,IT1M1),wlc_R(:,IT1),&
+                                          wlc_R(:,IT1P1), EB)
 
         elseif (wlc_p%SIMTYPE == 2) then
-            wlc_d%DEELAS = wlc_d%DEELAS + E_SSWLC(wlc_d%RP(:,IT1),wlc_d%R(:,IT1M1),&
-                                      wlc_d%UP(:,IT1),wlc_d%U(:,IT1M1),&
+            energy_change = E_SSWLC(wlc_RP(:,IT1),wlc_R(:,IT1M1),&
+                                      wlc_UP(:,IT1),wlc_U(:,IT1M1),&
                                       EB,EPAR,EPERP,ETA,GAM)
-            wlc_d%DEELAS = wlc_d%DEELAS - E_SSWLC( wlc_d%R(:,IT1),wlc_d%R(:,IT1M1),&
-                                       wlc_d%U(:,IT1),wlc_d%U(:,IT1M1)&
+            wlc_DEELAS = wlc_DEELAS + energy_change
+            energy_change =  E_SSWLC( wlc_R(:,IT1),wlc_R(:,IT1M1),&
+                                       wlc_U(:,IT1),wlc_U(:,IT1M1)&
                                        ,EB,EPAR,EPERP,ETA,GAM)
+            wlc_DEELAS = wlc_DEELAS - energy_change
 
         elseif (wlc_p%SIMTYPE == 3) then
-            wlc_d%DEELAS(2) = wlc_d%DEELAS(2) + E_GAUSS(wlc_d%RP(:,IT1),wlc_d%R(:,IT1M1),EPAR)
-            wlc_d%DEELAS(2) = wlc_d%DEELAS(2) - E_GAUSS( wlc_d%R(:,IT1),wlc_d%R(:,IT1M1),EPAR)
+            wlc_DEELAS(2) = wlc_DEELAS(2) + E_GAUSS(wlc_RP(:,IT1),wlc_R(:,IT1M1),EPAR)
+            wlc_DEELAS(2) = wlc_DEELAS(2) - E_GAUSS( wlc_R(:,IT1),wlc_R(:,IT1M1),EPAR)
         endif
     elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
-            wlc_d%DEELAS = wlc_d%DEELAS + &
-                           nucleosome_energy(wlc_d%RP(:,IT1),wlc_d%R(:,IT1M1)&
-                                            ,wlc_d%UP(:,IT1),wlc_d%U(:,IT1M1)&
-                                            ,wlc_d%VP(:,IT1),wlc_d%V(:,IT1M1)&
-                                            ,wlc_d%basepairs(IT1M1)&
-                                            ,wlc_d%nucleosomeWrap(IT1M1))
-            wlc_d%DEELAS = wlc_d%DEELAS - &
-                           nucleosome_energy(wlc_d%R(:,IT1),wlc_d%R(:,IT1M1)&
-                                            ,wlc_d%U(:,IT1),wlc_d%U(:,IT1M1)&
-                                            ,wlc_d%V(:,IT1),wlc_d%V(:,IT1M1)&
-                                            ,wlc_d%basepairs(IT1M1)&
-                                            ,wlc_d%nucleosomeWrap(IT1M1))
+            energy_change = nucleosome_energy(wlc_RP(:,IT1),wlc_R(:,IT1M1)&
+                                            ,wlc_UP(:,IT1),wlc_U(:,IT1M1)&
+                                            ,wlc_VP(:,IT1),wlc_V(:,IT1M1)&
+                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_nucleosomeWrap(IT1M1))
+            wlc_DEELAS = wlc_DEELAS + energy_change
+            energy_change = nucleosome_energy(wlc_R(:,IT1),wlc_R(:,IT1M1)&
+                                            ,wlc_U(:,IT1),wlc_U(:,IT1M1)&
+                                            ,wlc_V(:,IT1),wlc_V(:,IT1M1)&
+                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_nucleosomeWrap(IT1M1))
+            wlc_DEELAS = wlc_DEELAS - energy_change
     endif
 endif
 
@@ -120,54 +125,56 @@ if ((IB2 /= WLC_P__NB).or.(WLC_P__RING)) then
             Print*, "This section is out of date"
             print*, "The variable IT2M1 is never used!"
             stop
-            wlc_d%DEELAS(1) = wlc_d%DEELAS(1) - E_wlc(wlc_d%RP(:,IT2M1),wlc_d%RP(:,IT2),wlc_d%R(:,IT2P1),EB)
-            wlc_d%DEELAS(1) = wlc_d%DEELAS(1) - E_wlc(wlc_d%R(:,IT2M1),wlc_d%R(:,IT2),wlc_d%R(:,IT2P1),EB)
+            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_RP(:,IT2M1),wlc_RP(:,IT2),wlc_R(:,IT2P1),EB)
+            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_R(:,IT2M1),wlc_R(:,IT2),wlc_R(:,IT2P1),EB)
 
         elseif (wlc_p%SIMTYPE == 2) then
             !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-            wlc_d%DEELAS = wlc_d%DEELAS + E_SSWLC(wlc_d%R(:,IT2P1),wlc_d%RP(:,IT2),&
-                                                  wlc_d%U(:,IT2P1),wlc_d%UP(:,IT2),&
+            energy_change = E_SSWLC(wlc_R(:,IT2P1),wlc_RP(:,IT2),&
+                                                  wlc_U(:,IT2P1),wlc_UP(:,IT2),&
                                                   EB,EPAR,EPERP,ETA,GAM)
-            wlc_d%DEELAS = wlc_d%DEELAS - E_SSWLC(wlc_d%R(:,IT2P1), wlc_d%R(:,IT2),&
-                                                  wlc_d%U(:,IT2P1), wlc_d%U(:,IT2),&
+            wlc_DEELAS = wlc_DEELAS + energy_change
+            energy_change = E_SSWLC(wlc_R(:,IT2P1), wlc_R(:,IT2),&
+                                                  wlc_U(:,IT2P1), wlc_U(:,IT2),&
                                                   EB,EPAR,EPERP,ETA,GAM)
+            wlc_DEELAS = wlc_DEELAS - energy_change
 
         elseif (wlc_p%SIMTYPE == 3) then
-            wlc_d%DEELAS(2) = wlc_d%DEELAS(2) + E_GAUSS(wlc_d%R(:,IT2P1),wlc_d%RP(:,IT2),EPAR)
-            wlc_d%DEELAS(2) = wlc_d%DEELAS(2) - E_GAUSS(wlc_d%R(:,IT2P1), wlc_d%R(:,IT2),EPAR)
+            wlc_DEELAS(2) = wlc_DEELAS(2) + E_GAUSS(wlc_R(:,IT2P1),wlc_RP(:,IT2),EPAR)
+            wlc_DEELAS(2) = wlc_DEELAS(2) - E_GAUSS(wlc_R(:,IT2P1), wlc_R(:,IT2),EPAR)
         endif
     elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
-            wlc_d%DEELAS = wlc_d%DEELAS + &
-                           nucleosome_energy(wlc_d%R(:,IT2P1),wlc_d%RP(:,IT2)&
-                                            ,wlc_d%U(:,IT2P1),wlc_d%UP(:,IT2)&
-                                            ,wlc_d%V(:,IT2P1),wlc_d%VP(:,IT2)&
-                                            ,wlc_d%basepairs(IT1M1)&
-                                            ,wlc_d%nucleosomeWrap(IT2))
-            wlc_d%DEELAS = wlc_d%DEELAS - &
-                           nucleosome_energy(wlc_d%R(:,IT2P1),wlc_d%R(:,IT2)&
-                                            ,wlc_d%U(:,IT2P1),wlc_d%U(:,IT2)&
-                                            ,wlc_d%V(:,IT2P1),wlc_d%V(:,IT2)&
-                                            ,wlc_d%basepairs(IT1M1)&
-                                            ,wlc_d%nucleosomeWrap(IT2))
+            energy_change = nucleosome_energy(wlc_R(:,IT2P1),wlc_RP(:,IT2)&
+                                            ,wlc_U(:,IT2P1),wlc_UP(:,IT2)&
+                                            ,wlc_V(:,IT2P1),wlc_VP(:,IT2)&
+                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_nucleosomeWrap(IT2))
+            wlc_DEELAS = wlc_DEELAS + energy_change
+            energy_change = nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
+                                            ,wlc_U(:,IT2P1),wlc_U(:,IT2)&
+                                            ,wlc_V(:,IT2P1),wlc_V(:,IT2)&
+                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_nucleosomeWrap(IT2))
+            wlc_DEELAS = wlc_DEELAS - energy_change
     endif
 endif
 
 if (WLC_P__RING.AND.WLC_P__TWIST) then
     if (MCTYPE == 1) then
-        CALL WRITHECRANK(wlc_d%R,IT1,IT2,WLC_P__NB,WRM)
-        CALL WRITHECRANK(wlc_d%RP,IT1,IT2,WLC_P__NB,WRMP)
+        CALL WRITHECRANK(wlc_R,IT1,IT2,WLC_P__NB,WRM)
+        CALL WRITHECRANK(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
         DWR = WRMP-WRM
     elseif (MCTYPE == 2) then
-        CALL WRITHESLIDE(wlc_d%R,IT1,IT2,WLC_P__NB,WRM)
-        CALL WRITHESLIDE(wlc_d%RP,IT1,IT2,WLC_P__NB,WRMP)
+        CALL WRITHESLIDE(wlc_R,IT1,IT2,WLC_P__NB,WRM)
+        CALL WRITHESLIDE(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
         DWR = WRMP-WRM
     else
         DWR = 0.0_dp
     ENDif
-    WRP = wlc_d%WR + DWR
-    tw = REAL(wlc_p%LK,dp)-wlc_d%WR
+    WRP = wlc_WR + DWR
+    tw = REAL(wlc_p%LK,dp)-wlc_WR
     twP = REAL(wlc_p%LK,dp)-WRP
-    wlc_d%DEELAS(4) = wlc_d%DEELAS(4) + &
+    wlc_DEELAS(4) = wlc_DEELAS(4) + &
                       (((2.0_dp*pi*twP)**2)*WLC_P__LT/(2.0_dp*WLC_P__L))&
                       -(((2.0_dp*pi*TW)**2)*WLC_P__LT/(2.0_dp*WLC_P__L))
 ENDif

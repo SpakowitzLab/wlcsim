@@ -18,12 +18,13 @@ function exponential_random_int(window,rand_stat) result(output)
     output = abs(output)
 end function exponential_random_int
 
-subroutine enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,max_window,success)
-use params, only: dp, wlcsim_data
+subroutine enforceBinding(rand_stat,IB1,IB2,IT1,IT2,max_window,success)
+! values from wlcsim_data
+use params, only: wlc_ExplicitBindingPair
+use params, only: dp
 use mersenne_twister
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-type(wlcsim_data), intent(in) :: wlc_d
 integer, intent(inout) :: IT1,IT2,IB1,IB2
 real(dp), intent(in) :: max_window
 logical, intent(out) :: success
@@ -38,7 +39,7 @@ if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
     IB2_temp=IB2
     IT2_temp=IT2
     do I =IT1,IT2
-        otherEnd=wlc_d%ExplicitBindingPair(I)
+        otherEnd=wlc_ExplicitBindingPair(I)
         if (WLC_P__NP>1) then
             ! make sure the other end is on the same polymer
             if ((IT1-1)/WLC_P__NB .ne. (otherEnd-1)/WLC_P__NB) cycle
@@ -66,11 +67,10 @@ if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
 endif
 end subroutine
 
-subroutine drawWindow(wlc_d,window,maxWindow,enforceBind,rand_stat,IT1,IT2,IB1,IB2,IP,DIB,success)
-use params, only: dp, wlcsim_data
+subroutine drawWindow(window,maxWindow,enforceBind,rand_stat,IT1,IT2,IB1,IB2,IP,DIB,success)
+use params, only: dp
 use mersenne_twister
 implicit none
-type(wlcsim_data), intent(in) :: wlc_d
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp), intent(in) :: maxWindow
 logical, intent(in) :: enforceBind  ! don't do move with internal bind
@@ -129,7 +129,7 @@ else
     IT2 = WLC_P__NB*(IP-1) + IB2
     IT1 = WLC_P__NB*(IP-1) + IB1
     if (WLC_P__EXPLICIT_BINDING .and. enforceBind) then
-        call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,wlc_d,maxWindow,success)
+        call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,maxWindow,success)
         if (success .eqv. .False.) return
     endif
 endif

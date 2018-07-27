@@ -9,13 +9,15 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_fullChainSlide(wlc_d,IB1,IB2,IT1,IT2,MCAMP,rand_stat)
+subroutine MC_fullChainSlide(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
+! values from wlcsim_data
+use params, only: wlc_R, wlc_RP, wlc_U, wlc_UP, wlc_VP&
+    , wlc_V
 
 use mersenne_twister
-use params, only: dp, wlcsim_data
+use params, only: dp
 
 implicit none
-type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -36,8 +38,8 @@ real(dp) DR(3)    ! Displacement for slide move
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_d%RP = wlc_d%R
-    wlc_d%UP = wlc_d%U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
     P1 = 0.0_dp
 endif
 
@@ -56,8 +58,8 @@ DR(2) = MCAMP*(urand(2)-0.5_dp)
 DR(3) = MCAMP*(urand(3)-0.5_dp)
 
 do I = IT1,IT2
-    wlc_d%RP(:,I) = wlc_d%R(:,I) + DR
+    wlc_RP(:,I) = wlc_R(:,I) + DR
 enddo
-wlc_d%UP(:,IT1:IT2) = wlc_d%U(:,IT1:IT2)
-if (WLC_P__LOCAL_TWIST)  wlc_d%VP(:,IT1:IT2) = wlc_d%V(:,IT1:IT2)
+wlc_UP(:,IT1:IT2) = wlc_U(:,IT1:IT2)
+if (WLC_P__LOCAL_TWIST)  wlc_VP(:,IT1:IT2) = wlc_V(:,IT1:IT2)
 end subroutine

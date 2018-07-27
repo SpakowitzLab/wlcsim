@@ -9,15 +9,16 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(wlc_d,IB1,IB2,IT1,IT2 &
-                  ,WindoW,rand_stat,success)
+subroutine MC_chemMove(IB1,IB2,IT1,IT2,WindoW,rand_stat,success)
+! values from wlcsim_data
+use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
+    , wlc_UP, wlc_ABP, wlc_VP
 
 use mersenne_twister
-use params, only: dp,wlcsim_data
+use params, only: dp
 use windowTools, only: drawWindow
 
 implicit none
-type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -38,13 +39,13 @@ integer, parameter, dimension(0:3) :: changeSecond = [1,0, 3, 2]
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_d%RP = wlc_d%R
-    wlc_d%UP = wlc_d%U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
 endif
 
-! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
+! Change wlc_AB (a.k.a HP1 binding type fore section of polymer)
 
-call drawWindow(wlc_d,window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
+call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
 if (success .eqv.  .false.) return
 
@@ -59,25 +60,25 @@ if (WLC_P__TWO_TAIL) then
     call random_number(urnd,rand_stat)
     if (urnd(1)>WLC_P__PROBSINGLESWAP) then
         do J = IT1, IT2
-            wlc_d%ABP(J) = changeBoth(wlc_d%AB(J))
+            wlc_ABP(J) = changeBoth(wlc_AB(J))
         enddo
     elseif (urnd(1)<WLC_P__PROBSINGLESWAP/2.0_dp) then
         do J = IT1, IT2
-            wlc_d%ABP(J) = changeFirst(wlc_d%AB(J))
+            wlc_ABP(J) = changeFirst(wlc_AB(J))
         enddo
     else
         do J = IT1, IT2
-            wlc_d%ABP(J) = changeSecond(wlc_d%AB(J))
+            wlc_ABP(J) = changeSecond(wlc_AB(J))
         enddo
     endif
 else
     do J = IT1,IT2
-        wlc_d%ABP(J) = 1-wlc_d%AB(J)
+        wlc_ABP(J) = 1-wlc_AB(J)
     ENDdo
 endif
 
 ! Copy over R,U,V to RP, UP, and VP
-wlc_d%RP(:,IT1:IT2) = wlc_d%R(:,IT1:IT2)
-wlc_d%UP(:,IT1:IT2) = wlc_d%U(:,IT1:IT2)
-if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,IT1:IT2) = wlc_d%V(:,IT1:IT2)
+wlc_RP(:,IT1:IT2) = wlc_R(:,IT1:IT2)
+wlc_UP(:,IT1:IT2) = wlc_U(:,IT1:IT2)
+if (WLC_P__LOCAL_TWIST) wlc_VP(:,IT1:IT2) = wlc_V(:,IT1:IT2)
 end subroutine

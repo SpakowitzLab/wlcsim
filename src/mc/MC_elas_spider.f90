@@ -4,13 +4,14 @@
 !     Calculate the change in the polymer elastic energy
 !     due to the displacement from a MC move
 !
-subroutine MC_eelas_spider(wlc_p,wlc_d,DEELAS,spider_id,EB,EPAR,EPERP,GAM,ETA)
+subroutine MC_eelas_spider(wlc_p,DEELAS,spider_id,EB,EPAR,EPERP,GAM,ETA)
+! values from wlcsim_data
+use params, only: wlc_spiders, wlc_U, wlc_R, wlc_UP, wlc_RP
 
-use params, only: dp, wlcsim_params, wlcsim_data
+use params, only: dp, wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_GAUSS
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(in) :: wlc_d
 integer, intent(in) :: spider_id
 real(dp), intent(out) :: DEELAS(4)   ! Change in ECOM
 
@@ -24,6 +25,7 @@ real(dp), intent(in) :: ETA
 
 integer hip, knee, toe, leg_n, ii, I, last_bead_on_polymer
 integer left_ends(3)  ! left end bead of the three kninks
+real(dp) energy_change(4)
 
 ! Setup parameters
 
@@ -38,18 +40,22 @@ if (WLC_P__RING) then
 endif
 
 !     Calculate the change in the energy
-do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
-    hip = wlc_d%spiders(spider_id)%legs(1,leg_n)
-    knee= wlc_d%spiders(spider_id)%legs(2,leg_n)
-    toe = wlc_d%spiders(spider_id)%legs(3,leg_n)
+do leg_n = 1,wlc_spiders(spider_id)%nLegs
+    hip = wlc_spiders(spider_id)%legs(1,leg_n)
+    knee= wlc_spiders(spider_id)%legs(2,leg_n)
+    toe = wlc_spiders(spider_id)%legs(3,leg_n)
     last_bead_on_polymer = (knee/WLC_P__NB + 1)*WLC_P__NB
 
     ! note that hip and toe U vectors don't rotate
     ! note also that the knee U vector rotates with the hip
     if (toe>hip) then
-        left_ends = [hip,knee,toe-1]
+        left_ends(1) = hip 
+        left_ends(2) = knee
+        left_ends(3) = toe-1
     else
-        left_ends = [toe,knee-1,hip-1]
+        left_ends(1) = toe
+        left_ends(2) = knee-1
+        left_ends(3) = hip-1
     endif
     do ii = 1,3
         I = left_ends(ii)
@@ -65,16 +71,18 @@ do leg_n = 1,wlc_d%spiders(spider_id)%nLegs
         elseif (wlc_p%SIMTYPE == 2) then
         
             !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-            DEELAS = DEELAS + E_SSWLC(wlc_d%RP(:,I+1),wlc_d%RP(:,I),&
-                                      wlc_d%UP(:,I+1),wlc_d%UP(:,I),&
+            energy_change = E_SSWLC(wlc_RP(:,I+1),wlc_RP(:,I),&
+                                      wlc_UP(:,I+1),wlc_UP(:,I),&
                                       EB,EPAR,EPERP,ETA,GAM)
-            DEELAS = DEELAS - E_SSWLC( wlc_d%R(:,I+1), wlc_d%R(:,I),&
-                                       wlc_d%U(:,I+1), wlc_d%U(:,I),&
+            DEELAS = DEELAS + energy_change
+            energy_change = E_SSWLC( wlc_R(:,I+1), wlc_R(:,I),&
+                                       wlc_U(:,I+1), wlc_U(:,I),&
                                        EB,EPAR,EPERP,ETA,GAM)
+            DEELAS = DEELAS - energy_change
         
         elseif (wlc_p%SIMTYPE == 3) then
-            DEELAS(2) = DEELAS(2) + E_GAUSS(wlc_d%RP(:,I+1),wlc_d%RP(:,I),EPAR)
-            DEELAS(2) = DEELAS(2) - E_GAUSS( wlc_d%R(:,I+1), wlc_d%R(:,I),EPAR)
+            DEELAS(2) = DEELAS(2) + E_GAUSS(wlc_RP(:,I+1),wlc_RP(:,I),EPAR)
+            DEELAS(2) = DEELAS(2) - E_GAUSS( wlc_R(:,I+1), wlc_R(:,I),EPAR)
         endif
     enddo
 enddo

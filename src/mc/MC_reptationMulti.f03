@@ -9,14 +9,15 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_reptationMulti(wlc_d,IT1,IT2,IB1,IB2 &
-                  ,rand_stat,forward,super,nsteps)
+subroutine MC_reptationMulti(IT1,IT2,IB1,IB2,rand_stat,forward,super,nsteps)
+! values from wlcsim_data
+use params, only: wlc_U, wlc_RP, wlc_R, wlc_V, wlc_UP&
+    , wlc_ABP, wlc_AB, wlc_VP
 use mersenne_twister
-use params, only: dp, wlcsim_data
+use params, only: dp
 use vector_utils, only: random_perp, cross
 
 implicit none
-type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: nsteps
 logical, intent(in) :: super
 integer, intent(out) :: IT1   ! Index of test bead 1
@@ -47,8 +48,8 @@ stop
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_d%RP = wlc_d%R
-    wlc_d%UP = wlc_d%U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
 endif
 
 allocate( Rtemp(3,nsteps) )
@@ -61,9 +62,9 @@ IT1 = WLC_P__NB*(IP-1) + 1
 IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
 IB1 = 1
 IB2 = WLC_P__NB
-Rtemp=wlc_d%R(:,IT1:IT2)
-Utemp=wlc_d%U(:,IT1:IT2)
-Vtemp=wlc_d%V(:,IT1:IT2)
+Rtemp=wlc_R(:,IT1:IT2)
+Utemp=wlc_U(:,IT1:IT2)
+Vtemp=wlc_V(:,IT1:IT2)
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then
@@ -103,25 +104,25 @@ if (urnd(1).lt.0.5_dp) then
             call random_perp(Uvec,pDir,tDir,rand_stat)
         endif
         ! update UP and RP
-        wlc_d%UP(:,IT2) = Uvec*u_relative(1) + pDir*u_relative(2) + tDir*u_relative(3)
-        wlc_d%UP(:,IT2) = wlc_d%UP(:,IT2)/norm2(wlc_d%UP(:,IT2))
+        wlc_UP(:,IT2) = Uvec*u_relative(1) + pDir*u_relative(2) + tDir*u_relative(3)
+        wlc_UP(:,IT2) = wlc_UP(:,IT2)/norm2(wlc_UP(:,IT2))
         if (WLC_P__LOCAL_TWIST) then
-            wlc_d%VP(:,IT2) = Uvec*v_relative(1) + pDir*v_relative(2) + tDir*v_relative(3)
-            wlc_d%VP(:,IT2) = wlc_d%VP(:,IT2)/norm2(wlc_d%VP(:,IT2))
+            wlc_VP(:,IT2) = Uvec*v_relative(1) + pDir*v_relative(2) + tDir*v_relative(3)
+            wlc_VP(:,IT2) = wlc_VP(:,IT2)/norm2(wlc_VP(:,IT2))
         endif
-        wlc_d%RP(:,IT2) = Rtemp(:,nsteps) + Uvec*r_relative(1) + pDir*r_relative(2) + tDir*r_relative(3)
+        wlc_RP(:,IT2) = Rtemp(:,nsteps) + Uvec*r_relative(1) + pDir*r_relative(2) + tDir*r_relative(3)
 
-        wlc_d%RP(:,IT1:IT2-1)=Rtemp(:,2:nsteps)
-        wlc_d%UP(:,IT1:IT2-1)=Utemp(:,2:nsteps)
-        if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,IT1:IT2-1)=Vtemp(:,2:nsteps)
+        wlc_RP(:,IT1:IT2-1)=Rtemp(:,2:nsteps)
+        wlc_UP(:,IT1:IT2-1)=Utemp(:,2:nsteps)
+        if (WLC_P__LOCAL_TWIST) wlc_VP(:,IT1:IT2-1)=Vtemp(:,2:nsteps)
 
-        Rtemp=wlc_d%RP(:,IT1:IT2)
-        Utemp=wlc_d%UP(:,IT1:IT2)
-        if (WLC_P__LOCAL_TWIST) Vtemp=wlc_d%VP(:,IT1:IT2)
+        Rtemp=wlc_RP(:,IT1:IT2)
+        Utemp=wlc_UP(:,IT1:IT2)
+        if (WLC_P__LOCAL_TWIST) Vtemp=wlc_VP(:,IT1:IT2)
     enddo
     if (super) then
-        wlc_d%ABP(IT1:IT2-nsteps)=wlc_d%ABP(IT1+nsteps:IT2)
-        wlc_d%ABP(IT2-nsteps+1:IT2)=wlc_d%AB(IT1:IT1+nsteps-1)
+        wlc_ABP(IT1:IT2-nsteps)=wlc_ABP(IT1+nsteps:IT2)
+        wlc_ABP(IT2-nsteps+1:IT2)=wlc_AB(IT1:IT1+nsteps-1)
     endif
 else
     forward = .false.
@@ -158,27 +159,27 @@ else
             call random_perp(Uvec,pDir,tDir,rand_stat)
         endif
         ! update UP and RP
-        wlc_d%UP(:,IT1) = Uvec*u_relative(1) + pDir*u_relative(2) + tDir*u_relative(3)
-        wlc_d%UP(:,IT1) = wlc_d%UP(:,IT1)/norm2(wlc_d%UP(:,IT1))
+        wlc_UP(:,IT1) = Uvec*u_relative(1) + pDir*u_relative(2) + tDir*u_relative(3)
+        wlc_UP(:,IT1) = wlc_UP(:,IT1)/norm2(wlc_UP(:,IT1))
         if (WLC_P__LOCAL_TWIST) then
-            wlc_d%VP(:,IT1) = Uvec*v_relative(1) + pDir*v_relative(2) + tDir*v_relative(3)
-            wlc_d%VP(:,IT1) = wlc_d%VP(:,IT1)/norm2(wlc_d%VP(:,IT1))
+            wlc_VP(:,IT1) = Uvec*v_relative(1) + pDir*v_relative(2) + tDir*v_relative(3)
+            wlc_VP(:,IT1) = wlc_VP(:,IT1)/norm2(wlc_VP(:,IT1))
         endif
-        wlc_d%RP(:,IT1) = Rtemp(:,1)-Uvec(:)*r_relative(1)-pDir(:)*r_relative(2)-tDir(:)*r_relative(3)
+        wlc_RP(:,IT1) = Rtemp(:,1)-Uvec(:)*r_relative(1)-pDir(:)*r_relative(2)-tDir(:)*r_relative(3)
 
-        wlc_d%RP(:,IT1 + 1:IT2) = Rtemp(:,1:nsteps - 1)
-        wlc_d%UP(:,IT1 + 1:IT2) = Utemp(:,1:nsteps - 1)
+        wlc_RP(:,IT1 + 1:IT2) = Rtemp(:,1:nsteps - 1)
+        wlc_UP(:,IT1 + 1:IT2) = Utemp(:,1:nsteps - 1)
         if (WLC_P__LOCAL_TWIST) then
-            wlc_d%VP(:,IT1 + 1:IT2) = Vtemp(:,1:nsteps-1)
+            wlc_VP(:,IT1 + 1:IT2) = Vtemp(:,1:nsteps-1)
         endif
 
-        Rtemp=wlc_d%RP(:,IT1:IT2)
-        Utemp=wlc_d%UP(:,IT1:IT2)
-        if (WLC_P__LOCAL_TWIST) Vtemp=wlc_d%VP(:,IT1:IT2)
+        Rtemp=wlc_RP(:,IT1:IT2)
+        Utemp=wlc_UP(:,IT1:IT2)
+        if (WLC_P__LOCAL_TWIST) Vtemp=wlc_VP(:,IT1:IT2)
     enddo
     if (super) then
-        wlc_d%ABP(IT1+nsteps:IT2)=wlc_d%ABP(IT1:IT2-nsteps)
-        wlc_d%ABP(IT1:IT1+nsteps-1)=wlc_d%AB(IT2-nsteps+1:IT2)
+        wlc_ABP(IT1+nsteps:IT2)=wlc_ABP(IT1:IT2-nsteps)
+        wlc_ABP(IT1:IT1+nsteps-1)=wlc_AB(IT2-nsteps+1:IT2)
     endif
 endif
 deallocate(Rtemp)

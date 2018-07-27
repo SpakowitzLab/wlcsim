@@ -8,9 +8,11 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,spider_id,success)
+subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,spider_id,success)
+! values from wlcsim_data
+use params, only: wlc_Window, wlc_MCAMP
 use mersenne_twister, only: random_stat
-use params, only: wlcsim_data, wlcsim_params
+use params, only:  wlcsim_params
 implicit none
 
 integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib,spider_id
@@ -20,39 +22,38 @@ logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 
 
-type(wlcsim_data), intent(inout) :: wlc_d
 
 success = .TRUE.
 spider_id = 0
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1)
-call MC_crank(wlc_d,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
+call MC_crank(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
        ,dib,success)
 case(2)
-call MC_slide(wlc_d,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
+call MC_slide(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
        ,dib,success)
 case(3)
-call MC_pivot(wlc_d,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat,success)
+call MC_pivot(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat,success)
 case(4)
-call MC_rotate(wlc_d,IB1,IB2,IT1,IT2,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_rotate(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(5)
-call MC_fullChainRotation(wlc_d,IB1,IB2,IT1,IT2,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_fullChainRotation(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(6)
-call MC_fullChainSlide(wlc_d,IB1,IB2,IT1,IT2,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_fullChainSlide(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_d,IB1,IB2,IT1,IT2,wlc_d%Window(MCTYPE),rand_stat,success)
+call MC_chemMove(IB1,IB2,IT1,IT2,wlc_Window(MCTYPE),rand_stat,success)
 case(8)
 case(9)
-call MC_chainSwap(wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
+call MC_chainSwap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 case(10)
-call MC_reptation(wlc_d,IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
+call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
 case(11)
-call MC_reptation(wlc_d,IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
+call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
-call MC_spider(wlc_d,wlc_d%MCAMP,rand_stat,success,spider_id)
+call MC_spider(wlc_MCAMP,rand_stat,success,spider_id)
 end select
 RETURN
 END

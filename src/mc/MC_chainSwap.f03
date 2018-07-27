@@ -9,13 +9,15 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chainSwap(wlc_d,IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
+subroutine MC_chainSwap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
+! values from wlcsim_data
+use params, only: wlc_U, wlc_RP, wlc_VP, wlc_UP, wlc_R&
+    , wlc_V
 
 use mersenne_twister
-use params, only: wlcsim_data
+
 
 implicit none
-type(wlcsim_data),intent(inout) :: wlc_d
 integer IP    ! Test polymer
 integer IP2   ! Second Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -33,8 +35,8 @@ integer I
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_d%RP = wlc_d%R
-    wlc_d%UP = wlc_d%U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
 endif
 
 ! switch two chains
@@ -54,13 +56,13 @@ IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
 IT3 = WLC_P__NB*(IP2-1) + 1
 IT4 = WLC_P__NB*(IP2-1) + WLC_P__NB
 do I = 0,WLC_P__NB-1
-    wlc_d%RP(:,IT1 + I) = wlc_d%R(:,IT3 + I)
-    wlc_d%UP(:,IT1 + I) = wlc_d%U(:,IT3 + I)
-    wlc_d%RP(:,IT3 + I) = wlc_d%R(:,IT1 + I)
-    wlc_d%UP(:,IT3 + I) = wlc_d%U(:,IT1 + I)
+    wlc_RP(:,IT1 + I) = wlc_R(:,IT3 + I)
+    wlc_UP(:,IT1 + I) = wlc_U(:,IT3 + I)
+    wlc_RP(:,IT3 + I) = wlc_R(:,IT1 + I)
+    wlc_UP(:,IT3 + I) = wlc_U(:,IT1 + I)
     if (WLC_P__LOCAL_TWIST) then
-        wlc_d%VP(:,IT1 + I) = wlc_d%V(:,IT3 + I)
-        wlc_d%VP(:,IT3 + I) = wlc_d%V(:,IT1 + I)
+        wlc_VP(:,IT1 + I) = wlc_V(:,IT3 + I)
+        wlc_VP(:,IT3 + I) = wlc_V(:,IT1 + I)
     endif
 ENDdo
 IB1 = -2000000

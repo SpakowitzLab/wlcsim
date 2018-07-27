@@ -9,12 +9,14 @@
 !     Written by Quinn in 2016 based on code from Andrew Spakowitz and Shifan
 !
 !---------------------------------------------------------------!
-subroutine MC_int_swap(wlc_p,wlc_d,I1,I2,I3,I4)
-use params,only:dp,wlcsim_params,wlcsim_data
+subroutine MC_int_swap(wlc_p,I1,I2,I3,I4)
+! values from wlcsim_data
+use params, only: wlc_UP, wlc_DPHIA, wlc_DEKap, wlc_RP, wlc_NPHI&
+    , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI
+use params,only:dp,wlcsim_params
 implicit none
 
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
-TYPE(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: I1      ! Test bead position 1
 integer, intent(in) :: I2      ! Test bead position 2
 integer, intent(in) :: I3      ! Test bead, first bead of second section
@@ -64,29 +66,29 @@ endif
 !
 !--------------------------------------------------------------
 
-wlc_d%NPHI = 0
+wlc_NPHI = 0
 do IB = I1,I2
   IB2 = IB + I3-I1
   !No need to do calculation if identities are the same
-  if (wlc_d%AB(IB).eq.wlc_d%AB(IB2)) cycle
+  if (wlc_AB(IB).eq.wlc_AB(IB2)) cycle
   do rrdr = -1,1,2
    ! on initialize only add current position
    ! otherwise subract current and add new
    if (rrdr.eq.-1) then
-       RBin(1) = wlc_d%R(1,IB)
-       RBin(2) = wlc_d%R(2,IB)
-       RBin(3) = wlc_d%R(3,IB)
+       RBin(1) = wlc_R(1,IB)
+       RBin(2) = wlc_R(2,IB)
+       RBin(3) = wlc_R(3,IB)
    else
-       RBin(1) = wlc_d%RP(1,IB)
-       RBin(2) = wlc_d%RP(2,IB)
-       RBin(3) = wlc_d%RP(3,IB)
+       RBin(1) = wlc_RP(1,IB)
+       RBin(2) = wlc_RP(2,IB)
+       RBin(3) = wlc_RP(3,IB)
    endif
-   AminusB = -1+2*wlc_d%AB(IB) ! -1 if B and +1 if A
+   AminusB = -1+2*wlc_AB(IB) ! -1 if B and +1 if A
    if (wlc_p%CHI_L2_ON) then
        if (rrdr == -1) then
-           call Y2calc(wlc_d%U(:,IB),phi2)
+           call Y2calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_d%UP(:,IB),phi2)
+           call Y2calc(wlc_UP(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -114,27 +116,27 @@ do IB = I1,I2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
             ! Generate list of which phi's change and by how much
-            I = wlc_d%NPHI
+            I = wlc_NPHI
             do
                if (I.eq.0) then
-                  wlc_d%NPHI = wlc_d%NPHI + 1
-                  wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                  wlc_NPHI = wlc_NPHI + 1
+                  wlc_inDPHI(wlc_NPHI) = inDBin
                   temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                  wlc_d%DPHIA(wlc_d%NPHI) = temp
-                  wlc_d%DPHIB(wlc_d%NPHI) = -temp
+                  wlc_DPHIA(wlc_NPHI) = temp
+                  wlc_DPHIB(wlc_NPHI) = -temp
                   if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
-                          wlc_d%dPHI_l2(m_index,wlc_d%NPHI) = phi2(m_index)*temp
+                          wlc_dPHI_l2(m_index,wlc_NPHI) = phi2(m_index)*temp
                       enddo
                   endif
                   exit
-               elseif (inDBin == wlc_d%inDPHI(I)) then
+               elseif (inDBin == wlc_inDPHI(I)) then
                   temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                  wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
-                  wlc_d%DPHIB(I) = wlc_d%DPHIB(I)-temp
+                  wlc_DPHIA(I) = wlc_DPHIA(I) + temp
+                  wlc_DPHIB(I) = wlc_DPHIB(I)-temp
                   if(wlc_p%CHI_L2_ON) then
                       do m_index = -2,2
-                          wlc_d%dPHI_l2(m_index,I) = wlc_d%dPHI_l2(m_index,I) + &
+                          wlc_dPHI_l2(m_index,I) = wlc_dPHI_l2(m_index,I) + &
                                       phi2(m_index)*temp
                       enddo
                   endif
@@ -148,11 +150,11 @@ do IB = I1,I2
    enddo
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
-call hamiltonian(wlc_p,wlc_d,.false.)
+call hamiltonian(wlc_p,.false.)
 
-if (abs(wlc_d%DEKap).gt.0.0001) then
+if (abs(wlc_DEKap).gt.0.0001) then
     print*, "Error in MC_int_swap.  Kappa energy shouldn't change on move 9"
-    print*, "DEKap", wlc_d%DEKap
+    print*, "DEKap", wlc_DEKap
     stop 1
 endif
 RETURN

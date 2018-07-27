@@ -1,6 +1,8 @@
 #include "../defines.inc"
 
-subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
+subroutine wlcsim_quinn(save_ind, wlc_p)
+! values from wlcsim_data
+use params, only: wlc_mc_ind, wlc_numProcesses, wlc_id
 #if MPI_VERSION
     use mpi
 #endif
@@ -8,37 +10,38 @@ subroutine wlcsim_quinn(save_ind, wlc_d, wlc_p)
     implicit none
     integer, intent(in) :: save_ind ! 1, 2, ...
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
 
     ! to minimize code rewriting, we use our old name for save_ind internally
-    wlc_d%mc_ind = save_ind
+    wlc_mc_ind = save_ind
 
 
 
 #if MPI_VERSION
-    if (wlc_d%numProcesses == 1) then
-        call onlyNode(wlc_p, wlc_d)
-    elseif (wlc_d%id == 0) then
-        call head_node(wlc_p, wlc_d,wlc_d%numProcesses)
+    if (wlc_numProcesses == 1) then
+        call onlyNode(wlc_p)
+    elseif (wlc_id == 0) then
+        call head_node(wlc_p,wlc_numProcesses)
     else
-        call worker_node(wlc_p, wlc_d)
+        call worker_node(wlc_p)
     endif
 #else
-    call onlyNode(wlc_p, wlc_d)
+    call onlyNode(wlc_p)
 #endif
 
 
 
     print*, '________________________________________'
-    print*, 'Time point ',save_ind, ' out of', WLC_P__NUMSAVEPOINTS, 'Thread id', wlc_d%id
-    call printEnergies(wlc_d)
-    call printWindowStats(wlc_p, wlc_d)
-    !call wlcsim_params_printPhi(wlc_p, wlc_d)
+    print*, 'Time point ',save_ind, ' out of', WLC_P__NUMSAVEPOINTS, 'Thread id', wlc_id
+    call printEnergies()
+    call printWindowStats(wlc_p)
+    !call wlcsim_params_printPhi(wlc_p)
 
 end subroutine wlcsim_quinn
 
 #if MPI_VERSION
-subroutine head_node(wlc_p, wlc_d,process)
+subroutine head_node(wlc_p,process)
+! values from wlcsim_data
+use params, only: wlc_mc_ind, wlc_rand_stat
     use mersenne_twister
     use mpi
     use params
@@ -50,7 +53,6 @@ subroutine head_node(wlc_p, wlc_d,process)
     integer ( kind = 4 ) error  ! error id for MIP functions
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
 
     !   variable for random number generator seeding
     real urand(1)
@@ -152,7 +154,7 @@ subroutine head_node(wlc_p, wlc_d,process)
             dest = nodeNumber(rep)
             call MPI_Send (rep,1, MPI_integer, dest,   0, &
                             MPI_COMM_WORLD,error )
-            if (WLC_P__RESTART.and.wlc_d%mc_ind.eq.1) then
+            if (WLC_P__RESTART.and.wlc_mc_ind.eq.1) then
                 source = dest
                 call MPI_Recv (cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
                                MPI_COMM_WORLD, status, error )
@@ -177,7 +179,7 @@ subroutine head_node(wlc_p, wlc_d,process)
         enddo
 
         source = 1
-        call MPI_Recv (wlc_d%mc_ind, 1, MPI_integer, source, 0, &
+        call MPI_Recv (wlc_mc_ind, 1, MPI_integer, source, 0, &
                        MPI_COMM_WORLD, status, error )
 
         ! do replica exchange
@@ -187,7 +189,7 @@ subroutine head_node(wlc_p, wlc_d,process)
                 energy = energy-(xMtrx(rep + 1,term)-xMtrx(rep,term))*&
                               (cofMtrx(rep + 1,term)-cofMtrx(rep,term))
             enddo
-            call random_number(urand,wlc_d%rand_stat)
+            call random_number(urand,wlc_rand_stat)
             if (exp(-1.0_dp*energy).gt.urand(1)) then
                 if (WLC_P__PTON) then
                     temp = nodeNumber(rep)
@@ -208,10 +210,10 @@ subroutine head_node(wlc_p, wlc_d,process)
         if (N_average.ge.WLC_P__NREPADAPT) then
             call save_repHistory(upSuccess,downSuccess,nPTReplicas, &
                                  cofMtrx,xMtrx,nodeNumber,N_average,&
-                                 nExchange,wlc_d%mc_ind,nTerms,s_vals)
+                                 nExchange,wlc_mc_ind,nTerms,s_vals)
 
-            if ((wlc_d%mc_ind.ge.WLC_P__INDSTARTREPADAPT).and. &
-                (wlc_d%mc_ind.lt.WLC_P__INDENDREPADAPT)) then ! insert input defined location here
+            if ((wlc_mc_ind.ge.WLC_P__INDSTARTREPADAPT).and. &
+                (wlc_mc_ind.lt.WLC_P__INDENDREPADAPT)) then ! insert input defined location here
                 call adaptCof(downSuccess,nPTReplicas,s_vals,N_average,&
                                WLC_P__LOWERREPEXE,WLC_P__UPPERREPEXE,&
                                WLC_P__LOWERCOFRAIL,WLC_P__UPPERCOFRAIL,&
@@ -315,7 +317,15 @@ function AEF_path(s) result(AEF)
 end function AEF_path
 
 #if MPI_VERSION
-subroutine worker_node(wlc_p, wlc_d)
+subroutine worker_node(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_x_ExternalField, wlc_EmaierSaupe, wlc_deelas, wlc_dx_couple, wlc_x_Chi&
+    , wlc_dECouple, wlc_debind, wlc_x_externalField, wlc_dEExternalField, wlc_deMaierSaupe, wlc_x_couple&
+    , wlc_EField, wlc_ebind, wlc_dx_Kap, wlc_dx_externalField, wlc_ind_exchange, wlc_x_Field&
+    , wlc_dx_Chi, wlc_EKap, wlc_x_maierSaupe, wlc_dECHI, wlc_dx_maierSaupe, wlc_dEKap&
+    , wlc_dEField, wlc_eExternalField, wlc_ECouple, wlc_ECHI, wlc_x_mu, wlc_eMu&
+    , wlc_mc_ind, wlc_deMu, wlc_dx_Field, wlc_eelas, wlc_dx_mu, wlc_x_Kap&
+    , wlc_EMaierSaupe
     use mpi
     use params
     use mersenne_twister
@@ -323,7 +333,6 @@ subroutine worker_node(wlc_p, wlc_d)
     integer ( kind = 4 ), save :: id = -1     ! which processor I am
     integer ( kind = 4 ) error  ! error id for MIP functions
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
     integer i
     logical system_has_been_changed
     real :: start, finish
@@ -332,62 +341,62 @@ subroutine worker_node(wlc_p, wlc_d)
         call MPI_Comm_rank(MPI_COMM_WORLD, id, error)
         call stop_if_err(error, "Failed to get num_processes.")
     endif
-    if (wlc_d%mc_ind == 1) then
+    if (wlc_mc_ind == 1) then
         if (WLC_P__PT_CHI .or. WLC_P__PT_H .or. WLC_P__PT_KAP .or. WLC_P__PT_MU .or. WLC_P__PT_COUPLE .or. WLC_P__ENSEMBLE_BIND) then
-            call startWorker(wlc_p, wlc_d)
+            call startWorker(wlc_p)
         endif
     endif
 
-    call schedule(wlc_p, wlc_d,system_has_been_changed)
+    call schedule(wlc_p,system_has_been_changed)
 
     if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
-        wlc_d%eelas = wlc_d%deelas
+        call CalculateEnergiesFromScratch(wlc_p)
+        wlc_eelas = wlc_deelas
         if (wlc_p%field_int_on_currently) then
-            wlc_d%ECouple =wlc_d%dECouple
-            wlc_d%EKap    =wlc_d%dEKap
-            wlc_d%ECHI    =wlc_d%dECHI
-            wlc_d%EField  =wlc_d%dEField
-            wlc_d%EMaierSaupe = wlc_d%deMaierSaupe
-            wlc_d%x_Field =wlc_d%dx_Field
-            wlc_d%x_couple = wlc_d%dx_couple
-            wlc_d%x_Kap   =wlc_d%dx_Kap
-            wlc_d%x_Chi   =wlc_d%dx_Chi
-            wlc_d%x_maierSaupe = wlc_d%dx_maierSaupe
+            wlc_ECouple =wlc_dECouple
+            wlc_EKap    =wlc_dEKap
+            wlc_ECHI    =wlc_dECHI
+            wlc_EField  =wlc_dEField
+            wlc_EMaierSaupe = wlc_deMaierSaupe
+            wlc_x_Field =wlc_dx_Field
+            wlc_x_couple = wlc_dx_couple
+            wlc_x_Kap   =wlc_dx_Kap
+            wlc_x_Chi   =wlc_dx_Chi
+            wlc_x_maierSaupe = wlc_dx_maierSaupe
         else
-            wlc_d%ECouple =0.0_dp
-            wlc_d%EKap    =0.0_dp
-            wlc_d%ECHI    =0.0_dp
-            wlc_d%EField  =0.0_dp
-            wlc_d%EmaierSaupe = 0.0_dp
-            wlc_d%x_Field =0.0_dp
-            wlc_d%x_couple = 0.0_dp
-            wlc_d%x_Kap   =0.0_dp
-            wlc_d%x_Chi   =0.0_dp
-            wlc_d%x_maierSaupe = 0.0_dp
+            wlc_ECouple =0.0_dp
+            wlc_EKap    =0.0_dp
+            wlc_ECHI    =0.0_dp
+            wlc_EField  =0.0_dp
+            wlc_EmaierSaupe = 0.0_dp
+            wlc_x_Field =0.0_dp
+            wlc_x_couple = 0.0_dp
+            wlc_x_Kap   =0.0_dp
+            wlc_x_Chi   =0.0_dp
+            wlc_x_maierSaupe = 0.0_dp
         endif
         if (WLC_P__VARIABLE_CHEM_STATE) then
-            wlc_d%ebind   =wlc_d%debind
-            wlc_d%eMu     =wlc_d%deMu
-            wlc_d%x_mu    =wlc_d%dx_mu
+            wlc_ebind   =wlc_debind
+            wlc_eMu     =wlc_deMu
+            wlc_x_mu    =wlc_dx_mu
         else
-            wlc_d%ebind   =0.0_dp
-            wlc_d%eMu     =0.0_dp
-            wlc_d%x_mu    =0.0_dp
+            wlc_ebind   =0.0_dp
+            wlc_eMu     =0.0_dp
+            wlc_x_mu    =0.0_dp
         endif
         if(WLC_P__APPLY_EXTERNAL_FIELD) then
-            wlc_d%eExternalField = wlc_d%dEExternalField
-            wlc_d%x_externalField = wlc_d%dx_externalField
-            if (abs(wlc_d%eExternalField-wlc_p%AEF*wlc_d%x_ExternalField).gt.0.00001) then
+            wlc_eExternalField = wlc_dEExternalField
+            wlc_x_externalField = wlc_dx_externalField
+            if (abs(wlc_eExternalField-wlc_p%AEF*wlc_x_ExternalField).gt.0.00001) then
                 print*, "error in wlcsim_quinn"
                 stop
             endif
         else
-            wlc_d%eExternalField = 0
-            wlc_d%x_externalField = 0
+            wlc_eExternalField = 0.0_dp
+            wlc_x_externalField = 0.0_dp
         endif
     else
-        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+        call VerifyEnergiesFromScratch(wlc_p)
     endif
 
     ! ------------------------------
@@ -398,79 +407,85 @@ subroutine worker_node(wlc_p, wlc_d)
 
     call cpu_time(start)
     do i = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
-        wlc_d%ind_exchange=i
+        wlc_ind_exchange=i
         !   * Perform a MC simulation *
-        call MCsim(wlc_p, wlc_d,WLC_P__STEPSPEREXCHANGE)
+        call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
 
         !   * Replica Exchange *
-        call replicaExchange(wlc_p,wlc_d)
+        call replicaExchange(wlc_p)
     enddo
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine worker_node
 #endif
 
-subroutine onlyNode(wlc_p, wlc_d)
+subroutine onlyNode(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_x_maiersaupe, wlc_dx_couple, wlc_x_Chi, wlc_dECouple, wlc_debind&
+    , wlc_dEExternalField, wlc_x_couple, wlc_ebind, wlc_EField, wlc_dx_Kap, wlc_dEmaiersaupe&
+    , wlc_x_Field, wlc_dx_Chi, wlc_EKap, wlc_dx_maiersaupe, wlc_dECHI, wlc_dEKap&
+    , wlc_dEField, wlc_eExternalField, wlc_ECouple, wlc_ECHI, wlc_x_mu, wlc_eMu&
+    , wlc_Emaiersaupe, wlc_deMu, wlc_dx_Field, wlc_dx_mu, wlc_x_Kap
     use params
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
     logical system_has_been_changed
     real :: start, finish
     !   * Perform a MC simulation *
-    call schedule(wlc_p, wlc_d,system_has_been_changed)
+    call schedule(wlc_p,system_has_been_changed)
     if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(wlc_p, wlc_d)
+        call CalculateEnergiesFromScratch(wlc_p)
         if (wlc_p%field_int_on_currently) then
-            wlc_d%ECouple =wlc_d%dECouple
-            wlc_d%EKap    =wlc_d%dEKap
-            wlc_d%ECHI    =wlc_d%dECHI
-            wlc_d%EField  =wlc_d%dEField
-            wlc_d%Emaiersaupe = wlc_d%dEmaiersaupe
-            wlc_d%x_Field =wlc_d%dx_Field
-            wlc_d%x_maiersaupe = wlc_d%dx_maiersaupe
-            wlc_d%x_couple = wlc_d%dx_couple
-            wlc_d%x_Kap   =wlc_d%dx_Kap
-            wlc_d%x_Chi   =wlc_d%dx_Chi
+            wlc_ECouple =wlc_dECouple
+            wlc_EKap    =wlc_dEKap
+            wlc_ECHI    =wlc_dECHI
+            wlc_EField  =wlc_dEField
+            wlc_Emaiersaupe = wlc_dEmaiersaupe
+            wlc_x_Field =wlc_dx_Field
+            wlc_x_maiersaupe = wlc_dx_maiersaupe
+            wlc_x_couple = wlc_dx_couple
+            wlc_x_Kap   =wlc_dx_Kap
+            wlc_x_Chi   =wlc_dx_Chi
         else
-            wlc_d%ECouple =0.0_dp
-            wlc_d%EKap    =0.0_dp
-            wlc_d%ECHI    =0.0_dp
-            wlc_d%EField  =0.0_dp
-            wlc_d%Emaiersaupe = 0.0_dp
-            wlc_d%x_Field =0.0_dp
-            wlc_d%x_couple = 0.0_dp
-            wlc_d%x_Kap   =0.0_dp
-            wlc_d%x_Chi   =0.0_dp
-            wlc_d%x_maiersaupe = 0.0_dp
+            wlc_ECouple =0.0_dp
+            wlc_EKap    =0.0_dp
+            wlc_ECHI    =0.0_dp
+            wlc_EField  =0.0_dp
+            wlc_Emaiersaupe = 0.0_dp
+            wlc_x_Field =0.0_dp
+            wlc_x_couple = 0.0_dp
+            wlc_x_Kap   =0.0_dp
+            wlc_x_Chi   =0.0_dp
+            wlc_x_maiersaupe = 0.0_dp
         endif
         if (WLC_P__VARIABLE_CHEM_STATE) then
-            wlc_d%ebind   =wlc_d%debind
-            wlc_d%eMu     =wlc_d%deMu
-            wlc_d%x_mu    =wlc_d%dx_mu
+            wlc_ebind   =wlc_debind
+            wlc_eMu     =wlc_deMu
+            wlc_x_mu    =wlc_dx_mu
         else
-            wlc_d%ebind   =0.0_dp
-            wlc_d%eMu     =0.0_dp
-            wlc_d%x_mu    =0.0_dp
+            wlc_ebind   =0.0_dp
+            wlc_eMu     =0.0_dp
+            wlc_x_mu    =0.0_dp
         endif
         if(WLC_P__APPLY_EXTERNAL_FIELD) then
-            wlc_d%eExternalField = wlc_d%dEExternalField
+            wlc_eExternalField = wlc_dEExternalField
         else
-            wlc_d%eExternalField = 0
+            wlc_eExternalField = 0.0_dp
         endif
     else
-        call VerifyEnergiesFromScratch(wlc_p, wlc_d)
+        call VerifyEnergiesFromScratch(wlc_p)
     endif
     call cpu_time(start)
-    call MCsim(wlc_p, wlc_d,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
+    call MCsim(wlc_p,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode
-subroutine schedule(wlc_p, wlc_d,system_has_been_changed)
+subroutine schedule(wlc_p,system_has_been_changed)
+! values from wlcsim_data
+use params, only: wlc_mc_ind, eps
     use params
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(in) :: wlc_d
     logical, intent(out) :: system_has_been_changed
 
     system_has_been_changed = .False.
@@ -479,36 +494,36 @@ subroutine schedule(wlc_p, wlc_d,system_has_been_changed)
     ! Different instructions for each save point
     !
     !  --------------------------------
-    if (wlc_d%mc_ind <= 1) system_has_been_changed = .TRUE.
-    if (wlc_d%mc_ind <= WLC_P__NNOINT) then
+    if (wlc_mc_ind <= 1) system_has_been_changed = .TRUE.
+    if (wlc_mc_ind <= WLC_P__NNOINT) then
         wlc_p%field_int_on_currently = .false.
     elseif (WLC_P__FIELD_INT_ON) then
         if (.not.wlc_p%field_int_on_currently)  system_has_been_changed = .TRUE.
         wlc_p%field_int_on_currently = .true.
     endif
-    if(wlc_d%mc_ind.lt.WLC_P__N_KAP_ON) then
+    if(wlc_mc_ind.lt.WLC_P__N_KAP_ON) then
         wlc_p%KAP_ON = 0.0_dp
     else
-        if (wlc_p%KAP_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        if (abs(wlc_p%KAP_ON) < eps) system_has_been_changed = .TRUE.
         wlc_p%KAP_ON = 1.0_dp
     endif
 
-    if(wlc_d%mc_ind.lt.WLC_P__N_CHI_ON) then
+    if(wlc_mc_ind.lt.WLC_P__N_CHI_ON) then
         wlc_p%CHI_ON = 0.0_dp
     else
-        if (wlc_p%CHI_ON.eq.0.0_dp) system_has_been_changed = .TRUE.
+        if (abs(wlc_p%CHI_ON) < eps) system_has_been_changed = .TRUE.
         wlc_p%CHI_ON = 1.0_dp
     endif
 
-    if(wlc_d%mc_ind.lt.WLC_P__N_CHI_L2_ON) then
+    if(wlc_mc_ind.lt.WLC_P__N_CHI_L2_ON) then
         wlc_p%CHI_L2_ON = .False.
     else
         if (.not. wlc_p%CHI_L2_ON) system_has_been_changed = .TRUE.
         wlc_p%CHI_L2_ON = .True.
     endif
 
-    if ((wlc_d%mc_ind.gt.WLC_P__INDSTARTREPADAPT).and. &
-        (wlc_d%mc_ind.le.WLC_P__INDENDREPADAPT)) then ! addapt Cof was run
+    if ((wlc_mc_ind.gt.WLC_P__INDSTARTREPADAPT).and. &
+        (wlc_mc_ind.le.WLC_P__INDENDREPADAPT)) then ! addapt Cof was run
         system_has_been_changed = .TRUE.
     endif
 end subroutine

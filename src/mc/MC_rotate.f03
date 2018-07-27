@@ -9,14 +9,16 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_rotate(wlc_d,IB1,IB2,IT1,IT2,MCAMP,rand_stat)
+subroutine MC_rotate(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
+! values from wlcsim_data
+use params, only: wlc_V, wlc_R, wlc_U, wlc_VP, wlc_RP&
+    , wlc_UP
 
 use mersenne_twister
-use params, only: dp,wlcsim_data
+use params, only: dp
 use vector_utils, only: axisAngle, randomUnitVec, rotateU
 
 implicit none
-type(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
@@ -42,8 +44,8 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_d%RP = wlc_d%R
-    wlc_d%UP = wlc_d%U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
 endif
 
 !     Perform rotate move (MCTYPE 4)
@@ -62,7 +64,7 @@ ALPHA = MCAMP*(urnd(1)-0.5_dp)
 call axisAngle(ROT,alpha,TA,P1)
 
 I = IT1
-wlc_d%UP(:,I) = rotateU(ROT,wlc_d%U(:,I))
-wlc_d%RP(:,I) = wlc_d%R(:,I)
-if (WLC_P__LOCAL_TWIST) wlc_d%VP(:,I) = rotateU(ROT,wlc_d%V(:,I))
+wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))
+wlc_RP(:,I) = wlc_R(:,I)
+if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
 end subroutine

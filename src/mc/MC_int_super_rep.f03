@@ -8,13 +8,15 @@
 !
 !     Created from MC_int_rep by Quinn on 8/10/17
 !---------------------------------------------------------------
-subroutine MC_int_super_rep(wlc_p,wlc_d,I1,I2,forward)
+subroutine MC_int_super_rep(wlc_p,I1,I2,forward)
+! values from wlcsim_data
+use params, only: wlc_DPHIB, wlc_R, wlc_NPHI, wlc_DPHIA, wlc_inDPHI&
+    , wlc_UP, wlc_ABP, wlc_U, wlc_AB, wlc_DPHI_l2, wlc_RP
 use params
 implicit none
 
 !   iputs
 TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
-TYPE(wlcsim_data), intent(inout) :: wlc_d
 integer, intent(in) :: I1  ! Test bead position 1
 integer, intent(in) :: I2  ! Test bead position 2
 
@@ -37,7 +39,7 @@ real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
 NBinX = wlc_p%NBINX
 
-wlc_d%NPHI = 0
+wlc_NPHI = 0
 if (WLC_P__TWO_TAIL) then
     print*, "The Super Reptation move is not currently set up for two Tail"
     stop 1
@@ -73,21 +75,21 @@ do II = 1,2
   endif
    ! subract current and add new
    if (rrdr.eq.-1) then
-       RBin(1) = wlc_d%R(1,IB)
-       RBin(2) = wlc_d%R(2,IB)
-       RBin(3) = wlc_d%R(3,IB)
-       isA = wlc_d%AB(IB).eq.1
+       RBin(1) = wlc_R(1,IB)
+       RBin(2) = wlc_R(2,IB)
+       RBin(3) = wlc_R(3,IB)
+       isA = wlc_AB(IB).eq.1
    else
-       RBin(1) = wlc_d%RP(1,IB)
-       RBin(2) = wlc_d%RP(2,IB)
-       RBin(3) = wlc_d%RP(3,IB)
-       isA = wlc_d%ABP(IB).eq.1
+       RBin(1) = wlc_RP(1,IB)
+       RBin(2) = wlc_RP(2,IB)
+       RBin(3) = wlc_RP(3,IB)
+       isA = wlc_ABP(IB).eq.1
    endif
    if (wlc_p%CHI_L2_ON .and. isA) then
        if (rrdr == -1) then
-           call Y2calc(wlc_d%U(:,IB),phi2)
+           call Y2calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_d%UP(:,IB),phi2)
+           call Y2calc(wlc_UP(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -115,27 +117,27 @@ do II = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
+                I = wlc_NPHI
                 do
                    if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
+                      wlc_NPHI = wlc_NPHI + 1
+                      wlc_inDPHI(wlc_NPHI) = inDBin
                       temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      wlc_d%DPHIA(wlc_d%NPHI) = temp
-                      wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
+                      wlc_DPHIA(wlc_NPHI) = temp
+                      wlc_DPHIB(wlc_NPHI) = 0.0_dp
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
+                              wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                   + phi2(m_index)*temp
                           enddo
                       endif
                       exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
+                   elseif (inDBin == wlc_inDPHI(I)) then
                       temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + temp
+                      wlc_DPHIA(I) = wlc_DPHIA(I) + temp
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
+                              wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                   + phi2(m_index)*temp
                           enddo
                       endif
@@ -154,22 +156,22 @@ do II = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I = wlc_d%NPHI
+                I = wlc_NPHI
                 do
                    if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                      wlc_d%DPHIB(wlc_d%NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
+                      wlc_NPHI = wlc_NPHI + 1
+                      wlc_inDPHI(wlc_NPHI) = inDBin
+                      wlc_DPHIA(wlc_NPHI) = 0.0_dp
+                      wlc_DPHIB(wlc_NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       if(wlc_p%CHI_L2_ON) then
                           do m_index = -2,2
                               ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
+                              wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                           enddo
                       endif
                       exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
+                   elseif (inDBin == wlc_inDPHI(I)) then
+                      wlc_DPHIB(I) = wlc_DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
                       exit
                    else
                       I = I-1
@@ -198,7 +200,7 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte change in energy
 !
 !---------------------------------------------------------------------
-call hamiltonian(wlc_p,wlc_d,.false.)
+call hamiltonian(wlc_p,.false.)
 
 RETURN
 END
