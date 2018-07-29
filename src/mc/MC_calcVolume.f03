@@ -38,7 +38,7 @@ integer, PARAMETER:: npts = 10000
 real(dp) dbin           ! side length of bins
 real(dp) rsq, minr
 type(random_stat) rand_stat !for random numer generator
-real urand(3)
+real(dp) urand(3)
 
 if (abs(dbin*NBinX-LBOX).gt.0.000001_dp) then
     print*, "dbin = ", dbin

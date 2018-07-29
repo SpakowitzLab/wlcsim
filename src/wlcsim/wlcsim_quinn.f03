@@ -55,7 +55,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     type(wlcsim_params), intent(inout) :: wlc_p
 
     !   variable for random number generator seeding
-    real urand(1)
+    real(dp) urand(1)
 
 !   for head node use only variables
     integer rep ! physical replica number, for loops

@@ -30,7 +30,7 @@ integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 integer irnd(1)
 
 real(dp) TA(3)    ! Axis of rotation

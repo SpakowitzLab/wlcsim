@@ -25,7 +25,7 @@ integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 integer irnd(1)
 ! Variables for the crank-shaft move
 

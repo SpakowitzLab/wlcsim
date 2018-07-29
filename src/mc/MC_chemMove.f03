@@ -30,7 +30,7 @@ integer IP    ! Test polymer
 integer J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 
 integer, parameter, dimension(0:3) :: changeBoth = [3, 2, 1, 0]

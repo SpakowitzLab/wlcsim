@@ -175,7 +175,7 @@ use params, only: wlc_replicaSTART, wlc_eelasREPLICAS, wlc_Wrs, wlc_rand_stat, w
   !Variables for replica exchange
   integer rep             !replica index
   real(dp) deEXCHANGE     !change in energy for exchange for linking number
-  real urand(1)       !random number for exchange
+  real(dp) urand(1)       !random number for exchange
   real(dp) prob               !probability of exchange
   integer tempLK
   integer dest

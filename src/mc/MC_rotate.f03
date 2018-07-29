@@ -34,7 +34,7 @@ integer irnd(1)  ! random vector
 real(dp) TA(3)    ! Axis of rotation
 real(dp) ROT(3,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 real(dp), parameter, dimension(3) ::  P1 = [0.0_dp, 0.0_dp, 0.0_dp]
 
 !     MC adaptation variables

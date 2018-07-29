@@ -10,7 +10,7 @@ function exponential_random_int(window,rand_stat) result(output)
     use mersenne_twister
     implicit none
     type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-    real urnd(1) ! single random number
+    real(dp) urnd(1) ! single random number
     real(dp), intent(in) :: window
     integer output
     call random_number(urnd,rand_stat)
@@ -29,7 +29,7 @@ integer, intent(inout) :: IT1,IT2,IB1,IB2
 real(dp), intent(in) :: max_window
 logical, intent(out) :: success
 integer otherEnd
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 integer IT1_temp, IT2_temp, IB1_temp, IB2_temp, I
 success = .True.
 call random_number(urnd,rand_stat)
@@ -83,7 +83,7 @@ integer, intent(out) :: IT2   ! Index of test bead 2
 integer, intent(out) :: dib   ! number of beads moved by move (plus or minus a few)
 logical, intent(out) :: success
 integer irnd(1)
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 integer TEMP
 
 success = .TRUE.  ! True unless set to false

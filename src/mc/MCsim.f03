@@ -62,7 +62,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
 
     real(dp) ENERGY
 ! Things for random number generator
-    real urnd(1) ! single random number
+    real(dp) urnd(1) ! single random number
 !   Load the input parameters
     Type(wlcsim_params), intent(inout) :: wlc_p      ! system varibles
     integer DELTA             !Alexander polynomial evaluated at t = -1; used for knot checking

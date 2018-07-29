@@ -29,7 +29,7 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 integer leg_n, I, section_n
 integer irnd(1) ! random intiger
-real urnd(1) ! single random number
+real(dp) urnd(1) ! single random number
 integer spider_id ! which spider
 real(dp) dr(3) ! ranslation
 integer hip, knee, toe
@@ -161,6 +161,10 @@ else
 
     toe = wlc_spiders(spider_id)%legs(3,2)
     if ((toe-1)/WLC_P__NB .ne. (IT1-1)/WLC_P__NB) then
+        success = .False.
+        return
+    endif
+    if (toe<1) then
         success = .False.
         return
     endif

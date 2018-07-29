@@ -49,7 +49,7 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 
 !      Random number generator initiation
 type(random_stat) rand_stat
-real urand(3)
+real(dp) urand(3)
 logical in_confinement
 
 real(dp) center(3)
@@ -422,7 +422,9 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         enddo
         IB=otherEnd+1
     enddo
-
+elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
+    print*, "comming soon ...."
+    stop
 
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
@@ -450,7 +452,7 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
 
     integer J
     real(dp) N1(3), N2(3), z, theta
-    real urand(3)
+    real(dp) urand(3)
 
     do J = 2,NB
          call random_number(urand,rand_stat)
@@ -497,7 +499,7 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 
     integer IB, NgB, i, j
     real(dp) l0, eps
-    real urand(3)
+    real(dp) urand(3)
     real(dp), dimension(:,:), allocatable :: tmpR, tmpU
 
     if (maxWlcDelta < wlc_p%DEL) then
@@ -541,17 +543,18 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 end subroutine effective_wormlike_chain_init
 
 subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
-! values from wlcsim_data
-use params, only: wlc_V
+    ! values from wlcsim_data
+    use params, only: wlc_V
+    use params, only: wlcsim_params, dp
     use mersenne_twister
-    use params
+    use vector_utils, only: random_perp
     
     implicit none
     integer, intent(in) :: NT
     type(wlcsim_params), intent(in) :: wlc_p
     real(dp), intent(out) :: R(3,NT), U(3,NT)
     type(random_stat), intent(inout) :: rand_stat
-    real urand(3)
+    real(dp) urand(3)
     real(dp) :: init_e2e(3)
     integer i, j, ib
     real(dp) trash(3)
@@ -638,7 +641,7 @@ subroutine make_rw_with_boundary(R, NB, wlc_p, rand_stat)
     integer, intent(in) :: nb
     real(dp), intent(out) :: R(3,nb)
     integer :: ib, j
-    real nrand(3)
+    real(dp) nrand(3)
     logical in_confinement, is_inside_boundary
 
 

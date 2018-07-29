@@ -544,6 +544,7 @@ contains
 
 
     subroutine initialize_wlcsim_data( wlc_p)
+        use nucleosome, only: loadNucleosomePositions
 #if MPI_VERSION
         use mpi
 #endif
@@ -799,6 +800,10 @@ contains
                     wlc_Vol(I) = WLC_P__DBIN**3
                 enddo
             endif
+        endif
+
+        if (WLC_P__ELASTICITY_TYPE=='nucleosomes') then
+            call loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
 
         ! -------------------------------------------
@@ -1404,7 +1409,7 @@ contains
         close(outFileUnit)
     end subroutine
     subroutine wlcsim_params_writebinary(wlc_p,baseName)
-    !    This function writes the contence of the structures wlc_p and 
+    !    This function writes the contence of the structures wlc_p and
     !  to a binary file.  if you add more variables to  you need to
     !  a seperate write command for them as it is not possible to write
     !  a structure with allocatables to a binar file.

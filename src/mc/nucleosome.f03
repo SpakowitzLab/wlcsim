@@ -47,7 +47,7 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     mtrx(:,3) = Uin
     mtrx(:,2) = cross(Uin,Vin)
 
-    Rout = Rin + MATMUL(mtrx,Rin)
+    Rout = Rin + MATMUL(mtrx,nucleosomeTran(:,wrapBP))
 
     linkRot(1,:) = [cos(angle*linkBP),-sin(angle*linkBP), 0.0_dp]
     linkRot(2,:) = [sin(angle*linkBP), cos(angle*linkBP), 0.0_dp]
@@ -165,12 +165,24 @@ subroutine setup_nucleosome_constants()
     enddo
     close(5)
 
-    nucleosomeTran(:,i) = [0.0_dp, 0.0_dp, 0.0_dp]
-    !open (UNIT = 5, FILE = "input/nucleosomeT", STATUS = "OLD")
-    !do i = 1,147
-    !    read(3,*) nucleosomeTran(:,i)
-    !enddo
-    !close(5)
+    !nucleosomeTran = 0.0_dp
+    open (UNIT = 5, FILE = "input/nucleosomeT", STATUS = "OLD")
+    do i = 1,147
+        read(3,*) nucleosomeTran(:,148-i)
+    enddo
+    close(5)
 end subroutine setup_nucleosome_constants
+
+subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+    implicit none
+    integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
+    integer, intent(out) :: wlc_basepairs(WLC_P__NT)
+
+    ! In the future you can set up code here to choose nucleosome spacing
+    wlc_nucleosomeWrap = 147
+    wlc_basepairs = 35
+
+
+end subroutine
 
 end module nucleosome

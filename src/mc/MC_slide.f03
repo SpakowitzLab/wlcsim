@@ -29,7 +29,7 @@ integer IP    ! Test polymer
 integer I,J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
+real(dp) urand(3)  ! random vector
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 !integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection

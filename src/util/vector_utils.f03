@@ -79,7 +79,7 @@ subroutine randomUnitVec(U,rand_stat)
     real(dp) z
     real(dp) theta
     real(dp) temp
-    real urand(2)
+    real(dp) urand(2)
 
     call random_number(urand,rand_stat)
     theta = urand(1)*2.0_dp*PI
@@ -98,7 +98,7 @@ subroutine randomUnitVec(U,rand_stat)
     !U(3) = cos(BETA)
 
     ! Alturnative algorithem
-    !real urand(3)
+    !real(dp) urand(3)
     !call random_gauss(urand, rand_stat)
     !U = urand
     !U = U/norm2(U)
@@ -122,7 +122,7 @@ subroutine random_perp(u,p,t,rand_stat)
     implicit none
     !real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
     type(random_stat) rand_stat  ! status of random number generator
-    real urnd(1) ! single random number
+    real(dp) urnd(1) ! single random number
 
     real(dp) v(2) ! random 2-vec
     real(dp), intent(in) :: u(3) ! input
