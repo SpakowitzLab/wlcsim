@@ -106,7 +106,7 @@ if (WLC_P__INITCONDTYPE.eq.'lineInYFromOrigin') then
             U(2,iB) = 1.0_dp
             U(3,iB) = 0.0_dp
             if (WLC_P__LOCAL_TWIST) then
-                wlc_V(:,IB) = [0.0_dp, 1.0_dp, 0.0_dp]
+                wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
             endif
             iB = iB + 1
         enddo
@@ -130,7 +130,7 @@ else if (WLC_P__INITCONDTYPE.eq.'lineInY') then
           U(2,IB) = 1.0_dp
           U(3,IB) = 0.0_dp
           if (WLC_P__LOCAL_TWIST) then
-              wlc_V(:,IB) = [0.0_dp, 1.0_dp, 0.0_dp]
+              wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
           endif
           IB = IB + 1
 
@@ -357,7 +357,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomlyDistributeBeadsInSphere') then
         R(2,IB) = test(2)
         R(3,IB) = test(3)
         U(1,IB) = 0.00_dp
-        U(2,IB) = 0.00_dp
+        U(2,IB) = 1.00_dp
         U(3,IB) = 0.00_dp
         if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
     enddo
