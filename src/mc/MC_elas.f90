@@ -147,13 +147,13 @@ if ((IB2 /= WLC_P__NB).or.(WLC_P__RING)) then
             energy_change = nucleosome_energy(wlc_R(:,IT2P1),wlc_RP(:,IT2)&
                                             ,wlc_U(:,IT2P1),wlc_UP(:,IT2)&
                                             ,wlc_V(:,IT2P1),wlc_VP(:,IT2)&
-                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_basepairs(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
             wlc_DEELAS = wlc_DEELAS + energy_change
             energy_change = nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
                                             ,wlc_U(:,IT2P1),wlc_U(:,IT2)&
                                             ,wlc_V(:,IT2P1),wlc_V(:,IT2)&
-                                            ,wlc_basepairs(IT1M1)&
+                                            ,wlc_basepairs(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
             wlc_DEELAS = wlc_DEELAS - energy_change
     endif

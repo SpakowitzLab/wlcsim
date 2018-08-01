@@ -250,7 +250,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
         direction = cross(extent,extent2)
         if (norm2(direction)<0.01_dp*eps) then
             ! if fully exteded/contracted then contract/extend in random direction
-            extent = rnew/norm2(rnew)
+            extent = rold/norm2(rold)
             call random_perp(extent,direction,rinter,rand_stat)
         else
             direction = direction/norm2(direction)

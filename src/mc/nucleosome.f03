@@ -160,7 +160,7 @@ subroutine setup_nucleosome_constants()
     open (UNIT = 5, FILE = "input/nucleosomeR", STATUS = "OLD")
     do i = 1,147
         do j = 1,3
-            read(3,*) nucleosomeROT(j,:,148-i)
+            read(5,*) nucleosomeROT(j,:,148-i)
         enddo
     enddo
     close(5)
@@ -168,7 +168,7 @@ subroutine setup_nucleosome_constants()
     !nucleosomeTran = 0.0_dp
     open (UNIT = 5, FILE = "input/nucleosomeT", STATUS = "OLD")
     do i = 1,147
-        read(3,*) nucleosomeTran(:,148-i)
+        read(5,*) nucleosomeTran(:,148-i)
     enddo
     close(5)
 end subroutine setup_nucleosome_constants

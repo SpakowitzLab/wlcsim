@@ -529,6 +529,9 @@ contains
         elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
             call get_renormalized_chain_params(wlc_p) ! only so that there are constants for initization
             call setup_nucleosome_constants()
+        else
+            print*, "Elasticity Type ",WLC_P__ELASTICITY_TYPE," not recognized"
+            stop
         endif
 
         !If parallel tempering is on, read the Lks
@@ -729,7 +732,7 @@ contains
                 Irand = int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
                           -seedvalues(7)*1E3-seedvalues(8))
                 Irand = mod(Irand,10000)
-                print*, "Random Intiger seed:",Irand
+                print*, "MPI Random Intiger seed:",Irand
             endif
             call random_setseed(Irand*(wlc_id + 1),wlc_rand_stat) ! random seed for head node
             do dest = 1,wlc_numProcesses-1 ! send out the others
@@ -754,7 +757,7 @@ contains
             wlc_rand_seed = int(-seedvalues(5)*1E7-seedvalues(6)*1E5 &
                       -seedvalues(7)*1E3-seedvalues(8))
             wlc_rand_seed = mod(wlc_rand_seed,10000)
-            ! print*, "Random Intiger seed:",wlc_rand_seed
+            print*, "Random Intiger seed:",wlc_rand_seed
         endif
 
         call random_setseed(wlc_rand_seed, wlc_rand_stat)
@@ -907,6 +910,7 @@ contains
         print*, " Number of bins", wlc_p%NBIN
         print*, " spatial descritation dbin = ",WLC_P__DBIN
         print*, " L0 = ", wlc_p%L0
+        print*, " GAM = ", wlc_p%GAM
         print*, " bead volume V = ", WLC_P__BEADVOLUME
         print*, " number of kuhn lengths between beads, eps ", wlc_p%EPS
         print*, " "
@@ -1705,6 +1709,5 @@ contains
                                 wlc_p%GAM,wlc_p%XIR,wlc_p%EPERP,wlc_p%ETA, &
                                 wlc_p%XIU,wlc_p%DT, &
                                 wlc_p%SIGMA,wlc_p%ETWIST,wlc_p%simtype)
-
     end subroutine get_renormalized_chain_params
 end module params
