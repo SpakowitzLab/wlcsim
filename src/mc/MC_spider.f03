@@ -201,6 +201,11 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
         success = .FALSE.
         return
     endif
+    ! make sure dr>0
+    if (norm2(dr)<eps) then
+        success = .False.
+        return
+    endif
 enddo
 success= .TRUE.
 
@@ -214,6 +219,11 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     toeR=wlc_R(:,toe)
     thigh = distance(kneeR,hipR)
     shin = distance(kneeR,toeR)
+    ! make sure thigh and shin arn't of zero length
+    if (thigh<eps .or. shin<eps) then
+        success = .False.
+        return
+    endif
 
     rold = hipR-toeR
     dold = norm2(rold)
