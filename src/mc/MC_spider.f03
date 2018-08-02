@@ -258,7 +258,6 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
                 dalpha = 0.0_dp - angle_of_triangle(thigh,shin,dnew)
                 dbeta = angle_of_triangle(shin,thigh,dnew) - 0.0_dp
             endif
-            randomBend=.True.
             ! if fully exteded/contracted then contract/extend in random direction
             extent = rold/norm2(rold)
             call random_perp(extent,direction,rinter,rand_stat)
@@ -270,7 +269,6 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
                 dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
                 dbeta = angle_of_triangle(shin,thigh,dnew) - angle_of_triangle(shin,thigh,dold)
             endif
-            randomBend=.False.
             direction = direction/norm2(direction)
         endif
         if (swing_past) then
