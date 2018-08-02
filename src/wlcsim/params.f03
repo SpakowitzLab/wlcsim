@@ -762,6 +762,10 @@ contains
 
         call random_setseed(wlc_rand_seed, wlc_rand_stat)
 #endif
+        if (WLC_P__ELASTICITY_TYPE=='nucleosomes') then
+            call loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+        endif
+
         call initcond(wlc_R, wlc_U, WLC_P__NT, WLC_P__NB, &
             WLC_P__NP, WLC_P__FRMFILE, wlc_rand_stat,wlc_p)
 
@@ -803,10 +807,6 @@ contains
                     wlc_Vol(I) = WLC_P__DBIN**3
                 enddo
             endif
-        endif
-
-        if (WLC_P__ELASTICITY_TYPE=='nucleosomes') then
-            call loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
 
         ! -------------------------------------------

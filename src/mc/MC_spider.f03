@@ -24,13 +24,12 @@ use windowTools, only: drawWindow
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 logical, intent(out) :: success
-
+integer, intent(out) :: spider_id ! which spider
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
 integer leg_n, I, section_n
 integer irnd(1) ! random intiger
 real(dp) urnd(1) ! single random number
-integer spider_id ! which spider
 real(dp) dr(3) ! ranslation
 integer hip, knee, toe
 real(dp) thigh, shin, dold, dnew
@@ -247,22 +246,31 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     else
         ! Calculate how much to rotate each leg to get new |distance|
         swing_past = dot_product(rold,rnew) < 0.0_dp  ! toe passes hip
-        if (swing_past) then
-            dalpha = angle_of_triangle(thigh,shin,dold) - (PI - angle_of_triangle(thigh,shin,dnew))
-            dbeta = (PI - angle_of_triangle(shin,thigh,dnew)) - angle_of_triangle(shin,thigh,dold)
-        else
-            dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
-            dbeta = angle_of_triangle(shin,thigh,dnew) - angle_of_triangle(shin,thigh,dold)
-        endif
         ! direction needs to be consistant with other angles
         extent=kneeR-toeR
         extent2=hipR-kneeR
         direction = cross(extent,extent2)
         if (norm2(direction)<0.01_dp*eps) then
+            if (swing_past) then
+                dalpha = 0.0_dp - (PI - angle_of_triangle(thigh,shin,dnew))
+                dbeta = (PI - angle_of_triangle(shin,thigh,dnew)) - 0.0_dp
+            else
+                dalpha = 0.0_dp - angle_of_triangle(thigh,shin,dnew)
+                dbeta = angle_of_triangle(shin,thigh,dnew) - 0.0_dp
+            endif
+            randomBend=.True.
             ! if fully exteded/contracted then contract/extend in random direction
             extent = rold/norm2(rold)
             call random_perp(extent,direction,rinter,rand_stat)
         else
+            if (swing_past) then
+                dalpha = angle_of_triangle(thigh,shin,dold) - (PI - angle_of_triangle(thigh,shin,dnew))
+                dbeta = (PI - angle_of_triangle(shin,thigh,dnew)) - angle_of_triangle(shin,thigh,dold)
+            else
+                dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
+                dbeta = angle_of_triangle(shin,thigh,dnew) - angle_of_triangle(shin,thigh,dold)
+            endif
+            randomBend=.False.
             direction = direction/norm2(direction)
         endif
         if (swing_past) then
@@ -298,7 +306,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     temp = temp + rinter - rold
 
     ! Check knee
-    if ( distance(wlc_RP(:,knee),temp) > eps ) then
+    if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps ) then
         print*, "Broken knee"
         stop 1
     endif

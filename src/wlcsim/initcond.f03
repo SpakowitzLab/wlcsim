@@ -12,12 +12,13 @@
 !
 subroutine initcond(R,U,NT,NB,NP,FRMFILE,rand_stat, wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_V, wlc_ExplicitBindingPair
+use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeWrap
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params,  nan
 use vector_utils, only: randomUnitVec, random_perp
+use nucleosome, only: nucleosomeProp
 implicit none
 
 type(wlcsim_params), intent(in) :: wlc_p
@@ -423,9 +424,22 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         IB=otherEnd+1
     enddo
 elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
-    print*, "comming soon ...."
-    stop
+    R(1,1) = 0.0_dp
+    R(2,1) = 0.0_dp
+    R(3,1) = 0.0_dp
+    U(1,1) = 0.0_dp
+    U(2,1) = 0.0_dp
+    U(3,1) = 1.0_dp
+    wlc_V(1,1) = 1.0_dp
+    wlc_V(2,1) = 0.0_dp
+    wlc_V(3,1) = 0.0_dp
 
+    do IB=2,WLC_P__NT
+        call nucleosomeProp(U(:,IB-1), wlc_V(:,IB-1), R(:,IB-1), &
+                            wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
+                            U(:,IB), wlc_V(:,IB), R(:,IB))
+        R(:,IB) = R(:,IB) + U(:,IB)*wlc_p%GAM
+    enddo
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 else if (WLC_P__INITCONDTYPE == 'randomWalkWithBoundary') then

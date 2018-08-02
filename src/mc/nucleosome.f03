@@ -51,9 +51,9 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
 
     linkRot(1,:) = [cos(angle*linkBP),-sin(angle*linkBP), 0.0_dp]
     linkRot(2,:) = [sin(angle*linkBP), cos(angle*linkBP), 0.0_dp]
-    linkRot(3,:) = [           0.0_dp,            0.0_dp, 0.0_dp]
+    linkRot(3,:) = [           0.0_dp,            0.0_dp, 1.0_dp]
 
-    mtrx = MATMUL(linkRot,MATMUL(mtrx,nucleosomeROT(:,:,wrapBP)))
+    mtrx = MATMUL(MATMUL(mtrx,nucleosomeROT(:,:,wrapBP)),linkRot)
 
     Uout = mtrx(:,3)
     Vout = mtrx(:,1)
