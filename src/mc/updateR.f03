@@ -22,7 +22,10 @@ if (WLC_P__NEIGHBOR_BINS) then
 endif
 wlc_R(:,I) = wlc_RP(:,I)
 wlc_U(:,I) = wlc_UP(:,I)
-if (WLC_P__LOCAL_TWIST) wlc_V(:,I) = wlc_VP(:,I)
+if (WLC_P__LOCAL_TWIST) then
+    wlc_VP(:,I) = wlc_VP(:,I)/dot_product(wlc_VP(:,I),wlc_RP(:,I))
+    wlc_V(:,I) = wlc_VP(:,I)/norm2(wlc_VP(:,I))
+endif
 if (WLC_P__NEIGHBOR_BINS) then
     if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
         wlc_R_period(1,I)=modulo(wlc_R(1,I),WLC_P__LBOX_X)

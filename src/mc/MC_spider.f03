@@ -15,7 +15,7 @@ use params, only: wlc_UP, wlc_RP, wlc_explicitbindingpair, wlc_U, wlc_VP&
     , wlc_spiders, wlc_V, wlc_R, wlc_numberOfSpiders
 
 use mersenne_twister
-use params, only: wlcsim_params,  pi
+use params, only: wlcsim_params,  pi, ERROR_UNIT
 use precision, only: dp, eps
 use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
                         round_into_pm1, rotateR, rotateU, axisAngle, rotateAintoB, random_perp
@@ -41,6 +41,8 @@ logical swing_past
 integer dib, IT1,IT2,IB1,IB2,IP,otherEnd
 real(dp) extent(3)
 real(dp) extent2(3)
+logical randomBend
+real(dp) extent3(3)
 
 ! choose spider
 call random_number(urnd,rand_stat)
@@ -229,7 +231,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     rnew = hipR+dr-toeR
     dnew = norm2(rnew)
 
-    if (dold<=0.001_dp*eps) then
+    if (dold<=eps) then
         ! if hip and toe are in the same place, extend in random direction
         extent=(kneeR-toeR)/shin
         call random_perp(extent,direction,rinter,rand_stat)
@@ -258,6 +260,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
                 dalpha = 0.0_dp - angle_of_triangle(thigh,shin,dnew)
                 dbeta = angle_of_triangle(shin,thigh,dnew) - 0.0_dp
             endif
+            randomBend=.True.
             ! if fully exteded/contracted then contract/extend in random direction
             extent = rold/norm2(rold)
             call random_perp(extent,direction,rinter,rand_stat)
@@ -269,6 +272,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
                 dalpha = angle_of_triangle(thigh,shin,dold) - angle_of_triangle(thigh,shin,dnew)
                 dbeta = angle_of_triangle(shin,thigh,dnew) - angle_of_triangle(shin,thigh,dold)
             endif
+            randomBend=.False.
             direction = direction/norm2(direction)
         endif
         if (swing_past) then
@@ -305,8 +309,37 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
 
     ! Check knee
     if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps ) then
-        print*, "Broken knee"
-        stop 1
+        write(ERROR_UNIT,*) "randomBend",randomBend
+        write(ERROR_UNIT,*) "swing past", swing_past
+        write(ERROR_UNIT,*) "hip",hip,"knee",knee,"toe",toe
+        write(ERROR_UNIT,*) "rold",rold
+        write(ERROR_UNIT,*) "rinter",rinter
+        write(ERROR_UNIT,*) "rnew",rnew
+        write(ERROR_UNIT,*) "temp",temp
+        write(ERROR_UNIT,*) "direction",direction
+        write(ERROR_UNIT,*) "wlc_R(:,knee)",wlc_R(:,knee)
+        write(ERROR_UNIT,*) "wlc_RP(:,knee)",wlc_RP(:,knee)
+        write(ERROR_UNIT,*) "distance", distance(wlc_RP(:,knee),temp)
+        write(ERROR_UNIT,*) "extent3",extent3,"extent2",extent2
+        write(ERROR_UNIT,*) "extent",extent
+        write(ERROR_UNIT,*) "cross", cross(extent3,extent2)
+        write(ERROR_UNIT,*) "shin",shin
+        write(ERROR_UNIT,*) "thigh",thigh
+        write(ERROR_UNIT,*) "dr",dr
+        write(ERROR_UNIT,*) "dalpha",dalpha
+        write(ERROR_UNIT,*) "dbeta",dbeta
+        write(ERROR_UNIT,*) "before", angle_of_triangle(thigh,shin,dold)
+        write(ERROR_UNIT,*) "after ", angle_of_triangle(thigh,shin,dnew)
+        write(ERROR_UNIT,*) "after ", angle_of_triangle(shin,thigh,dnew)
+        write(ERROR_UNIT,*) "before", angle_of_triangle(shin,thigh,dold)
+
+        write(ERROR_UNIT,*) "norm2", norm2(cross(extent3,extent2))
+        write(ERROR_UNIT,*) "eps",eps
+        write(ERROR_UNIT,*) "0.01_dp*eps",0.01_dp*eps
+        write(ERROR_UNIT,*) "conditions", norm2(cross(extent3,extent2))<0.01_dp*eps
+        write(ERROR_UNIT,*) "direction", direction
+        write(ERROR_UNIT,*) "norm(direction)", norm2(direction)
+        write(ERROR_UNIT,*) "Broken knee"
     endif
 
     ! rotate thigh

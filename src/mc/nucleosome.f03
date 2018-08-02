@@ -7,14 +7,14 @@
 !   --------------------------------------------------------------
 
 module nucleosome
-    use precision, only: dp
+    use precision, only: dp, pi
     implicit none
+    real(dp), parameter :: basePairsPerTurn = 10.5_dp
     real(dp), dimension(10,WLC_P__MAX_BACEPAIRS_PER_BEAD) :: multiParams
     real(dp), dimension(3,3,147) :: nucleosomeROT
     real(dp), dimension(3,147) :: nucleosomeTran
 
     private :: nucleosomeROT, nucleosomeTran, multiParams
-
 contains
 
 ! -------------------------------------------------------------
@@ -41,7 +41,7 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
 
     real(dp), dimension(3,3) :: linkRot
     real(dp), dimension(3,3) :: mtrx
-    real(dp), parameter :: angle = 2*3.14159265359_dp/10.5_dp ! intrinsic rotation/bp
+    real(dp), parameter :: angle = 2*pi/basePairsPerTurn ! intrinsic rotation/bp
 
     mtrx(:,1) = Vin
     mtrx(:,3) = Uin
@@ -55,8 +55,8 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
 
     mtrx = MATMUL(MATMUL(mtrx,nucleosomeROT(:,:,wrapBP)),linkRot)
 
-    Uout = mtrx(:,3)
-    Vout = mtrx(:,1)
+    Uout = mtrx(:,3)/norm2(mtrx(:,3))
+    Vout = mtrx(:,1)/norm2(mtrx(:,1))
     return
 
 end subroutine nucleosomeProp
@@ -165,12 +165,15 @@ subroutine setup_nucleosome_constants()
     enddo
     close(5)
 
-    !nucleosomeTran = 0.0_dp
-    open (UNIT = 5, FILE = "input/nucleosomeT", STATUS = "OLD")
-    do i = 1,147
-        read(5,*) nucleosomeTran(:,148-i)
-    enddo
-    close(5)
+    if (WLC_P__INCLUDE_NUC_TRANS) then
+        open (UNIT = 5, FILE = "input/nucleosomeT", STATUS = "OLD")
+        do i = 1,147
+            read(5,*) nucleosomeTran(:,148-i)
+        enddo
+        close(5)
+    else
+        nucleosomeTran = 0.0_dp
+    endif
 end subroutine setup_nucleosome_constants
 
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
@@ -180,7 +183,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
     ! In the future you can set up code here to choose nucleosome spacing
     wlc_nucleosomeWrap = 147
-    wlc_basepairs = 35
+    wlc_basepairs = 36
 
 
 end subroutine
