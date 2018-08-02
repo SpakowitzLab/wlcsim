@@ -270,7 +270,7 @@ function chi_path(s) result(chi)
             chi = chi_max*2.0_dp*(s-0.5_dp)
         endif
     else
-        chi = s
+        chi = -s
     endif
 end function chi_path
 function h_path(s) result(h)

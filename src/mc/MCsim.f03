@@ -141,9 +141,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                   IT2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
                   if (.not. in_confinement(wlc_RP, WLC_P__NT, IT1, IT2)) then
                       wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                      cycle
+                      success = .False.
+                      exit
                   endif
               enddo
+              if (.not. success) cycle
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
