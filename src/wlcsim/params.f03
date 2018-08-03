@@ -151,6 +151,7 @@ module params
     real(dp), allocatable, dimension(:):: wlc_DPHIB    ! Change in phi A
     real(dp), allocatable, dimension(:,:):: wlc_DPHI_l2 ! change in l=2 oreientational field
     integer, allocatable, dimension(:) :: wlc_indPHI   ! indices of the phi
+    integer, allocatable, dimension(:):: wlc_ind_in_list ! index in indPhi
     ! simulation times at which (i,j)th bead pair first collided
     real(dp), allocatable, dimension(:,:) :: wlc_coltimes
     real(dp) :: wlc_wr
@@ -614,8 +615,15 @@ contains
             allocate(wlc_DPHIA(NBin))
             allocate(wlc_DPHIB(NBin))
             allocate(wlc_indPHI(NBin))
-            allocate(wlc_PhiH(NBin))
-            allocate(wlc_Vol(NBin))
+            allocate(wlc_ind_in_list(NBin))
+            wlc_ind_in_list = -1  ! -1 stands for not in list
+            if (WLC_P__FIELDINTERACTIONTYPE == "ABmelt" .or.\
+                WLC_P__FIELDINTERACTIONTYPE == "ABsoluution") then
+                allocate(wlc_PhiH(NBin))
+            endif
+            if (WLC_P__FRACTIONAL_BIN) then
+                allocate(wlc_Vol(NBin))
+            endif
             do I = 1,NBin
                 wlc_PHIA(I) = 0.0_dp
                 wlc_PHIB(I) = 0.0_dp
@@ -802,10 +810,6 @@ contains
             if (WLC_P__CONFINETYPE.eq.'sphere' .and. WLC_P__FRACTIONAL_BIN) then
                 call MC_calcVolume(wlc_p%NBINX, WLC_P__DBIN, &
                                 WLC_P__LBOX_X, wlc_Vol, wlc_rand_stat)
-            else
-                do I = 1,NBin
-                    wlc_Vol(I) = WLC_P__DBIN**3
-                enddo
             endif
         endif
 
@@ -1091,8 +1095,9 @@ contains
         real(dp), intent(out) :: totalVpoly
         real(dp) VV
         totalVpoly=0.0_dp
+        VV=WLC_P__DBIN**3
         do I = 1,wlc_p%NBIN
-            VV = wlc_Vol(I)
+            if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
             !if (VV.le.0.1_dp) cycle
             totalVpoly = totalVpoly + VV*(wlc_PHIA(I) + wlc_PHIB(I))
         enddo
@@ -1109,8 +1114,9 @@ contains
         real(dp) EKap, ECouple, EChi,VV, PHIPOly
         print*,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         print*, " PHIA  | PHIB  | PPoly |  Vol  | EKap  | EChi  |ECouple|"
+        VV=WLC_P__DBIN**3
         do I = 1,wlc_p%NBIN
-            VV = wlc_Vol(I)
+            if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
             if (VV.le.0.1_dp) cycle
             PHIPOLY = wlc_PHIA(I) + wlc_PHIB(I)
             EChi = VV*(wlc_p%CHI/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
@@ -1122,7 +1128,7 @@ contains
             EKap = 0.0_dp
             endif
             write(*,"(4f8.4,3f8.1)") wlc_PHIA(I), wlc_PHIB(I), &
-                                wlc_PHIA(I) + wlc_PHIB(I),wlc_Vol(I),&
+                                wlc_PHIA(I) + wlc_PHIB(I),VV,&
                                 EKap,EChi,ECouple
         enddo
         print*,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"

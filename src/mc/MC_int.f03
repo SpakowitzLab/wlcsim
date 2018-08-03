@@ -104,7 +104,7 @@ do IB = 1,WLC_P__NT
             else if (wlc_AB(IB) == 0) then
                 ! Set all phi values on initialize
                 wlc_PHIB(inDBin) = wlc_PHIB(inDBin) + contribution
-            else if (wlc_AB(IB) == 3) then 
+            else if (wlc_AB(IB) == 3) then
                 ! phiA + phiB = phi_poly
                 ! phiA = n_hp1*v/Vol**3
                 wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + 2.0_dp*contribution
@@ -139,29 +139,34 @@ END
 !--------------------------------------------------------------!
 subroutine MC_int_update(wlc_p,I1,I2)
 ! values from wlcsim_data
-use params, only: wlc_NPHI
+use params, only: wlc_NPHI, wlc_inDPHI,wlc_ind_in_list
 use params, only: wlcsim_params
 implicit none
 TYPE(wlcsim_params), intent(in) :: wlc_p
 integer, intent(in) :: I1           ! Test bead position 1
 integer, intent(in) :: I2           ! Test bead position 2
 LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+integer I,J
 
 wlc_NPHI = 0
 
 call CalcDphi(wlc_p,I1,I2)
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
 call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
 end subroutine MC_int_update
 
 subroutine MC_int_update_spider(wlc_p,spider_id)
 ! values from wlcsim_data
-use params, only: wlc_NPHI, wlc_spiders
+use params, only: wlc_NPHI, wlc_spiders, wlc_inDPHI, wlc_ind_in_list
 use params, only: wlcsim_params
 implicit none
 TYPE(wlcsim_params), intent(in) :: wlc_p
 integer, intent(in) :: spider_id
 LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
-integer section_n,I1,I2
+integer section_n,I1,I2,I,J
 
 wlc_NPHI = 0
 do section_n = 1, wlc_spiders(spider_id)%nSections
@@ -169,13 +174,24 @@ do section_n = 1, wlc_spiders(spider_id)%nSections
     I2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
     call CalcDphi(wlc_p,I1,I2)
 enddo
+
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
+
+
 call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
 end subroutine MC_int_update_spider
 
 subroutine CalcDphi(wlc_p,I1,I2)
+!  Note: This subroutine assumes you have set wlc_bin_in_list=FALSE
+!  some time before the start of the move.
+
 ! values from wlcsim_data
 use params, only: wlc_NPHI, wlc_RP, wlc_U, wlc_AB, wlc_R&
-    , wlc_UP, wlc_DPHI_l2, wlc_inDPHI, wlc_DPHIA, wlc_DPHIB
+    , wlc_UP, wlc_DPHI_l2, wlc_inDPHI, wlc_DPHIA, wlc_DPHIB&
+    , wlc_ind_in_list
 use params, only: dp, wlcsim_params
 implicit none
 
@@ -199,6 +215,7 @@ integer NBinX(3)
 integer m_index ! m for spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
+real(dp) change
 
 NBinX = wlc_p%NBINX
 
@@ -240,108 +257,88 @@ do IB = I1,I2
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp
    endif
+   change = real(rrdr,dp)*WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
 
    if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then ! A, chrystal, singally bound
-       do ISX = 1,2
+       do ISZ = 1,2
           do ISY = 1,2
-             do ISZ = 1,2
+             do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_NPHI
-                ! Generate list of which phi's change and by how much
-                do
-                   if (I.eq.0) then
-                      wlc_NPHI = wlc_NPHI + 1
-                      wlc_inDPHI(wlc_NPHI) = inDBin
-                      wlc_DPHIA(wlc_NPHI) = contribution
-                      wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_DPHI_l2(m_index,wlc_NPHI) = &
-                                  + phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_inDPHI(I)) then
-                      wlc_DPHIA(I) = wlc_DPHIA(I) + contribution
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
-                                  + phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+                contribution = WTOT*change
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = contribution
+                    wlc_DPHIB(wlc_NPHI) = 0.0_dp
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + contribution
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                endif
              enddo
           enddo
        enddo
    else if (wlc_AB(IB) == 0) then
-       do ISX = 1,2
+       do ISZ = 1,2
           do ISY = 1,2
-             do ISZ = 1,2
+             do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_NPHI = wlc_NPHI + 1
-                      wlc_inDPHI(wlc_NPHI) = inDBin
-                      wlc_DPHIA(wlc_NPHI) = 0.0_dp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
-                          enddo
-                      endif
-                      wlc_DPHIB(wlc_NPHI) = contribution
-                      exit
-                   elseif (inDBin == wlc_inDPHI(I)) then
-                      wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+                contribution = WTOT*change
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = 0.0_dp
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
+                        enddo
+                    endif
+                    wlc_DPHIB(wlc_NPHI) = contribution
+                else
+                    wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
+                endif
              enddo
           enddo
        enddo
    else if (wlc_AB(IB) == 3) then
-       do ISX = 1,2
+       do ISZ = 1,2
           do ISY = 1,2
-             do ISZ = 1,2
+             do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_NPHI = wlc_NPHI + 1
-                      wlc_inDPHI(wlc_NPHI) = inDBin
-                      wlc_DPHIA(wlc_NPHI) = 2.0_dp*contribution
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
-                          enddo
-                      endif
-                      wlc_DPHIB(wlc_NPHI) = -1.0_dp*contribution
-                      exit
-                   elseif (inDBin == wlc_inDPHI(I)) then
-                      wlc_DPHIA(I) = wlc_DPHIA(I) + 2.0*contribution
-                      wlc_DPHIB(I) = wlc_DPHIB(I) - contribution
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+                contribution = WTOT*change
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = 2.0_dp*contribution
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
+                        enddo
+                    endif
+                    wlc_DPHIB(wlc_NPHI) = -1.0_dp*contribution
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + 2.0_dp*contribution
+                    wlc_DPHIB(I) = wlc_DPHIB(I) - contribution
+                endif
              enddo
           enddo
        enddo

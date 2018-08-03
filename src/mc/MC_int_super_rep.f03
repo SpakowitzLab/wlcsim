@@ -2,7 +2,7 @@
 !---------------------------------------------------------------!
 !
 !     This subroutine calculates the change in the self energy for
-!     a super reptation move.  That is a reptation move where the 
+!     a super reptation move.  That is a reptation move where the
 !     chain identities change along with position so that middle
 !     beads appear not to change.
 !
@@ -11,7 +11,7 @@
 subroutine MC_int_super_rep(wlc_p,I1,I2,forward)
 ! values from wlcsim_data
 use params, only: wlc_DPHIB, wlc_R, wlc_NPHI, wlc_DPHIA, wlc_inDPHI&
-    , wlc_UP, wlc_ABP, wlc_U, wlc_AB, wlc_DPHI_l2, wlc_RP
+    , wlc_UP, wlc_ABP, wlc_U, wlc_AB, wlc_DPHI_l2, wlc_RP,wlc_ind_in_list
 use params
 implicit none
 
@@ -37,6 +37,7 @@ integer m_index  ! m from Ylm spherical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
+real(dp) change
 NBinX = wlc_p%NBINX
 
 wlc_NPHI = 0
@@ -55,7 +56,7 @@ do II = 1,2
       IB = I1
       if (forward) then
           ! moving forward I1 is removed
-          rrdr = -1 
+          rrdr = -1
       else
           ! moving backward I1 is added
           rrdr = 1
@@ -110,76 +111,66 @@ do II = 1,2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
+   change = real(rrdr,dp)*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
    if (isA) then
-       do ISX = 1,2
+       do ISZ = 1,2
           do ISY = 1,2
-             do ISZ = 1,2
+             do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I = wlc_NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_NPHI = wlc_NPHI + 1
-                      wlc_inDPHI(wlc_NPHI) = inDBin
-                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      wlc_DPHIA(wlc_NPHI) = temp
-                      wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_DPHI_l2(m_index,wlc_NPHI) = &
-                                  + phi2(m_index)*temp
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_inDPHI(I)) then
-                      temp = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      wlc_DPHIA(I) = wlc_DPHIA(I) + temp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
-                                  + phi2(m_index)*temp
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    temp = WTOT*change
+                    wlc_DPHIA(wlc_NPHI) = temp
+                    wlc_DPHIB(wlc_NPHI) = 0.0_dp
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = &
+                                + phi2(m_index)*temp
+                        enddo
+                    endif
+                elseif (inDBin == wlc_inDPHI(I)) then
+                    temp = WTOT*change
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + temp
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
+                                + phi2(m_index)*temp
+                        enddo
+                    endif
+                endif
              enddo
           enddo
        enddo
    else
-       do ISX = 1,2
+       do ISZ = 1,2
           do ISY = 1,2
-             do ISZ = 1,2
+             do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
                 inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
                 ! Generate list of which phi's change and by how much
-                I = wlc_NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_NPHI = wlc_NPHI + 1
-                      wlc_inDPHI(wlc_NPHI) = inDBin
-                      wlc_DPHIA(wlc_NPHI) = 0.0_dp
-                      wlc_DPHIB(wlc_NPHI) = rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_inDPHI(I)) then
-                      wlc_DPHIB(I) = wlc_DPHIB(I) + rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
-             enddo !ISZ
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = 0.0_dp
+                    wlc_DPHIB(wlc_NPHI) = WTOT*change
+                    if(wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
+                        enddo
+                    endif
+                else
+                    wlc_DPHIB(I) = wlc_DPHIB(I) + WTOT*change
+                endif
+             enddo !ISX
           enddo !ISY
-       enddo !ISX
+       enddo !ISZ
    endif
 enddo ! loop over IB  A.k.a. beads
 ! ---------------------------------------------------------------------

@@ -199,18 +199,18 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               !call MC_self(DESELF,wlc_R,wlc_U,wlc_RP,wlc_UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
                   CALL DE_SELF_CRANK(wlc_DESELF,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
-                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
+                      para,WLC_P__RING,IB1,IB2)
 
               elseif (MCTYPE == 2) then
                   CALL ENERGY_SELF_SLIDE(wlc_ESELF,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
-                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
+                      para,WLC_P__RING,IB1,IB2)
                   CALL ENERGY_SELF_SLIDE(ESELFP,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
-                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
+                      para,WLC_P__RING,IB1,IB2)
 
                   wlc_DESELF = ESELFP-wlc_ESELF
               elseif (MCTYPE == 3) then
                   CALL DE_SELF_CRANK(wlc_DESELF,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
-                      pack_as_para(wlc_p),WLC_P__RING,IB1,IB2)
+                      para,WLC_P__RING,IB1,IB2)
               elseif (MCTYPE == 10) then
                   PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
                   PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
@@ -223,7 +223,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
              if (MCTYPE == 9) then !swap move
                  !skip if doesn't do anything
-                 if (abs(wlc_p%CHI_ON).lt.0.00001) CYCLE
+                 if (abs(wlc_p%CHI_ON).lt.0.00001_dp) CYCLE
                  call MC_int_swap(wlc_p,IT1,IT2,IT3,IT4)
              elseif (MCTYPE == 7) then
                  call MC_int_chem(wlc_p,IT1,IT2)
@@ -316,7 +316,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                    if ((wlc_PHIA(J).lt.-0.0001_dp) .or. &
                        (wlc_PHIB(J).lt.-0.00001_dp .and. (.not. WLC_P__TWO_TAIL))) then
                        print*, "IT1-4",IT1,IT2,IT3,IT4
-                       print*, "Vol", wlc_Vol(I)
+                       if(WLC_P__FRACTIONAL_BIN) print*, "Vol", wlc_Vol(I)
                        print*, "MCTYPE", MCTYPE
                        print*, "DPHIA ",wlc_DPHIA(I)," DPHIB",wlc_DPHIB(I)
                        print*, "PHIA(J) ", wlc_PHIA(J), " PHIB(J) ", wlc_PHIB(J)

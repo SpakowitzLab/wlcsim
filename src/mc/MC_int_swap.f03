@@ -12,7 +12,8 @@
 subroutine MC_int_swap(wlc_p,I1,I2,I3,I4)
 ! values from wlcsim_data
 use params, only: wlc_UP, wlc_DPHIA, wlc_DEKap, wlc_RP, wlc_NPHI&
-    , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI
+    , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI&
+    , wlc_ind_in_list
 use params,only:dp,wlcsim_params
 implicit none
 
@@ -39,6 +40,7 @@ integer m_index ! m quantum number for sphrical harmonics
 integer NBinX(3)
 real(dp) temp    !for speeding up code
 real(dp), dimension(-2:2) :: phi2
+real(dp) change
 NBinX = wlc_p%NBINX
 
 
@@ -110,41 +112,36 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   do ISX = 1,2
+   change = real(AminusB*rrdr,dp)*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
+   do ISZ = 1,2
       do ISY = 1,2
-         do ISZ = 1,2
+         do ISX = 1,2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            temp = WTOT*change
             ! Generate list of which phi's change and by how much
-            I = wlc_NPHI
-            do
-               if (I.eq.0) then
-                  wlc_NPHI = wlc_NPHI + 1
-                  wlc_inDPHI(wlc_NPHI) = inDBin
-                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                  wlc_DPHIA(wlc_NPHI) = temp
-                  wlc_DPHIB(wlc_NPHI) = -temp
-                  if(wlc_p%CHI_L2_ON) then
-                      do m_index = -2,2
-                          wlc_dPHI_l2(m_index,wlc_NPHI) = phi2(m_index)*temp
-                      enddo
-                  endif
-                  exit
-               elseif (inDBin == wlc_inDPHI(I)) then
-                  temp = AminusB*rrdr*WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
-                  wlc_DPHIA(I) = wlc_DPHIA(I) + temp
-                  wlc_DPHIB(I) = wlc_DPHIB(I)-temp
-                  if(wlc_p%CHI_L2_ON) then
-                      do m_index = -2,2
-                          wlc_dPHI_l2(m_index,I) = wlc_dPHI_l2(m_index,I) + &
-                                      phi2(m_index)*temp
-                      enddo
-                  endif
-                  exit
-               else
-                  I = I-1
-               endif
-            enddo
+            I = wlc_ind_in_list(indBin)
+            if (I == -1) then
+                wlc_NPHI = wlc_NPHI + 1
+                wlc_ind_in_list(indBin) = wlc_NPHI
+                wlc_inDPHI(wlc_NPHI) = inDBin
+                wlc_DPHIA(wlc_NPHI) = temp
+                wlc_DPHIB(wlc_NPHI) = -temp
+                if(wlc_p%CHI_L2_ON) then
+                    do m_index = -2,2
+                        wlc_dPHI_l2(m_index,wlc_NPHI) = phi2(m_index)*temp
+                    enddo
+                endif
+            else
+                wlc_DPHIA(I) = wlc_DPHIA(I) + temp
+                wlc_DPHIB(I) = wlc_DPHIB(I)-temp
+                if(wlc_p%CHI_L2_ON) then
+                    do m_index = -2,2
+                        wlc_dPHI_l2(m_index,I) = wlc_dPHI_l2(m_index,I) + &
+                                    phi2(m_index)*temp
+                    enddo
+                endif
+            endif
          enddo
       enddo
    enddo
@@ -152,7 +149,7 @@ do IB = I1,I2
 enddo ! loop over IB  A.k.a. beads
 call hamiltonian(wlc_p,.false.)
 
-if (abs(wlc_DEKap).gt.0.0001) then
+if (abs(wlc_DEKap).gt.0.0001_dp) then
     print*, "Error in MC_int_swap.  Kappa energy shouldn't change on move 9"
     print*, "DEKap", wlc_DEKap
     stop 1

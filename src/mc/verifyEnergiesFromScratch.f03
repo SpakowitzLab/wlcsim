@@ -8,8 +8,8 @@ subroutine CalculateEnergiesFromScratch(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_METH, wlc_Cross, wlc_Wr, wlc_AB, wlc_dx_mu&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_DEELAS, wlc_CrossSize, wlc_ABP&
-    , wlc_demu, wlc_DEBind, wlc_R
-    use params
+    , wlc_demu, wlc_DEBind, wlc_R, wlc_ind_in_list, dp
+use params, only: wlcsim_params
     use iso_fortran_env
     implicit none
     integer IT1, IT2, I
@@ -33,6 +33,17 @@ use params, only: wlc_METH, wlc_Cross, wlc_Wr, wlc_AB, wlc_dx_mu&
     endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
+        do I = 1,wlc_p%NBIN
+            if (wlc_ind_in_list(I) .ne. -1) then
+                ! Quinn put this check in to make sure that wlc_ind_in_list
+                ! is reset to -1.  The program only resects values that have
+                ! been changed in the move so if there is some problem and
+                ! it isn't reset and incorrect answer could be produced!
+                print*, "wlc_ind_in_list(",I,") should have be reset to -1"
+                print*, "instead it was ",wlc_ind_in_list(I)
+                stop
+            endif
+        enddo
         ! initialize phi
         call MC_int_initialize(wlc_p)
         phiTot=0.0_dp
@@ -104,7 +115,7 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_x_maierSaup
     , wlc_EMaiersaupe, wlc_x_mu, wlc_dx_ExternalField, wlc_dx_couple, wlc_EMu, wlc_dx_Field&
     , wlc_DECouple, wlc_mc_ind, wlc_x_ExternalField, wlc_DEExternalField, wlc_EField, wlc_dx_maierSaupe&
     , wlc_deMaierSaupe, wlc_DEElas, wlc_x_Couple, wlc_DEKap, wlc_EElas, wlc_DEChi&
-    , wlc_dx_chi
+    , wlc_dx_chi, dp
     use params, only : wlcsim_params,  epsapprox, ERROR_UNIT
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
@@ -136,7 +147,7 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_x_maierSaup
 
     ! --- Elastic Energy ---
     if(abs((wlc_EElas(1) +  wlc_EElas(2) + wlc_EElas(3))-&
-           (wlc_DEElas(1) + wlc_DEElas(2) + wlc_DEElas(3))).gt.0.0001) then
+           (wlc_DEElas(1) + wlc_DEElas(2) + wlc_DEElas(3))) .gt. 0.0001_dp) then
         write(ERROR_UNIT,*) "Warning. Integrated elastic enrgy:", &
                 (wlc_EElas(1) + wlc_EElas(2) + wlc_EElas(3)),&
                 " while absolute elastic energy:", &
@@ -146,7 +157,7 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_x_maierSaup
     wlc_EElas = wlc_DEElas ! copy array
 
     ! --- Explicit Binding energy ---
-    if(abs(wlc_eExplicitBinding - wlc_DEExplicitBinding).gt.0.0001) then
+    if(abs(wlc_eExplicitBinding - wlc_DEExplicitBinding) .gt. 0.0001_dp) then
         write(ERROR_UNIT,*) "Warning. Explicit Binding enrgy:", &
                 wlc_eExplicitBinding, &
                 " while absolute explicit binding energy:", &
