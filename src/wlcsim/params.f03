@@ -606,7 +606,7 @@ contains
                 allocate(wlc_ABP(WLC_P__NT))   !Chemical identity aka binding state
                 wlc_ABP = INT_MIN
             endif
-            if (wlc_p%CHI_L2_ON) then
+            if (WLC_P__CHI_L2_ABLE) then
                 allocate(wlc_PHI_l2(-2:2,NBin))
                 allocate(wlc_dPHI_l2(-2:2,NBin))
             endif

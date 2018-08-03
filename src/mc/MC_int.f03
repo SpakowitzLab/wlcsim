@@ -205,7 +205,6 @@ integer IB                ! Bead index
 integer rrdr ! -1 if r, 1 if r + dr
 integer IX(2),IY(2),IZ(2)
 real(dp) WX(2),WY(2),WZ(2)
-real(dp) WTOT       ! total weight ascribed to bin
 real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
@@ -216,6 +215,8 @@ integer m_index ! m for spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
 real(dp) change
+real(dp) W_ZY, W_Z
+integer ind_Z_temp, ind_ZY_temp
 
 NBinX = wlc_p%NBINX
 
@@ -227,10 +228,12 @@ do IB = I1,I2
        RBin(1) = wlc_R(1,IB)
        RBin(2) = wlc_R(2,IB)
        RBin(3) = wlc_R(3,IB)
+       change = -1.0_dp*WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
    else
        RBin(1) = wlc_RP(1,IB)
        RBin(2) = wlc_RP(2,IB)
        RBin(3) = wlc_RP(3,IB)
+       change = WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
    endif
    ! --------------------------------------------------
    !
@@ -247,25 +250,27 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1) then
+   if (WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1) then
        if (rrdr == -1) then
            call Y2calc(wlc_U(:,IB),phi2)
        else
            call Y2calc(wlc_UP(:,IB),phi2)
        endif
-   else
+   elseif (WLC_P__CHI_L2_ABLE) then
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp
    endif
-   change = real(rrdr,dp)*WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
 
    if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then ! A, chrystal, singally bound
        do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
+             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = WTOT*change
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
                 I = wlc_ind_in_list(indBin)
                 if (I == -1) then
                     wlc_NPHI = wlc_NPHI + 1
@@ -273,7 +278,7 @@ do IB = I1,I2
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = contribution
                     wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                    if(wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                 + phi2(m_index)*contribution
@@ -281,7 +286,7 @@ do IB = I1,I2
                     endif
                 else
                     wlc_DPHIA(I) = wlc_DPHIA(I) + contribution
-                    if(wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                 + phi2(m_index)*contribution
@@ -293,18 +298,21 @@ do IB = I1,I2
        enddo
    else if (wlc_AB(IB) == 0) then
        do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
+             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = WTOT*change
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
                 I = wlc_ind_in_list(indBin)
                 if (I == -1) then
                     wlc_NPHI = wlc_NPHI + 1
                     wlc_ind_in_list(indBin) = wlc_NPHI
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 0.0_dp
-                    if(wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo
@@ -318,18 +326,21 @@ do IB = I1,I2
        enddo
    else if (wlc_AB(IB) == 3) then
        do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
+             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = WTOT*change
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
                 I = wlc_ind_in_list(indBin)
                 if (I == -1) then
                     wlc_NPHI = wlc_NPHI + 1
                     wlc_ind_in_list(indBin) = wlc_NPHI
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 2.0_dp*contribution
-                    if(wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo

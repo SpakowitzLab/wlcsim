@@ -134,6 +134,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__CHI_L2_ABLE .FALSE.
+! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 ! ----------------------------
 !
 !   Output
