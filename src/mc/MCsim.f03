@@ -253,7 +253,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
 
           if (WLC_P__EXPLICIT_BINDING .and. positions_have_changed) then
               if (MCTYPE == 12) then
-                  call MC_excplicit_binding_spider(wlc_p,spider_id)
+                  call MC_explicit_binding_spider(wlc_p,spider_id)
               else
                   call MC_explicit_binding(IT1,IT2,MCTYPE)
               endif
