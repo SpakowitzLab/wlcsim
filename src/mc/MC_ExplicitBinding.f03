@@ -58,6 +58,28 @@ enddo
 RETURN
 END
 
+subroutine MC_explicit_binding_spider(wlc_p,spider_id)
+! values from wlcsim_data
+use params, only: wlc_spiders, wlc_DEExplicitBinding
+use params, only: wlcsim_params, dp
+implicit none
+TYPE(wlcsim_params), intent(in) :: wlc_p
+integer, intent(in) :: spider_id
+LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+integer section_n,I1,I2
+real(dp) energy
+
+energy = 0.0_dp
+do section_n = 1, wlc_spiders(spider_id)%nSections
+    I1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
+    I2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
+    call MC_external_field(wlc_p,I1,I2)
+    energy = energy + wlc_DEExplicitBinding
+enddo
+wlc_DEExplicitBinding=energy
+
+end
+
 !---------------------------------------------------------------!
 subroutine MC_explicit_binding_from_scratch()
 ! values from wlcsim_data

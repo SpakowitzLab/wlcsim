@@ -73,6 +73,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
     logical collide
     logical success
     integer section_n, spider_id
+    logical positions_have_changed
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -123,10 +124,14 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
               cycle
           endif
+          if ((MCTYPE == 4) .or. (MCTYPE == 7) .or. (MCTYPE == 8) ) then
+              positions_have_changed = .False.
+          else
+              positions_have_changed = .True.
+          endif
+
 !   Calculate the change in confinement energy
-          if ((MCTYPE /= 4).and. &
-              (MCTYPE /= 7).and. &
-              (MCTYPE /= 8).and. &
+          if (positions_have_changed .and. &
               (MCTYPE /= 9).and. &
               (MCTYPE /= 12)) then
               !call MC_confine(wlc_RP, WLC_P__NT,IT1,IT2,wlc_ECon)
@@ -149,8 +154,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-              call MC_cylinder(wlc_p,collide,IB1,IB2,IT1,IT2, &
-                  MCTYPE,forward)
+              call MC_cylinder(wlc_p,collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               if (collide) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   cycle
@@ -237,14 +241,22 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                  call MC_int_update(wlc_p,IT1,IT2)
              endif
           endif
-          if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
-              (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
-              WLC_P__APPLY_EXTERNAL_FIELD) then
-              call MC_external_field(wlc_p,IT1,IT2)
+
+          if (WLC_P__APPLY_EXTERNAL_FIELD .and. positions_have_changed) then
+              if (MCTYPE == 12) then
+                  call MC_external_field_spider(wlc_p,spider_id)
+              else
+                  wlc_dx_Externalfield = 0.0_dp
+                  call MC_external_field(wlc_p,IT1,IT2)
+              endif
           endif
 
-          if(WLC_P__EXPLICIT_BINDING) then
-              call MC_explicit_binding(IT1,IT2,MCTYPE)
+          if (WLC_P__EXPLICIT_BINDING .and. positions_have_changed) then
+              if (MCTYPE == 12) then
+                  call MC_excplicit_binding_spider(wlc_p,spider_id)
+              else
+                  call MC_explicit_binding(IT1,IT2,MCTYPE)
+              endif
           endif
 
 !   Change the position if appropriate

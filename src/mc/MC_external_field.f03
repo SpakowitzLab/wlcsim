@@ -69,6 +69,26 @@ enddo
 wlc_DEExternalField = wlc_p%AEF * wlc_dx_ExternalField
 
 END
+
+subroutine MC_external_field_spider(wlc_p,spider_id)
+! values from wlcsim_data
+use params, only: wlc_spiders, wlc_dx_Externalfield
+use params, only: wlcsim_params, dp
+implicit none
+TYPE(wlcsim_params), intent(in) :: wlc_p
+integer, intent(in) :: spider_id
+LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+integer section_n,I1,I2
+
+wlc_dx_Externalfield = 0.0_dp
+do section_n = 1, wlc_spiders(spider_id)%nSections
+    I1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
+    I2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
+    call MC_external_field(wlc_p,I1,I2)
+enddo
+
+end
+
 subroutine MC_external_field_from_scratch(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_dx_ExternalField, wlc_DEExternalField, wlc_R

@@ -449,6 +449,15 @@ contains
             endif
         endif
 
+        if (WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
+            call stop_if_err(err, "Explicit binding not set up for exchange move")
+        endif
+        if (WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
+            call stop_if_err(err, "External field not set up for exchange move")
+        endif
+        if (WLC_P__MOVEON_REPTATION ==1 .and. WLC_P__LOCAL_TWIST) then
+            call stop_if_err(err, "Reptation move energy calc not set up for twist.")
+        endif
         if ((WLC_P__FRACTIONAL_BIN) .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
             call stop_if_err(err, "Fractional bin only implimented for sphere")
         endif
