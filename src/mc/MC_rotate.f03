@@ -12,7 +12,7 @@
 subroutine MC_rotate(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
 ! values from wlcsim_data
 use params, only: wlc_V, wlc_R, wlc_U, wlc_VP, wlc_RP&
-    , wlc_UP
+    , wlc_UP, wlc_pointsMoved, wlc_nPointsMoved, wlc_bendPoints, wlc_nBend
 
 use mersenne_twister
 use params, only: dp
@@ -58,6 +58,25 @@ IB2 = IB1
 IT1 = WLC_P__NB*(IP-1) + IB1
 IT2 = IT1
 
+!  Which elastic segments change
+wlc_nBend = 0
+if (IB1>1) then
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend)=IT1-1
+    I=IT1-1
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+endif
+if (IB2<WLC_P__NB) then
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend)=IT2
+    I=IT2+1
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+endif
+
 call randomUnitVec(TA,rand_stat)
 call random_number(urnd,rand_stat)
 ALPHA = MCAMP*(urnd(1)-0.5_dp)
@@ -67,4 +86,6 @@ I = IT1
 wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))
 wlc_RP(:,I) = wlc_R(:,I)
 if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
+wlc_nPointsMoved=wlc_nPointsMoved+1
+wlc_pointsMoved(wlc_nPointsMoved)=I
 end subroutine

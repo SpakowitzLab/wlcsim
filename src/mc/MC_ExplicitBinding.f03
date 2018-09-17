@@ -12,33 +12,29 @@
 !
 !     Edited by Quinn in 2016
 
-subroutine MC_explicit_binding(IT1,IT2,MCTYPE)
+subroutine MC_explicit_binding()
 ! values from wlcsim_data
-use params, only: wlc_DEExplicitBinding, wlc_R, wlc_RP, wlc_ExplicitBindingPair
+use params, only: wlc_DEExplicitBinding, wlc_R, wlc_RP, &
+    wlc_ExplicitBindingPair,  wlc_nPointsMoved, wlc_pointsMoved
 use params, only:  dp
 implicit none
 
-!   iputs
-integer, intent(in) :: IT1  ! Test bead position 1
-integer, intent(in) :: IT2  ! Test bead position 2
-integer, intent(in) :: MCTYPE
-
 !   Internal variables
 
-integer ii
+integer ii,jj
 integer otherEnd
 real(dp) r(3)
 
 wlc_DEExplicitBinding = 0.0_dp
 
-if(MCTYPE==4 .or. MCTYPE==7 .or. MCTYPE==12) RETURN
 
-do ii = IT1, IT2
+do jj = 1,wlc_nPointsMoved
+    ii = wlc_pointsMoved(jj)
     otherEnd = wlc_ExplicitBindingPair(ii) 
     if(otherEnd .le. 0) cycle
 
     ! plus new
-    if (otherEnd < IT1 .or. otherEnd > IT2) then
+    if (isnan(wlc_RP(1,otherEnd))) then  ! assumes that RP is up to date or nan
         r = wlc_RP(:,ii) - wlc_R(:,otherEnd)
     else
         if (otherEnd .le. ii) cycle ! don't doule count
@@ -57,28 +53,6 @@ enddo
 
 RETURN
 END
-
-subroutine MC_explicit_binding_spider(wlc_p,spider_id)
-! values from wlcsim_data
-use params, only: wlc_spiders, wlc_DEExplicitBinding
-use params, only: wlcsim_params, dp
-implicit none
-TYPE(wlcsim_params), intent(in) :: wlc_p
-integer, intent(in) :: spider_id
-LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
-integer section_n,I1,I2
-real(dp) energy
-
-energy = 0.0_dp
-do section_n = 1, wlc_spiders(spider_id)%nSections
-    I1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
-    I2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
-    call MC_external_field(wlc_p,I1,I2)
-    energy = energy + wlc_DEExplicitBinding
-enddo
-wlc_DEExplicitBinding=energy
-
-end
 
 !---------------------------------------------------------------!
 subroutine MC_explicit_binding_from_scratch()

@@ -12,7 +12,7 @@
 subroutine MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,super)
 ! values from wlcsim_data
 use params, only: wlc_VP, wlc_ABP, wlc_V, wlc_AB, wlc_R&
-    , wlc_RP, wlc_U, wlc_UP
+    , wlc_RP, wlc_U, wlc_UP, wlc_nPointsMoved, wlc_pointsMoved
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: random_perp, cross
@@ -166,5 +166,8 @@ else
         wlc_ABP(IT1) = wlc_AB(IT2)
     endif
 endif
-
+do I = IT1,IT2
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
+enddo
 end subroutine

@@ -9,10 +9,11 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_spider(MCAMP,rand_stat,success,spider_id)
+subroutine MC_spider(MCAMP,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_UP, wlc_RP, wlc_explicitbindingpair, wlc_U, wlc_VP&
-    , wlc_spiders, wlc_V, wlc_R, wlc_numberOfSpiders
+    , wlc_spiders, wlc_V, wlc_R, wlc_numberOfSpiders, wlc_nBend, wlc_bendPoints&
+    , wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 use params, only: wlcsim_params,  pi, ERROR_UNIT
@@ -24,9 +25,9 @@ use windowTools, only: drawWindow
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 logical, intent(out) :: success
-integer, intent(out) :: spider_id ! which spider
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
+integer spider_id ! which spider
 integer leg_n, I, section_n
 integer irnd(1) ! random intiger
 real(dp) urnd(1) ! single random number
@@ -43,6 +44,11 @@ real(dp) extent(3)
 real(dp) extent2(3)
 logical randomBend
 real(dp) extent3(3)
+
+if (WLC_P__RING) then
+    print*, "Ring not set up for spider move"
+    stop 1
+endif
 
 ! choose spider
 call random_number(urnd,rand_stat)
@@ -71,7 +77,7 @@ else
                 return
             endif
             otherEnd = wlc_explicitbindingpair(knee)
-            if (otherEnd < 0) continue
+            if (otherEnd < 0) cycle
 
             if (otherEnd < knee) then
                 success = .False.
@@ -87,7 +93,7 @@ else
                 return
             endif
             otherEnd = wlc_explicitbindingpair(toe)
-            if (otherEnd < 0) continue
+            if (otherEnd < 0) cycle
 
             if (otherEnd < toe) then
                 success = .False.
@@ -108,7 +114,7 @@ else
                 return
             endif
             otherEnd = wlc_explicitbindingpair(knee)
-            if (otherEnd < 0) continue
+            if (otherEnd < 0) cycle
 
             if (otherEnd > knee) then
                 success = .False.
@@ -124,7 +130,7 @@ else
                 return
             endif
             otherEnd = wlc_explicitbindingpair(knee)
-            if (otherEnd < 0) continue
+            if (otherEnd < 0) cycle
 
             if (otherEnd > toe) then
                 success = .False.
@@ -210,11 +216,41 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
 enddo
 success= .TRUE.
 
+! Record which points are moved
+do section_n=1,wlc_spiders(spider_id)%nSections
+   IT1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
+   IT2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
+   do I = IT1, IT2  ! +1 and -1 because toes don't move
+       wlc_nPointsMoved=wlc_nPointsMoved+1
+       wlc_pointsMoved(wlc_nPointsMoved)=I
+   enddo
+enddo
+
 ! move legs
 do leg_n = 1,wlc_spiders(spider_id)%nLegs
     hip = wlc_spiders(spider_id)%legs(1,leg_n)
     knee= wlc_spiders(spider_id)%legs(2,leg_n)
     toe = wlc_spiders(spider_id)%legs(3,leg_n)
+    if (toe>hip) then
+        ! note that U(knee) doesn't rotate strictly with either segment
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = hip
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = knee
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = knee-1
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = toe-1
+    else
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = toe
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = knee
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = knee-1
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend) = hip-1
+    endif
     hipR=wlc_R(:,hip)
     kneeR=wlc_R(:,knee)
     toeR=wlc_R(:,toe)
@@ -393,4 +429,5 @@ do section_n = 1,wlc_spiders(spider_id)%nSections
         if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
     enddo
 enddo
+
 end subroutine

@@ -12,7 +12,7 @@
 subroutine MC_chainSwap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 ! values from wlcsim_data
 use params, only: wlc_U, wlc_RP, wlc_VP, wlc_UP, wlc_R&
-    , wlc_V
+    , wlc_V, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 
@@ -58,12 +58,20 @@ IT4 = WLC_P__NB*(IP2-1) + WLC_P__NB
 do I = 0,WLC_P__NB-1
     wlc_RP(:,IT1 + I) = wlc_R(:,IT3 + I)
     wlc_UP(:,IT1 + I) = wlc_U(:,IT3 + I)
+    if (WLC_P__LOCAL_TWIST) then
+        wlc_VP(:,IT1 + I) = wlc_V(:,IT3 + I)
+    endif
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=IT1 + I
+ENDdo
+do I = 0,WLC_P__NB-1
     wlc_RP(:,IT3 + I) = wlc_R(:,IT1 + I)
     wlc_UP(:,IT3 + I) = wlc_U(:,IT1 + I)
     if (WLC_P__LOCAL_TWIST) then
-        wlc_VP(:,IT1 + I) = wlc_V(:,IT3 + I)
         wlc_VP(:,IT3 + I) = wlc_V(:,IT1 + I)
     endif
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=IT3 + I
 ENDdo
 IB1 = -2000000
 IB2 = -2000000

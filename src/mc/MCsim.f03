@@ -32,6 +32,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
     use updateRU, only: updateR
 
     implicit none
+    interface
+        pure function list_confinement()
+            logical list_confinement
+        end function
+    end interface
 
     !integer, intent(in) :: NSTEP             ! Number of MC steps
 
@@ -69,11 +74,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
-    logical in_confinement
     logical collide
     logical success
-    integer section_n, spider_id
-    logical positions_have_changed
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -111,53 +113,36 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           wlc_deMaierSaupe = 0.0_dp
           wlc_DEElas=0.0_dp
           wlc_DEExplicitBinding = 0.0_dp
+          wlc_nPointsMoved = 0
+          wlc_nBend = 0
 
           ! Turn down poor moves
           if ((wlc_PHit(MCTYPE).lt.WLC_P__MIN_ACCEPT).and. &
               (mod(ISTEP,WLC_P__REDUCE_MOVE).ne.0).and. &
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
-              CYCLE
+              goto 10 ! skip move, return RP to nan
           endif
           call MC_move(IB1,IB2,IT1,IT2,IT3,IT4,&
-                       MCTYPE,forward,wlc_rand_stat,dib,spider_id,success)
+                       MCTYPE,forward,wlc_rand_stat,dib,success)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-              cycle
-          endif
-          if ((MCTYPE == 4) .or. (MCTYPE == 7) .or. (MCTYPE == 8) ) then
-              positions_have_changed = .False.
-          else
-              positions_have_changed = .True.
+              goto 10 ! skip move, return RP to nan
           endif
 
 !   Calculate the change in confinement energy
-          if (positions_have_changed .and. &
-              (MCTYPE /= 9).and. &
-              (MCTYPE /= 12)) then
-              !call MC_confine(wlc_RP, WLC_P__NT,IT1,IT2,wlc_ECon)
-              ! Completely skip move if outside confinement
-              if (.not. in_confinement(wlc_RP, WLC_P__NT, IT1, IT2)) then
+          if ((MCTYPE /= 4) .and. wlc_nPointsMoved > 0 .and. (MCTYPE /= 7)) then
+              if (.not. list_confinement()) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                  cycle
+                  success = .False.
+              goto 10 ! skip move, return RP to nan
               endif
-          elseif (MCTYPE == 12) then
-              do section_n = 1, wlc_spiders(spider_id)%nSections
-                  IT1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
-                  IT2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
-                  if (.not. in_confinement(wlc_RP, WLC_P__NT, IT1, IT2)) then
-                      wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                      success = .False.
-                      exit
-                  endif
-              enddo
-              if (.not. success) cycle
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
               call MC_cylinder(wlc_p,collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               if (collide) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                  cycle
+                  goto 10 ! skip move, return RP to nan
               endif
           endif
 
@@ -175,19 +160,19 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               ENDif
               if (DELTA /= 1) then
                  wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                 cycle
+                 goto 10 ! skip move, return RP to nan
               ENDif
           ENDif
 
 
 !   Calculate the change in compression and bending energy
-          if (MCTYPE<5) then
-              call MC_eelas(wlc_p,IB1,IB2,IT1,IT2,EB,EPAR,EPERP,GAM,ETA,MCTYPE,WRP)
-          elseif (MCTYPE==12) then
-              call MC_eelas_spider(wlc_p,wlc_DEELAS,spider_id,&
-                                   EB,EPAR,EPERP,GAM,ETA)
-          endif
+          if (wlc_nBend>0) then
+              call MC_eelas(wlc_p,EB,EPAR,EPERP,GAM,ETA)
+              if (WLC_P__RING.AND.WLC_P__TWIST.and. .not. WLC_P__LOCAL_TWIST) then
+                  call MC_global_twist(wlc_p,IT1,IT2,MCTYPE,WRP,wlc_DEElas(4))
 
+              endif
+          endif
 
           if (MCTYPE.eq.8) then
               print*, "Flop move not working!  Chain energy isn't symmetric"
@@ -225,38 +210,24 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
 !   Calculate the change in the self-interaction energy (actually all
 !   interation energy, not just self?)
           if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
-             if (MCTYPE == 9) then !swap move
-                 !skip if doesn't do anything
-                 if (abs(wlc_p%CHI_ON).lt.0.00001_dp) CYCLE
-                 call MC_int_swap(wlc_p,IT1,IT2,IT3,IT4)
-             elseif (MCTYPE == 7) then
+             if (MCTYPE == 7) then !
                  call MC_int_chem(wlc_p,IT1,IT2)
              elseif (MCTYPE == 10) then ! reptation move
                  call MC_int_rep(wlc_p,IT1,IT2,forward)
              elseif (MCTYPE == 11) then ! super reptation move
                  call MC_int_super_rep(wlc_p,IT1,IT2,forward)
-             elseif (MCTYPE == 12) then
-                 call MC_int_update_spider(wlc_p,spider_id)
              else ! motion of chain
-                 call MC_int_update(wlc_p,IT1,IT2)
+                 call MC_int_update(wlc_p)
              endif
           endif
 
-          if (WLC_P__APPLY_EXTERNAL_FIELD .and. positions_have_changed) then
-              if (MCTYPE == 12) then
-                  call MC_external_field_spider(wlc_p,spider_id)
-              else
-                  wlc_dx_Externalfield = 0.0_dp
-                  call MC_external_field(wlc_p,IT1,IT2)
-              endif
+          if (WLC_P__APPLY_EXTERNAL_FIELD .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
+              wlc_dx_Externalfield = 0.0_dp
+              call MC_external_field(wlc_p)
           endif
 
-          if (WLC_P__EXPLICIT_BINDING .and. positions_have_changed) then
-              if (MCTYPE == 12) then
-                  call MC_explicit_binding_spider(wlc_p,spider_id)
-              else
-                  call MC_explicit_binding(IT1,IT2,MCTYPE)
-              endif
+          if (WLC_P__EXPLICIT_BINDING .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
+              call MC_explicit_binding()
           endif
 
 !   Change the position if appropriate
@@ -279,22 +250,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                       wlc_AB(I) = wlc_ABP(I)
                  ENDdo
              endif
-             if(MCTYPE /= 7 .and. MCTYPE /= 12) then
-                 do I = IT1,IT2
-                     call updateR(I)
-                 enddo
-                 if (MCTYPE == 9) then
-                     do I = IT3,IT4
-                         call updateR(I)
-                     enddo
-                 endif
-             elseif(MCTYPE == 12) then
-                 do section_n = 1, wlc_spiders(spider_id)%nSections
-                     IT1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
-                     IT2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
-                     do I = IT1,IT2
-                         call updateR(I)
-                     enddo
+             if(MCTYPE /= 7) then
+                 do I = 1,wlc_nPointsMoved
+                     J = wlc_pointsMoved(I)
+                     call updateR(J)
                  enddo
              endif
              if (wlc_ECon.gt.0.0_dp) then
@@ -359,8 +318,15 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
 
+10        continue
+
           !  vvvvvvvvvv Beginning of hold check vvvvvvvvvvvvvvvvvv
-          do I = IT1,IT2
+          if (isnan(ENERGY)) then
+              print*, "Energy = NAN"
+          endif
+          !  It is now assumed that RP=R or nan after this.  Do not remove this loop.
+          do J = 1,wlc_nPointsMoved
+              I = wlc_pointsMoved(J)
               wlc_RP(1,I) = nan
               wlc_RP(2,I) = nan
               wlc_RP(3,I) = nan
@@ -371,14 +337,21 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                   wlc_ABP(I) = INT_MIN
               endif
           enddo
-          if (MCTYPE == 9) then
-              do I = IT3,IT4
-                  wlc_RP(1,I) = nan
-                  wlc_RP(2,I) = nan
-                  wlc_RP(3,I) = nan
-                  wlc_UP(1,I) = nan
-                  wlc_UP(2,I) = nan
-                  wlc_UP(3,I) = nan
+          do J = 1,wlc_nBend
+              I = wlc_bendPoints(J)
+              wlc_RP(:,I:I+1) = nan
+              wlc_UP(:,I:I+1) = nan
+              if (WLC_P__VARIABLE_CHEM_STATE) then
+                  wlc_ABP(I:I+1) = INT_MIN
+              endif
+              !wlc_bendPoints(J) = -1
+          enddo
+          if (.False.) then
+              do I = 1,WLC_P__NB
+                  if (.not. isnan(wlc_RP(1,I))) then
+                      print*, "should be NAN at", I
+                      stop
+                  endif
               enddo
           endif
           !^^^^^^^^^^^End of check ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

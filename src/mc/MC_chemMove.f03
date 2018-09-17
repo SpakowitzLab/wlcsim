@@ -12,7 +12,7 @@
 subroutine MC_chemMove(IB1,IB2,IT1,IT2,WindoW,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
-    , wlc_UP, wlc_ABP, wlc_VP
+    , wlc_UP, wlc_ABP, wlc_VP, wlc_pointsMoved, wlc_nPointsMoved
 
 use mersenne_twister
 use params, only: dp
@@ -81,4 +81,8 @@ endif
 wlc_RP(:,IT1:IT2) = wlc_R(:,IT1:IT2)
 wlc_UP(:,IT1:IT2) = wlc_U(:,IT1:IT2)
 if (WLC_P__LOCAL_TWIST) wlc_VP(:,IT1:IT2) = wlc_V(:,IT1:IT2)
+do J = IT1,IT2
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=J
+enddo
 end subroutine

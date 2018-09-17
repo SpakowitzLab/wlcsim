@@ -12,7 +12,7 @@
 subroutine MC_fullChainSlide(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_RP, wlc_U, wlc_UP, wlc_VP&
-    , wlc_V
+    , wlc_V, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 use params, only: dp
@@ -59,6 +59,8 @@ DR(3) = MCAMP*(urand(3)-0.5_dp)
 
 do I = IT1,IT2
     wlc_RP(:,I) = wlc_R(:,I) + DR
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 enddo
 wlc_UP(:,IT1:IT2) = wlc_U(:,IT1:IT2)
 if (WLC_P__LOCAL_TWIST)  wlc_VP(:,IT1:IT2) = wlc_V(:,IT1:IT2)

@@ -8,14 +8,14 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,spider_id,success)
+subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_Window, wlc_MCAMP
 use mersenne_twister, only: random_stat
 use params, only:  wlcsim_params
 implicit none
 
-integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib,spider_id
+integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib
 logical, intent(out) :: success
 integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
@@ -24,7 +24,6 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 
 
 success = .TRUE.
-spider_id = 0
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1)
 call MC_crank(IB1,IB2,IT1,IT2 &
@@ -53,7 +52,7 @@ call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
 case(11)
 call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
-call MC_spider(wlc_MCAMP,rand_stat,success,spider_id)
+call MC_spider(wlc_MCAMP,rand_stat,success)
 end select
 RETURN
 END

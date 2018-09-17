@@ -11,7 +11,7 @@
 ! please move other variables in as you see fit
 subroutine MC_crank(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
 ! values from wlcsim_data
-use params, only: wlc_VP, wlc_UP, wlc_V, wlc_RP, wlc_U, wlc_R
+use params, only: wlc_VP, wlc_UP, wlc_V, wlc_RP, wlc_U, wlc_R, wlc_nBend, wlc_bendPoints, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 use params, only: dp,  eps
@@ -61,6 +61,24 @@ call drawWindow(window,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
 if (success .eqv. .false.) return
 
+!  Which elastic segments change
+wlc_nBend = 0
+if (IB1>1) then
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend)=IT1-1
+    I=IT1-1
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+endif
+if (IB2<WLC_P__NB) then
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend)=IT2
+    I=IT2+1
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+endif
 
 if (WLC_P__RING) then                    !Polymer is a ring
    if (IB1 == IB2.AND.IB1 == 1) then
@@ -101,18 +119,20 @@ endif
      wlc_RP(:,I) = rotateR(ROT,wlc_R(:,I))
      wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))
      if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
+     wlc_nPointsMoved=wlc_nPointsMoved+1
+     wlc_pointsMoved(wlc_nPointsMoved)=I
      I = I + 1
   ENDdo
 
 !  ------begining testing---------
 if(.false.) then
     ! This is a code block for testing
-    if (abs(wlc_RP(1,IT1)-wlc_R(1,IT1)).gt.0.000001) then
+    if (abs(wlc_RP(1,IT1)-wlc_R(1,IT1)).gt.0.000001_dp) then
         print*, "error in crank-shaft move"
         print*, wlc_RP(1,IT1), wlc_R(1,IT1)
         stop 1
     endif
-    if (abs(wlc_RP(1,IT2)-wlc_R(1,IT2)).gt.0.000001) then
+    if (abs(wlc_RP(1,IT2)-wlc_R(1,IT2)).gt.0.000001_dp) then
         print*, "error in crank-shaft move"
         print*, wlc_RP(1,IT1), wlc_R(1,IT1)
         stop 1
@@ -124,7 +144,7 @@ if(.false.) then
         d2 = (wlc_RP(1,IT1 + 1)-wlc_RP(1,IT1))**2 + &
            (wlc_RP(2,IT1 + 1)-wlc_RP(2,IT1))**2 + &
            (wlc_RP(3,IT1 + 1)-wlc_RP(3,IT1))**2
-        if (abs(d1-d2).gt.0.000001) then
+        if (abs(d1-d2).gt.0.000001_dp) then
             print*, "error in crank-shaft move"
             print*, "distance change in 1"
             print*, "IT1",IT1," IT2",IT2
@@ -137,7 +157,7 @@ if(.false.) then
         d2 = (wlc_RP(1,IT2-1)-wlc_RP(1,IT2))**2 + &
            (wlc_RP(2,IT2-1)-wlc_RP(2,IT2))**2 + &
            (wlc_RP(3,IT2-1)-wlc_RP(3,IT2))**2
-        if (abs(d1-d2).gt.0.000001) then
+        if (abs(d1-d2).gt.0.000001_dp) then
             print*, "error in crank-shaft move"
             print*, "distance change in 2"
             print*, d1,d2

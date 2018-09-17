@@ -285,7 +285,7 @@ function mu_path(s) result(mu)
     implicit none
     real(dp), intent(in) :: s
     real(dp) mu
-    mu = s-2.5
+    mu = s-2.5_dp
 end function mu_path
 function kap_path(s) result(kap)
     use params, only: dp

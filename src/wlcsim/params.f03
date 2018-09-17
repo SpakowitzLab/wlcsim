@@ -18,7 +18,7 @@ module params
     use precision, only: dp, eps, epsapprox, pi, nan
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
-    use precalc_spider, only: spider, load_precalc_spiders
+    use precalc_spider, only: spider, load_precalc_spiders, get_highestNumberOfLegs
 
     implicit none
 
@@ -212,6 +212,11 @@ module params
     real(dp) wlc_ECon     ! Confinement Energy
     real(dp) wlc_deMaierSaupe ! change in Maier Saupe energy
     integer wlc_NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
+    integer, allocatable, dimension(:) :: wlc_bendPoints ! index of left end of bends presint in chain
+    integer wlc_nBend ! the number of points bent
+    integer wlc_maxNBend ! the number of points bent
+    integer, allocatable, dimension(:) :: wlc_pointsMoved  ! Indicies of points moved
+    integer wlc_nPointsMoved
 
     !   Parallel tempering variables
     integer wlc_numProcesses !number of MPI processes running
@@ -668,10 +673,17 @@ contains
             print*, wlc_ExplicitBindingPair(1:10)
             print*, "..."
         endif
+
+        allocate(wlc_pointsMoved(WLC_P__NT))
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
             call load_precalc_spiders(iostr,wlc_spiders,wlc_numberOfSpiders)
+            wlc_maxNBend = 16 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
+        else
+            wlc_maxNBend = 16
         endif
+        allocate(wlc_bendPoints(wlc_maxNBend))
+        wlc_nBend=0
 
         if (WLC_P__VARIABLE_CHEM_STATE) then
             allocate(wlc_METH(WLC_P__NT)) !Underlying methalation profile

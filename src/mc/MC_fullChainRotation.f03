@@ -11,7 +11,8 @@
 ! please move other variables in as you see fit
 subroutine MC_fullChainRotation(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
 ! values from wlcsim_data
-use params, only: wlc_R, wlc_V, wlc_RP, wlc_VP, wlc_UP, wlc_U
+use params, only: wlc_R, wlc_V, wlc_RP, wlc_VP, wlc_UP, wlc_U &
+    , wlc_nPointsMoved, wlc_pointsMoved
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
@@ -60,12 +61,14 @@ call randomUnitVec(TA,rand_stat)
 P1 = wlc_R(:,(IT1 + IT2)/2)
 
 call random_number(urnd,rand_stat)
-ALPHA = MCAMP*(urnd(1)-0.5)
+ALPHA = MCAMP*(urnd(1)-0.5_dp)
 
 call axisAngle(ROT,alpha,TA,P1)
 do I = IT1,IT2
     wlc_RP(:,I) = rotateR(ROT,wlc_R(:,I))
     wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 enddo
 end subroutine

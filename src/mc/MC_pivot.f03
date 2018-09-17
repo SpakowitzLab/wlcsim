@@ -12,7 +12,7 @@
 subroutine MC_pivot(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_V&
-    , wlc_VP
+    , wlc_VP, wlc_bendPoints, wlc_nBend, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 use params, only: dp
@@ -66,6 +66,14 @@ endif
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
         P1 = wlc_R(:,IT2)
+        if (IB2<WLC_P__NB) then
+            wlc_nBend = wlc_nBend + 1
+            wlc_bendPoints(wlc_nBend)=IT2
+            I=IT2+1
+            wlc_RP(:,I)=wlc_R(:,I)
+            wlc_UP(:,I)=wlc_U(:,I)
+            if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        endif
     else
         IB1 = WLC_P__NB-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
@@ -75,6 +83,14 @@ endif
         IT1 = WLC_P__NB*(IP-1) + IB1
         IT2 = WLC_P__NB*(IP-1) + IB2
         P1 = wlc_R(:,IT1)
+        if (IB1>1) then
+            wlc_nBend = wlc_nBend + 1
+            wlc_bendPoints(wlc_nBend)=IT1-1
+            I=IT1-1
+            wlc_RP(:,I)=wlc_R(:,I)
+            wlc_UP(:,I)=wlc_U(:,I)
+            if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        endif
     endif
 
    call randomUnitVec(TA,rand_stat)
@@ -84,6 +100,7 @@ endif
 
     if (WLC_P__EXPLICIT_BINDING) then
         call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
+        if (success .eqv. .False.) return
     else
         success = .TRUE.
     endif
@@ -94,5 +111,7 @@ endif
         if (WLC_P__LOCAL_TWIST) then
             wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
         endif
+        wlc_nPointsMoved=wlc_nPointsMoved+1
+        wlc_pointsMoved(wlc_nPointsMoved)=I
     enddo
 end subroutine

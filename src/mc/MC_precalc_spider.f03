@@ -74,6 +74,20 @@ contains
     CLOSE(5)
 
     end subroutine
+    function get_highestNumberOfLegs(spiders,numberOfSpiders)
+    implicit none
+    integer get_highestNumberOfLegs
+    integer, intent(in) :: numberOfSpiders
+    type(spider), intent(in), dimension(numberOfSpiders) :: spiders
+    integer ii
+    get_highestNumberOfLegs=0
+    do ii=1,numberOfSpiders
+        if (spiders(ii)%nLegs>get_highestNumberOfLegs) then
+            get_highestNumberOfLegs=spiders(ii)%nLegs
+        endif
+    enddo
+    return
+    end function
     subroutine print_precalc_spiders(spiders,numberOfSpiders)
     implicit none
     integer, intent(in) :: numberOfSpiders

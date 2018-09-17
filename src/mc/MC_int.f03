@@ -137,20 +137,20 @@ END
 !     Edited by Shifan
 !     Edited by Quinn in 2016
 !--------------------------------------------------------------!
-subroutine MC_int_update(wlc_p,I1,I2)
+subroutine MC_int_update(wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_NPHI, wlc_inDPHI,wlc_ind_in_list
+use params, only: wlc_NPHI, wlc_inDPHI,wlc_ind_in_list, wlc_nPointsMoved, wlc_pointsMoved
 use params, only: wlcsim_params
 implicit none
 TYPE(wlcsim_params), intent(in) :: wlc_p
-integer, intent(in) :: I1           ! Test bead position 1
-integer, intent(in) :: I2           ! Test bead position 2
 LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
 integer I,J
 
 wlc_NPHI = 0
-
-call CalcDphi(wlc_p,I1,I2)
+do I = 1,wlc_nPointsMoved
+    J = wlc_pointsMoved(I)
+    call CalcDphi(wlc_p,J)
+enddo
 do I = 1,wlc_NPHI
    J = wlc_inDPHI(I)
    wlc_ind_in_list(J) = -1
@@ -158,33 +158,7 @@ enddo
 call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
 end subroutine MC_int_update
 
-subroutine MC_int_update_spider(wlc_p,spider_id)
-! values from wlcsim_data
-use params, only: wlc_NPHI, wlc_spiders, wlc_inDPHI, wlc_ind_in_list
-use params, only: wlcsim_params
-implicit none
-TYPE(wlcsim_params), intent(in) :: wlc_p
-integer, intent(in) :: spider_id
-LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
-integer section_n,I1,I2,I,J
-
-wlc_NPHI = 0
-do section_n = 1, wlc_spiders(spider_id)%nSections
-    I1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
-    I2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
-    call CalcDphi(wlc_p,I1,I2)
-enddo
-
-do I = 1,wlc_NPHI
-   J = wlc_inDPHI(I)
-   wlc_ind_in_list(J) = -1
-enddo
-
-
-call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
-end subroutine MC_int_update_spider
-
-subroutine CalcDphi(wlc_p,I1,I2)
+subroutine CalcDphi(wlc_p,IB)
 !  Note: This subroutine assumes you have set wlc_bin_in_list=FALSE
 !  some time before the start of the move.
 
@@ -196,12 +170,10 @@ use params, only: dp, wlcsim_params
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p
-integer, intent(in) :: I1           ! Test bead position 1
-integer, intent(in) :: I2           ! Test bead position 2
+integer, intent(in) :: IB           ! Test bead position 1
 
 !   Internal variables
 integer I                 ! For looping over bins
-integer IB                ! Bead index
 integer rrdr ! -1 if r, 1 if r + dr
 integer IX(2),IY(2),IZ(2)
 real(dp) WX(2),WY(2),WZ(2)
@@ -220,7 +192,6 @@ integer ind_Z_temp, ind_ZY_temp
 
 NBinX = wlc_p%NBINX
 
-do IB = I1,I2
   do rrdr = -1,1,2
    ! on initialize only add current position
    ! otherwise subract current and add new
@@ -358,7 +329,6 @@ do IB = I1,I2
        stop
    endif
  enddo ! loop over rrdr.  A.k.a new and old
-enddo ! loop over IB  A.k.a. beads
 
 RETURN
 END
