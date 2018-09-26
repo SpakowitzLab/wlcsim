@@ -29,7 +29,7 @@ def combine(subsumed_section_id,subsuming_section_id,sections,membership,
         elif subsuming['R_knee'] != None: # grow new leg to replace old one
             subsuming['R_knee'] = None
             subsuming['R_toe'] = None
-            growLeg(subsuming_id,bindpairs,membership,sections,
+            growLeg(subsuming_section_id,bindpairs,membership,sections,
                     leglength=leglength,moveable_loop=moveable_loop,
                     direction=1)
     else:
@@ -43,7 +43,7 @@ def combine(subsumed_section_id,subsuming_section_id,sections,membership,
         elif subsuming['L_knee'] != None: # grow new leg to replace old one
             subsuming['L_knee'] = None
             subsuming['L_toe'] = None
-            growLeg(subsuming_id,bindpairs,membership,sections,
+            growLeg(subsuming_section_id,bindpairs,membership,sections,
                     leglength=leglength,moveable_loop=moveable_loop,
                     direction=-1)
 
