@@ -16,6 +16,7 @@ use params, only: wlc_R, wlc_RP, wlc_U, wlc_UP, wlc_VP&
 
 use mersenne_twister
 use params, only: dp
+use polydispersity, only: length_of_chain, get_I
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -48,9 +49,9 @@ endif
 call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
 IB1 = 1
-IB2 = WLC_P__NB
-IT1 = WLC_P__NB*(IP-1) + IB1
-IT2 = WLC_P__NB*(IP-1) + IB2
+IB2 = length_of_chain(IP)
+IT1 = get_I(IB1,IP)
+IT2 = get_I(IB2,IP)
 
 call random_number(urand,rand_stat)
 DR(1) = MCAMP*(urand(1)-0.5_dp)

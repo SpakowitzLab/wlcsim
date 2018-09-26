@@ -16,6 +16,7 @@ use params, only: wlc_U, wlc_RP, wlc_R, wlc_V, wlc_UP&
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: random_perp, cross
+use polydispersity, only: first_bead_of_chain, last_bead_of_chain, length_of_chain
 
 implicit none
 integer, intent(in) :: nsteps
@@ -58,10 +59,11 @@ if (WLC_P__LOCAL_TWIST) allocate( Utemp(3,nsteps) )
 ! single bead reptation
 call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-IT1 = WLC_P__NB*(IP-1) + 1
-IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
+
+IT1 = first_bead_of_chain(IP)
+IT2 = last_bead_of_chain(IP)
 IB1 = 1
-IB2 = WLC_P__NB
+IB2 = length_of_chain(IP)
 Rtemp=wlc_R(:,IT1:IT2)
 Utemp=wlc_U(:,IT1:IT2)
 Vtemp=wlc_V(:,IT1:IT2)
@@ -121,7 +123,7 @@ if (urnd(1).lt.0.5_dp) then
         if (WLC_P__LOCAL_TWIST) Vtemp=wlc_VP(:,IT1:IT2)
     enddo
     if (super) then
-        wlc_ABP(IT1:IT2-nsteps)=wlc_ABP(IT1+nsteps:IT2)
+        wlc_ABP(IT1:IT2-nsteps)=wlc_AB(IT1+nsteps:IT2)
         wlc_ABP(IT2-nsteps+1:IT2)=wlc_AB(IT1:IT1+nsteps-1)
     endif
 else
@@ -178,7 +180,7 @@ else
         if (WLC_P__LOCAL_TWIST) Vtemp=wlc_VP(:,IT1:IT2)
     enddo
     if (super) then
-        wlc_ABP(IT1+nsteps:IT2)=wlc_ABP(IT1:IT2-nsteps)
+        wlc_ABP(IT1+nsteps:IT2)=wlc_AB(IT1:IT2-nsteps)
         wlc_ABP(IT1:IT1+nsteps-1)=wlc_AB(IT2-nsteps+1:IT2)
     endif
 endif

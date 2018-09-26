@@ -23,7 +23,7 @@ real(dp), intent(in) :: EPERP
 real(dp), intent(in) :: GAM
 real(dp), intent(in) :: ETA
 
-integer hip, knee, toe, leg_n, ii, I, last_bead_on_polymer
+integer hip, knee, toe, leg_n, ii, I
 integer left_ends(3)  ! left end bead of the three kninks
 real(dp) energy_change(4)
 
@@ -44,7 +44,6 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     hip = wlc_spiders(spider_id)%legs(1,leg_n)
     knee= wlc_spiders(spider_id)%legs(2,leg_n)
     toe = wlc_spiders(spider_id)%legs(3,leg_n)
-    last_bead_on_polymer = (knee/WLC_P__NB + 1)*WLC_P__NB
 
     ! note that hip and toe U vectors don't rotate
     ! note also that the knee U vector rotates with the hip

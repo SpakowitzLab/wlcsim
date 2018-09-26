@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !
@@ -6,16 +7,17 @@
 !   Andrew Spakowitz
 !   Written 9-8-04
 
-      subroutine concalc(R,DRDT,NT,N,NP,XI,L0,DT,RK,BROWN)
+      subroutine concalc(R,DRDT,XI,L0,DT,RK,BROWN)
       use params, only : dp
+      use polydispersity, only: length_of_chain
       implicit none
 ! Variables from the simulation
 
-      real(dp) DRDT(3,NT,4)  ! Rate of change
-      real(dp) R(3,NT)       ! Bead positions
-      real(dp) U(3,N-1)      ! Unit tangent vector
-      real(dp) B(N-1)         ! Bond length
-      integer N,NT,NP                 ! Number of beads
+      integer, parameter :: MAX_N = WLC_P__NT !(only really needs to be max chain length -1 long
+      real(dp) DRDT(3,WLC_P__NT,4)  ! Rate of change
+      real(dp) R(3,WLC_P__NT)       ! Bead positions
+      real(dp) U(3,MAX_N-1)      ! Unit tangent vector
+      real(dp) B(MAX_N-1)         ! Bond length
       real(dp) DT         ! Time step size
       real(dp) XI            ! Drag coefficient
       real(dp) L0            ! Bond distances
@@ -25,15 +27,16 @@
 
 ! Variables for use in the constraint calculation
 
-      real(dp) BLAM(N-1),ADIAG(N-1)
-      real(dp) ASUPER(N-1),ASUB(N-1)
+      real(dp) BLAM(MAX_N-1),ADIAG(MAX_N-1)
+      real(dp) ASUPER(MAX_N-1),ASUB(MAX_N-1)
       real(dp) C
       integer inFO
 
 ! Variables of use in the pseudopotential calculation
 
-      real(dp) FPS(N,3),APS(N-1),BPS(N-2)
-      real(dp) DETLT(N-1),DETGT(N-1),DETER
+      real(dp) FPS(MAX_N,3),APS(MAX_N-1),BPS(MAX_N-2)
+      real(dp) DETLT(MAX_N-1),DETGT(MAX_N-1),DETER
+      integer N
 
 ! Relaxation parameter
 
@@ -41,7 +44,8 @@
 
 ! Calculate the bond length and tangent vectors
 
-      do 5 J = 1,NP
+      do 5 J = 1,WLC_P__NP
+         N = length_of_chain(J)
          IB = N*(J-1)
 
          do 10 I = 1,(N-1)

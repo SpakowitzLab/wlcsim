@@ -13,6 +13,7 @@
       use params, only: dp, pi,  wlcsim_params
       use MC_wlc, only: E_SSWLC
       use nucleosome, only: nucleosome_energy
+      use polydispersity, only: first_bead_of_chain, length_of_chain
       implicit none
       type(wlcsim_params),intent(in) :: wlc_p
       real(dp), intent(out):: EELAS(4) ! Elastic force
@@ -23,14 +24,14 @@
       EELAS = 0.0_dp
       IB = 1
       do I = 1,WLC_P__NP
-         do J = 1,WLC_P__NB
+         do J = 1,length_of_chain(I)
             if (WLC_P__RING) then
-                if (J == WLC_P__NB) then
-                    IBP1 = 1 + (I-1)*WLC_P__NB
+                if (J == length_of_chain(I)) then
+                    IBP1 = first_bead_of_chain(I)
                 else
                     IBP1 = IB + 1
                 ENDif
-            elseif (J == WLC_P__NB) then
+            elseif (J == length_of_chain(I)) then
                 CYCLE
             else
                 IBP1 = IB + 1
@@ -57,7 +58,7 @@
       if (WLC_P__TWIST) then
           call WRITHE(wlc_R,WLC_P__NB,Wr)
           Tw = wlc_p%Lk-Wr
-          EELAS(4) = ((2*PI*Tw)**2)*WLC_P__LT/(2*WLC_P__L)
+          EELAS(4) = ((real(2*Tw,dp)*PI)**2)*WLC_P__LT/(2*WLC_P__L)
       ENDif
 
       RETURN

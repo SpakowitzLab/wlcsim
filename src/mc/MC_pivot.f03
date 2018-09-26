@@ -18,7 +18,7 @@ use mersenne_twister
 use params, only: dp
 use vector_utils, only: randomUnitVec, rotateR, rotateU, axisAngle
 use windowTools, only: exponential_random_int, enforceBinding
-
+use polydispersity, only: length_of_chain, last_bead_of_chain, get_I, is_right_end
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
@@ -42,6 +42,7 @@ real(dp) ALPHA    ! Angle of move
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
+integer length
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -54,19 +55,18 @@ endif
 !     Perform pivot move (MCTYPE 3)
     call random_index(WLC_P__NP,irnd,rand_stat)
     IP=irnd(1)
-    call random_index(WLC_P__NB,irnd,rand_stat)
-    IB1=irnd(1)
+    length = length_of_chain(IP)
     call random_number(urnd,rand_stat)
     if (urnd(1).gt.0.5_dp) then
         IB2 = exponential_random_int(window,rand_stat) + 1
-        if (IB2 > WLC_P__NB) then
-            IB2 = WLC_P__NB
+        if (IB2 > length) then
+            IB2 = length
         endif
         IB1 = 1
-        IT1 = WLC_P__NB*(IP-1) + IB1
-        IT2 = WLC_P__NB*(IP-1) + IB2
+        IT1 = get_I(IB1,IP)
+        IT2 = get_I(IB2,IP)
         P1 = wlc_R(:,IT2)
-        if (IB2<WLC_P__NB) then
+        if (IB2<length) then
             wlc_nBend = wlc_nBend + 1
             wlc_bendPoints(wlc_nBend)=IT2
             I=IT2+1
@@ -75,13 +75,13 @@ endif
             if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
         endif
     else
-        IB1 = WLC_P__NB-exponential_random_int(window,rand_stat)
+        IB1 = length-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
             IB1 = 1
         endif
-        IB2 = WLC_P__NB
-        IT1 = WLC_P__NB*(IP-1) + IB1
-        IT2 = WLC_P__NB*(IP-1) + IB2
+        IB2 = length
+        IT1 = get_I(IB1,IP)
+        IT2 = get_I(IB2,IP)
         P1 = wlc_R(:,IT1)
         if (IB1>1) then
             wlc_nBend = wlc_nBend + 1

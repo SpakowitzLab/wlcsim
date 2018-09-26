@@ -15,6 +15,7 @@ use params, only: wlc_UP, wlc_DPHIA, wlc_DEKap, wlc_RP, wlc_NPHI&
     , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI&
     , wlc_ind_in_list
 use params,only:dp,wlcsim_params
+use polydispersity, only: length_of_chain_containing
 implicit none
 
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
@@ -48,12 +49,16 @@ if (WLC_P__TWO_TAIL) then
     print*, "The swap move is not currently set up for two Tail"
     stop 1
 endif
-if (I2-I1 + 1.ne.WLC_P__NB) then
+if (I2-I1 + 1.ne.length_of_chain_containing(I1)) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
-if (I4-I3 + 1.ne.WLC_P__NB) then
+if (I4-I3 + 1.ne.length_of_chain_containing(I3)) then
     print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
+    stop 1
+endif
+if (length_of_chain_containing(I1).ne.length_of_chain_containing(I3)) then
+    print*, "Error, polymers must be of same length"
     stop 1
 endif
 if (.not.(min(I1,I2)>max(I3,I4) .or. min(I3,I4)>max(I1,I2))) then

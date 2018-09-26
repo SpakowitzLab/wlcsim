@@ -17,6 +17,7 @@ use params, only: wlc_V, wlc_R, wlc_U, wlc_VP, wlc_RP&
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: axisAngle, randomUnitVec, rotateU
+use polydispersity, only: get_IB, rightmost_from
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -24,11 +25,9 @@ integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
 
-integer IP    ! Test polymer
 integer I  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-integer irnd(1)  ! random vector
 ! Variables for the crank-shaft move
 
 real(dp) TA(3)    ! Axis of rotation
@@ -40,7 +39,7 @@ real(dp), parameter, dimension(3) ::  P1 = [0.0_dp, 0.0_dp, 0.0_dp]
 !     MC adaptation variables
 
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
-
+integer irnd(1)
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -50,12 +49,10 @@ endif
 
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP=irnd(1)
-call random_index(WLC_P__NB,irnd,rand_stat)
-IB1=irnd(1)
+call random_index(WLC_P__NT,irnd,rand_stat)
+IT1=irnd(1)
+IB1=get_IB(IT1)
 IB2 = IB1
-IT1 = WLC_P__NB*(IP-1) + IB1
 IT2 = IT1
 
 !  Which elastic segments change
@@ -68,7 +65,7 @@ if (IB1>1) then
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 endif
-if (IB2<WLC_P__NB) then
+if (IT2<rightmost_from(IT2)) then
     wlc_nBend = wlc_nBend + 1
     wlc_bendPoints(wlc_nBend)=IT2
     I=IT2+1

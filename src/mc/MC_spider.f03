@@ -21,6 +21,7 @@ use precision, only: dp, eps
 use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
                         round_into_pm1, rotateR, rotateU, axisAngle, rotateAintoB, random_perp
 use windowTools, only: drawWindow
+use polydispersity, only: are_on_same_chain
 
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
@@ -156,7 +157,7 @@ else
     endif
 
     toe = wlc_spiders(spider_id)%legs(3,1)
-    if ((toe-1)/WLC_P__NB .ne. (IT2-1)/WLC_P__NB) then ! is on a different polyme
+    if (.not. are_on_same_chain(toe,IT2)) then ! is on a different polyme
         success = .False.
         return
     endif
@@ -167,7 +168,7 @@ else
     wlc_spiders(spider_id)%moved_sections(2,1) = toe
 
     toe = wlc_spiders(spider_id)%legs(3,2)
-    if ((toe-1)/WLC_P__NB .ne. (IT1-1)/WLC_P__NB) then
+    if (.not. are_on_same_chain(toe,IT1)) then
         success = .False.
         return
     endif

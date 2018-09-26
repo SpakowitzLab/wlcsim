@@ -18,11 +18,13 @@ function exponential_random_int(window,rand_stat) result(output)
     output = abs(output)
 end function exponential_random_int
 
+!Expand [IB1,IB2] and [IT1,IT2] regions to include bound pairs
 subroutine enforceBinding(rand_stat,IB1,IB2,IT1,IT2,max_window,success)
 ! values from wlcsim_data
 use params, only: wlc_ExplicitBindingPair
 use params, only: dp
 use mersenne_twister
+use polydispersity, only: are_on_same_chain
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 integer, intent(inout) :: IT1,IT2,IB1,IB2
@@ -42,7 +44,14 @@ if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
         otherEnd=wlc_ExplicitBindingPair(I)
         if (WLC_P__NP>1) then
             ! make sure the other end is on the same polymer
-            if ((IT1-1)/WLC_P__NB .ne. (otherEnd-1)/WLC_P__NB) cycle
+            if (.not. are_on_same_chain(IT1,otherEnd)) then 
+                if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp) then
+                    ! If only bind respecting moves allowed
+                    ! can't have a loop to a different polymer
+                    success=.FALSE.
+                endif
+                cycle ! don't expand [IT1,IT2] to different polymer
+            endif
         endif
         if (otherEnd < 1) cycle
         if (otherEnd < IT1) then  ! Loop to point before IT1
@@ -70,6 +79,7 @@ end subroutine
 subroutine drawWindow(window,maxWindow,enforceBind,rand_stat,IT1,IT2,IB1,IB2,IP,DIB,success)
 use params, only: dp
 use mersenne_twister
+use polydispersity, only: get_IB, length_of_chain, get_IP, get_I
 implicit none
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp), intent(in) :: maxWindow
@@ -85,12 +95,13 @@ logical, intent(out) :: success
 integer irnd(1)
 real(dp) urnd(1) ! single random number
 integer TEMP
+integer length
 
 success = .TRUE.  ! True unless set to false
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP=irnd(1)
-call random_index(WLC_P__NB,irnd,rand_stat)
-IB1=irnd(1)
+call random_index(WLC_P__NT,irnd,rand_stat)
+IT1 = irnd(1)
+IP = get_IP(IT1)
+IB1 = get_IB(IT1)
 if (WLC_P__WINTYPE.eq.0) then
     IB2 = IB1 +exponential_random_int(window,rand_stat)
 elseif (WLC_P__WINTYPE.eq.1.and..not.WLC_P__RING) then
@@ -104,10 +115,10 @@ else
 endif
 
 DIB = IB2-IB1
-
+length = length_of_chain(IP)
 if (WLC_P__RING) then
-    if (IB2 > WLC_P__NB) then
-        IB2 = DIB-(WLC_P__NB-IB1)
+    if (IB2 > length) then
+        IB2 = DIB-(length-IB1)
     endif
     if (WLC_P__EXPLICIT_BINDING) then
         print*, "Ring polymer not set up to use explicit binding"
@@ -115,8 +126,8 @@ if (WLC_P__RING) then
         stop
     endif
 else
-    if (IB2 > WLC_P__NB) then
-        IB2 = WLC_P__NB
+    if (IB2 > length) then
+        IB2 = length
     endif
     if (IB2 < 1) then
        IB2 = 1
@@ -126,16 +137,16 @@ else
         IB1 = IB2
         IB2 = TEMP
     endif
-    IT2 = WLC_P__NB*(IP-1) + IB2
-    IT1 = WLC_P__NB*(IP-1) + IB1
+    IT2 = get_I(IB2,IP)
+    IT1 = get_I(IB1,IP)
     if (WLC_P__EXPLICIT_BINDING .and. enforceBind) then
         call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,maxWindow,success)
         if (success .eqv. .False.) return
     endif
 endif
 
-IT1 = WLC_P__NB*(IP-1) + IB1
-IT2 = WLC_P__NB*(IP-1) + IB2
+IT2 = get_I(IB2,IP)
+IT1 = get_I(IB1,IP)
 
 DIB = IB2-IB1
 end subroutine drawWindow

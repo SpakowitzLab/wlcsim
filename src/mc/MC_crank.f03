@@ -17,6 +17,7 @@ use mersenne_twister
 use params, only: dp,  eps
 use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
 use windowTools, only: drawWindow
+use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain
 
 implicit none
 !integer, intent(in) :: ExplicitBindingPair(WLC_P__NT)
@@ -71,7 +72,7 @@ if (IB1>1) then
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 endif
-if (IB2<WLC_P__NB) then
+if (IB2<length_of_chain(IP)) then
     wlc_nBend = wlc_nBend + 1
     wlc_bendPoints(wlc_nBend)=IT2
     I=IT2+1
@@ -82,10 +83,10 @@ endif
 
 if (WLC_P__RING) then                    !Polymer is a ring
    if (IB1 == IB2.AND.IB1 == 1) then
-      TA = wlc_R(:,IT1 + 1)-wlc_R(:,WLC_P__NB*IP)
-   elseif (IB1 == IB2.AND.IB1 == WLC_P__NB) then
-      TA = wlc_R(:,WLC_P__NB*(IP-1) + 1)-wlc_R(:,IT1-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /=WLC_P__NB) then
+      TA = wlc_R(:,IT1 + 1)-wlc_R(:,last_bead_of_chain(IP))
+   elseif (IB1 == IB2.AND.IT1 == last_bead_of_chain(IP)) then
+      TA = wlc_R(:,first_bead_of_chain(IP))-wlc_R(:,IT1-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= length_of_chain(IP)) then
       TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1-1)
    else
       TA = wlc_R(:,IT2)-wlc_R(:,IT1)
@@ -93,9 +94,9 @@ if (WLC_P__RING) then                    !Polymer is a ring
 else                                 !Polymer is not a ring
   if (IB1 == IB2.AND.IB1 == 1) then
       TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1)
-   elseif (IB1 == IB2.AND.IB1 == WLC_P__NB) then
-      TA = wlc_R(:,WLC_P__NB*IP)-wlc_R(:,WLC_P__NB*IP-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= WLC_P__NB) then
+   elseif (IB1 == IB2.AND.IT1 == last_bead_of_chain(IP)) then
+      TA = wlc_R(:,IT1)-wlc_R(:,IT1-1)
+   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= length_of_chain(IP)) then
       TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1-1)
    else
       TA = wlc_R(:,IT2)-wlc_R(:,IT1)
@@ -113,8 +114,8 @@ endif
 
   I = IT1
    do J = 0,DIB
-     if (I == (WLC_P__NB*IP+1).and.WLC_P__RING) then
-          I = WLC_P__NB*(IP-1)+1
+     if (I > last_bead_of_chain(IP).and.WLC_P__RING) then
+          I = first_bead_of_chain(IP)
      endif
      wlc_RP(:,I) = rotateR(ROT,wlc_R(:,I))
      wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))

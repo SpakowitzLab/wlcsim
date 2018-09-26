@@ -56,10 +56,10 @@ call MCsim(wlc_p, WLC_P__STEPSPERSAVE)
 
 call VerifyEnergiesFromScratch(wlc_p)
 
-call stress(SIG, wlc_R, wlc_U, WLC_P__NT, WLC_P__NB, WLC_P__NP, &
+call stress(SIG, wlc_R, wlc_U, &
             pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
-call stressp(COR, wlc_R, wlc_U, R0, U0, WLC_P__NT, WLC_P__NB, &
-             WLC_P__NP, pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
+call stressp(COR, wlc_R, wlc_U, R0, U0, &
+    pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
 
 call energy_elas(EELAS,wlc_p)
 EPONP = 0.

@@ -14,6 +14,8 @@ use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V, wlc_DEELAS&
 use params, only: dp, wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_GAUSS
 use nucleosome, only: nucleosome_energy
+use polydispersity, only: is_right_end, leftmost_from, is_left_end, rightmost_from
+
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 
@@ -41,9 +43,9 @@ wlc_DEELAS(4) = 0.0_dp ! WLC_P__TWIST energy
 do ii=1,wlc_nBend
     IT2=wlc_bendPoints(ii)
 
-    if (WLC_P__RING .and. MOD(IT2,WLC_P__NB) == 0) then
+    if (WLC_P__RING .and. is_right_end(IT2)) then
         ! loop to beginning of polymer
-        IT2P1 = (IT2/WLC_P__NB -1)*WLC_P__NB + 1
+        IT2P1 = leftmost_from(IT2)
     else
         IT2P1 = IT2 + 1
     endif
@@ -53,9 +55,9 @@ do ii=1,wlc_nBend
     ! should be zero by definition if IB1 = =IB2.
 
     if (WLC_P__ELASTICITY_TYPE == "constant") then
-        if (wlc_p%SIMTYPE == 1.AND.((MOD(IT2,WLC_P__NB) /= 1).OR.(WLC_P__RING))) then
-            if (MOD(IT2,WLC_P__NB) == 1) then
-                IT2M1 = WLC_P__NB
+        if (wlc_p%SIMTYPE == 1.AND.(.not. is_left_end(IT2)).OR.(WLC_P__RING)) then
+            if (is_left_end(IT2)) then
+                IT2M1 = rightmost_from(IT2)
             else
                 IT2M1 = IT2 - 1
             endif

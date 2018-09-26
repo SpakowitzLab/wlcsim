@@ -30,6 +30,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
     use params
     use binning, only: addBead, removeBead
     use updateRU, only: updateR
+    use polydispersity, only: length_of_chain, chain_ID
 
     implicit none
     interface
@@ -139,7 +140,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-              call MC_cylinder(wlc_p,collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
+              call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               if (collide) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   goto 10 ! skip move, return RP to nan
@@ -152,7 +153,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               if (MCTYPE == 1) then
                  CALL alexanderp_crank(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
               elseif (MCTYPE == 2) then
-                 if (DIB /= WLC_P__NB) then
+                 if (DIB /= length_of_chain(chain_ID(IT1))) then
                     CALL alexanderp_slide(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
                  ENDif
               else
@@ -347,7 +348,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               !wlc_bendPoints(J) = -1
           enddo
           if (.False.) then
-              do I = 1,WLC_P__NB
+              do I = 1,WLC_P__NT
                   if (.not. isnan(wlc_RP(1,I))) then
                       print*, "should be NAN at", I
                       stop

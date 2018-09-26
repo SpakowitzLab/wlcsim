@@ -1,3 +1,29 @@
+#include "../defines.inc"
+subroutine init_chemical_state(AB,lam,fa,alturnate)
+use params, only: wlc_rand_stat, dp
+use polydispersity, only: length_of_chain, n_mono_per_poly, first_bead_of_chain, last_bead_of_chain
+implicit none
+integer, intent(out) :: AB(WLC_P__NT)
+real(dp), intent(in) :: lam
+real(dp), intent(in) :: fa
+logical, intent(in) :: alturnate
+integer IP, length,NMPP,IT1,IT2
+
+do IP = 1,WLC_P__NP
+    length = length_of_chain(IP)
+    NMPP = n_mono_per_poly(IP)
+    IT1 = first_bead_of_chain(IP)
+    IT2 = last_bead_of_chain(IP)
+    if (alturnate) then
+        call alternChem(AB(IT1:IT2), length, NMPP, WLC_P__NBPM, 1, fa, wlc_rand_stat)
+    else
+        call initchem(AB(IT1:IT2), length, NMPP, WLC_P__NBPM, 1, fa, lam, wlc_rand_stat)
+    endif
+enddo
+
+end subroutine
+
+
 !   Generates the initial distribution of "A"'s and "B"'s for simulations of
 !   copolymers.
 !

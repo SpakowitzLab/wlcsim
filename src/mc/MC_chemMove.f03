@@ -17,6 +17,7 @@ use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
 use mersenne_twister
 use params, only: dp
 use windowTools, only: drawWindow
+use polydispersity, only: get_I
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -50,10 +51,12 @@ call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
 if (success .eqv.  .false.) return
 
 !keep binding constant within monomers
-IT1 = IT1-MOD(IT1-1,WLC_P__NBPM)
-IT2 = IT2-MOD(IT2-1,WLC_P__NBPM) + WLC_P__NBPM-1
-IB1 = MOD(IT1,WLC_P__NB)
-IB2 = MOD(IT2,WLC_P__NB)
+if (WLC_P__NBPM>1) then
+    IB1 = IB1-MOD(IB1-1,WLC_P__NBPM)
+    IB2 = IB2-MOD(IB2-1,WLC_P__NBPM) + WLC_P__NBPM-1
+    IT1 = get_I(IT1,IP)
+    IT2 = get_I(IT2,IP)
+endif
 
 
 if (WLC_P__TWO_TAIL) then

@@ -18,6 +18,7 @@ use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
 use mersenne_twister
 use params, only: dp
 use windowTools, only: drawWindow
+use polydispersity, only: is_right_end, is_left_end, first_bead_of_chain, last_bead_of_chain
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -65,7 +66,7 @@ if (IB1>1) then
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 endif
-if (IB2<WLC_P__NB) then
+if (.not. is_right_end(IT2)) then
     wlc_nBend = wlc_nBend + 1
     wlc_bendPoints(wlc_nBend)=IT2
     I=IT2+1
@@ -89,7 +90,7 @@ if (WLC_P__EXPLICIT_BINDING) then
         wlc_nPointsMoved=wlc_nPointsMoved+1
         wlc_pointsMoved(wlc_nPointsMoved)=otherEnd
         ! Add ajacent points to RP and bendPoints
-        if (otherEnd .ne. IT1-1 .and. mod(otherEnd,WLC_P__NB) .ne. 0 ) then
+        if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
             wlc_nBend=wlc_nBend+1
             wlc_bendPoints(wlc_nBend)=otherEnd
             I=otherEnd+1
@@ -97,7 +98,7 @@ if (WLC_P__EXPLICIT_BINDING) then
             wlc_UP(:,I)=wlc_U(:,I)
             if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
         endif
-        if (otherEnd .ne. IT2+1 .and. mod(otherEnd,WLC_P__NB) .ne. 1) then
+        if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
             wlc_nBend=wlc_nBend+1
             wlc_bendPoints(wlc_nBend)=otherEnd-1
             I=otherEnd-1
@@ -111,8 +112,8 @@ endif
 I = IT1
 do  J = 0,DIB
 
-    if (I == (WLC_P__NB*IP + 1).AND.WLC_P__RING) then
-       I = WLC_P__NB*(IP-1) + 1
+    if (I == (last_bead_of_chain(IP) + 1).AND.WLC_P__RING) then
+       I = first_bead_of_chain(IP)
     endif
 
     wlc_RP(:,I) = wlc_R(:,I) + DR

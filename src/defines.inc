@@ -206,6 +206,11 @@
 ! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
 ! TYPE: INTEGER
 
+#define WLC_P__POLY_DISP_TYPE "None"
+! VARIABLE COMMENT: ! Whether to include chains of different lengths
+! DEFAULTS COMMENT: ! "None" for all the same length, "FromFile" for different
+! TYPE: INTEGER
+
 #define WLC_P__FA 0.5_DP
 ! VARIABLE COMMENT: ! Fraction of A beads
 ! DEFAULTS COMMENT: ! half A, half B by default
@@ -255,6 +260,11 @@
 #define WLC_P__L 0.0_DP
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! set this yourself!
+! TYPE: REAL(DP)
+
+#define WLC_P__L0 (WLC_P__L/(WLC_P__NB-1.0_DP))
+! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring
+! DEFAULTS COMMENT: ! derive from L and NB
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 1.0_DP

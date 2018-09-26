@@ -16,6 +16,7 @@ use params, only: wlc_VP, wlc_ABP, wlc_V, wlc_AB, wlc_R&
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: random_perp, cross
+use polydispersity, only: first_bead_of_chain, last_bead_of_chain, get_IB, length_of_chain
 
 implicit none
 logical, intent(in) :: super
@@ -48,10 +49,10 @@ endif
 ! single bead reptation
 call random_index(WLC_P__NP,irnd,rand_stat)
 IP=irnd(1)
-IT1 = WLC_P__NB*(IP-1) + 1
-IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
+IT1 = first_bead_of_chain(IP)
+IT2 = last_bead_of_chain(IP)
 IB1 = 1
-IB2 = WLC_P__NB
+IB2 = length_of_chain(IP)
 ! move forward or backward
 call random_number(urnd,rand_stat)
 if (urnd(1).lt.0.5_dp) then

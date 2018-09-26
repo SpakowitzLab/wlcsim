@@ -66,15 +66,15 @@ endif
 ! so that for save_ind 1, we run from time = 0 to time = timePerSave
 TSAVE = save_ind*WLC_P__STEPSPERSAVE*wlc_p%DT
 !brown always true
-call BDsim(wlc_R, wlc_U, WLC_P__NT, WLC_P__NB, WLC_P__NP, wlc_TIME, TSAVE, &
+call BDsim(wlc_R, wlc_U, wlc_TIME, TSAVE, &
            wlc_p%DT, .true., WLC_P__INTERP_BEAD_LENNARD_JONES, IDUM, pack_as_para(wlc_p), wlc_p%SIMTYPE, &
            wlc_coltimes, WLC_P__COLLISIONRADIUS, WLC_P__COLLISIONDETECTIONTYPE)
 
 
-call stress(SIG, wlc_R, wlc_U, WLC_P__NT, WLC_P__NB, WLC_P__NP, &
+call stress(SIG, wlc_R, wlc_U, &
             pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
-call stressp(COR, wlc_R, wlc_U, R0, U0, WLC_P__NT, WLC_P__NB, &
-             WLC_P__NP, pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
+call stressp(COR, wlc_R, wlc_U, R0, U0, &
+             pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)
 
 call energy_elas(EELAS, wlc_p)
 EPONP = 0.

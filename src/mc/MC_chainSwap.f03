@@ -15,7 +15,7 @@ use params, only: wlc_U, wlc_RP, wlc_VP, wlc_UP, wlc_R&
     , wlc_V, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
-
+use polydispersity, only: first_bead_of_chain, last_bead_of_chain, length_of_chain
 
 implicit none
 integer IP    ! Test polymer
@@ -30,7 +30,7 @@ integer, intent(out) :: IT4   ! Test bead position 4 if applicable
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 integer irnd(1)
-integer I
+integer I, length
 
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
@@ -40,22 +40,26 @@ if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
 endif
 
 ! switch two chains
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP=irnd(1)
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP2=irnd(1)
-! Don't switch a chain with itself
-if (IP.eq.IP2) then
-    IP2 = IP-1
-    if (IP2.eq.0) then
-        IP2 = 2
+do while (.True.)
+    call random_index(WLC_P__NP,irnd,rand_stat)
+    IP=irnd(1)
+    call random_index(WLC_P__NP,irnd,rand_stat)
+    IP2=irnd(1)
+    ! Don't switch a chain with itself
+    if (IP.eq.IP2) then
+        IP2 = IP-1
+        if (IP2.eq.0) then
+            IP2 = 2
+        endif
     endif
-endif
-IT1 = WLC_P__NB*(IP-1) + 1
-IT2 = WLC_P__NB*(IP-1) + WLC_P__NB
-IT3 = WLC_P__NB*(IP2-1) + 1
-IT4 = WLC_P__NB*(IP2-1) + WLC_P__NB
-do I = 0,WLC_P__NB-1
+    if (length_of_chain(IP) == length_of_chain(IP2)) exit
+enddo
+IT1 = first_bead_of_chain(IP)
+IT2 = last_bead_of_chain(IP)
+IT3 = first_bead_of_chain(IP2)
+IT4 = last_bead_of_chain(IP2)
+length = length_of_chain(IP)
+do I = 0,length-1
     wlc_RP(:,IT1 + I) = wlc_R(:,IT3 + I)
     wlc_UP(:,IT1 + I) = wlc_U(:,IT3 + I)
     if (WLC_P__LOCAL_TWIST) then
@@ -64,7 +68,7 @@ do I = 0,WLC_P__NB-1
     wlc_nPointsMoved=wlc_nPointsMoved+1
     wlc_pointsMoved(wlc_nPointsMoved)=IT1 + I
 ENDdo
-do I = 0,WLC_P__NB-1
+do I = 0,length-1
     wlc_RP(:,IT3 + I) = wlc_R(:,IT1 + I)
     wlc_UP(:,IT3 + I) = wlc_U(:,IT1 + I)
     if (WLC_P__LOCAL_TWIST) then

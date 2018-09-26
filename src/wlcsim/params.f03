@@ -267,8 +267,7 @@ contains
         ! behavior will depend on which compiler is used
         type(wlcsim_params), intent(inout) :: wlc_p
 
-        wlc_p%L0 = WLC_P__L/real(WLC_P__NB-1.0_dp) ! -1.0 because one fewer segments then beads
-        wlc_p%EPS=wlc_p%L0/(2.0_dp*WLC_P__LP)
+        wlc_p%EPS=WLC_P__L0/(2.0_dp*WLC_P__LP)
 
         ! parallel temper variables
         wlc_p%CHI      = WLC_P__CHI
@@ -506,6 +505,14 @@ contains
 
         endif
 
+        err = (WLC_P__CODENAME == 'brad' .and. WLC_P__NT > WLC_P__NB)
+        call stop_if_err(err,"Brad's code assumes one chain. Need to update all alexander ...")
+
+        err = (WLC_P__POLY_DISP_TYPE .ne. "None" .and. WLC_P__RING)
+        call stop_if_err(err,"writhe and possibly other functions not set up for polydispersity")
+
+        err = (WLC_P__INTERP_BEAD_LENNARD_JONES .and. WLC_P__POLY_DISP_TYPE .ne. "None")
+        call stop_if_err(err,"INTERP_BEAD_LENNARD_JONES not setup for polydispersity")
 
 #if MPI_VERSION
     if (WLC_P__PT_TWIST) then
@@ -563,6 +570,7 @@ contains
 
     subroutine initialize_wlcsim_data( wlc_p)
         use nucleosome, only: loadNucleosomePositions
+        use polydispersity, only: max_chain_length, setup_polydispersity
 #if MPI_VERSION
         use mpi
 #endif
@@ -590,6 +598,8 @@ contains
 #if MPI_VERSION
         call init_MPI()
 #endif
+
+        call setup_polydispersity()
         allocate(wlc_R(3,WLC_P__NT))
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
             allocate(wlc_R_period(3,WLC_P__NT))
@@ -696,7 +706,7 @@ contains
         endif
         if (WLC_P__RING) then !TOdo this should be if ("knot")
             wlc_NCross = 0
-            wlc_CrossSize = min(10000,WLC_P__NB)**2
+            wlc_CrossSize = min(10000,max_chain_length())**2
             if (wlc_CrossSize == 10000) then
                 print*, "Two many beas for ring calculation"
                 stop 1
@@ -795,7 +805,7 @@ contains
             call loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
 
-        call initcond(wlc_R, wlc_U, WLC_P__NT, WLC_P__NB, &
+        call initcond(wlc_R, wlc_U, WLC_P__NT, &
             WLC_P__NP, WLC_P__FRMFILE, wlc_rand_stat,wlc_p)
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
@@ -810,10 +820,8 @@ contains
             if (WLC_P__CHEM_STATE_FROM_FILE) then
                 iostr='input/ab'
                 call MCvar_loadAB(iostr)
-            elseif (WLC_P__ASYMMETRICALTERNATINGCHEM) then
-                call alternChem(wlc_AB, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, wlc_rand_stat)
             else
-                call initchem(wlc_AB, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__FA, WLC_P__LAM, wlc_rand_stat)
+                call init_chemical_state(wlc_AB,WLC_P__LAM,WLC_P__FA, WLC_P__ASYMMETRICALTERNATINGCHEM)
             endif
 
             ! initialize methalation sequence
@@ -823,7 +831,7 @@ contains
                     iostr='input/meth'
                     call wlcsim_params_loadMeth(iostr)
                 else
-                    call initchem(wlc_meth, WLC_P__NT, WLC_P__NMPP, WLC_P__NBPM, WLC_P__NP, WLC_P__F_METH, WLC_P__LAM_METH, wlc_rand_stat)
+                    call init_chemical_state(wlc_meth,WLC_P__LAM_METH,WLC_P__F_METH,.False.)
                 endif
             endif
 
@@ -926,7 +934,7 @@ contains
         print*, " LAM_METH", WLC_P__LAM_METH
         print*, " "
         print*, "Length and volume Variables:"
-        print*, " persistance length =",(wlc_p%L0/(2.0_dp*wlc_p%EPS))
+        print*, " persistance length =",(WLC_P__L0/(2.0_dp*wlc_p%EPS))
         print*, " length of each polymer in simulation, l = ",WLC_P__L
         print*, " twist persistence length, lt", WLC_P__LT
         print*, " lbox = ", WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z
@@ -934,7 +942,7 @@ contains
                    wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
         print*, " Number of bins", wlc_p%NBIN
         print*, " spatial descritation dbin = ",WLC_P__DBIN
-        print*, " L0 = ", wlc_p%L0
+        print*, " L0 = ", WLC_P__L0
         print*, " GAM = ", wlc_p%GAM
         print*, " bead volume V = ", WLC_P__BEADVOLUME
         print*, " number of kuhn lengths between beads, eps ", wlc_p%EPS
@@ -968,17 +976,18 @@ contains
     end subroutine
 
     subroutine tweak_param_defaults(wlc_p)
+        use polydispersity, only: max_chain_length
         implicit none
         type(wlcsim_params), intent(inout) :: wlc_p
 
         !  Edit the following to optimize wlc_p performance
         !  Monte-Carlo simulation parameters
         wlc_MCAMP(1) = 0.5_dp*PI
-        wlc_MCAMP(2) = 0.3_dp*wlc_p%L0
+        wlc_MCAMP(2) = 0.3_dp*WLC_P__L0
         wlc_MCAMP(3) = 0.5_dp*PI
         wlc_MCAMP(4) = 0.5_dp*PI
         wlc_MCAMP(5) = 0.5_dp*PI
-        wlc_MCAMP(6) = 5.0_dp*wlc_p%L0
+        wlc_MCAMP(6) = 5.0_dp*WLC_P__L0
         wlc_MCAMP(7) = nan
         wlc_MCAMP(8) = nan
         wlc_MCAMP(9) = nan
@@ -997,10 +1006,10 @@ contains
             print*, "Turning off movetype 9, chain exchange, because <2 polymers"
         endif
 
-        if (isnan(wlc_p%MINWINDOW(1))) wlc_p%MINWINDOW(1) = dble(min(10,WLC_P__NB))
-        if (isnan(wlc_p%MINWINDOW(2))) wlc_p%MINWINDOW(2) = dble(min(10,WLC_P__NB))
-        if (isnan(wlc_p%MINWINDOW(3))) wlc_p%MINWINDOW(3) = dble(min(10,WLC_P__NB))
-        if (isnan(wlc_p%MINWINDOW(7))) wlc_p%MINWINDOW(7) = dble(min(10,WLC_P__NB))
+        if (isnan(wlc_p%MINWINDOW(1))) wlc_p%MINWINDOW(1) = dble(min(10,max_chain_length()))
+        if (isnan(wlc_p%MINWINDOW(2))) wlc_p%MINWINDOW(2) = dble(min(10,max_chain_length()))
+        if (isnan(wlc_p%MINWINDOW(3))) wlc_p%MINWINDOW(3) = dble(min(10,max_chain_length()))
+        if (isnan(wlc_p%MINWINDOW(7))) wlc_p%MINWINDOW(7) = dble(min(10,max_chain_length()))
 
         ! Solution
         !WLC_P__LBOX_X = wlc_p%NBINX(1)*WLC_P__DBIN
@@ -1010,13 +1019,13 @@ contains
 
         if (WLC_P__CODENAME == 'brad') then
             ! initialize windows to number of beads
-            wlc_p%MAXWINDOW = real(WLC_P__NB,dp)! Max Size of window for bead selection
+            wlc_p%MAXWINDOW = real(max_chain_length(),dp)! Max Size of window for bead selection
             wlc_p% MinWindoW  = 1.0_dp         ! Min Size of window for bead selection
 
             ! Window amplitudes
             wlc_p%MINAMP = 0.0_dp ! minium amplitude
             wlc_p%MINAMP(1) = 0.07_dp*pi
-            wlc_p%MINAMP(2) = 0.01_dp*WLC_P__L/WLC_P__NB
+            wlc_p%MINAMP(2) = 0.01_dp*WLC_P__L0
             wlc_p%MAXAMP = 2.0_dp*pi
             wlc_p%MAXAMP(2) = WLC_P__LBOX_X
             wlc_p%MAXAMP(6) = WLC_P__LBOX_X
@@ -1045,24 +1054,22 @@ contains
     end subroutine
 
     subroutine wlcsim_params_recenter()
+        use polydispersity, only: first_bead_of_chain, length_of_chain
     !  Prevents drift in periodic BC
         implicit none
         integer IB, I,ii, J   ! Couners
         real(dp) R0(3)  ! Offset to move by
         do I = 1,WLC_P__NP
-            IB=WLC_P__NB * (I-1) + 1
+            IB=first_bead_of_chain(I)
             R0(1) = wlc_R(1,IB) - MODULO(wlc_R(1,IB),WLC_P__LBOX_X)
             R0(2) = wlc_R(2,IB) - MODULO(wlc_R(2,IB),WLC_P__LBOX_Y)
             R0(3) = wlc_R(3,IB) - MODULO(wlc_R(3,IB),WLC_P__LBOX_Z)
-            do ii =1,3
-                if ((abs(R0(ii)) .gt. eps)) then
-                    IB=WLC_P__NB * (I-1) + 1
-                    do J = 1,WLC_P__NB
-                        wlc_R(ii,IB) = wlc_R(ii,IB)-R0(ii)
-                        IB = IB + 1
-                    enddo
-                endif
-            enddo
+            if ((abs(R0(ii)) .gt. eps)) then
+                do J = 1,length_of_chain(I)
+                    wlc_R(:,IB) = wlc_R(:,IB)-R0(:)
+                    IB = IB + 1
+                enddo
+            endif
         enddo
     end subroutine
 
@@ -1204,13 +1211,14 @@ contains
 
     subroutine wlcsim_params_loadAB(fileName)
     ! Loads AB for file...has not been tested
+        use polydispersity, only: length_of_chain
         implicit none
         character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
         integer IB, I, J ! counters
         open (unit = inFileUnit, file = fileName, status = 'OLD')
         IB = 1
         do I = 1,WLC_P__NP
-            do J = 1,WLC_P__NB
+            do J = 1,length_of_chain(I)
                 read(inFileUnit,"(I2)") wlc_AB(IB)
                 IB = IB + 1
             enddo
@@ -1219,13 +1227,14 @@ contains
     end subroutine
     subroutine wlcsim_params_loadMeth(fileName)
     ! Loads Methalation for file...has not been tested
+        use polydispersity, only: length_of_chain
         implicit none
         character(MAXFILENAMELEN), intent(in) :: fileName ! file name to load from
         integer IB, I, J ! counters
         open (unit = inFileUnit, file = fileName, status = 'OLD')
         IB = 1
         do I = 1,WLC_P__NP
-            do J = 1,WLC_P__NB
+            do J = 1,length_of_chain(I)
                 read(inFileUnit,"(I2)") wlc_meth(IB)
                 IB = IB + 1
             enddo
@@ -1236,6 +1245,7 @@ contains
     subroutine wlcsim_params_saveR(fileName,repeatingBC)
     ! Writes R and AB to file for analysis
     ! Rx  Ry  Rz AB
+        use polydispersity, only: length_of_chain
         implicit none
         logical, intent(in) :: repeatingBC  ! 1 for reapeating boundary conditions
         integer I,J,IB  ! counters
@@ -1253,7 +1263,7 @@ contains
         IB = 1
         if (repeatingBC) then
            do I = 1,WLC_P__NP
-              do J = 1,WLC_P__NB
+              do J = 1,length_of_chain(I)
                  if (WLC_P__SAVEAB) then
                     write(outFileUnit,"(3f10.3,I2)") &
                           modulo(wlc_R(1,IB),WLC_P__LBOX_X)&
@@ -1275,7 +1285,7 @@ contains
            stop 1
         else
            do I = 1,WLC_P__NP
-              do J = 1,WLC_P__NB
+              do J = 1,length_of_chain(I)
                   if (WLC_P__SAVEAB) then
                      if (WLC_P__CHANGINGCHEMICALIDENTITY) then
                          write(outFileUnit,"(3f10.3,2I3)") &
@@ -1320,6 +1330,7 @@ contains
 
     subroutine wlcsim_params_saveU(fileName,stat)
     ! Saves U to ASCII file for analisys
+        use polydispersity, only: length_of_chain
         implicit none
         integer I,J,IB  ! counters
         character(MAXFILENAMELEN), intent(in) :: fileName
@@ -1329,7 +1340,7 @@ contains
         open (unit = outFileUnit, file = fullName, status = stat)
         IB = 1
         do I = 1,WLC_P__NP
-            do J = 1,WLC_P__NB
+            do J = 1,length_of_chain(I)
                 if (WLC_P__LOCAL_TWIST) then
                     write(outFileUnit,"(6f8.3,2I2)") wlc_U(1,IB),wlc_U(2,IB),wlc_U(3,IB) &
                                                    , wlc_V(1,IB),wlc_V(2,IB),wlc_V(3,IB)
@@ -1355,13 +1366,13 @@ contains
             write(outFileUnit,"(I8)") WLC_P__NT ! 5 Number of beads in simulation
             write(outFileUnit,"(I8)") WLC_P__NBPM  ! 6 Number of beads per monomer
 
-            write(outFileUnit,"(f10.5)") wlc_p%L0    ! Equilibrium segment length
+            write(outFileUnit,"(f10.5)") WLC_P__L0    ! Equilibrium segment length
             write(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
             write(outFileUnit,"(f10.5)") WLC_P__LBOX_X  ! 10 Lenth of box
             write(outFileUnit,"(f10.5)") WLC_P__EU    ! Energy unmethalated
             write(outFileUnit,"(f10.5)") WLC_P__EM    ! 12 Energy methalated
             write(outFileUnit,"(f10.5)") wlc_p%HP1_BIND ! Energy of HP1 binding
-            write(outFileUnit,"(f10.5)") (wlc_p%L0/wlc_p%EPS) ! 14 Khun lenth
+            write(outFileUnit,"(f10.5)") (WLC_P__L0/wlc_p%EPS) ! 14 Khun lenth
             write(outFileUnit,"(A)") "-999"  ! for historic reasons
             write(outFileUnit,"(f10.5)") WLC_P__F_METH  ! methalation fraction
             write(outFileUnit,"(f10.5)") WLC_P__LAM_METH  ! methalation lambda
@@ -1718,18 +1729,8 @@ contains
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
 
-    if (WLC_P__NB == 1.0d0) then
-        ! since we use "DEL" as an intermediate, we need at least two beads
-        PRinT*, 'Some intermediate calculations used require at least two beads, 1 requested.'
-        STOP 1
-    endif
-
     ! calculate metrics that don't change between WLC, ssWLC, GC
-    if (WLC_P__RING) then
-        wlc_p%DEL = WLC_P__L/WLC_P__LP/(WLC_P__NB)
-    else
-        wlc_p%DEL = WLC_P__L/WLC_P__LP/(WLC_P__NB-1.0_dp)
-    ENDif
+    wlc_p%DEL = WLC_P__L0/WLC_P__LP
 
     call calc_elastic_constants(wlc_p%DEL,WLC_P__LP,WLC_P__LT,&
                                 wlc_p%EB,wlc_p%EPAR, &

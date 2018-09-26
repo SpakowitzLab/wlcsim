@@ -10,7 +10,7 @@
 !
 !     Updated by Quinn in 2016
 !
-subroutine initcond(R,U,NT,NB,NP,FRMFILE,rand_stat, wlc_p)
+subroutine initcond(R,U,NT,NP,FRMFILE,rand_stat, wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeWrap
 
@@ -19,11 +19,12 @@ use mersenne_twister
 use params, only: dp, pi, wlcsim_params,  nan
 use vector_utils, only: randomUnitVec, random_perp
 use nucleosome, only: nucleosomeProp
+use polydispersity, only: length_of_chain
 implicit none
 
 type(wlcsim_params), intent(in) :: wlc_p
 
-integer NB,NP,NT           ! Number of beads
+integer NP,NT           ! Number of beads
 real(dp) R(3,NT)  ! Bead positions
 real(dp) U(3,NT)  ! Tangent vectors
 real(dp) LBOX(3)  ! Box edge length
@@ -99,7 +100,7 @@ if (WLC_P__INITCONDTYPE.eq.'lineInYFromOrigin') then
 ! straight line in y direction starting at origin, equilibrium bond lengths
     iB = 1
     do i = 1,nP
-        do j = 1,nB
+        do j = 1,length_of_chain(I)
             R(1,iB) = 0.0_dp
             R(2,iB) = wlc_p%GAM*j
             R(3,iB) = 0.0_dp
@@ -123,9 +124,10 @@ else if (WLC_P__INITCONDTYPE.eq.'lineInY') then
        R0(2) = urand(2)*LBOX(2)
        R0(3) = urand(3)*LBOX(3)
 
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
           R(1,IB) = R0(1)
-          R(2,IB) = R0(2) + wlc_p%GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
+          R(2,IB) = R0(2) + wlc_p%GAM*(J - length/2.0_dp - 0.5_dp) ! center on box
           R(3,IB) = R0(3)
           U(1,IB) = 0.0_dp
           U(2,IB) = 1.0_dp
@@ -152,7 +154,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
         call randomUnitVec(Uold,rand_stat)
         if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
 
-        do J = 1,NB
+        length = length_of_chain(I)
+        do J = 1,length
            search = .TRUE.
            ii = 0
            do while(search)
@@ -200,7 +203,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
        call randomUnitVec(Uold,rand_stat)
        if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
 
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
           search = .TRUE.
           ii = 0
           do while(search)
@@ -252,7 +256,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
        enddo
        call randomUnitVec(Uold,rand_stat)
        if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
            search = .TRUE.
            ii=0
            do while(search)
@@ -306,7 +311,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
        Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
        call randomUnitVec(Uold,rand_stat)
        if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
            search = .TRUE.
            ii=0
            do while(search)
@@ -369,12 +375,13 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
         R0(1) = urand(1)*LBOX(1)
         R0(2) = urand(2)*LBOX(1)
         R0(3) = urand(3)*LBOX(1)
-        do  J = 1,NB
-             R(1,IB) = R0(1) + ((wlc_p%GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
-             R(2,IB) = R0(2) + ((wlc_p%GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
+        length = length_of_chain(I)
+        do  J = 1,length
+             R(1,IB) = R0(1) + ((wlc_p%GAM*length)/(2*PI))*Cos(J*2.0_dp*PI/length)
+             R(2,IB) = R0(2) + ((wlc_p%GAM*length)/(2*PI))*Sin(J*2.0_dp*PI/length)
              R(3,IB) = 0.0_dp
-             U(1,IB) = -Sin(J*2.0_dp*PI/NB)
-             U(2,IB) = Cos(J*2.0_dp*PI/NB)
+             U(1,IB) = -Sin(J*2.0_dp*PI/length)
+             U(2,IB) = Cos(J*2.0_dp*PI/length)
              U(3,IB) = 0.0_dp;
              wlc_V(:,IB) = [0.0_dp, 0.0_dp, 1.0_dp]
              IB = IB + 1
@@ -505,6 +512,7 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
     use mersenne_twister
     use params, only : wlcsim_params, dp, max_wlc_l0, maxWlcDelta
     use vector_utils, only: randomUnitVec
+    use polydispersity, only: length_of_chain
     implicit none
     integer, intent(in) :: nt
     type(wlcsim_params), intent(in) :: wlc_p
@@ -543,7 +551,7 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
         ! uniformly from unit sphere first tan vec
         call randomUnitVec(U(:,IB),rand_stat)
         IB = IB + 1
-        do J = 2,WLC_P__NB
+        do J = 2,length_of_chain(I)
             tmpR(:,1) = R(:,IB-1)
             tmpU(:,1) = U(:,IB-1)
             call wlc_init(tmpR, tmpU, NgB, EPS, l0, rand_stat)
@@ -562,6 +570,7 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
     use params, only: wlcsim_params, dp
     use mersenne_twister
     use vector_utils, only: random_perp
+    use polydispersity, only: length_of_chain
     
     implicit none
     integer, intent(in) :: NT
@@ -570,7 +579,7 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
     type(random_stat), intent(inout) :: rand_stat
     real(dp) urand(3)
     real(dp) :: init_e2e(3)
-    integer i, j, ib
+    integer i, j, ib, length
     real(dp) trash(3)
 
 
@@ -580,14 +589,16 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
         init_e2e = 0.0_dp
         ib = 1
         do i = 1,WLC_P__NP
-            call make_rw_fix_end2end(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, init_e2e, wlc_p, rand_stat)
-            IB = IB + WLC_P__NB
+            length = length_of_chain(i)
+            call make_rw_fix_end2end(R(:,IB:IB+length-1), length, init_e2e, wlc_p, rand_stat)
+            IB = IB + length
         enddo
     else
         ib = 1
         do i = 1, WLC_P__NP
-            call make_rw_with_boundary(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, wlc_p, rand_stat)
-            IB = IB + WLC_P__NB
+            length = length_of_chain(i)
+            call make_rw_with_boundary(R(:,IB:IB+length-1), length, wlc_p, rand_stat)
+            IB = IB + length
         enddo
 
     end if
@@ -599,7 +610,7 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
         U(:,IB) = U(:,IB)/norm2(U(:,IB))
         if (WLC_P__LOCAL_TWIST) call random_perp(U(:,IB),wlc_V(:,IB),trash,rand_stat)
         IB = IB + 1
-        do J = 2,WLC_P__NB-1
+        do J = 2,length_of_chain(I)-1
             U(1,IB) = R(1,IB + 1) - R(1,IB - 1)
             U(2,IB) = R(2,IB + 1) - R(2,IB - 1)
             U(3,IB) = R(3,IB + 1) - R(3,IB - 1)
