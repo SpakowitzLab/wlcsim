@@ -12,6 +12,10 @@ def blank_slide_section(center_bead):
 def combine(subsumed_section_id,subsuming_section_id,sections,membership,
             bindpairs,leglength,moveable_loop):
     #print("subsumed_section_id",subsumed_section_id,"subsuming_section_id",subsuming_section_id)
+    if subsumed_section_id==subsuming_section_id:
+        print(sections)
+        raise ValueError("Tried to subsume section " + str(subsumed_section_id)
+                         + " into itself")
     subsumed = sections[subsumed_section_id]
     subsuming = sections[subsuming_section_id]
 
@@ -114,6 +118,8 @@ def growLeg(section_id,bindpairs,membership,sections,leglength=10,moveable_loop=
         otherend = bindpairs[knee]
         if otherend == -1: # normal chain
             continue
+        if knee != bindpairs[otherend]:
+            raise ValueError("inconsistant bindpairs")
         if (abs(otherend-knee) <= moveable_loop
             # loop is short enough
             and is_independent_polymer(knee,otherend,bindpairs)
@@ -196,7 +202,7 @@ def growLeg(section_id,bindpairs,membership,sections,leglength=10,moveable_loop=
     slide_section[LorRknee]=knee
     slide_section[LorRtoe]=toe
 
-
+    #print('Finished growing Leg of section',section_id,' from',slide_section[LorR],{1:'up',-1:'down'}[direction])
     return 'normal'
 
 
@@ -263,10 +269,11 @@ def file_or_stdout(file_name):
         with open(file_name, 'w') as out_file:
             yield out_file
 
-def print_spiders_for_fortran(spiders,filename=None,offset=0):
+def print_spiders_for_fortran(spiders,filename=None,offset=0,printNumber=True):
     #file = open(filename,"w")
     with file_or_stdout(filename) as file:
-        print(len(spiders),file=file)
+        if printNumber:
+            print(len(spiders),file=file)
         for spider in spiders:
             print(len(spider),file=file)
             legs=[]

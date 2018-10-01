@@ -1,10 +1,6 @@
 import numpy as np
-import sys
 import bisect as bs
 def insertLoop(loops,ends,limits=(0,101)):
-    if not isinstance(L,int):
-        raise ValueError('L must be an integer')
-
     while True:
         # insert a point in a region with probability propto size of region
         pt = np.random.randint(limits[0],limits[1])
@@ -34,6 +30,10 @@ def insertLoop(loops,ends,limits=(0,101)):
     ends.insert(right_n,low)
 
 def makeLoopFile(L,nloops,name=None,autoName=False,npoly=1):
+    if not isinstance(L,int):
+        raise ValueError('L must be an integer')
+    if not isinstance(nloops,int):
+        raise ValueError('nloops must be an integer')
     loops=[]
     #ends=[0, L+1]
     ends=[]
@@ -54,23 +54,24 @@ def makeLoopFile(L,nloops,name=None,autoName=False,npoly=1):
     np.savetxt(name,toprint,fmt='%d')
     return toprint
 
-nloops=50000
-L=393216
-npoly=1
-name = None
-if len(sys.argv) == 2:
-    nloops= int(sys.argv[1])
-elif len(sys.argv) == 3:
-    nloops = int(sys.argv[1])
-    L = int(sys.argv[2])
-elif len(sys.argv) == 4:
-    nloops = int(sys.argv[1])
-    L = int(sys.argv[2])
-    name = str(sys.argv[3])
-elif len(sys.argv) == 5:
-    nloops = int(sys.argv[1])
-    L = int(sys.argv[2])
-    npoly = int(sys.argv[3])
-    name = str(sys.argv[4])
-
-makeLoopFile(L,nloops,name=name,npoly=npoly)
+#import sys
+#nloops=50000
+#L=393216
+#npoly=1
+#name = None
+#if len(sys.argv) == 2:
+#    nloops= int(sys.argv[1])
+#elif len(sys.argv) == 3:
+#    nloops = int(sys.argv[1])
+#    L = int(sys.argv[2])
+#elif len(sys.argv) == 4:
+#    nloops = int(sys.argv[1])
+#    L = int(sys.argv[2])
+#    name = str(sys.argv[3])
+#elif len(sys.argv) == 5:
+#    nloops = int(sys.argv[1])
+#    L = int(sys.argv[2])
+#    npoly = int(sys.argv[3])
+#    name = str(sys.argv[4])
+#
+#makeLoopFile(L,nloops,name=name,npoly=npoly)
