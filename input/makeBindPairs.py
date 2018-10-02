@@ -7,7 +7,7 @@ with open("polyLengths") as lengthsFile:
     for line in lengthsFile:
         lengthSet.append(int(line))
 
-looptype = "insert"
+looptype = "growth"
 beadsPerLoop = 120/5
 
 if looptype == "insert":
@@ -19,19 +19,20 @@ if looptype == "insert":
         makeloops.makeLoopFile(L,nloops,name=name,npoly=npoly)
 elif looptype == "growth":
     for IP in range(0,len(lengthSet)):
+        print("working on polymer "+str(IP))
         L = lengthSet[IP]
         nloops = int(np.floor(L/beadsPerLoop))
         name = "bindpairs_chrom"+str(IP)
-        chain = loopSim.LoopExtrusionChain(L,n_cohesins)
+        chain = loopSim.LoopExtrusionChain(L,nloops)
 
         forward_rate = 1.0
         reverse_rate = 0.0
         falloff_rate = 1.0/(120/5)
-        delta_t = 300
-        npts = 20
+        delta_t = 50
+        npts = 10
         distances = []
         for ii in range(npts):
-            if ii%10==0:
+            if ii%2==0:
                 print("working on",ii," of ",npts)
             chain.run_for_time(delta_t, forward_rate, reverse_rate,
                                falloff_rate)
