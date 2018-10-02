@@ -15,10 +15,16 @@ def get_poly_lengths(file_name=None):
 
 def combine_bindpair_files(npoly,output="bindpairs"):
     all_bindpair_file = open(output,"w")
+    lineNumber=0
     for ii in range(0,npoly):
+        firstLine = lineNumber
         with open("bindpairs_chrom"+str(ii)) as fromfile:
             for line in fromfile:
-                print(line,file=all_bindpair_file,end='')
+                if int(line) == -1:
+                    print(line,file=all_bindpair_file,end='')
+                else:
+                    print(int(line)+firstLine,file=all_bindpair_file)
+                lineNumber=lineNumber+1
     all_bindpair_file.close()
 
 def combine_spider_files(npoly,n_different_lengths,outName):
