@@ -10,7 +10,7 @@
       subroutine energy_elas(EELAS,wlc_p)
       ! values from wlcsim_data
       use params, only: wlc_nucleosomeWrap, wlc_basepairs, wlc_V, wlc_R, wlc_U
-      use params, only: dp, pi,  wlcsim_params
+      use params, only: dp, pi,  wlcsim_params, nan
       use MC_wlc, only: E_SSWLC
       use nucleosome, only: nucleosome_energy
       use polydispersity, only: first_bead_of_chain, length_of_chain

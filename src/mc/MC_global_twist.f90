@@ -9,7 +9,7 @@ subroutine MC_global_twist(wlc_p,IT1,IT2,MCTYPE,WRP,DETWIST)
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_RP, wlc_WR
 
-use params, only: dp, pi,wlcsim_params
+use params, only: dp, pi,wlcsim_params, nan
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 integer, intent(in) :: IT1

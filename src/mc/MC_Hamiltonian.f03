@@ -135,10 +135,10 @@ if (initialize) then  ! calculate absolute energy
                 VV = wlc_Vol(I)
                 if (VV.le.0.1_dp) CYCLE
             endif
-            wlc_Dx_Chi = wlc_Dx_Chi + VV*PHIB(I)*(1.0_dp-PHIB(I))
+            wlc_Dx_Chi = wlc_Dx_Chi + VV*wlc_PHIB(I)*(1.0_dp-wlc_PHIB(I))
             wlc_Dx_Couple = wlc_Dx_Couple + VV*(wlc_PHIA(I))**2
-            if(PHIB(I) > 0.5_dp) then
-                wlc_Dx_Kap = wlc_Dx_Kap + VV*(PHIB(I) - 0.5_dp)**2
+            if(wlc_PHIB(I) > 0.5_dp) then
+                wlc_Dx_Kap = wlc_Dx_Kap + VV*(wlc_PHIB(I) - 0.5_dp)**2
             endif
         enddo
     end select
@@ -307,7 +307,7 @@ else ! Calculate change in energy
             PHI_A = wlc_PHIA(J) + wlc_DPHIA(I)
             PHI_B = wlc_PHIB(J) + wlc_DPHIB(I)
             wlc_Dx_Chi = wlc_Dx_Chi + VV*PHI_B*(1.0_dp-PHI_B)
-            wlc_Dx_Couple = wlc_Dx_Couple + VV*(wlc_PHI_A**2)
+            wlc_Dx_Couple = wlc_Dx_Couple + VV*(PHI_A**2)
             if(PHI_B > 0.5_dp) then
                wlc_Dx_Kap = wlc_Dx_Kap + VV*(PHI_B-0.5_dp)**2
             endif
@@ -315,7 +315,7 @@ else ! Calculate change in energy
             PHI_A = wlc_PHIA(J)
             PHI_B = wlc_PHIB(J)
             wlc_Dx_Chi = wlc_Dx_Chi - VV*PHI_B*(1.0_dp-PHI_B)
-            wlc_Dx_Couple = wlc_Dx_Couple - VV*(wlc_PHI_A**2)
+            wlc_Dx_Couple = wlc_Dx_Couple - VV*(PHI_A**2)
             if(PHI_B > 0.5_dp) then
                wlc_Dx_Kap = wlc_Dx_Kap - VV*(PHI_B-0.5_dp)**2
             endif
