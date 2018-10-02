@@ -51,6 +51,10 @@ wlc_NPHI = 0
 !  Calculate end beads
 !
 !--------------------------------------------------------------
+if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+    print*, "reptation move not set up for chromatin2."
+    stop
+endif
 
 do II = 1,2
   if (II.eq.1) then

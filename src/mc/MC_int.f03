@@ -199,12 +199,12 @@ NBinX = wlc_p%NBINX
        RBin(1) = wlc_R(1,IB)
        RBin(2) = wlc_R(2,IB)
        RBin(3) = wlc_R(3,IB)
-       change = -1.0_dp*WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
+       change = -1.0_dp*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
    else
        RBin(1) = wlc_RP(1,IB)
        RBin(2) = wlc_RP(2,IB)
        RBin(3) = wlc_RP(3,IB)
-       change = WLC_P__BEADVOLUME*(WLC_P__DBIN**3)
+       change = WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
    endif
    ! --------------------------------------------------
    !
@@ -232,6 +232,44 @@ NBinX = wlc_p%NBINX
        phi2=0.0_dp
    endif
 
+   if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+       do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          W_Z = WZ(ISZ) * change
+          do ISY = 1,2
+             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
+             do ISX = 1,2
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = contribution*wlc_AB(IB)
+                    wlc_DPHIB(wlc_NPHI) = contribution
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + contribution*wlc_AB(IB)
+                    wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
+                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                endif
+             enddo
+          enddo
+       enddo
+       cycle ! take care of all types
+   endif
    if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then ! A, chrystal, singally bound
        do ISZ = 1,2
           ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)

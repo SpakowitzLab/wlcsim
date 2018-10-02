@@ -36,6 +36,11 @@ real(dp), parameter, dimension(0:3) :: number_bound_table = [0.0_dp, 1.0_dp, &
                                                              1.0_dp, 2.0_dp]
 NBinX = wlc_p%NBINX
 
+if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+    print*, "chemical move not set up for chromatin2."
+    stop
+endif
+
 wlc_NPHI = 0
 do IB = I1,I2
    RBin(1) = wlc_R(1,IB)

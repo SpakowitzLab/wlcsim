@@ -65,6 +65,10 @@ if (.not.(min(I1,I2)>max(I3,I4) .or. min(I3,I4)>max(I1,I2))) then
     print*, "Error in MC_int_swap. Overlappling regions"
     print*, I1,I2,"|",I3,I4
 endif
+if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+    print*, "swap move not set up for chromatin2."
+    stop
+endif
 
 
 ! -------------------------------------------------------------
