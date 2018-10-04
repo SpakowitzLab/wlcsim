@@ -8,7 +8,7 @@ module precalc_spider
     public
 
     !!!     hardcoded params. will need to change if certain parts of code change
-    integer, parameter :: maxNumberOfSections = 20
+    integer, parameter :: maxNumberOfSections = 40
     integer, parameter :: maxNumberOfLegs = 2*maxNumberOfSections
 
 

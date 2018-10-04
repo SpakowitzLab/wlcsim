@@ -34,7 +34,11 @@ subroutine setup_polydispersity()
     integer length, IB, IP
 
     if (WLC_P__POLY_DISP_TYPE == "None") then
-        continue
+        if (WLC_P__NT .ne. WLC_P__NB*WLC_P__NP) then
+            print*, "NT, NB, and NP not consistant"
+            print*, "NT",WLC_P__NT,"NB",WLC_P__NB,"NP",WLC_P__NP
+            stop
+        endif
     elseif (WLC_P__POLY_DISP_TYPE == "FromFile") then
         allocate(firstBead(WLC_P__NP+1))
         open (unit = 1, file = "input/polyLengths", status = 'OLD')

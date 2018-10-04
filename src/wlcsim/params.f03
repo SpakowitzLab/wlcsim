@@ -688,9 +688,9 @@ contains
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
             call load_precalc_spiders(iostr,wlc_spiders,wlc_numberOfSpiders)
-            wlc_maxNBend = 16 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
+            wlc_maxNBend = 20 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
         else
-            wlc_maxNBend = 16
+            wlc_maxNBend = 40
         endif
         allocate(wlc_bendPoints(wlc_maxNBend))
         wlc_nBend=0
@@ -978,6 +978,7 @@ contains
     subroutine tweak_param_defaults(wlc_p)
         use polydispersity, only: max_chain_length
         implicit none
+        integer ii
         type(wlcsim_params), intent(inout) :: wlc_p
 
         !  Edit the following to optimize wlc_p performance
@@ -1016,6 +1017,10 @@ contains
         !WLC_P__LBOX_Y = wlc_p%NBINX(2)*WLC_P__DBIN
         !WLC_P__LBOX_Z = wlc_p%NBINX(3)*WLC_P__DBIN
         wlc_p%NBIN = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3)
+
+        do ii = 1,nMovetypes
+            wlc_window(ii)=wlc_p%MINWINDOW(ii)
+        enddo
 
         if (WLC_P__CODENAME == 'brad') then
             ! initialize windows to number of beads

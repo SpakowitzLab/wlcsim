@@ -58,7 +58,7 @@ real(dp) center(3)
 real(dp) RloopVec(3)
 real(dp) perpVec(3)
 real(dp) trash(3)
-real(dp) length
+integer length
 integer otherEnd
 real(dp) nloops
 
