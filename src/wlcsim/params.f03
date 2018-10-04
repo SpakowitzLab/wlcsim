@@ -688,9 +688,9 @@ contains
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
             call load_precalc_spiders(iostr,wlc_spiders,wlc_numberOfSpiders)
-            wlc_maxNBend = 20 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
+            wlc_maxNBend = 200 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
         else
-            wlc_maxNBend = 40
+            wlc_maxNBend = 200
         endif
         allocate(wlc_bendPoints(wlc_maxNBend))
         wlc_nBend=0

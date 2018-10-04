@@ -18,7 +18,7 @@ use mersenne_twister
 use params, only: dp
 use vector_utils, only: randomUnitVec, rotateR, rotateU, axisAngle
 use windowTools, only: exponential_random_int, enforceBinding
-use polydispersity, only: length_of_chain, last_bead_of_chain, get_I, is_right_end
+use polydispersity, only: length_of_chain, get_I
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
@@ -58,6 +58,7 @@ endif
     length = length_of_chain(IP)
     call random_number(urnd,rand_stat)
     if (urnd(1).gt.0.5_dp) then
+        ! pivot left end of chain
         IB2 = exponential_random_int(window,rand_stat) + 1
         if (IB2 > length) then
             IB2 = length
@@ -65,6 +66,12 @@ endif
         IB1 = 1
         IT1 = get_I(IB1,IP)
         IT2 = get_I(IB2,IP)
+        if (WLC_P__EXPLICIT_BINDING) then
+            call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
+            if (success .eqv. .False.) return
+        else
+            success = .TRUE.
+        endif
         P1 = wlc_R(:,IT2)
         if (IB2<length) then
             wlc_nBend = wlc_nBend + 1
@@ -75,6 +82,7 @@ endif
             if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
         endif
     else
+        ! pivot right end of chain
         IB1 = length-exponential_random_int(window,rand_stat)
         if (IB1 < 1) then
             IB1 = 1
@@ -82,6 +90,12 @@ endif
         IB2 = length
         IT1 = get_I(IB1,IP)
         IT2 = get_I(IB2,IP)
+        if (WLC_P__EXPLICIT_BINDING) then
+            call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
+            if (success .eqv. .False.) return
+        else
+            success = .TRUE.
+        endif
         P1 = wlc_R(:,IT1)
         if (IB1>1) then
             wlc_nBend = wlc_nBend + 1
@@ -97,13 +111,6 @@ endif
    call random_number(urnd,rand_stat)
    ALPHA = MCAMP*(urnd(1)-0.5_dp)
    call axisAngle(ROT,alpha,TA,P1)
-
-    if (WLC_P__EXPLICIT_BINDING) then
-        call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
-        if (success .eqv. .False.) return
-    else
-        success = .TRUE.
-    endif
 
     do I=IT1,IT2
         wlc_RP(:,I) = rotateR(ROT,wlc_R(:,I))
