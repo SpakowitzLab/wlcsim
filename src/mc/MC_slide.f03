@@ -91,20 +91,28 @@ if (WLC_P__EXPLICIT_BINDING) then
         wlc_pointsMoved(wlc_nPointsMoved)=otherEnd
         ! Add ajacent points to RP and bendPoints
         if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
-            wlc_nBend=wlc_nBend+1
-            wlc_bendPoints(wlc_nBend)=otherEnd
+            if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd)) then
+                wlc_nBend=wlc_nBend+1
+                wlc_bendPoints(wlc_nBend)=otherEnd
+            endif
             I=otherEnd+1
-            wlc_RP(:,I)=wlc_R(:,I)
-            wlc_UP(:,I)=wlc_U(:,I)
-            if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            if (isnan(wlc_RP(1,I))) then
+                wlc_RP(:,I)=wlc_R(:,I)
+                wlc_UP(:,I)=wlc_U(:,I)
+                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            endif
         endif
         if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
-            wlc_nBend=wlc_nBend+1
-            wlc_bendPoints(wlc_nBend)=otherEnd-1
+            if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd-1)) then
+                wlc_nBend=wlc_nBend+1
+                wlc_bendPoints(wlc_nBend)=otherEnd-1
+            endif
             I=otherEnd-1
-            wlc_RP(:,I)=wlc_R(:,I)
-            wlc_UP(:,I)=wlc_U(:,I)
-            if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            if (isnan(wlc_RP(1,I))) then
+                wlc_RP(:,I)=wlc_R(:,I)
+                wlc_UP(:,I)=wlc_U(:,I)
+                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            endif
         endif
     enddo
 endif
