@@ -688,9 +688,9 @@ contains
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
             call load_precalc_spiders(iostr,wlc_spiders,wlc_numberOfSpiders)
-            wlc_maxNBend = 200 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
+            wlc_maxNBend = 2000 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
         else
-            wlc_maxNBend = 200
+            wlc_maxNBend = 2000
         endif
         allocate(wlc_bendPoints(wlc_maxNBend))
         wlc_nBend=0
@@ -819,7 +819,7 @@ contains
             ! initialize a/b sequence
             if (WLC_P__CHEM_STATE_FROM_FILE) then
                 iostr='input/ab'
-                call MCvar_loadAB(iostr)
+                call wlcsim_params_loadAB(iostr)
             else
                 call init_chemical_state(wlc_AB,WLC_P__LAM,WLC_P__FA, WLC_P__ASYMMETRICALTERNATINGCHEM)
             endif

@@ -239,6 +239,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                  + wlc_DEExternalField &
                  + wlc_deMaierSaupe &
                  + wlc_DEExplicitBinding
+          !call MC_save_energy_data(MCTYPE)
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_rand_stat)
           TEST = urnd(1)
