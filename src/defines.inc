@@ -119,6 +119,12 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__EXTERNAL_FIELD_TYPE "nonSpecificToCubeSide"
+! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere",
+"toExcludedSphereInPeriodic"
+! DEFAULTS COMMENT: !
+! TYPE: CHARACTER(MAXPARAMLEN)
+
 #define WLC_P__EXPLICIT_BINDING .FALSE.
 ! VARIABLE COMMENT: ! Include specific interactions between specified beads
 ! DEFAULTS COMMENT: ! Not included by default
