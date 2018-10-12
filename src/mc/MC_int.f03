@@ -93,6 +93,16 @@ do IB = 1,WLC_P__NT
             inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
             contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
 
+            if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+                wlc_PHIA(indBin) = wlc_PHIA(indBin) + contribution*wlc_AB(IB)
+                wlc_PHIB(indBin) = wlc_PHIB(indBin) + contribution
+                if(wlc_p%CHI_L2_ON) then
+                    do m_index = -2,2
+                        wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
+                    enddo
+                endif
+                cycle ! take care of all types
+            endif
             if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
                 wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + contribution
