@@ -24,7 +24,34 @@ real(dp) centers(3)
 integer ix,iy,iz
 do jj = 1,wlc_nPointsMoved
     ii = wlc_pointsMoved(jj)
-    if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+    if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
+        vv(1) = modulo(wlc_RP(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
+        endif
+        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
+        endif
+
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
+        vv(1) = modulo(wlc_RP(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
+        endif
+        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
+            wlc_dx_ExternalField = wlc_dx_ExternalField + 100 + vv(1)
+        endif
+
+        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
+        endif
+        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
+            wlc_dx_ExternalField = wlc_dx_ExternalField - 100 - vv(1)
+        endif
+
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE
         do iy=1,WLC_P__N_SPHERES_TO_SIDE
         do iz=1,WLC_P__N_SPHERES_TO_SIDE
@@ -48,7 +75,7 @@ do jj = 1,wlc_nPointsMoved
         enddo
         enddo
         enddo
-    elseif (WLC_P__CONFINETYPE == 'sphere') then
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToSphere') then
         vv(1) = modulo(wlc_RP(1,ii),WLC_P__LBOX_X)-center(1)
         vv(2) = modulo(wlc_RP(2,ii),WLC_P__LBOX_Y)-center(2)
         vv(3) = modulo(wlc_RP(3,ii),WLC_P__LBOX_Z)-center(3)
@@ -82,11 +109,25 @@ real(dp) vv(3)
 real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Y/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
+real(dp) energy2
 real(dp) centers(3)
 integer ix,iy,iz
 wlc_dx_ExternalField = 0.0_dp
 do ii = 1,WLC_P__NT
-    if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+    if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
+        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_ExternalField = wlc_dx_ExternalField + 1.0_dp
+        endif
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
+        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
+        if ( vv(1) < WLC_P__BINDING_R) then
+            wlc_dx_ExternalField = wlc_dx_ExternalField + 1.0_dp
+        endif
+        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
+            wlc_dx_ExternalField = wlc_dx_ExternalField + 100 + vv(1)
+        endif
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE
         do iy=1,WLC_P__N_SPHERES_TO_SIDE
         do iz=1,WLC_P__N_SPHERES_TO_SIDE
@@ -103,7 +144,7 @@ do ii = 1,WLC_P__NT
         enddo
         enddo
         enddo
-    elseif (WLC_P__CONFINETYPE == 'sphere') then
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToSphere') then
         vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
         vv(2) = modulo(wlc_R(2,ii),WLC_P__LBOX_Y)-center(2)
         vv(3) = modulo(wlc_R(3,ii),WLC_P__LBOX_Z)-center(3)

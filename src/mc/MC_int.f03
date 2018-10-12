@@ -35,8 +35,6 @@ real(dp), dimension(-2:2) :: phi2
 integer m_index ! m for spherical harmonics
 
 ! Copy so I don't have to type wlc_p% everywhere
-integer NBinX(3)
-NBinX = wlc_p%NBINX
 
 ! -------------------------------------------------------------
 !
@@ -82,15 +80,15 @@ do IB = 1,WLC_P__NT
    do ISX = 1,2
       do ISY = 1,2
          do ISZ = 1,2
-            if (((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) .or.&
-                ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) .or.&
-                ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1)))) then
+            if (((IX(ISX).le.0).OR.(IX(ISX).ge.(WLC_P__NBIN_X + 1))) .or.&
+                ((IY(ISY).le.0).OR.(IY(ISY).ge.(WLC_P__NBIN_Y + 1))) .or.&
+                ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(WLC_P__NBIN_Z + 1)))) then
                 print*, "Out of Bounds!"
                 stop
             endif
 
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
             contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
 
             if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
@@ -192,15 +190,12 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 
 ! Copy so I don't have to type wlc_p% everywhere
-integer NBinX(3)
 integer m_index ! m for spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
 real(dp) change
 real(dp) W_ZY, W_Z
 integer ind_Z_temp, ind_ZY_temp
-
-NBinX = wlc_p%NBINX
 
   do rrdr = -1,1,2
    ! on initialize only add current position
@@ -244,10 +239,10 @@ NBinX = wlc_p%NBINX
 
    if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
        do ISZ = 1,2
-          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
           W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
              W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
                 inDBin = IX(ISX) + ind_ZY_temp
@@ -282,10 +277,10 @@ NBinX = wlc_p%NBINX
    endif
    if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then ! A, chrystal, singally bound
        do ISZ = 1,2
-          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
           W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
              W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
                 inDBin = IX(ISX) + ind_ZY_temp
@@ -317,10 +312,10 @@ NBinX = wlc_p%NBINX
        enddo
    else if (wlc_AB(IB) == 0) then
        do ISZ = 1,2
-          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
           W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
              W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
                 inDBin = IX(ISX) + ind_ZY_temp
@@ -345,10 +340,10 @@ NBinX = wlc_p%NBINX
        enddo
    else if (wlc_AB(IB) == 3) then
        do ISZ = 1,2
-          ind_Z_temp = (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
           W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             ind_ZY_temp = (IY(ISY)-1)*NBinX(1) + ind_Z_temp
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
              W_ZY = WY(ISY)*W_Z
              do ISX = 1,2
                 inDBin = IX(ISX) + ind_ZY_temp

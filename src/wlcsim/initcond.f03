@@ -390,8 +390,8 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
 elseif (WLC_P__INITCONDTYPE == 'multiRing') then
     IB = 1
     center(1) = WLC_P__LBOX_X/2.0_dp
-    center(2) = WLC_P__LBOX_X/2.0_dp
-    center(3) = WLC_P__LBOX_X/2.0_dp
+    center(2) = WLC_P__LBOX_Y/2.0_dp
+    center(3) = WLC_P__LBOX_Z/2.0_dp
     do while (IB .le. WLC_P__NT)
         if (IB == WLC_P__NT) then
             R(:,IB) = center

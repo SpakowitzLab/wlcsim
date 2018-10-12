@@ -38,11 +38,9 @@ integer ISX,ISY,ISZ
 !LOGICAL isA   ! The bead is of type A
 integer AminusB
 integer m_index ! m quantum number for sphrical harmonics
-integer NBinX(3)
 real(dp) temp    !for speeding up code
 real(dp), dimension(-2:2) :: phi2
 real(dp) change
-NBinX = wlc_p%NBINX
 
 
 if (WLC_P__TWO_TAIL) then
@@ -126,7 +124,7 @@ do IB = I1,I2
       do ISY = 1,2
          do ISX = 1,2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
             temp = WTOT*change
             ! Generate list of which phi's change and by how much
             I = wlc_ind_in_list(indBin)

@@ -102,7 +102,6 @@ module params
 
     !   boundary/box things
         integer NBin     ! Number of bins
-        integer NBinX(nDim) ! Number of MC bins on an edge
 
     !   Monte Carlo Variables (for adaptation)
         real(dp) PDesire(nMoveTypes) ! desired hit rate
@@ -286,9 +285,6 @@ contains
         wlc_p%chi_l2_on = .TRUE. ! on by default
         wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
-        wlc_p%NBINX(1) = WLC_P__NBIN_X
-        wlc_p%NBINX(2) = WLC_P__NBIN_Y
-        wlc_p%NBINX(3) = WLC_P__NBIN_Z
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
         wlc_p%PDESIRE(2) = WLC_P__PDESIRE_SLIDE_MOVE
         wlc_p%PDESIRE(3) = WLC_P__PDESIRE_PIVOT_MOVE
@@ -477,15 +473,15 @@ contains
             "Requesting initial end-to-end distance larger than polymer length.")
 
         if (WLC_P__CODENAME == 'quinn') then
-           if ((wlc_p%NBINX(1)-wlc_p%NBINX(2).ne.0).or. &
-                (wlc_p%NBINX(1)-wlc_p%NBINX(3).ne.0)) then
+           if ((WLC_P__NBIN_X-WLC_P__NBIN_Y.ne.0).or. &
+                (WLC_P__NBIN_X-WLC_P__NBIN_Z.ne.0)) then
               err = WLC_P__CONFINETYPE.ne.'periodicUnequal'
               call stop_if_err(err, "Unequal boundaries require confinetype = periodicUnequal")
               err = WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary'
               call stop_if_err(err, "You shouldn't put a sphere in and unequal box!")
            endif
 
-           err = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3).ne.wlc_p%NBIN
+           err = WLC_P__NBIN_X*WLC_P__NBIN_Y*WLC_P__NBIN_Z.ne.wlc_p%NBIN
            call stop_if_err(err, "error in mcsim. Wrong number of bins")
 
            err = WLC_P__NNOINT.gt.WLC_P__INDSTARTREPADAPT
@@ -837,7 +833,7 @@ contains
 
             ! calculate volumes of bins
             if (WLC_P__CONFINETYPE.eq.'sphere' .and. WLC_P__FRACTIONAL_BIN) then
-                call MC_calcVolume(wlc_p%NBINX, WLC_P__DBIN, &
+                call MC_calcVolume(WLC_P__DBIN, &
                                 WLC_P__LBOX_X, wlc_Vol, wlc_rand_stat)
             endif
         endif
@@ -939,7 +935,7 @@ contains
         print*, " twist persistence length, lt", WLC_P__LT
         print*, " lbox = ", WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z
         print*, " Number of bins in x direction", &
-                   wlc_p%NBINX(1), wlc_p%NBINX(2),wlc_p%NBINX(3)
+                   WLC_P__NBIN_X, WLC_P__NBIN_Y,WLC_P__NBIN_Z
         print*, " Number of bins", wlc_p%NBIN
         print*, " spatial descritation dbin = ",WLC_P__DBIN
         print*, " L0 = ", WLC_P__L0
@@ -1013,10 +1009,10 @@ contains
         if (isnan(wlc_p%MINWINDOW(7))) wlc_p%MINWINDOW(7) = dble(min(10,max_chain_length()))
 
         ! Solution
-        !WLC_P__LBOX_X = wlc_p%NBINX(1)*WLC_P__DBIN
-        !WLC_P__LBOX_Y = wlc_p%NBINX(2)*WLC_P__DBIN
-        !WLC_P__LBOX_Z = wlc_p%NBINX(3)*WLC_P__DBIN
-        wlc_p%NBIN = wlc_p%NBINX(1)*wlc_p%NBINX(2)*wlc_p%NBINX(3)
+        !WLC_P__LBOX_X = WLC_P__NBIN_X*WLC_P__DBIN
+        !WLC_P__LBOX_Y = WLC_P__NBIN_Y*WLC_P__DBIN
+        !WLC_P__LBOX_Z = WLC_P__NBIN_Z*WLC_P__DBIN
+        wlc_p%NBIN = WLC_P__NBIN_X*WLC_P__NBIN_Y*WLC_P__NBIN_Z
 
         do ii = 1,nMovetypes
             wlc_window(ii)=wlc_p%MINWINDOW(ii)
@@ -1201,12 +1197,12 @@ contains
         integer indBin  ! index of bin
         integer IX,IY,IZ ! bin corrdinates
 
-        do IX = 1,wlc_p%NBINX(1)
-            do IY = 1,wlc_p%NBINX(2)
-                do IZ = 1,wlc_p%NBINX(3)
+        do IX = 1,WLC_P__NBIN_X
+            do IY = 1,WLC_P__NBIN_Y
+                do IZ = 1,WLC_P__NBIN_Z
                     indBin = IX + &
-                        (IY-1)*wlc_p%NBINX(1) + &
-                        (IZ-1)*wlc_p%NBINX(1)*wlc_p%NBINX(2)
+                        (IY-1)*WLC_P__NBIN_X + &
+                        (IZ-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
                     wlc_PHIH(indBin) = dsin(WLC_P__K_FIELD*WLC_P__DBIN*dble(IX))
                 enddo
             enddo

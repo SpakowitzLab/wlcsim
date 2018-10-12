@@ -26,7 +26,6 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 
 ! Copy so I don't have to type wlc_p% everywhere
-integer NBinX(3)
 real(dp) contribution 
 integer m_index ! m from spherical harmonics
 real(dp), dimension(-2:2) :: phi2
@@ -34,8 +33,6 @@ real(dp) AminusB ! +1 if A and -1 if B
 
 real(dp), parameter, dimension(0:3) :: number_bound_table = [0.0_dp, 1.0_dp, &
                                                              1.0_dp, 2.0_dp]
-NBinX = wlc_p%NBINX
-
 if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
     print*, "chemical move not set up for chromatin2."
     stop
@@ -76,7 +73,7 @@ do IB = I1,I2
       do ISY = 1,2
          do ISZ = 1,2
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
             contribution = AminusB*WTOT*WLC_P__BEADVOLUME/&
                               (WLC_P__DBIN**3)
 

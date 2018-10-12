@@ -14,8 +14,7 @@
 !    2         |  Cube of size LBox**3,  range: 0-LBox
 !    3         |  Circle of radius LBox/2 inside box of size LBox
 
-subroutine MC_calcVolume(NBinX,dbin, LBox, &
-                         Vol,rand_stat)
+subroutine MC_calcVolume(dbin, LBox,Vol,rand_stat)
 
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
@@ -28,9 +27,8 @@ integer I      ! for loops
 integer ix,iy,iz      ! location of conder
 real(dp) x,y,z
 integer :: STATUS = 0
-integer, intent(in) :: NBinX  ! length of side of box as an integer number of bins
 real(dp) Rsqrd
-real(dp) Vol(NBinX**3)  ! output: volume of bins
+real(dp) Vol(WLC_P__NBIN_X*WLC_P__NBIN_Y*WLC_P__NBIN_Z)  ! output: volume of bins
 real(dp) V
 real(dp) corner(8,3)
 integer nc
@@ -40,9 +38,9 @@ real(dp) rsq, minr
 type(random_stat) rand_stat !for random numer generator
 real(dp) urand(3)
 
-if (abs(dbin*NBinX-LBOX).gt.0.000001_dp) then
+if (abs(dbin*WLC_P__NBIN_X-LBOX).gt.0.000001_dp) then
     print*, "dbin = ", dbin
-    print*, "NBinX = ",NBinX
+    print*, "WLC_P__NBin_X = ",WLC_P__NBIN_X
     print*, "LBOX = ",LBOX
     print*, "Error in MC_calcvolume, make box integer lenth*dbin"
     STOP 1
@@ -63,9 +61,9 @@ elseif(WLC_P__CONFINETYPE == 'cube') then
     STOP 1
 elseif(WLC_P__CONFINETYPE == 'sphere') then
     Rsqrd = (LBox/2.0_dp)**2
-    Do ix = 1,NBinX
-        Do iy = 1,NBinX
-            do iz = 1,NBinX
+    Do ix = 1,WLC_P__NBIN_X
+        Do iy = 1,WLC_P__NBIN_Y
+            do iz = 1,WLC_P__NBIN_Z
                 x = dbin*ix
                 y = dbin*iy
                 z = dbin*iz
@@ -107,7 +105,7 @@ elseif(WLC_P__CONFINETYPE == 'sphere') then
                     enddo
                     V = (dbin**3)*V/dble(npts)
                 endif
-                Vol(ix + (iy-1)*NBinX + (iz-1)*NBinX**2) = V
+                Vol(ix + (iy-1)*WLC_P__NBIN_X + (iz-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y) = V
             enddo
         enddo
     enddo

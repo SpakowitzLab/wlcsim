@@ -34,11 +34,9 @@ integer ISX,ISY,ISZ
 LOGICAL isA   ! The bead is of type A
 real(dp), dimension(-2:2) ::  phi2
 integer m_index  ! m from Ylm spherical harmonics
-integer NBinX(3)
 real(dp) temp    !for speeding up code
 LOGICAL, intent(in) :: forward ! move forward
 real(dp) change
-NBinX = wlc_p%NBINX
 
 wlc_NPHI = 0
 if (WLC_P__TWO_TAIL) then
@@ -121,7 +119,7 @@ do II = 1,2
           do ISY = 1,2
              do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+                inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
                 ! Generate list of which phi's change and by how much
                 I = wlc_ind_in_list(indBin)
                 if (I == -1) then
@@ -155,7 +153,7 @@ do II = 1,2
           do ISY = 1,2
              do ISX = 1,2
                 WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+                inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
                 ! Generate list of which phi's change and by how much
                 I = wlc_ind_in_list(indBin)
                 if (I == -1) then
