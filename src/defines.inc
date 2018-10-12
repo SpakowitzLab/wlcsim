@@ -120,8 +120,7 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__EXTERNAL_FIELD_TYPE "nonSpecificToCubeSide"
-! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere",
-"toExcludedSphereInPeriodic"
+! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic"
 ! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
