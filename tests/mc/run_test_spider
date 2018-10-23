@@ -1,0 +1,2 @@
+gfortran  ../../src/third_party/mersenne_twister.f90 ../../src/mc/MC_precalc_spider.f03 test_spider.f95 -o a.out
+./a.out

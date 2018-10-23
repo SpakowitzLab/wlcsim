@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !
@@ -8,18 +9,18 @@
 !     Andrew Spakowitz
 !     Written 9-1-04
 
-      subroutine force_elas(FELAS,TELAS,R,U,NT,N,NP, EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
+      subroutine force_elas(FELAS,TELAS,R,U,EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
       use params, only : dp
+      use polydispersity, only: length_of_chain, first_bead_of_chain
       implicit none
-      real(dp), intent(out) :: FELAS(3,NT) ! Elastic force
-      real(dp), intent(out) :: TELAS(3,NT) ! Elastic force
-      real(dp), intent(in) ::  R(3,NT)  ! Bead positions
+      real(dp), intent(out) :: FELAS(3,WLC_P__NT) ! Elastic force
+      real(dp), intent(out) :: TELAS(3,WLC_P__NT) ! Elastic force
+      real(dp), intent(in) ::  R(3,WLC_P__NT)  ! Bead positions
       ! u will be modified iff simtype = 1, if want this to be intent(in), just
       ! modify the below to use a separate variable for this
-      real(dp), intent(inout) :: U(3,NT)  ! Tangent vectors
-      real(dp) B(NT)    ! Bond lengths
+      real(dp), intent(inout) :: U(3,WLC_P__NT)  ! Tangent vectors
+      real(dp) B(WLC_P__NT)    ! Bond lengths
       integer I,J,IB            ! Index holders
-      integer, intent(in) :: N,NT,NP  ! Number of bead
       integer SIMTYPE           ! Simulation method (WLC = 1,SSWLC = 2,GC = 3)
 
 !     Polymer properties
@@ -34,19 +35,19 @@
       real(dp) U1U2,GI(3)
 
       IB = 1
-      do 10 I = 1,NP
-         do 20 J = 1,N
-            FELAS(1,IB) = 0.
-            FELAS(2,IB) = 0.
-            FELAS(3,IB) = 0.
-            TELAS(1,IB) = 0.
-            TELAS(2,IB) = 0.
-            TELAS(3,IB) = 0.
-            if (SIMTYPE == 1.AND.J <= (N-1)) then
+      do 10 I = 1,WLC_P__NP
+         do 20 J = 1,length_of_chain(I)
+            FELAS(1,IB) = 0.0_dp
+            FELAS(2,IB) = 0.0_dp
+            FELAS(3,IB) = 0.0_dp
+            TELAS(1,IB) = 0.0_dp
+            TELAS(2,IB) = 0.0_dp
+            TELAS(3,IB) = 0.0_dp
+            if (SIMTYPE == 1.AND.J <= length_of_chain(I)-1) then
                U(1,IB) = R(1,IB + 1)-R(1,IB)
                U(2,IB) = R(2,IB + 1)-R(2,IB)
                U(3,IB) = R(3,IB + 1)-R(3,IB)
-               B(IB) = sqrt(U(1,IB)**2. + U(2,IB)**2. + U(3,IB)**2.)
+               B(IB) = sqrt(U(1,IB)**2 + U(2,IB)**2 + U(3,IB)**2)
                U(1,IB) = U(1,IB)/B(IB)
                U(2,IB) = U(2,IB)/B(IB)
                U(3,IB) = U(3,IB)/B(IB)
@@ -58,12 +59,12 @@
 
 !     Calculate the forces and torques
 
-      do 30 I = 1,NP
-         do 40 J = 1,(N-1)
-            IB = J + N*(I-1)
+      do 30 I = 1,WLC_P__NP
+         do 40 J = 1,length_of_chain(I)-1
+            IB = first_bead_of_chain(I)
             if (SIMTYPE == 1) then
 
-               if (J <= (N-2)) then
+               if (J <= (length_of_chain(I)-2)) then
 
                   U1U2 = U(1,IB)*U(1,IB + 1) + U(2,IB)*U(2,IB + 1) + U(3,IB)*U(3,IB + 1)
 

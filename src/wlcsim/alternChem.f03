@@ -17,7 +17,7 @@ subroutine alternChem(AB,NT,N,G,NP,FA,rand_stat)
   integer, intent(in) :: NP          ! Number of polymer chains
 
   integer I,J,K,IB
-  real TEST(1)   ! changed to real by Quinn
+  real(dp) TEST(1)   ! changed to real by Quinn
   type(random_stat), intent(inout) ::rand_stat    ! status of random number generator
   !integer ABVAL
 

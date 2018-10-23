@@ -155,6 +155,7 @@ contains
             !    print*, "Number of beads doesn't add up"
             !    stop
             !endif
+            deallocate(bin%bins)
             bin%isSuperBin = .False.
         else
             do ii = 1,bin%numberOfBins

@@ -9,16 +9,16 @@
 ! Andrew Spakowitz
 ! Written 6-29-04
 
-      subroutine MC_ex(DEEX,R,NT,N,DR,I,RAD,VCAP)
+      subroutine MC_ex(DEEX,R,NT,DR,I,RAD,VCAP)
       use params, only : dp
-      implicit none     
+      implicit none
+      integer NT            ! Number of beads
       real(dp) R(3,NT)        ! Bead positions
       real(dp) DR(3)        ! Change in bead position
       real(dp) RMAG,RMAGD    ! Dist from origin
       integer I                ! Current test index
       real(dp) RAD        ! Radius of capsid
       real(dp) VCAP        ! Capsid interaction
-      integer N,NT            ! Number of beads
       real(dp) DEEX        ! Change in external energy
 
 ! Calculate the change in energy

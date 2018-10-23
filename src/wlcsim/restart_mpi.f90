@@ -1,6 +1,11 @@
 #include "../defines.inc"
 #if MPI_VERSION
-subroutine pt_restart(wlc_p,wlc_d)
+subroutine pt_restart(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix, wlc_EKap, wlc_rep&
+    , wlc_EElas, wlc_ECouple, wlc_EChi, wlc_EField, wlc_ebind, wlc_MCAMP&
+    , wlc_x_Mu, wlc_x_Field, wlc_x_Chi, wlc_U, wlc_R, wlc_id&
+    , wlc_x_Kap, wlc_mc_ind, wlc_x_Couple, wlc_AB, wlc_eMu
 ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
 ! parallel-tempered MC simulations.
 !
@@ -12,7 +17,6 @@ subroutine pt_restart(wlc_p,wlc_d)
     use params
     Implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
-    type(wlcsim_data), intent(inout) :: wlc_d
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
     integer (kind = 4) id, nThreads,ierror
@@ -34,16 +38,16 @@ subroutine pt_restart(wlc_p,wlc_d)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,ierror)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,ierror)
     source = 0;
-    call MPI_Recv ( wlc_d%rep, 1, MPI_integer, source, 0, &
+    call MPI_Recv ( wlc_rep, 1, MPI_integer, source, 0, &
                    MPI_COMM_WORLD, status, error )
-    if (wlc_d%rep.ne.id) then
+    if (wlc_rep.ne.id) then
         print*, "That's not what I expected! see restart"
     endif
     if (nThreads.lt.3) then
         print*, "don't use pt_restart for fewer than 3 treads"
         stop 1
     endif
-    write(vNum,'(I4)') wlc_d%rep
+    write(vNum,'(I4)') wlc_rep
     vNum = adJustL(vNum)
     vNum = "v"//trim(vNum)
 
@@ -63,16 +67,16 @@ subroutine pt_restart(wlc_p,wlc_d)
                              temp(11), temp(12), temp(13), temp(14), &
                              temp(15), temp(16)
         if (ios.eq.0) then
-            wlc_d%mc_ind = nint(temp(1))
-            wlc_d%EElas(1) = temp(3)
-            wlc_d%EElas(2) = temp(4)
-            wlc_d%EElas(3) = temp(5)
-            wlc_d%ECouple = temp(6)
-            wlc_d%EKap = temp(7)
-            wlc_d%EChi = temp(8)
-            wlc_d%EField = temp(9)
-            wlc_d%ebind = temp(10)
-            wlc_d%x_Mu = temp(11)
+            wlc_mc_ind = nint(temp(1))
+            wlc_EElas(1) = temp(3)
+            wlc_EElas(2) = temp(4)
+            wlc_EElas(3) = temp(5)
+            wlc_ECouple = temp(6)
+            wlc_EKap = temp(7)
+            wlc_EChi = temp(8)
+            wlc_EField = temp(9)
+            wlc_ebind = temp(10)
+            wlc_x_Mu = temp(11)
             wlc_p%HP1_BIND = temp(12)
             wlc_p%CHI = temp(13)
             wlc_p%MU = temp(14)
@@ -90,19 +94,19 @@ subroutine pt_restart(wlc_p,wlc_d)
     print*, temp
     ! not sure if the following if statments are necessary
     if (wlc_p%CHI.ne.0.0) then
-        wlc_d%x_Chi = wlc_d%EChi/wlc_p%CHI
+        wlc_x_Chi = wlc_EChi/wlc_p%CHI
     endif
     if (wlc_p%CHI.ne.0.0) then
-        wlc_d%x_Couple = wlc_d%ECouple/wlc_p%HP1_BIND
+        wlc_x_Couple = wlc_ECouple/wlc_p%HP1_BIND
     endif
     if (wlc_p%KAP.ne.0) then
-        wlc_d%x_Kap = wlc_d%EKap/wlc_p%KAP
+        wlc_x_Kap = wlc_EKap/wlc_p%KAP
     endif
-    if (wlc_d%x_Field.ne.0.0) then
-        wlc_d%x_Field = wlc_d%EField/wlc_p%HA
+    if (wlc_x_Field.ne.0.0) then
+        wlc_x_Field = wlc_EField/wlc_p%HA
     endif
     if (wlc_p%MU.ne.0.0) then
-        wlc_d%x_Mu = wlc_d%eMu/wlc_p%MU
+        wlc_x_Mu = wlc_eMu/wlc_p%MU
     endif
 
     ! read back in addaptation stuff, May make slight difference
@@ -120,16 +124,16 @@ subroutine pt_restart(wlc_p,wlc_d)
                               temp(23), temp(24), temp(25), temp(26), &
                               temp(27), temp(28)
         if (ios.eq.0) then
-            wlc_d%WindoW(1) = temp(3); wlc_d%MCAMP(1) = temp(4); wlc_d%PHIT(1) = temp(5);
-            wlc_d%WindoW(2) = temp(6); wlc_d%MCAMP(2) = temp(7); wlc_d%PHIT(2) = temp(8);
-            wlc_d%WindoW(3) = temp(9); wlc_d%MCAMP(3) = temp(10); wlc_d%PHIT(3) = temp(11);
-            wlc_p%MOVEON(4) = nint(temp(12)); wlc_d%MCAMP(4) = temp(13); wlc_d%PHIT(4) = temp(14);
-            wlc_p%MOVEON(5) = nint(temp(15)); wlc_d%MCAMP(5) = temp(16); wlc_d%PHIT(5) = temp(17);
-            wlc_p%MOVEON(6) = nint(temp(18)); wlc_d%MCAMP(6) = temp(19); wlc_d%PHIT(6) = temp(20);
-            wlc_p%MOVEON(7) = nint(temp(21)); wlc_d%PHIT(7) = temp(22);
-            wlc_p%MOVEON(8) = nint(temp(23)); wlc_d%PHIT(8) = temp(24);
-            wlc_p%MOVEON(9) = nint(temp(25)); wlc_d%PHIT(9) = temp(26);
-            wlc_p%MOVEON(10) = nint(temp(27)); wlc_d%PHIT(10) = temp(28)
+            wlc_WindoW(1) = temp(3); wlc_MCAMP(1) = temp(4); wlc_PHIT(1) = temp(5);
+            wlc_WindoW(2) = temp(6); wlc_MCAMP(2) = temp(7); wlc_PHIT(2) = temp(8);
+            wlc_WindoW(3) = temp(9); wlc_MCAMP(3) = temp(10); wlc_PHIT(3) = temp(11);
+            wlc_p%MOVEON(4) = nint(temp(12)); wlc_MCAMP(4) = temp(13); wlc_PHIT(4) = temp(14);
+            wlc_p%MOVEON(5) = nint(temp(15)); wlc_MCAMP(5) = temp(16); wlc_PHIT(5) = temp(17);
+            wlc_p%MOVEON(6) = nint(temp(18)); wlc_MCAMP(6) = temp(19); wlc_PHIT(6) = temp(20);
+            wlc_p%MOVEON(7) = nint(temp(21)); wlc_PHIT(7) = temp(22);
+            wlc_p%MOVEON(8) = nint(temp(23)); wlc_PHIT(8) = temp(24);
+            wlc_p%MOVEON(9) = nint(temp(25)); wlc_PHIT(9) = temp(26);
+            wlc_p%MOVEON(10) = nint(temp(27)); wlc_PHIT(10) = temp(28)
         else
             Exit
         endif
@@ -141,38 +145,38 @@ subroutine pt_restart(wlc_p,wlc_d)
 
 
     ! read R and AB from file
-    write(iostrg,"(I8)") wlc_d%mc_ind
+    write(iostrg,"(I8)") wlc_mc_ind
     iostrg = adjustL(iostrg)
     iostrg = "r"//trim(iostrg)
     iostrg = trim(dir)//trim(iostrg)
     iostrg = trim(iostrg)//trim(vNum)
     print*, "reading", iostrg
     open (unit = 5, file = iostrg, status = 'OLD')
-    print*, "NT = ",wlc_p%NT
+    print*, "NT = ",WLC_P__NT
     ios = 0;
-    do I = 1,wlc_p%NT
+    do I = 1,WLC_P__NT
        if (ios.ne.0) then
            print*, "Problem while reading R, Possible incomplete file"
            stop 1
        endif
-       read(5,*) wlc_d%R(1,I),wlc_d%R(2,I),wlc_d%R(3,I),wlc_d%AB(I)
+       read(5,*) wlc_R(1,I),wlc_R(2,I),wlc_R(3,I),wlc_AB(I)
     enddo
     close(5)
 
     ! read U
-    write(iostrg,"(I8)") wlc_d%mc_ind
+    write(iostrg,"(I8)") wlc_mc_ind
     iostrg = adjustL(iostrg)
     iostrg = "u"//trim(iostrg)
     iostrg = trim(dir)//trim(iostrg)
     iostrg = trim(iostrg)//trim(vNum)
     ! read U from file
     open (unit = 5, file = iostrg, status = 'OLD')
-    do I = 1,wlc_p%NT
-       read(5,*) wlc_d%U(1,I),wlc_d%U(2,I),wlc_d%U(3,I)
-       mag = sqrt(wlc_d%U(1,I)**2 + wlc_d%U(2,I)**2 + wlc_d%U(3,I)**2)
-       wlc_d%U(1,I) = wlc_d%U(1,I)/mag
-       wlc_d%U(2,I) = wlc_d%U(2,I)/mag
-       wlc_d%U(3,I) = wlc_d%U(3,I)/mag
+    do I = 1,WLC_P__NT
+       read(5,*) wlc_U(1,I),wlc_U(2,I),wlc_U(3,I)
+       mag = sqrt(wlc_U(1,I)**2 + wlc_U(2,I)**2 + wlc_U(3,I)**2)
+       wlc_U(1,I) = wlc_U(1,I)/mag
+       wlc_U(2,I) = wlc_U(2,I)/mag
+       wlc_U(3,I) = wlc_U(3,I)/mag
     enddo
     close(5)
 
@@ -190,14 +194,14 @@ subroutine pt_restart(wlc_p,wlc_d)
                     MPI_COMM_WORLD,error )
 
     ! Make repsuffix
-    write(iostrg,"(I4)") wlc_d%rep
+    write(iostrg,"(I4)") wlc_rep
     iostrg = adjustL(iostrg)
     iostrg = trim(iostrg)
     iostrg = "v"//trim(iostrg)
     iostrg = trim(iostrg)
-    wlc_d%repSuffix = trim(iostrg)
+    wlc_repSuffix = trim(iostrg)
 
     ! keep track of which thread you are
-    wlc_d%id = int(id)
+    wlc_id = int(id)
 end subroutine
 #endif

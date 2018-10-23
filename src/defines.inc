@@ -14,6 +14,11 @@
 ! DEFAULTS COMMENT: ! not a ring by default
 ! TYPE: LOGICAL
 
+#define WLC_P__LOCAL_TWIST .FALSE.
+! VARIABLE COMMENT: ! whether to include twist energy (local)
+! DEFAULTS COMMENT: ! don't include twist by default
+! TYPE: LOGICAL
+
 #define WLC_P__TWIST .FALSE.
 ! VARIABLE COMMENT: ! whether to include twist (wlc_p only for now)
 ! DEFAULTS COMMENT: ! don't include twist by default
@@ -23,6 +28,11 @@
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__FRACTIONAL_BIN .FALSE.
+! VARIABLE COMMENT: ! whether to use fractional bin volumes in field treatment
+! DEFAULTS COMMENT: ! If in doubt make it false
+! TYPE: LOGICAL
 
 #define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
 ! VARIABLE COMMENT: ! initial condition type
@@ -74,9 +84,9 @@
 ! DEFAULTS COMMENT: ! Only one type of bead
 ! TYPE: LOGICAL
 
-#define WLC_P__VARIABLE_CHEM_STATE WLC_P__CHANGINGCHEMICALIDENTITY
-! VARIABLE COMMENT: !TODO figure out what subtle difference if any r.t.  WLC_P__CHANGINGCHEMICALIDENTITY
-! DEFAULTS COMMENT: !TODO
+#define WLC_P__VARIABLE_CHEM_STATE .FALSE.
+! VARIABLE COMMENT: !
+! DEFAULTS COMMENT: ! Only on type of bead
 ! TYPE: LOGICAL
 
 #define WLC_P__FIELD_INT_ON .FALSE.
@@ -106,6 +116,31 @@
 
 #define WLC_P__APPLY_EXTERNAL_FIELD .FALSE.
 ! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__EXTERNAL_FIELD_TYPE "nonSpecificToCubeSide"
+! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic"
+! DEFAULTS COMMENT: !
+! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__EXPLICIT_BINDING .FALSE.
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__ELASTICITY_TYPE "constant"
+! VARIABLE COMMENT: ! which simulation code to run
+! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
+! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__INCLUDE_NUC_TRANS .TRUE.
+! VARIABLE COMMENT: ! Whether to include the translation across the nucleosome
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__CHI_L2_ABLE .FALSE.
+! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
@@ -171,6 +206,16 @@
 ! DEFAULTS COMMENT: ! one polymer
 ! TYPE: INTEGER
 
+#define WLC_P__NT WLC_P__NB*WLC_P__NP
+! VARIABLE COMMENT: ! Total Number of beads
+! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
+! TYPE: INTEGER
+
+#define WLC_P__POLY_DISP_TYPE "None"
+! VARIABLE COMMENT: ! Whether to include chains of different lengths
+! DEFAULTS COMMENT: ! "None" for all the same length, "FromFile" for different
+! TYPE: INTEGER
+
 #define WLC_P__FA 0.5_DP
 ! VARIABLE COMMENT: ! Fraction of A beads
 ! DEFAULTS COMMENT: ! half A, half B by default
@@ -201,6 +246,15 @@
 ! DEFAULTS COMMENT: ! Specific to Chromatin
 ! TYPE: LOGICAL
 
+#define WLC_P__N_SPHERES_TO_SIDE 1
+! VARIABLE COMMENT: ! Number of spheres
+! DEFAULTS COMMENT: ! one, wont be used unless you use corrisponding B.C.
+! TYPE: INTEGER
+
+#define WLC_P__MAX_BACEPAIRS_PER_BEAD 350
+! VARIABLE COMMENT: ! Number of spheres
+! DEFAULTS COMMENT: ! 203 linker + 147 wrap
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -208,19 +262,29 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 0
+#define WLC_P__L 0.0_DP
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: REAL(DP)
 
-#define WLC_P__LP 1
+#define WLC_P__L0 (WLC_P__L/(WLC_P__NB-1.0_DP))
+! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring
+! DEFAULTS COMMENT: ! derive from L and NB
+! TYPE: REAL(DP)
+
+#define WLC_P__LP 1.0_DP
 ! VARIABLE COMMENT: ! persistence length
 ! DEFAULTS COMMENT: ! units of lp by default
 ! TYPE: REAL(DP)
 
-#define WLC_P__LT 1
+#define WLC_P__LT 1.0_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
+! TYPE: REAL(DP)
+
+#define WLC_P__LENGTH_PER_BP 0.33
+! VARIABLE COMMENT: ! length along dna for one bace pair
+! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.1_DP
@@ -243,34 +307,32 @@
 ! DEFAULTS COMMENT: ! equivalent to collisionDetectionType = 1
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX 20
-#define WLC_P__NBINX_X WLC_P__NBINX
+#define WLC_P__NBIN_X 20
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Y WLC_P__NBINX
+#define WLC_P__NBIN_Y WLC_P__NBIN_X
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__NBINX_Z WLC_P__NBINX
+#define WLC_P__NBIN_Z WLC_P__NBIN_X
 ! VARIABLE COMMENT: ! Number of MC bins on an edge
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX 20.0_dp
-#define WLC_P__LBOX_X WLC_P__LBOX
+#define WLC_P__LBOX_X 20.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/conËfinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Y WLC_P__LBOX
+#define WLC_P__LBOX_Y WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Z WLC_P__LBOX
+#define WLC_P__LBOX_Z WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -307,7 +369,12 @@
 
 #define WLC_P__BINDING_R 0.0_DP
 ! VARIABLE COMMENT: ! Binding Radius
-! DEFAULTS COMMENT: ! No binding
+! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
+! TYPE: REAL(DP)
+
+#define WLC_P__HP1_BINDING_R 0.0_DP
+! VARIABLE COMMENT: ! Binding Radius
+! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__CHAIN_D 0.0_DP
@@ -337,7 +404,7 @@
 ! DEFAULTS COMMENT: ! Not in simple Hamiltonian
 ! TYPE: REAL(DP)
 
-#define WLC_p__MU 0.0_DP
+#define WLC_P__MU 0.0_DP
 ! VARIABLE COMMENT: ! HP1 chemical potential
 ! DEFAULTS COMMENT: ! Not in simple Hamiltonian
 ! TYPE: REAL(DP)
@@ -367,7 +434,15 @@
 ! DEFAULTS COMMENT: ! zero for simplitity
 ! TYPE: REAL(DP)
 
+#define WLC_P__EXPLICIT_BIND_ENERGY 0.0_DP
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: REAL(DP)
 
+#define WLC_P__AmplitudeExternalField 0.0_DP
+! VARIABLE COMMENT: ! For an extra potential I wanted to put in
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -473,7 +548,12 @@
 
 #define WLC_P__MOVESPERSTEP_SUPER_REPTATION 57
 ! VARIABLE COMMENT: ! how many times each move is done per step
-! DEFAULTS COMMENT: ! super-reptation
+! DEFAULTS COMMENT: ! super-reptation <default 57>
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_SPIDER 3
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.5_dp
@@ -492,6 +572,11 @@
 #define WLC_P__PTON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
+! TYPE: LOGICAL
+
+# define WLC_P__ENSEMBLE_BIND .FALSE.
+! VARIABLE COMMENT: ! set but not parrallel temered
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_TWIST .FALSE.
@@ -527,6 +612,11 @@
 #define WLC_P__PT_MAIERSAUPE .FALSE.
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper maier Saupe by default
+! TYPE: LOGICAL
+
+#define WLC_P__PT_AEF .TRUE.
+! VARIABLE COMMENT: ! parallel temper over external applied field
+! DEFAULTS COMMENT: ! don't parallel temper h by default
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000
@@ -640,6 +730,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_SPIDER 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! Super Reptation
+! TYPE: INTEGER
 
 
 ! ----------------------------
@@ -699,6 +793,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__PDESIRE_SUPER_REPTATION 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
+
+#define WLC_P__PDESIRE_SPIDER 0.25_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
@@ -868,6 +967,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_SPIDER 1.0_dp*wlc_p%L0
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
@@ -919,6 +1023,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_SUPER_REPTATION NAN
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_SPIDER 5.0_dp*wlc_p%L0
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1033,6 +1142,11 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
+#define WLC_P__NADAPT_SPIDER 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
 #define WLC_P__MIN_ACCEPT 0.05_DP
 ! VARIABLE COMMENT: ! threshold for deciding to usually not use a move
 ! DEFAULTS COMMENT: ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
@@ -1048,5 +1162,27 @@
 ! DEFAULTS COMMENT: ! exponential fragment sizes mix better
 ! TYPE: INTEGER
 
+#define WLC_P__PROB_BIND_RESPECTING_MOVE 0.5_DP
+! VARIABLE COMMENT: ! probability that we make sure move doesnt break loop
+! DEFAULTS COMMENT: ! about half, only used if explicit binding turned on
+! TYPE: REAL(DP)
 
+#define WLC_P__SPIDER_LEG_LENGTH 5
+! VARIABLE COMMENT: ! number of beads from hip-knee (and knee to toe)
+! DEFAULTS COMMENT: ! several but not too many
+! TYPE: Integer
 
+#define WLC_P__MAX_SPIDER_LEG_LENGTH 25
+! VARIABLE COMMENT: ! max number of beads from knee-toe
+! DEFAULTS COMMENT:
+! TYPE: Integer
+
+#define WLC_P__SPIDER_WINDOW 30.0_DP
+! VARIABLE COMMENT: ! mean of segment size distibution
+! DEFAULTS COMMENT:
+! TYPE: REAL(DP)
+
+#define WLC_P__PROBABILITY_PRECALC_SPIDER 0.0_DP
+! VARIABLE COMMENT: ! probability that we use precalculated spider
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
