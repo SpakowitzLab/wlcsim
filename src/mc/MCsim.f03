@@ -147,6 +147,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               endif
           endif
 
+          call check_RP_for_NAN(success,MCTYPE)
+          if (.not. success) then
+              wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+              goto 10 ! skip move, return RP to nan
+          endif
+
+
           if (WLC_P__RING) then
               wlc_CrossP = wlc_Cross
               wlc_NCrossP = wlc_NCross

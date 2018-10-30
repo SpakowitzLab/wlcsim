@@ -156,6 +156,8 @@ module params
     real(dp) :: wlc_wr
     type(spider), allocatable, dimension(:) :: wlc_spiders ! spiders based on polymer network
     integer wlc_numberOfSpiders
+    integer wlc_spider_id
+    real(dp) wlc_spider_dr(3)
 
     type(binType) wlc_bin ! Structure for keeping track of neighbors
 
