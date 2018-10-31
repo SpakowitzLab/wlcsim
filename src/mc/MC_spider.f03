@@ -220,7 +220,9 @@ success= .TRUE.
 do section_n=1,wlc_spiders(wlc_spider_id)%nSections
    IT1 = wlc_spiders(wlc_spider_id)%moved_sections(1,section_n)
    IT2 = wlc_spiders(wlc_spider_id)%moved_sections(2,section_n)
-   do I = IT1, IT2  ! +1 and -1 because toes don't move
+   do I = IT1, IT2
+       ! Could do  IT1+1,IT2-1 because toes don't move
+       ! except that sometimes it doesn't end on a toe
        wlc_nPointsMoved=wlc_nPointsMoved+1
        wlc_pointsMoved(wlc_nPointsMoved)=I
    enddo
@@ -330,9 +332,9 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
     temp = wlc_RP(:,toe)
 
     !Check toe stayed in the sampe place
-    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps ) then
-        print*, "Broken toe in spider move"
-        stop 1
+    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps .and. WLC_P__WARNING_LEVEL >= 1) then
+        write(ERROR_UNIT,*) "Broken toe in spider move"
+        write(ERROR_UNIT,*) "value", distance(wlc_RP(:,toe),wlc_R(:,toe))
     endif
 
     ! angle to rotate thigh
@@ -344,7 +346,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
     temp = temp + rinter - rold
 
     ! Check knee
-    if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps ) then
+    if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps .and. WLC_P__WARNING_LEVEL >= 1) then
         write(ERROR_UNIT,*) "---------------------"
         write(ERROR_UNIT,*) "randomBend",randomBend
         write(ERROR_UNIT,*) "swing past", swing_past
@@ -410,7 +412,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
     endif
 
     !Check toe stayed in the sampe place
-    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps ) then
+    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps .and. WLC_P__WARNING_LEVEL >=1) then
         write(ERROR_UNIT,*) "---------------------"
         write(ERROR_UNIT,*) "Broken toe in second half of spider move"
         write(ERROR_UNIT,*) "wlc_spider_id",wlc_spider_id,"wlc_spider_dr",wlc_spider_dr
@@ -419,11 +421,12 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
         call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
         write(ERROR_UNIT,*) "---------------------"
     endif
-    wlc_RP(:,toe) = wlc_R(:,toe) ! correct roundoff error
+    wlc_RP(:,toe) = wlc_R(:,toe) ! correct roundoff error, toe doesn't move
+    wlc_UP(:,toe) = wlc_U(:,toe) ! correct roundoff error, toe doesn't move
 
     ! chack to make sure hip moved the correct amount
     extent = hipR+wlc_spider_dr
-    if ( distance(wlc_RP(:,hip),extent) > eps ) then
+    if ( distance(wlc_RP(:,hip),extent) > eps .and. WLC_P__WARNING_LEVEL >=1) then
         write(ERROR_UNIT,*) "---------------------"
         write(ERROR_UNIT,*) "Broken hip"
         write(ERROR_UNIT,*) "wlc_spider_id",wlc_spider_id,"wlc_spider_dr",wlc_spider_dr

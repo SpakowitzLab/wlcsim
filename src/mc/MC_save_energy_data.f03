@@ -30,6 +30,7 @@ integer hip, knee, toe, leg_n,section
 real(dp) hipR(3),toeR(3),kneeR(3),thigh,shin
 integer PRINT_UNIT
 
+write(PRINT_UNIT,*) "Spider_id",spider_id
 write(PRINT_UNIT,*) "Number of sections",wlc_spiders(spider_id)%nSections
 do section = 1,wlc_spiders(spider_id)%nSections
     print*, wlc_spiders(spider_id)%sections(:,section)

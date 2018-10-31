@@ -9,6 +9,11 @@
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__WARNING_LEVEL 1
+! VARIABLE COMMENT: ! 0 = no warnings, 1 = moderate performance impact, 2 = considerable slowdown
+! DEFAULTS COMMENT: !
+! TYPE: INTEGER
+
 #define WLC_P__RING .FALSE.
 ! VARIABLE COMMENT: ! whether the polymer is a ring
 ! DEFAULTS COMMENT: ! not a ring by default

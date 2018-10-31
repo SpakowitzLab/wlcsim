@@ -1,3 +1,4 @@
+#include "../defines.inc"
 module vector_utils
 use precision, only: dp, eps, pi
 implicit none
@@ -31,6 +32,7 @@ function cross(a,b)
 end function cross
 
 function rotateR(ROT,R)
+    use, intrinsic :: iso_fortran_env, only: ERROR_UNIT
     implicit none
     real(dp), intent(in) :: ROT(3,4) ! Rotation matrix
     real(dp), intent(in) :: R(3)
@@ -38,6 +40,13 @@ function rotateR(ROT,R)
     rotateR(1) = ROT(1,4) + ROT(1,1)*R(1) + ROT(1,2)*R(2) + ROT(1,3)*R(3)
     rotateR(2) = ROT(2,4) + ROT(2,1)*R(1) + ROT(2,2)*R(2) + ROT(2,3)*R(3)
     rotateR(3) = ROT(3,4) + ROT(3,1)*R(1) + ROT(3,2)*R(2) + ROT(3,3)*R(3)
+    if (WLC_P__WARNING_LEVEL >= 1) then
+        if (isnan(rotateR(1)) .or. isnan(rotateR(2)) .or. isnan(rotateR(3))) then
+            write(ERROR_UNIT,*) "NAN detected in ROT"
+            write(ERROR_UNIT,*) "R",R
+            write(ERROR_UNIT,*) "ROT", ROT
+        endif
+    endif
 end function rotateR
 
 function rotateU(ROT,U)
@@ -204,6 +213,7 @@ end subroutine
 !---------------------------------------------------------------
 
 subroutine axisAngle(ROT,alpha,TAin,P1)
+use, intrinsic :: iso_fortran_env, only: ERROR_UNIT
 implicit none
 real(dp), intent(in) :: TAin(3)    ! Axis of rotation  (Need not be unit vector!!)
 real(dp), intent(in) :: P1(3)    ! Point on rotation line
@@ -211,6 +221,7 @@ real(dp), intent(in) :: ALPHA    ! Angle of move
 real(dp), intent(out) :: ROT(3,4) ! Rotation matrix
 real(dp) MAG      ! Magnitude of vector
 real(dp) TA(3)    ! Normalized vector
+integer i
 
 !print*, "PA", P1
 MAG = sqrt(TAin(1)**2 + TAin(2)**2 + TAin(3)**2)
@@ -235,6 +246,18 @@ ROT(3,2) = TA(2)*TA(3)*(1.-cos(ALPHA)) + TA(1)*sin(ALPHA)
 ROT(3,3) = TA(3)**2 + (TA(1)**2 + TA(2)**2)*cos(ALPHA)
 ROT(3,4) = (P1(3)*(1.0_dp-TA(3)**2) &
      -TA(3)*(P1(1)*TA(1) + P1(2)*TA(2)))*(1.0_dp-cos(ALPHA)) + (P1(1)*TA(2)-P1(2)*TA(1))*sin(ALPHA)
+
+if (WLC_P__WARNING_LEVEL >= 1) then
+    do i=1,3
+        if (isnan(ROT(1,i)) .or. isnan(ROT(2,i)) .or. isnan(ROT(3,i))) then
+            write(ERROR_UNIT,*) "NAN detected in axisAngle"
+            write(ERROR_UNIT,*) "alpha", alpha
+            write(ERROR_UNIT,*) "TAin", TAin
+            write(ERROR_UNIT,*) "P1", P1
+            write(ERROR_UNIT,*) "ROT", ROT
+        endif
+    enddo
+endif
 end subroutine
 
 subroutine rotateAIntoB(A,B,P1,ROT)
