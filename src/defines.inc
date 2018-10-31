@@ -579,6 +579,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+# define WLC_P__ENSEMBLE_METH .FALSE.
+! VARIABLE COMMENT: ! set but not parrallel temered
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__PT_TWIST .FALSE.
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper linking number (twist) by default

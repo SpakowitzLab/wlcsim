@@ -451,22 +451,25 @@ contains
             endif
         endif
 
-        if (WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
-            call stop_if_err(err, "Explicit binding not set up for exchange move")
-        endif
-        if (WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
-            call stop_if_err(err, "External field not set up for exchange move")
-        endif
-        if (WLC_P__MOVEON_REPTATION ==1 .and. WLC_P__LOCAL_TWIST) then
-            call stop_if_err(err, "Reptation move energy calc not set up for twist.")
-        endif
-        if ((WLC_P__FRACTIONAL_BIN) .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
-            call stop_if_err(err, "Fractional bin only implimented for sphere")
-        endif
+        err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
+        call stop_if_err(err, "Explicit binding not set up for exchange move")
 
-        if (WLC_P__FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
-            call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
-        endif
+        err = WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
+        call stop_if_err(err, "External field not set up for exchange move")
+
+        err = WLC_P__MOVEON_REPTATION ==1 .and. WLC_P__LOCAL_TWIST
+        call stop_if_err(err, "Reptation move energy calc not set up for twist.")
+
+        err = WLC_P__FRACTIONAL_BIN .and. (WLC_P__CONFINETYPE .ne. 'sphere')
+        call stop_if_err(err, "Fractional bin only implimented for sphere")
+
+        err = WLC_P__FIELD_INT_ON .and. &
+              (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. &
+               WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)
+        call stop_if_err(err, 'Bin-based fields not tested with non-cube boundary box size.')
+
+        err = WLC_P__ENSEMBLE_METH .and. WLC_P__PTON
+        call stop_if_err(err,"Parallel tmpering isn't valid for differet Meth profiles")
 
         call stop_if_err(WLC_P__COLLISIONDETECTIONTYPE == 2, &
             'KD-tree based collision detection not yet implemented.')
@@ -826,8 +829,18 @@ contains
             if (WLC_P__VARIABLE_CHEM_STATE) then
                 if (WLC_P__CHEM_SEQ_FROM_FILE) then
                     print*, "Loding input meth seq..."
-                    iostr='input/meth'
-                    call wlcsim_params_loadMeth(iostr)
+                    if (WLC_P__ENSEMBLE_METH .and. wlc_id>0) then
+                        write(iostr,"(I4)") wlc_id
+                        iostr = adjustL(iostr)
+                        iostr = trim(iostr)
+                        iostr = "meth_"//trim(iostr)
+                        iostr = trim(iostr)
+                        print*, "reading ",iostr
+                        open(unit = 5,file = iostr,status = 'OLD')
+                    else
+                        iostr='input/meth'
+                        call wlcsim_params_loadMeth(iostr)
+                    endif
                 else
                     call init_chemical_state(wlc_meth,WLC_P__LAM_METH,WLC_P__F_METH,.False.)
                 endif
