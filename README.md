@@ -1,44 +1,24 @@
 # WormLike Chain SIMulator
 
-[![Build Status](https://travis-ci.org/brunobeltran/wlcsim.svg?branch=master)](https://travis-ci.org/brunobeltran/wlcsim)
+This directory contains the code to run the simulations referred to in “Bottom-up modeling of chromatin segregation due to epigenetic modifications.”  The included methylation input sequence used to generate Figures 1,2,3,5. 
 
-This code is designed to efficiently simulate the wormlike chain polymer model
-using various coarse-grainings where applicable.
+Direct questions to:
+Quinn MacPherson, qmac@stanford.edu or quinnmacp@gmail.com
 
-For very stiff polymers, the usual wormlike chain is simulated.
+Software Requirements:
+Open MPI with mpifort compiler
+Make
 
-For relatively more flexible polymers, the "stretchable, shearable" chain is
-used.
+To compile:
+$ make
 
-For *VERY* stretchable polymers, a purely Gaussian chain is used.
+To run a multi-thread job (15 different HP1 concentrations):
+$ ./aMPIrunwlcsim.sh
 
-## To Run
+To change settings edit src/defines.inc, to change input methylation sequence
+edit input/meth, to edit code edit src/
 
-Simply typing ``make`` in the top level directory will build the simulator
-from source. The executable created (``wlcsim.exe``) will use the parameters in
-the file ``input/input`` and write its output to the ``data`` directory.
-Descriptions of the available parameters can be found at their definitions and
-where they are read in ``src/wlcsim/params.f03``. Example input files are
-usually more useful, and can be found in the ``input`` directory.
-To force a rerun without having to manually delete all the old output files, you
-can also simply type ``make run`` at any time.
+Output is found in data/ and is of the form r110v9 where 110 refers to save point
+and 9 refers to which HP1 chemical potential.  Fromat is of the form
+x y z
 
-There are several ways to easily visualize simulation output. There are PyMol
-scripts in the ``vizualization`` directory, ``python -m wlcsim.plot_wlcsim``
-from the repo's top level directory will launch a GUI designed to visualize BD
-simulations, and one can of course simply use the output in the ``data``
-directory, which contains rank two arrays of shape
-``num_beads*num_polymers-by-3``, with one file per time point. By default,
-specifying multiple polymers just simulates them in parallel in the same
-reaction volume, no interactions are assumed.
-
-To scan parameters, the Python script ``scan_wlcsim.py`` should be used. It takes
-care of saving the current git commit\_hash, all inputs, etc. into a unique
-directory, and preventing race conditions even on shared filesystems, among
-other things.
-
-## Disclaimer
-
-This codebase is internal to the Spakowitz lab and is not guaranteed to be
-bug-free at any point. For battle-tested versions of our software, please see
-the links in the relevant papers.
