@@ -8,7 +8,8 @@ with open("polyLengths") as lengthsFile:
         lengthSet.append(int(line))
 
 looptype = "growth"
-beadsPerLoop = 120/5
+beadsPerLoop = 500
+processivity = 500.0
 
 if looptype == "insert":
     for IP in range(0,len(lengthSet)):
@@ -27,8 +28,8 @@ elif looptype == "growth":
 
         forward_rate = 1.0
         reverse_rate = 0.0
-        falloff_rate = 1.0/(120/5)
-        delta_t = 50
+        falloff_rate = (forward_rate-reverse_rate)/processivity
+        delta_t = 2.0/falloff_rate
         npts = 10
         distances = []
         for ii in range(npts):

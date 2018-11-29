@@ -25,30 +25,36 @@ integer ix,iy,iz
 do jj = 1,wlc_nPointsMoved
     ii = wlc_pointsMoved(jj)
     if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
-        vv(1) = modulo(wlc_RP(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
+        vv(1) = wlc_RP(1,ii)
+        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
             wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
         endif
-        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
+        vv(1) = wlc_R(1,ii)
+        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
             wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
         endif
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
-        vv(1) = modulo(wlc_RP(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
+        vv(1) = wlc_RP(1,ii)
+        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
             wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
         endif
-        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
-            wlc_dx_ExternalField = wlc_dx_ExternalField + 100 + vv(1)
+        if ( MOD(ii,3000) == 0 ) then
+            if (vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
+                wlc_dx_ExternalField = wlc_dx_ExternalField + 100_dp
+            endif
+            wlc_dx_ExternalField = wlc_dx_ExternalField - 10.0_dp*vv(1)
         endif
 
-        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
+        vv(1) = wlc_R(1,ii)
+        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
             wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
         endif
-        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
-            wlc_dx_ExternalField = wlc_dx_ExternalField - 100 - vv(1)
+        if ( MOD(ii,3000) == 0 ) then
+            if (vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
+                wlc_dx_ExternalField = wlc_dx_ExternalField - 100_dp
+            endif
+            wlc_dx_ExternalField = wlc_dx_ExternalField + 10.0_dp*vv(1)
         endif
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
