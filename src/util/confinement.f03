@@ -66,18 +66,36 @@ pure function inside_confinement(RR)
     if (WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
         ! Confinement only in the z-direction
         ! limits: 0 and LBox(3)
-        if ((RR(3) < 0.0_dp+WLC_P__DBIN) .or.&
-            (RR(3) > WLC_P__CONFINEMENT_SLIT_WIDTH-WLC_P__DBIN)) then
-            inside_confinement = .False.
+        if (WLC_P__BOUNDARY_TYPE == "ExtendBinsPast") then
+            if ((RR(3) < 0.0_dp+WLC_P__DBIN) .or.&
+                (RR(3) > WLC_P__CONFINEMENT_SLIT_WIDTH-WLC_P__DBIN)) then
+                inside_confinement = .False.
+            endif
+        elseif (WLC_P__BOUNDARY_TYPE == "SolidEdgeBin") then
+            if ((RR(3) < 0.0_dp) .or.&
+                (RR(3) > WLC_P__CONFINEMENT_SLIT_WIDTH)) then
+                inside_confinement = .False.
+            endif
         endif
     elseif (WLC_P__CONFINETYPE == 'cube') then
-        if ((RR(1) < 0.0_dp+WLC_P__DBIN) &
-            .or. (RR(1) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
-            .or. (RR(2) < 0.0_dp+WLC_P__DBIN) &
-            .or. (RR(2) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
-            .or. (RR(3) < 0.0_dp+WLC_P__DBIN) &
-            .or. (RR(3) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN)) then
-            inside_confinement = .False.
+        if (WLC_P__BOUNDARY_TYPE == "ExtendBinsPast") then
+            if ((RR(1) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RR(1) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
+                .or. (RR(2) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RR(2) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN) &
+                .or. (RR(3) < 0.0_dp+WLC_P__DBIN) &
+                .or. (RR(3) > WLC_P__CONFINEMENT_CUBE_LENGTH-WLC_P__DBIN)) then
+                inside_confinement = .False.
+            endif
+        elseif (WLC_P__BOUNDARY_TYPE == "SolidEdgeBin") then
+            if ((RR(1) < 0.0_dp) &
+                .or. (RR(1) > WLC_P__CONFINEMENT_CUBE_LENGTH) &
+                .or. (RR(2) < 0.0_dp) &
+                .or. (RR(2) > WLC_P__CONFINEMENT_CUBE_LENGTH) &
+                .or. (RR(3) < 0.0_dp) &
+                .or. (RR(3) > WLC_P__CONFINEMENT_CUBE_LENGTH)) then
+                inside_confinement = .False.
+            endif
         endif
     elseif (WLC_P__CONFINETYPE == 'sphere') then
         ! sphere with given diameter
