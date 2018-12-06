@@ -10,7 +10,7 @@
 subroutine MC_external_field(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_dx_externalField, wlc_dx_ExternalField, wlc_RP,&
-    wlc_DEExternalField, wlc_R, wlc_nPointsMoved, wlc_pointsMoved
+    wlc_DEExternalField, wlc_R, wlc_nPointsMoved, wlc_pointsMoved, nan
 use params, only: dp,wlcsim_params
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
@@ -106,7 +106,7 @@ END
 subroutine MC_external_field_from_scratch(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_dx_ExternalField, wlc_DEExternalField, wlc_R
-use params, only: dp,wlcsim_params
+use params, only: dp,wlcsim_params, nan
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
 

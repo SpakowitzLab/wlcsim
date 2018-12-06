@@ -26,3 +26,13 @@ doc/_build
 input/params
 input/*loops*txt
 stdout.txt
+input/ab
+input/bindpairs
+input/bindpairs_chrom*
+input/loop_growth_eq*
+error
+input/spiders
+input/meth
+input/_temp*
+input/polyLengths
+input/field_l2

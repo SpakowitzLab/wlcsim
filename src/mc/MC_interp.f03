@@ -186,35 +186,9 @@ CASE ('sphere')
     WZ(2) = (WLC_P__DBIN*IZ(1)-0.5_dp*WLC_P__DBIN-RBin(3))/WLC_P__DBIN
     WZ(1) = 1.0_dp-WZ(2)
 CASE ('periodicUnequal') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
-    ! Periodic BC
-    RBin(1) = MODULO(RBin(1),WLC_P__LBOX_X)
-    RBin(2) = MODULO(RBin(2),WLC_P__LBOX_Y)
-    RBin(3) = MODULO(RBin(3),WLC_P__LBOX_Z)
-
-    ! Binning
-    IX(1) = ceiling(RBin(1)/WLC_P__DBIN)
-    IY(1) = ceiling(RBin(2)/WLC_P__DBIN)
-    IZ(1) = ceiling(RBin(3)/WLC_P__DBIN)
-
-    IX(2) = IX(1)-1
-    IY(2) = IY(1)-1
-    IZ(2) = IZ(1)-1
-
-    ! Calculate the bin weighting
-    WX(2) = (WLC_P__DBIN*IX(1)-RBin(1))/WLC_P__DBIN
-    WX(1) = 1.0_dp-WX(2)
-    WY(2) = (WLC_P__DBIN*IY(1)-RBin(2))/WLC_P__DBIN
-    WY(1) = 1.0_dp-WY(2)
-    WZ(2) = (WLC_P__DBIN*IZ(1)-RBin(3))/WLC_P__DBIN
-    WZ(1) = 1.0_dp-WZ(2)
-
-    ! Periodic BC on Bins:
-    IX(1) = MODULO(IX(1)-1,WLC_P__NBIN_X) + 1
-    IX(2) = MODULO(IX(2)-1,WLC_P__NBIN_X) + 1
-    IY(1) = MODULO(IY(1)-1,WLC_P__NBIN_Y) + 1
-    IY(2) = MODULO(IY(2)-1,WLC_P__NBIN_Y) + 1
-    IZ(1) = MODULO(IZ(1)-1,WLC_P__NBIN_Z) + 1
-    IZ(2) = MODULO(IZ(2)-1,WLC_P__NBIN_Z) + 1
+    print*, "CONFINETYPE = periodicUnequal has be depreciated"
+    print*, "Please use 'none'"
+    stop 1
 END SELECT
 return
 end subroutine

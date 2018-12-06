@@ -149,8 +149,6 @@ pure function inside_confinement(RR)
             inside_confinement = .False.
         endif
     ! always inside confinement otherwise
-    ! elseif(WLC_P__CONFINETYPE == 'periodicUnequal') then
-    ! else
     ! print*, "Undefined comfone Type"
     ! stop 1
     endif

@@ -18,7 +18,7 @@ use params, only: wlc_deMaierSaupe, wlc_dx_Field, wlc_NPHI, wlc_inDPHI, wlc_DEKa
     , wlc_PHIB, wlc_PHIH, wlc_Dx_Field, wlc_dx_couple, wlc_PHI_l2, wlc_Dx_Couple&
     , wlc_DPHIB, wlc_DPHI_l2, wlc_dx_Kap, wlc_DEField, wlc_dx_Chi, wlc_DEChi&
     , wlc_Vol, wlc_Dx_Chi, wlc_DECouple, wlc_DPHIA, wlc_dx_maierSaupe, wlc_dx_chi&
-    , wlc_Dx_Kap, wlc_PHIA
+    , wlc_Dx_Kap, wlc_PHIA, wlc_phiH_l2
 use params,only: dp,wlcsim_params
 implicit none
 TYPE(wlcsim_params), intent(inout) :: wlc_p
@@ -53,6 +53,28 @@ if (initialize) then  ! calculate absolute energy
                 wlc_dx_Field =  wlc_dx_Field + VV*wlc_PHI_l2(0,I)
             enddo
         endif
+    !-------------------------------------------------------
+    !
+    !   Applied aligning field for Luke
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningFieldMelt')
+        if (wlc_p%CHI_L2_ON) then
+            do I = 1,wlc_p%NBIN
+                if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
+                do m_index = -2,2
+                    wlc_dx_Field = wlc_dx_Field + &
+                                        VV*wlc_PHI_l2(m_index,I)*wlc_PHIH_l2(m_index,I)
+                enddo
+            enddo
+        endif
+        do I = 1,wlc_p%NBIN
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            wlc_Dx_Kap = wlc_dx_Kap + VV*((wlc_PHIA(I) + wlc_PHIB(I)-1.0_dp)**2)
+        enddo
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
@@ -159,6 +181,26 @@ else ! Calculate change in energy
                 wlc_dx_Field =  wlc_dx_Field + VV*wlc_DPHI_l2(0,I)
             enddo
         endif
+    !-------------------------------------------------------
+    !
+    !   Applied aligning field for Luke
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningFieldMelt')
+        do I = 1,wlc_NPHI
+            if (wlc_p%CHI_L2_ON) then
+                do m_index = -2,2
+                    wlc_dx_Field = wlc_dx_Field + &
+                                        VV*wlc_DPHI_l2(m_index,I)*wlc_PHIH_l2(m_index,I)
+                enddo
+            endif
+            phi_A = wlc_PHIA(J)
+            phi_B = wlc_PHIB(J)
+            wlc_Dx_Kap = wlc_Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
+            phi_A = phi_A + wlc_DPHIA(I)
+            phi_B = phi_B + wlc_DPHIB(I)
+            wlc_Dx_Kap = wlc_Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+        enddo
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction

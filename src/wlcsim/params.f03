@@ -141,7 +141,8 @@ module params
     real(dp), allocatable, dimension(:):: wlc_PHIA ! Volume fraction of A
     real(dp), allocatable, dimension(:):: wlc_PHIB ! Volume fraction of B
     real(dp), allocatable, dimension(:,:):: wlc_PHI_l2 ! l=2 oreientational field
-    real(dp), allocatable, dimension(:):: wlc_PHIH ! Quinn's sinusoidal field for passing 1st order phase transitions
+    real(dp), allocatable, dimension(:):: wlc_PHIH ! Applied field in hamiltonian
+    real(dp), allocatable, dimension(:,:):: wlc_PHIH_L2 ! Applied field in hamiltonian
     real(dp), allocatable, dimension(:):: wlc_Vol  ! Volume fraction of A
     integer, allocatable, dimension(:):: wlc_AB    ! Chemical identity of beads
     integer, allocatable, dimension(:):: wlc_ABP   ! Test Chemical identity of beads
@@ -463,11 +464,6 @@ contains
         err = WLC_P__FRACTIONAL_BIN .and. (WLC_P__CONFINETYPE .ne. 'sphere')
         call stop_if_err(err, "Fractional bin only implimented for sphere")
 
-        err = WLC_P__FIELD_INT_ON .and. &
-              (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. &
-               WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)
-        call stop_if_err(err, 'Bin-based fields not tested with non-cube boundary box size.')
-
         err = WLC_P__ENSEMBLE_METH .and. WLC_P__PTON
         call stop_if_err(err,"Parallel tmpering isn't valid for differet Meth profiles")
 
@@ -477,11 +473,16 @@ contains
         call stop_if_err(wlc_p%REND > WLC_P__L, &
             "Requesting initial end-to-end distance larger than polymer length.")
 
+        err = (WLC_P__BOUNDARY_TYPE == 'SolidEdgeBin') .and. &
+              (WLC_P__FIELD_INT_ON) .and. &
+              (WLC_P__CONFINETYPE == 'sphere' .or. WLC_P__CONFINETYPE == 'ecoli')
+        call stop_if_err(err,"I don't know how to do SolidEdgeBin for curved boundary")
+
         if (WLC_P__CODENAME == 'quinn') then
            if ((WLC_P__NBIN_X-WLC_P__NBIN_Y.ne.0).or. &
                 (WLC_P__NBIN_X-WLC_P__NBIN_Z.ne.0)) then
-              err = WLC_P__CONFINETYPE.ne.'periodicUnequal'
-              call stop_if_err(err, "Unequal boundaries require confinetype = periodicUnequal")
+              err = (WLC_P__CONFINETYPE.eq.'sphere')
+              call stop_if_err(err, "Don't use unequal boundaries for phsere")
               err = WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary'
               call stop_if_err(err, "You shouldn't put a sphere in and unequal box!")
            endif
@@ -634,6 +635,10 @@ contains
             if (WLC_P__CHI_L2_ABLE) then
                 allocate(wlc_PHI_l2(-2:2,NBin))
                 allocate(wlc_dPHI_l2(-2:2,NBin))
+            endif
+            if (WLC_P__FIELDINTERACTIONTYPE=='AppliedAligningFieldMelt') then
+                allocate(wlc_PHIH_l2(-2:2,NBin))
+                call load_l2_field(wlc_p)
             endif
             allocate(wlc_PHIA(NBin))
             allocate(wlc_PHIB(NBin))
@@ -1080,7 +1085,7 @@ contains
             R0(1) = wlc_R(1,IB) - MODULO(wlc_R(1,IB),WLC_P__LBOX_X)
             R0(2) = wlc_R(2,IB) - MODULO(wlc_R(2,IB),WLC_P__LBOX_Y)
             R0(3) = wlc_R(3,IB) - MODULO(wlc_R(3,IB),WLC_P__LBOX_Z)
-            if ((abs(R0(ii)) .gt. eps)) then
+            if ( abs(R0(1))+abs(R0(2))+abs(R0(3)) .gt. eps) then
                 do J = 1,length_of_chain(I)
                     wlc_R(:,IB) = wlc_R(:,IB)-R0(:)
                     IB = IB + 1
@@ -1202,6 +1207,17 @@ contains
         open (unit = inFileUnit, file = fileName, status = 'OLD')
         do I = 1,wlc_p%NBIN
             read(inFileUnit,*) wlc_PHIH(I)
+        enddo
+        return
+    end subroutine
+
+    subroutine load_l2_field(wlc_p)
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        integer I
+        open (unit = inFileUnit, file = 'input/field_l2', status = 'OLD')
+        do I = 1,wlc_p%NBIN
+            read(inFileUnit,*) wlc_PHIH_l2(:,I)
         enddo
         return
     end subroutine
