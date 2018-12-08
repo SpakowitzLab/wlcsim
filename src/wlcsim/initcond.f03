@@ -197,9 +197,15 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
     IB = 1
     do  I = 1,NP
        call random_number(urand,rand_stat)
-       Rold(1) = urand(1)*LBOX(1)
-       Rold(2) = urand(2)*LBOX(2)
-       Rold(3) = urand(3)*LBOX(3)
+       if (WLC_P__BOUNDARY_TYPE == "ExtendBinsPast") then
+           Rold(1) = urand(1)*(LBOX(1)-2*WLC_P__DBIN)+WLC_P__DBIN
+           Rold(2) = urand(2)*(LBOX(2)-2*WLC_P__DBIN)+WLC_P__DBIN
+           Rold(3) = urand(3)*(LBOX(3)-2*WLC_P__DBIN)+WLC_P__DBIN
+       else
+           Rold(1) = urand(1)*LBOX(1)
+           Rold(2) = urand(2)*LBOX(2)
+           Rold(3) = urand(3)*LBOX(3)
+       endif
        call randomUnitVec(Uold,rand_stat)
        if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
 

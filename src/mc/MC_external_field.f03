@@ -7,6 +7,32 @@
 !     Sets: dEField and dx_Field based on R, RP, and, HA
 !-----------------------------------------------------------
 
+function NSTCS_plus_binding(x,ii,binding ) result(energy)
+    ! Non-Specific to cuge side plus binding
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: x
+    integer, intent(in) :: ii
+    real(dp) energy
+    real(dp) offset
+    logical binding
+    energy = 0.0_dp
+    if ( x < WLC_P__BINDING_R) then
+        energy = energy + 1.0_dp
+    endif
+    if ( WLC_P__BOUNDARY_TYPE == 'ExtnedBinsPast' ) then
+        offset = WLC_P__DBIN
+    else
+        offset = 0
+    endif
+    if (binding .and. MOD(ii,3000) == 0 .and. x > WLC_P__BINDING_R + offset) then
+        if (x  < WLC_P__BINDING_R + offset) then
+            energy = energy + 100_dp
+        endif
+        energy = energy - 10.0_dp*x
+    endif
+end function
+
 subroutine MC_external_field(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_dx_externalField, wlc_dx_ExternalField, wlc_RP,&
@@ -22,40 +48,23 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
 real(dp) centers(3)
 integer ix,iy,iz
+real(dp) NSTCS_plus_binding
+
 do jj = 1,wlc_nPointsMoved
     ii = wlc_pointsMoved(jj)
     if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
-        vv(1) = wlc_RP(1,ii)
-        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-            wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
-        endif
-        vv(1) = wlc_R(1,ii)
-        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-            wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
-        endif
+        wlc_dx_externalField = wlc_dx_externalField + &
+           NSTCS_plus_binding( wlc_RP(1,ii), ii, .False.)
+
+        wlc_dx_externalField = wlc_dx_externalField - &
+           NSTCS_plus_binding( wlc_R(1,ii), ii, .False.)
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
-        vv(1) = wlc_RP(1,ii)
-        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-            wlc_dx_externalField = wlc_dx_externalField + 1.0_dp
-        endif
-        if ( MOD(ii,3000) == 0 ) then
-            if (vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-                wlc_dx_ExternalField = wlc_dx_ExternalField + 100_dp
-            endif
-            wlc_dx_ExternalField = wlc_dx_ExternalField - 10.0_dp*vv(1)
-        endif
+        wlc_dx_externalField = wlc_dx_externalField + &
+           NSTCS_plus_binding( wlc_RP(1,ii), ii, .True.)
 
-        vv(1) = wlc_R(1,ii)
-        if ( vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-            wlc_dx_externalField = wlc_dx_externalField - 1.0_dp
-        endif
-        if ( MOD(ii,3000) == 0 ) then
-            if (vv(1) < WLC_P__BINDING_R + WLC_P__DBIN) then
-                wlc_dx_ExternalField = wlc_dx_ExternalField - 100_dp
-            endif
-            wlc_dx_ExternalField = wlc_dx_ExternalField + 10.0_dp*vv(1)
-        endif
+        wlc_dx_externalField = wlc_dx_externalField - &
+           NSTCS_plus_binding( wlc_R(1,ii), ii, .True.)
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE
@@ -118,21 +127,18 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
 real(dp) energy2
 real(dp) centers(3)
 integer ix,iy,iz
+real(dp) NSTCS_plus_binding
+
 wlc_dx_ExternalField = 0.0_dp
 do ii = 1,WLC_P__NT
     if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
-        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
-            wlc_dx_ExternalField = wlc_dx_ExternalField + 1.0_dp
-        endif
+        wlc_dx_externalField = wlc_dx_externalField + &
+           NSTCS_plus_binding( wlc_R(1,ii), ii, .False.)
+
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
-        vv(1) = modulo(wlc_R(1,ii),WLC_P__LBOX_X)-center(1)
-        if ( vv(1) < WLC_P__BINDING_R) then
-            wlc_dx_ExternalField = wlc_dx_ExternalField + 1.0_dp
-        endif
-        if ( MOD(ii,3000) == 0 .and. vv(1) > WLC_P__BINDING_R ) then
-            wlc_dx_ExternalField = wlc_dx_ExternalField + 100 + vv(1)
-        endif
+        wlc_dx_externalField = wlc_dx_externalField + &
+           NSTCS_plus_binding( wlc_R(1,ii), ii, .True.)
+
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE
         do iy=1,WLC_P__N_SPHERES_TO_SIDE

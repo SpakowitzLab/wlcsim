@@ -438,20 +438,6 @@ contains
             endif
         endif
 
-        if (WLC_P__LBOX_X .ne. WLC_P__LBOX_X) then
-            print*, "No box size set.  If you need a box please specify it."
-            call stop_if_err(WLC_P__INITCONDTYPE /= 'randomWalkWithBoundary', &
-                'Only one initial polymer config supported if you''re not '//&
-                'using LBOX to define a MC simulation box.')
-        else
-            if ((wlc_p%NBIN > 8000000).or.(wlc_p%NBIN.lt.1)) then
-                print*, "ERROR: Requested ", wlc_p%NBIN," bins."
-                print*, "You probably don't want this."
-                print*, "Comment me out if you do."
-                stop 1
-            endif
-        endif
-
         err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
         call stop_if_err(err, "Explicit binding not set up for exchange move")
 
