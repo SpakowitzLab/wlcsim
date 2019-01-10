@@ -138,6 +138,7 @@ module params
     real(dp), allocatable, dimension(:,:):: wlc_UP !Test target vectors - only valid from IT1 to IT2
     real(dp), allocatable, dimension(:,:):: wlc_VP !Test target vectors - only valid from IT1 to IT2
     integer, allocatable, dimension(:):: wlc_ExplicitBindingPair ! List of other points bound to this one
+    logical, allocatable, dimension(:):: wlc_external_bind_points ! Random points attached to boundary
     real(dp), allocatable, dimension(:):: wlc_PHIA ! Volume fraction of A
     real(dp), allocatable, dimension(:):: wlc_PHIB ! Volume fraction of B
     real(dp), allocatable, dimension(:,:):: wlc_PHI_l2 ! l=2 oreientational field
@@ -676,6 +677,10 @@ contains
             print*, "..."
         endif
 
+        if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side' .and. WLC_P__APPLY_EXTERNAL_FIELD) then
+            allocate(wlc_external_bind_points(WLC_P__NT))
+        endif
+
         allocate(wlc_pointsMoved(WLC_P__NT))
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
@@ -799,6 +804,10 @@ contains
 
         call initcond(wlc_R, wlc_U, WLC_P__NT, &
             WLC_P__NP, WLC_P__FRMFILE, wlc_rand_stat,wlc_p)
+
+        if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side' .and. WLC_P__APPLY_EXTERNAL_FIELD) then
+            call set_external_bindpoints(wlc_rand_stat)
+        endif
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
             do ii=1,WLC_P__NT

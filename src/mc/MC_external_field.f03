@@ -7,7 +7,7 @@
 !     Sets: dEField and dx_Field based on R, RP, and, HA
 !-----------------------------------------------------------
 
-function NSTCS_plus_binding(x,ii,binding ) result(energy)
+function NSTCS_plus_binding(x,ii) result(energy)
     ! Non-Specific to cuge side plus binding
     use params, only: dp
     implicit none
@@ -15,7 +15,6 @@ function NSTCS_plus_binding(x,ii,binding ) result(energy)
     integer, intent(in) :: ii
     real(dp) energy
     real(dp) offset
-    logical binding
     energy = 0.0_dp
     if ( x < WLC_P__BINDING_R) then
         energy = energy + 1.0_dp
@@ -25,12 +24,35 @@ function NSTCS_plus_binding(x,ii,binding ) result(energy)
     else
         offset = 0
     endif
-    if (binding .and. MOD(ii,3000) == 0 .and. x > WLC_P__BINDING_R + offset) then
-        if (x  < WLC_P__BINDING_R + offset) then
-            energy = energy + 100_dp
+    if (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
+        if (MOD(ii,3000) == 0 .and. x > WLC_P__BINDING_R + offset) then
+            energy = energy - 100_dp
+            energy = energy - 10.0_dp*x
         endif
-        energy = energy - 10.0_dp*x
     endif
+
+end function
+function random_to_cube(x,ii) result(energy)
+    ! Non-Specific to cuge side plus binding
+    use params, only: dp, wlc_external_bind_points
+    implicit none
+    real(dp), intent(in) :: x
+    integer, intent(in) :: ii
+    real(dp) energy
+    real(dp) offset
+    energy = 0.0_dp
+    if ( WLC_P__BOUNDARY_TYPE == 'ExtnedBinsPast' ) then
+        offset = WLC_P__DBIN
+    else
+        offset = 0
+    endif
+    if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side') then
+        if (wlc_external_bind_points(ii) .and. x > WLC_P__BINDING_R + offset) then
+            energy = energy - 100_dp
+            energy = energy - 10.0_dp*x
+        endif
+    endif
+
 end function
 
 subroutine MC_external_field(wlc_p)
@@ -48,23 +70,31 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
                                     WLC_P__LBOX_Z/2.0_dp]
 real(dp) centers(3)
 integer ix,iy,iz
-real(dp) NSTCS_plus_binding
+real(dp) NSTCS_plus_binding, random_to_cube
 
 do jj = 1,wlc_nPointsMoved
     ii = wlc_pointsMoved(jj)
     if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
         wlc_dx_externalField = wlc_dx_externalField + &
-           NSTCS_plus_binding( wlc_RP(1,ii), ii, .False.)
+           NSTCS_plus_binding( wlc_RP(1,ii), ii)
 
         wlc_dx_externalField = wlc_dx_externalField - &
-           NSTCS_plus_binding( wlc_R(1,ii), ii, .False.)
+           NSTCS_plus_binding( wlc_R(1,ii), ii)
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
         wlc_dx_externalField = wlc_dx_externalField + &
-           NSTCS_plus_binding( wlc_RP(1,ii), ii, .True.)
+           NSTCS_plus_binding( wlc_RP(1,ii), ii)
 
         wlc_dx_externalField = wlc_dx_externalField - &
-           NSTCS_plus_binding( wlc_R(1,ii), ii, .True.)
+           NSTCS_plus_binding( wlc_R(1,ii), ii)
+
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side') then
+        wlc_dx_externalField = wlc_dx_externalField + &
+           random_to_cube( wlc_RP(1,ii), ii)
+
+        wlc_dx_externalField = wlc_dx_externalField - &
+           random_to_cube( wlc_R(1,ii), ii)
+
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE
@@ -127,17 +157,21 @@ real(dp), parameter :: center(3) = [WLC_P__LBOX_X/2.0_dp,&
 real(dp) energy2
 real(dp) centers(3)
 integer ix,iy,iz
-real(dp) NSTCS_plus_binding
+real(dp) NSTCS_plus_binding, random_to_cube
 
 wlc_dx_ExternalField = 0.0_dp
 do ii = 1,WLC_P__NT
     if (WLC_P__EXTERNAL_FIELD_TYPE == 'nonSpecificToCubeSide') then
         wlc_dx_externalField = wlc_dx_externalField + &
-           NSTCS_plus_binding( wlc_R(1,ii), ii, .False.)
+           NSTCS_plus_binding( wlc_R(1,ii), ii)
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'NSTCS_plus_binding') then
         wlc_dx_externalField = wlc_dx_externalField + &
-           NSTCS_plus_binding( wlc_R(1,ii), ii, .True.)
+           NSTCS_plus_binding( wlc_R(1,ii), ii)
+
+    elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side') then
+        wlc_dx_externalField = wlc_dx_externalField + &
+           random_to_cube( wlc_R(1,ii), ii)
 
     elseif (WLC_P__EXTERNAL_FIELD_TYPE == 'toExcludedSphereInPeriodic') then
         do ix=1,WLC_P__N_SPHERES_TO_SIDE

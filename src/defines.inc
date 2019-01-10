@@ -266,6 +266,11 @@
 ! DEFAULTS COMMENT: ! 203 linker + 147 wrap
 ! TYPE: INTEGER
 
+#define WLC_P__N_EXTERNAL_BIND_POINTS 10
+! VARIABLE COMMENT: ! number of points bound to boundary
+! DEFAULTS COMMENT: ! 0 for off
+! TYPE: INTEGER
+
 ! ----------------------------
 !
 !   Length variables
