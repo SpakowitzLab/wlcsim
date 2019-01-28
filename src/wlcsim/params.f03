@@ -833,7 +833,7 @@ contains
                         write(iostr,"(I4)") wlc_id
                         iostr = adjustL(iostr)
                         iostr = trim(iostr)
-                        iostr = "meth_"//trim(iostr)
+                        iostr = "input/meth_"//trim(iostr)
                         iostr = trim(iostr)
                         print*, "reading ",iostr
                         call wlcsim_params_loadMeth(iostr)
