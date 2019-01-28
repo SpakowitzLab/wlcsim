@@ -836,7 +836,7 @@ contains
                         iostr = "meth_"//trim(iostr)
                         iostr = trim(iostr)
                         print*, "reading ",iostr
-                        open(unit = 5,file = iostr,status = 'OLD')
+                        call wlcsim_params_loadMeth(iostr)
                     else
                         iostr='input/meth'
                         call wlcsim_params_loadMeth(iostr)
