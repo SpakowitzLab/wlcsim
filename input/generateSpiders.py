@@ -38,8 +38,9 @@ def combine_spider_files(npoly,n_different_lengths,outName):
                     print(line,file=all_spider_file,end='')
     all_spider_file.close()
 
-#leglen=[10,25]
-leglen=[2,5]
+#leglen=[10,25] # For origional stifness
+#leglen=[2,5] # For coarse-grained 5 nucleosomes to bead
+leglen=[5,10,25] # For less stiff but single nucleosome
 outName = "spiders"
 
 

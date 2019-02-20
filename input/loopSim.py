@@ -111,14 +111,14 @@ class LoopExtrusionChain:
                 if direction in [">", "0", "L"]:
                     # Forward CTCF motif, prevents leftward motion
                     # 5'- CCACNAGGTGGCAG - 3'
-                    blocks[index] = 0
+                    self.blocks[index] = 0
                 elif direction in ["<", "1", "R"]:
                     # Reverse CTCF motif, prevents rightward motion
                     # 5' - CTGCCACCTNGTGG - 3'
-                    blocks[index] = 1
+                    self.blocks[index] = 1
                 elif direction in ["x", "2", "B"]:
                     # Both CTCF motif dicrections on same bead
-                    blocks[index] = 2
+                    self.blocks[index] = 2
                 else:
                     raise ValueError(direction+" is not a valid direction")
 
@@ -329,12 +329,25 @@ class LoopExtrusionChain:
         # remove the duplicate from the end of the list
         del self.reverse_moves[-1]
 
-
+    def is_motion_blocked(self, from_bead, to_bead):
+        if self.blocks[to_bead] == None:
+            return False
+        if from_bead<to_bead and self.blocks[to_bead] == 1:
+            return True
+        if from_bead>to_bead and self.blocks[to_bead] == 0:
+            return True
+        if self.blocks[to_bead] == 2:
+            return True
+        return False
 
     def prevent_motion(self,from_bead,to_bead):
         """Prevents feet from moving from from_bead to to_bead.
         Edits: self.cohesins, self.forward_moves, self.reverse_moves
         """
+        if self.is_motion_blocked(from_bead, to_bead):
+            # Check to see if move is already blocked
+            return
+
         to_stop = self.cohesin_located_at(from_bead)
         if (to_stop != None):
             # The cohesin you ran into can move
@@ -349,9 +362,14 @@ class LoopExtrusionChain:
                 self.cohesins[coh_ind_other].rev_ind[foot_other]=None
 
     def allow_motion(self,from_bead,to_bead):
-        """Allos feet to move from from_bead to to_bead.
+        """Allows feet to move from from_bead to to_bead.
+        Still doesn't allow if blocked by bloks.
         Edits: self.cohesins, self.forward_moves, self.reverse_moves
         """
+        if self.is_motion_blocked(from_bead, to_bead):
+            # can't allow because of block
+            return
+
         # Motion of a cohesin may allow another to move to follow it
         freed = self.cohesin_located_at(from_bead)
         if (freed != None):
@@ -397,7 +415,7 @@ class LoopExtrusionChain:
             self.beads[left] = (cohesin_ind,0)
             self.beads[right] = (cohesin_ind,1)
 
-            # Can the input feet move forward?  (They can move backward.)
+            # Can the input feet move forward?  (They can't move backward.)
             if self.is_available(left-1,LR=0):
                 my_cohesin.for_ind[0] = len(self.forward_moves)
                 self.forward_moves.append((cohesin_ind,0))
@@ -578,4 +596,5 @@ class LoopExtrusionChain:
             t=t+dt
             self.makeMove(rate_forward, rate_reverse, rate_falloff,
                           rtotal=total_rate)
+
 

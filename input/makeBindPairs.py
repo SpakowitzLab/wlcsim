@@ -8,8 +8,9 @@ with open("polyLengths") as lengthsFile:
         lengthSet.append(int(line))
 
 looptype = "growth"
-beadsPerLoop = 500
-processivity = 500.0
+beadsPerLoop = 600 # 120kb/200 = 600
+processivity = 600.0 # 120kb/200 = 600
+CTCF_file = "CTCFs" # or None
 
 if looptype == "insert":
     for IP in range(0,len(lengthSet)):
@@ -24,7 +25,7 @@ elif looptype == "growth":
         L = lengthSet[IP]
         nloops = int(np.floor(L/beadsPerLoop))
         name = "bindpairs_chrom"+str(IP)
-        chain = loopSim.LoopExtrusionChain(L,nloops)
+        chain = loopSim.LoopExtrusionChain(L, nloops, CTCF_file)
 
         forward_rate = 1.0
         reverse_rate = 0.0
