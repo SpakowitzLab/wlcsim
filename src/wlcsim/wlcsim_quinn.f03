@@ -61,7 +61,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     integer rep ! physical replica number, for loops
     integer temp ! for castling
     logical keepGoing   ! set to false when NaN encountered
-    integer, parameter :: nTerms = 10  ! number of energy terms
+    integer, parameter :: nTerms = 11  ! number of energy terms
     real(dp) x(nTerms) ! slice of xMtrx
     real(dp) cof(nTerms) ! slice of cofMtrx
     integer N_average      ! number of attempts since last average
@@ -70,7 +70,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path,AEF_path ! functions
+    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path,AEF_path, A2B_path ! functions
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -133,6 +133,11 @@ use params, only: wlc_mc_ind, wlc_rand_stat
             cofMtrx(rep,10) = AEF_path(s_vals(rep))
         else
             cofMtrx(rep,10) = wlc_p%AEF
+        endif
+        if (WLC_P__PT_A2B) then
+            cofMtrx(rep,11) = A2B_path(s_vals(rep))
+        else
+            cofMtrx(rep,11) = wlc_p%A2B
         endif
     enddo
 
@@ -315,6 +320,13 @@ function AEF_path(s) result(AEF)
     real(dp) AEF
     AEF = -1.0_dp*s
 end function AEF_path
+function A2B_path(s) result(A2B)
+    use params, only: dp
+    implicit none
+    real(dp), intent(in) :: s
+    real(dp) A2B
+    A2B = s
+end function A2B_path
 
 #if MPI_VERSION
 subroutine worker_node(wlc_p)
@@ -394,6 +406,17 @@ use params, only: wlc_x_ExternalField, wlc_EmaierSaupe, wlc_deelas, wlc_dx_coupl
         else
             wlc_eExternalField = 0.0_dp
             wlc_x_externalField = 0.0_dp
+        endif
+        if(WLC_P__APPLY_2body_potential) then
+            wlc_E_2bead_potential = wlc_DE_2bead_potential
+            wlc_x_2bead_potential = wlc_Dx_2bead_potential
+            if (abs(wlc_E_2bead_potential-wlc_p%A2B*wlc_x_2bead_potential).gt.0.00001) then
+                print*, "error in wlcsim_quinn, A2B doesn't add up"
+                stop
+            endif
+        else
+            wlc_E_2bead_potential = 0.0_dp
+            wlc_x_2bead_potential = 0.0_dp
         endif
     else
         call VerifyEnergiesFromScratch(wlc_p)

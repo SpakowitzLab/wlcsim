@@ -31,6 +31,10 @@ use params, only: wlcsim_params
     if(WLC_P__APPLY_EXTERNAL_FIELD) then
         call MC_external_field_from_scratch(wlc_p)
     endif
+    ! ---- 2Body potentials Field Energy ---
+    if(WLC_P__APPLY_2body_potential) then
+        call MC_2bead_potential_from_scratch(wlc_p)
+    endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
         do I = 1,wlc_p%NBIN
@@ -78,7 +82,8 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_EChi&
     , wlc_EExternalField, wlc_ECouple, wlc_DEExplicitBinding, wlc_EBind, wlc_DEField, wlc_eExplicitBinding&
     , wlc_EKap, wlc_DEBind, wlc_x_chi, wlc_x_mu, wlc_dx_ExternalField, wlc_dx_couple&
     , wlc_dx_Field, wlc_DECouple, wlc_x_ExternalField, wlc_DEExternalField, wlc_EField, wlc_DEElas&
-    , wlc_x_Couple, wlc_DEKap, wlc_EElas, wlc_DEChi, wlc_dx_chi
+    , wlc_x_Couple, wlc_DEKap, wlc_EElas, wlc_DEChi, wlc_dx_chi&
+    , wlc_E_2bead_potential, wlc_dx_2bead_potential, wlc_x_2bead_potential, wlc_DE_2bead_potential
     use params
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
@@ -93,6 +98,10 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_EChi&
     if(WLC_P__APPLY_EXTERNAL_FIELD) then
         wlc_EExternalField = wlc_DEExternalField
         wlc_x_ExternalField = wlc_dx_ExternalField
+    endif
+    if(WLC_P__APPLY_2body_potential) then
+        wlc_E_2bead_potential = wlc_DE_2bead_potential
+        wlc_x_2bead_potential = wlc_dx_2bead_potential
     endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
@@ -115,7 +124,8 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_x_maierSaup
     , wlc_EMaiersaupe, wlc_x_mu, wlc_dx_ExternalField, wlc_dx_couple, wlc_EMu, wlc_dx_Field&
     , wlc_DECouple, wlc_mc_ind, wlc_x_ExternalField, wlc_DEExternalField, wlc_EField, wlc_dx_maierSaupe&
     , wlc_deMaierSaupe, wlc_DEElas, wlc_x_Couple, wlc_DEKap, wlc_EElas, wlc_DEChi&
-    , wlc_dx_chi, dp
+    , wlc_dx_chi, dp&
+    , wlc_E_2bead_potential, wlc_dx_2bead_potential, wlc_x_2bead_potential, wlc_DE_2bead_potential
     use params, only : wlcsim_params,  epsapprox, ERROR_UNIT
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
@@ -170,12 +180,24 @@ use params, only: wlc_x_Kap, wlc_dx_mu, wlc_x_Field, wlc_dx_Kap, wlc_x_maierSaup
     ! ---- External Field Energy ---
     if(WLC_P__APPLY_EXTERNAL_FIELD) then
         if(abs(wlc_eExternalField-wlc_DEExternalField) > epsapprox) then
-            write(ERROR_UNIT,*) "Warning. Integrated external field enrgy:", &
+            write(ERROR_UNIT,*) "Warning. Integrated external field energy:", &
                     wlc_EExternalField," while absolute external field energy:", &
                     wlc_DEExternalField," save point mc_ind = ",wlc_mc_ind
         endif
         wlc_EExternalField = wlc_DEExternalField
         wlc_x_ExternalField = wlc_dx_ExternalField
+
+    endif
+
+    ! ---- 2 body Energy ---
+    if(WLC_P__APPLY_2body_potential) then
+        if(abs(wlc_E_2bead_potential-wlc_DE_2bead_potential) > epsapprox) then
+            write(ERROR_UNIT,*) "Warning. Integrated 2 body energy:", &
+                    wlc_E_2bead_potential," while absolute 2 body energy:", &
+                    wlc_DE_2bead_potential," save point mc_ind = ",wlc_mc_ind
+        endif
+        wlc_E_2bead_potential = wlc_DE_2bead_potential
+        wlc_x_2bead_potential = wlc_dx_2bead_potential
 
     endif
 

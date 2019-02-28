@@ -18,7 +18,7 @@ use mpi
     integer (kind = 4) error  ! error id for MIP functions
     character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    integer, parameter :: nTerms = 10  ! number of energy terms
+    integer, parameter :: nTerms = 11  ! number of energy terms
     real(dp) cof(nTerms)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
@@ -91,6 +91,7 @@ use mpi
     !wlc_p%para(3)  =cof(8)
     wlc_p%CHI_L2   =cof(9)
     wlc_p%AEF      =cof(10)
+    wlc_p%A2B      =cof(11)
 
     write(iostrg,"(I4)") wlc_rep
     iostrg = adjustL(iostrg)
@@ -105,7 +106,7 @@ subroutine replicaExchange(wlc_p)
 use params, only: wlc_x_mu, wlc_x_maierSaupe, wlc_mc_ind, wlc_rep, wlc_x_Chi&
     , wlc_x_kap, wlc_x_Externalfield, wlc_eMaierSaupe, wlc_x_field, wlc_x_chi, wlc_EMu&
     , wlc_x_ExternalField, wlc_x_Field, wlc_EField, wlc_x_couple, wlc_ECouple, wlc_repSuffix&
-    , wlc_EChi, wlc_EKap, wlc_x_Kap, wlc_eExternalField
+    , wlc_EChi, wlc_EKap, wlc_x_Kap, wlc_eExternalField, wlc_E_2bead_potential, wlc_x_2bead_potential
 ! This checks in with the mpi head node to
 ! For parallel tempering of the form:  E = cof*x
 ! 1: Tell head node the x value
@@ -114,7 +115,7 @@ use params, only: wlc_x_mu, wlc_x_maierSaupe, wlc_mc_ind, wlc_rep, wlc_x_Chi&
 use params, only : wlcsim_params,  dp, MAXFILENAMELEN, epsApprox
 use mpi
     implicit none
-    integer, parameter :: nTerms = 10  ! number of energy terms
+    integer, parameter :: nTerms = 11  ! number of energy terms
     integer (kind = 4) id, error
     type(wlcsim_params), intent(inout) :: wlc_p
     integer (kind = 4) dest ! message destination
@@ -130,6 +131,7 @@ use mpi
     real(dp) Kap_Old
     real(dp) chi_l2_old
     real(dp) AEF_old
+    real(dp) A2B_old
     real(dp) x(nTerms)
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
@@ -145,6 +147,7 @@ use mpi
     x(8) = 0.0_dp !x(8) = wlc_p%EElas(3)/wlc_p%para(3)
     x(9) = wlc_x_maierSaupe
     x(10) = wlc_x_ExternalField
+    x(11) = wlc_x_2bead_potential
 
     chi_Old = wlc_p%CHI
     mu_old = wlc_p%MU
@@ -153,6 +156,7 @@ use mpi
     Kap_Old = wlc_p%KAP
     chi_l2_old = wlc_p%CHI_L2
     AEF_Old = wlc_p%AEF
+    A2B_Old = wlc_p%A2B
 
     ! send number bound to head node
     dest = 0
@@ -181,6 +185,7 @@ use mpi
     !wlc_p%para(3)  =cof(8)
     wlc_p%CHI_L2 = cof(9)
     wlc_p%AEF      =cof(10)
+    wlc_p%A2B      =cof(11)
 
     if (abs(wlc_EChi-wlc_x_chi*chi_old).gt.epsApprox) then
         print*, "Error in replicaExchange"
@@ -194,11 +199,16 @@ use mpi
         print*, "wlc_x_Externalfield",wlc_x_Externalfield
         stop 1
     endif
+    if (abs(wlc_E_2bead_potential-A2B_old*wlc_x_2bead_potential).gt.epsApprox) then
+        print*, "Error with 2body potential"
+        stop 1
+    endif
 
     wlc_EChi    =wlc_EChi    +wlc_x_chi      *(wlc_p%CHI      -chi_old)
     wlc_EMu     =wlc_EMu     +wlc_x_mu       *(wlc_p%MU       -mu_old)
     wlc_EField  =wlc_EField  +wlc_x_field    *(wlc_p%HA       -hA_old)
     wlc_eExternalField  =wlc_eExternalField  +wlc_x_Externalfield    *(wlc_p%AEF       -AEF_old)
+    wlc_E_2bead_potential =wlc_E_2bead_potential + wlc_x_2bead_potential*(wlc_p%A2B-A2B_old)
     wlc_ECouple =wlc_ECouple +wlc_x_couple   *(wlc_p%HP1_BIND -HP1_Bind_Old)
     wlc_EKap    =wlc_EKap    +wlc_x_Kap      *(wlc_p%KAP      -Kap_Old)
    ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
@@ -211,6 +221,10 @@ use mpi
         print*, "wlc_eExternalField",wlc_eExternalField,"wlc_p%AEF*wlc_x_ExternalField)",wlc_p%AEF*wlc_x_ExternalField
         print*, "wlc_p%AEF",wlc_p%AEF,"- AEF_old",AEF_old,"=",wlc_p%AEF       -AEF_old
         print*, "wlc_x_Externalfield",wlc_x_Externalfield
+        stop 1
+    endif
+    if (abs(wlc_E_2bead_potential-A2B_old*wlc_x_2bead_potential).gt.epsApprox) then
+        print*, "Error with 2body potential, 2"
         stop 1
     endif
     if (abs(wlc_EChi-wlc_p%CHI*wlc_x_chi).gt.epsApprox) then

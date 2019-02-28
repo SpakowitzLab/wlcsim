@@ -114,6 +114,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           wlc_deMaierSaupe = 0.0_dp
           wlc_DEElas=0.0_dp
           wlc_DEExplicitBinding = 0.0_dp
+          wlc_DE_2bead_potential = 0.0_dp
           wlc_nPointsMoved = 0
           wlc_nBend = 0
 
@@ -234,6 +235,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               call MC_external_field(wlc_p)
           endif
 
+          if (WLC_P__APPLY_2body_potential .and. wlc_nPointsMoved>0) then
+              call MC_2bead_potential(MCTYPE,wlc_p)
+          endif
+
           if (WLC_P__EXPLICIT_BINDING .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
               call MC_explicit_binding()
           endif
@@ -245,7 +250,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                  + wlc_ECon + wlc_DEField &
                  + wlc_DEExternalField &
                  + wlc_deMaierSaupe &
-                 + wlc_DEExplicitBinding
+                 + wlc_DEExplicitBinding &
+                 + wlc_DE_2bead_potential
           !call MC_save_energy_data(MCTYPE)
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_rand_stat)
@@ -275,6 +281,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
              wlc_EMu = wlc_EMu + wlc_DEMu
              wlc_x_mu = wlc_x_mu + wlc_dx_mu
              wlc_eExplicitBinding = wlc_eExplicitBinding + wlc_DEExplicitBinding
+             wlc_E_2bead_potential = wlc_E_2bead_potential + wlc_DE_2bead_potential
              wlc_EElas = wlc_EElas + wlc_DEElas
              if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
                  (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &

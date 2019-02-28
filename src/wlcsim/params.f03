@@ -94,7 +94,7 @@ module params
     !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlc_p sims
         real(dp) hA       ! strength of applied sinusoidal field (used in PT to step around 1st order phase transition)
         real(dp) AEF      ! strength of applied external field
-        real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
+        real(dp) A2B      ! strength of two body potential
 
     !   for simulating chromatin methylation
         real(dp) HP1_Bind ! Energy of binding of HP1 to eachother
@@ -191,6 +191,7 @@ module params
     real(dp) wlc_eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
     real(dp) wlc_eMaierSaupe ! Maier Saupe energy
     real(dp) wlc_eExplicitBinding
+    real(dp) wlc_E_2bead_potential
 
     !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
     real(dp) wlc_x_Chi,   wlc_dx_Chi
@@ -198,6 +199,7 @@ module params
     real(dp) wlc_x_Kap,   wlc_dx_Kap
     real(dp) wlc_x_Field, wlc_dx_Field
     real(dp) wlc_x_ExternalField, wlc_dx_ExternalField
+    real(dp) wlc_x_2bead_potential, wlc_dx_2bead_potential
     real(dp) wlc_x_Mu,    wlc_dx_Mu
     real(dp) wlc_x_maierSaupe, wlc_dx_maierSaupe ! Maier Saupe energy / chi_l2
 
@@ -214,6 +216,7 @@ module params
     real(dp) wlc_DEExplicitBinding
     real(dp) wlc_ECon     ! Confinement Energy
     real(dp) wlc_deMaierSaupe ! change in Maier Saupe energy
+    real(dp) wlc_DE_2bead_potential
     integer wlc_NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
     integer, allocatable, dimension(:) :: wlc_bendPoints ! index of left end of bends presint in chain
     integer wlc_nBend ! the number of points bent
@@ -280,6 +283,7 @@ contains
         wlc_p%KAP      = WLC_P__KAP
         wlc_p%CHI_L2   = WLC_P__CHI_L2
         wlc_p%AEF       = WLC_P__AmplitudeExternalField
+        wlc_p%AEF      = WLC_P__Amplitude2beadPotential
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
@@ -412,7 +416,8 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         logical err
 
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')) then
+        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')&
+            .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
             print*, "The code is untested for Neighbor bins and other confinetypes"
             print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
             print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"
@@ -456,9 +461,6 @@ contains
 
         call stop_if_err(WLC_P__COLLISIONDETECTIONTYPE == 2, &
             'KD-tree based collision detection not yet implemented.')
-
-        call stop_if_err(wlc_p%REND > WLC_P__L, &
-            "Requesting initial end-to-end distance larger than polymer length.")
 
         err = (WLC_P__BOUNDARY_TYPE == 'SolidEdgeBin') .and. &
               (WLC_P__FIELD_INT_ON) .and. &
@@ -590,7 +592,7 @@ contains
 
         call setup_polydispersity()
         allocate(wlc_R(3,WLC_P__NT))
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+        if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             allocate(wlc_R_period(3,WLC_P__NT))
         endif
         allocate(wlc_U(3,WLC_P__NT))
@@ -809,7 +811,7 @@ contains
             call set_external_bindpoints(wlc_rand_stat)
         endif
 
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+        if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             do ii=1,WLC_P__NT
                 wlc_R_period(1,ii)=modulo(wlc_R(1,ii),WLC_P__LBOX_X)
                 wlc_R_period(2,ii)=modulo(wlc_R(2,ii),WLC_P__LBOX_Y)
@@ -865,12 +867,15 @@ contains
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
-                if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                if (WLC_P__NEIGHBOR_BINS .and.&
+                    ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
+                    .or. WLC_P__CONFINETYPE == 'none')) then
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
-                elseif (WLC_P__CONFINETYPE == 'none') then
+                elseif (WLC_P__CONFINETYPE == 'sphere') then
                     call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
                 else
                     print*, "Not an option yet.  See params."
+                    stop 1
                 endif
             enddo
         endif
@@ -889,6 +894,7 @@ contains
         wlc_eMu         = 0.0_dp ! chemical potential energy
         wlc_eField      = 0.0_dp ! Field energy
         wlc_eExternalField      = 0.0_dp ! External Field energy
+        wlc_E_2bead_potential = 0.0_dp ! Two bead potential
         wlc_eSelf       = 0.0_dp ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
         wlc_eMaierSaupe = 0.0_dp ! Maier Saupe energy
         wlc_eExplicitBinding = 0.0_dp ! Explicit Binding energy
@@ -904,6 +910,7 @@ contains
         wlc_ECon        = 0.0_dp ! Confinement Energy
         wlc_deMaierSaupe= 0.0_dp ! change in Maier Saupe energy
         wlc_DEExplicitBinding = 0.0_dp ! change in explicit binding energy
+        wlc_DE_2bead_potential = 0.0_dp ! Two bead potential
         wlc_NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
         wlc_time = 0.0_dp
@@ -964,6 +971,7 @@ contains
         print*, " compression cof, KAP =", wlc_p%KAP
         print*, " field strength, hA =", wlc_p%HA
         print*, " field strength, AEF =", wlc_p%AEF
+        print*, " two body potential strength, A2B =", wlc_p%A2B
         print*, " -energy of binding unmethalated ", WLC_P__EU," more positive for favorable binding"
         print*, " -energy of binding methalated",WLC_P__EM
         print*, " HP1_Binding energy parameter", wlc_p%HP1_BIND
