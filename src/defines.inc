@@ -134,6 +134,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__APPLY_2body_potential .FALSE.
+! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__EXPLICIT_BINDING .FALSE.
 ! VARIABLE COMMENT: ! Include specific interactions between specified beads
 ! DEFAULTS COMMENT: ! Not included by default
@@ -459,6 +464,16 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: REAL(DP)
 
+#define WLC_P__Amplitude2beadPotential 3.0_DP
+! VARIABLE COMMENT: ! Amplitude of two body potential
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
+! VARIABLE COMMENT: ! Amplitude of two body potential
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Time / steps variables
@@ -634,9 +649,14 @@
 ! DEFAULTS COMMENT: ! don't parallel temper maier Saupe by default
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_AEF .TRUE.
+#define WLC_P__PT_AEF .FALSE.
 ! VARIABLE COMMENT: ! parallel temper over external applied field
 ! DEFAULTS COMMENT: ! don't parallel temper h by default
+! TYPE: LOGICAL
+
+#define WLC_P__PT_A2B .FALSE.
+! VARIABLE COMMENT: ! parallel temper two body interaction
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000
