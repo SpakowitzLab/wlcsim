@@ -11,23 +11,18 @@
 
 subroutine MCsim(wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
-    , wlc_EExternalField, wlc_EChi, wlc_DEExplicitBinding, wlc_deMu, wlc_x_Externalfield, wlc_DPHI_l2&
-    , wlc_DEKap, wlc_AB, wlc_DEExternalField, wlc_NCross, wlc_x_Kap, wlc_x_chi&
-    , wlc_dx_chi, wlc_EKap, wlc_DEBind, wlc_ESELF, wlc_ind_exchange, wlc_inDPHI&
-    , wlc_dx_field, wlc_PHIA, wlc_x_kap, wlc_x_couple, wlc_rand_stat, wlc_Cross&
-    , wlc_demu, wlc_U, wlc_Vol, wlc_PHI_l2, wlc_DECouple, wlc_NPHI&
-    , wlc_x_Couple, wlc_DPHIB, wlc_x_field, wlc_ECon, wlc_DESELF, wlc_ATTEMPTS&
-    , wlc_UP, wlc_dx_maierSaupe, wlc_x_mu, wlc_dx_couple, wlc_EmaierSaupe, wlc_CrossSize&
-    , wlc_ECouple, wlc_demaierSaupe, wlc_EBind, wlc_DEMu, wlc_NCrossP, wlc_DEField&
-    , wlc_DEElas, wlc_deMaierSaupe, wlc_R, wlc_EField, wlc_SUCCESS, wlc_dx_kap&
-    , wlc_RP, wlc_METH, wlc_spiders, wlc_EElas, wlc_DPHIA, wlc_x_maierSaupe&
-    , wlc_DEChi, wlc_DEELAS, wlc_EMu, wlc_eExplicitBinding, wlc_x_ExternalField, wlc_dx_mu&
-    , wlc_PHIB
+use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
+    , wlc_DPHI_l2, wlc_AB, wlc_NCross &
+    , wlc_ind_exchange, wlc_inDPHI, wlc_rand_stat, wlc_Cross&
+    , wlc_Vol, wlc_PHI_l2, wlc_NPHI, wlc_DPHIB, wlc_ATTEMPTS&
+    , wlc_UP, wlc_CrossSize, wlc_NCrossP, wlc_R, wlc_SUCCESS &
+    , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
+    , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
+    , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints
+    use energies
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
-    use params
     use binning, only: addBead, removeBead
     use updateRU, only: updateR
     use polydispersity, only: length_of_chain, chain_ID
@@ -101,22 +96,16 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
        do MCTYPE = 1,nMoveTypes
        if (wlc_p%MOVEON(MCTYPE) == 0) cycle
        do sweepIndex = 1,wlc_p%MOVESPERSTEP(MCTYPE)
-          wlc_ECon = 0.0_dp
-          wlc_DEBind = 0.0_dp
-          wlc_DEMu = 0.0_dp
-          wlc_dx_mu = 0.0_dp
-          wlc_DESELF=0.0_dp
-          wlc_DEKap = 0.0_dp
-          wlc_DECouple = 0.0_dp
-          wlc_DEChi = 0.0_dp
-          wlc_DEField = 0.0_dp
-          wlc_DEExternalField = 0.0_dp
-          wlc_deMaierSaupe = 0.0_dp
-          wlc_DEElas=0.0_dp
-          wlc_DEExplicitBinding = 0.0_dp
-          wlc_DE_2bead_potential = 0.0_dp
+          call set_all_dEnergy_to_zero()
           wlc_nPointsMoved = 0
           wlc_nBend = 0
+
+          ! ------------------------------------------
+          !
+          !  Each energy function adds to applicable energyOf(*_)%dx.
+          !  Many functions assume enertyOf(*_)%dx starts at zero.
+          !
+          !-------------------------------------------
 
           ! Turn down poor moves
           if ((wlc_PHit(MCTYPE).lt.WLC_P__MIN_ACCEPT).and. &
@@ -136,7 +125,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
               if (.not. list_confinement()) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   success = .False.
-              goto 10 ! skip move, return RP to nan
+                  goto 10 ! skip move, return RP to nan
               endif
           endif
 
@@ -178,7 +167,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p,EB,EPAR,EPERP,GAM,ETA)
               if (WLC_P__RING.AND.WLC_P__TWIST.and. .not. WLC_P__LOCAL_TWIST) then
-                  call MC_global_twist(wlc_p,IT1,IT2,MCTYPE,WRP,wlc_DEElas(4))
+                  call MC_global_twist(wlc_p,IT1,IT2,MCTYPE,WRP,energyOf(twist_)%dx)
 
               endif
           endif
@@ -190,24 +179,23 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
 !   Calculate the change in the binding energy
           if (MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(wlc_p,IT1,IT2,wlc_AB,wlc_ABP,wlc_METH,&
-                           wlc_DEBind,wlc_dx_mu,wlc_demu)
+              call MC_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
               !call MC_self(DESELF,wlc_R,wlc_U,wlc_RP,wlc_UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
-                  CALL DE_SELF_CRANK(wlc_DESELF,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
+                  CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
 
               elseif (MCTYPE == 2) then
-                  CALL ENERGY_SELF_SLIDE(wlc_ESELF,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
+                  CALL ENERGY_SELF_SLIDE(energyOf(self_)%x,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
                   CALL ENERGY_SELF_SLIDE(ESELFP,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
 
-                  wlc_DESELF = ESELFP-wlc_ESELF
+                  energyOf(self_)%dx = ESELFP-energyOf(self_)%x
               elseif (MCTYPE == 3) then
-                  CALL DE_SELF_CRANK(wlc_DESELF,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
+                  CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
                       para,WLC_P__RING,IB1,IB2)
               elseif (MCTYPE == 10) then
                   PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
@@ -231,12 +219,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           endif
 
           if (WLC_P__APPLY_EXTERNAL_FIELD .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
-              wlc_dx_Externalfield = 0.0_dp
-              call MC_external_field(wlc_p)
+              call MC_external_field()
           endif
 
           if (WLC_P__APPLY_2body_potential .and. wlc_nPointsMoved>0) then
-              call MC_2bead_potential(MCTYPE,wlc_p)
+              call MC_2bead_potential(MCTYPE)
           endif
 
           if (WLC_P__EXPLICIT_BINDING .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
@@ -244,19 +231,14 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
           endif
 
 !   Change the position if appropriate
-          ENERGY = wlc_DEElas(1) + wlc_DEElas(2) + wlc_DEElas(3) &
-                 + wlc_DEKap + wlc_DECouple + wlc_DEChi + wlc_DEBind &
-                 + wlc_deMu &
-                 + wlc_ECon + wlc_DEField &
-                 + wlc_DEExternalField &
-                 + wlc_deMaierSaupe &
-                 + wlc_DEExplicitBinding &
-                 + wlc_DE_2bead_potential
+          call calc_all_dE_from_dx()
+          call sum_all_dEnergies(ENERGY)
           !call MC_save_energy_data(MCTYPE)
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_rand_stat)
           TEST = urnd(1)
           if (TEST <= PROB) then
+             call accept_all_energies()
              if(MCTYPE == 7 .or. MCTYPE == 11) then
                  if (.not.WLC_P__CHANGINGCHEMICALIDENTITY) then
                      call stop_if_err(1, "Tried to change chemical Identity when you can't")
@@ -271,23 +253,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                      call updateR(J)
                  enddo
              endif
-             if (wlc_ECon.gt.0.0_dp) then
+             if (energyOf(confine_)%dE.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
                  call printEnergies()
                  print*, "error in MCsim, out of bounds "
                  stop 1
-             endif
-             wlc_EBind = wlc_EBind + wlc_DEBind
-             wlc_EMu = wlc_EMu + wlc_DEMu
-             wlc_x_mu = wlc_x_mu + wlc_dx_mu
-             wlc_eExplicitBinding = wlc_eExplicitBinding + wlc_DEExplicitBinding
-             wlc_E_2bead_potential = wlc_E_2bead_potential + wlc_DE_2bead_potential
-             wlc_EElas = wlc_EElas + wlc_DEElas
-             if ((MCTYPE .ne. 4) .and. (MCTYPE .ne. 7) .and. &
-                 (MCTYPE .ne. 8) .and. (MCTYPE .ne. 9) .and. &
-                 WLC_P__APPLY_EXTERNAL_FIELD) then
-                 wlc_EExternalField = wlc_EExternalField + wlc_DEExternalField
-                 wlc_x_ExternalField = wlc_x_Externalfield + wlc_dx_Externalfield
              endif
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_NPHI
@@ -312,18 +282,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_dx_Externalfield, wlc_ABP, wlc_WR&
                        stop 1
                    endif
                 enddo
-                wlc_ECouple = wlc_ECouple + wlc_DECouple
-                wlc_EKap = wlc_EKap + wlc_DEKap
-                wlc_EChi = wlc_EChi + wlc_DEChi
-                wlc_EField = wlc_EField + wlc_DEField
-                wlc_EmaierSaupe = wlc_EmaierSaupe + wlc_demaierSaupe
-
-                wlc_x_Couple = wlc_x_couple + wlc_dx_couple
-                wlc_x_kap = wlc_x_Kap + wlc_dx_kap
-                wlc_x_chi = wlc_x_chi + wlc_dx_chi
-                wlc_x_field = wlc_x_field + wlc_dx_field
-                wlc_x_maierSaupe = wlc_x_maierSaupe + wlc_dx_maierSaupe
-
              endif
              if (WLC_P__RING) then
                 wlc_WR = WRP

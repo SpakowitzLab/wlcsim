@@ -13,9 +13,10 @@
 subroutine wlcsim_brad(wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
-    , wlc_LKs, wlc_Wr, wlc_eelas, wlc_nLKs
+    , wlc_LKs, wlc_Wr, wlc_nLKs
   use params
   use mersenne_twister
+  use energies, only:energyOf, bend_, stretch_, shear_, twist_ 
 #if MPI_VERSION
   use mpi
 #endif
@@ -116,14 +117,18 @@ use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
          
            !Recalculate structural quantities and energies
            call writhe(wlc_R,WLC_P__NB, wlc_Wr)
-           call energy_elas(wlc_eelas,wlc_p)
+           call energy_elas(eelas,wlc_p)
+           energyOf(bend_)%E    =eelas(1)
+           energyOf(shear_)%E   =eelas(2)
+           energyOf(stretch_)%E =eelas(3)
+           energyOf(twist_)%E   =eelas(4)
 
            !Communicate with the head node for replica exchange
          
            !Send back writhe and elastic energy back to the head node
            call MPI_SEND(wlc_Wr,1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,error )
-           call MPI_SEND(wlc_eelas,4, MPI_doUBLE_PRECISION, source, 0, &
+           call MPI_SEND(eelas,4, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,error )
 
 
@@ -144,7 +149,11 @@ use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
 
      !Recalculate structural quantities and energies
      call writhe(wlc_R,WLC_P__NB, wlc_Wr)
-     call energy_elas(wlc_eelas,wlc_p)
+     call energy_elas(eelas,wlc_p)
+     energyOf(bend_)%E    =eelas(1)
+     energyOf(shear_)%E   =eelas(2)
+     energyOf(stretch_)%E =eelas(3)
+     energyOf(twist_)%E   =eelas(4)
 
   end if
 end subroutine wlcsim_brad

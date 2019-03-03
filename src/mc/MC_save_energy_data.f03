@@ -2,23 +2,15 @@
 
 subroutine MC_save_energy_data(MCTYPE)
 ! values from wlcsim_data
-use params, only: wlc_DEElas, wlc_DEKap, wlc_DECouple, wlc_DEChi, wlc_DEBind,wlc_DEExplicitBinding, wlc_DEExternalField
+use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
 implicit none
 integer MCTYPE
-
-if (MCTYPE == 12) then
-    print*, "---------------------------------"
-    print*, "DEElas",wlc_DEElas
-    print*, "DEKap",wlc_DEKap
-    print*, "DECouple", wlc_DECouple
-    print*, "DEChi", wlc_DEChi
-    print*, "DEBind", wlc_DEBind
-    print*, "DEExplicitBinding", wlc_DEExplicitBinding
-    print*, "DEExternalField", wlc_DEExternalField
-
-
+integer ii
+if (MCTYPE==12) then
+    do ii = 1, NUMBER_OF_ENERGY_TYPES
+        print*, energyOf(ii)%name_str, " dE=", energyOf(ii)%dE
+    enddo
 endif
-
 end subroutine
 
 subroutine MC_discribe_spider(spider_id,dr,PRINT_UNIT)
