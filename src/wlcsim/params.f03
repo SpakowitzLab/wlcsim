@@ -208,7 +208,7 @@ module params
 contains
 
     subroutine set_param_defaults(wlc_p)
-        use energies
+        use energies, only: set_up_energyOf
         implicit none
         ! WARNinG: changing this to intent(out) means that unassigned values
         ! here will become undefined upon return, due to Fortran's weird
@@ -223,23 +223,7 @@ contains
 
         wlc_p%EPS=WLC_P__L0/(2.0_dp*WLC_P__LP)
 
-        ! parallel temper variables
-        energyOf(chi_)%cof      = WLC_P__CHI
-        energyOf(mu_)%cof       = WLC_P__MU
-        energyOf(field_)%cof       = WLC_P__HA
-        energyOf(couple_)%cof = WLC_P__HP1_BIND
-        energyOf(kap_)%cof      = WLC_P__KAP
-        energyOf(maierSaupe_)%cof   = WLC_P__CHI_L2
-        energyOf(external_)%cof       = WLC_P__AmplitudeExternalField
-        energyOf(twoBody_)%cof      = WLC_P__Amplitude2beadPotential
-        energyOf(confine_)%cof = 1.0_dp
-        energyOf(explicitBinding_)%cof = WLC_P__EXPLICIT_BIND_ENERGY
-        energyOf(self_)%cof = 1.0_dp
-        energyOf(bind_)%cof = 1.0_dp
-        energyOf(bend_)%cof = 1.0_dp
-        energyOf(stretch_)%cof = 1.0_dp
-        energyOf(shear_)%cof = 1.0_dp
-        energyOf(twist_)%cof = 1.0_dp
+        call set_up_energyOf()
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
@@ -1341,17 +1325,17 @@ contains
         real(dp), intent(in) :: x
         if (x > 999999999.9 .or. x < -99999999.9) then
             write(outFileUnit, "(E11.3)") x
-        elseif (x > 99999999.99 .or. x < -9999999.99) then
+        elseif (x > 9999999.99 .or. x < -999999.99) then
             write(outFileUnit, "(F11.1)", advance="no") x
-        elseif (x > 9999999.999 .or. x < -999999.999) then
+        elseif (x > 999999.999 .or. x < -99999.999) then
             write(outFileUnit, "(F11.2)", advance="no") x
-        elseif (x > 999999.9999 .or. x < -99999.9999) then
+        elseif (x > 99999.9999 .or. x < -9999.9999) then
             write(outFileUnit, "(F11.3)", advance="no") x
-        elseif (x > 99999.99999 .or. x < -9999.99999) then
+        elseif (x > 9999.99999 .or. x < -999.99999) then
             write(outFileUnit, "(F11.4)", advance="no") x
-        elseif (x > 9999.999999 .or. x < -999.999999) then
+        elseif (x > 999.999999 .or. x < -99.999999) then
             write(outFileUnit, "(F11.5)", advance="no") x
-        elseif (x > 999.9999999 .or. x < -99.9999999) then
+        elseif (x > 99.9999999 .or. x < -9.9999999) then
             write(outFileUnit, "(F11.6)", advance="no") x
         else
             write(outFileUnit, "(F11.7)", advance="no") x
@@ -1359,7 +1343,7 @@ contains
     end subroutine
 
     subroutine wlcsim_params_appendEnergyData(save_ind, fileName)
-        use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
+        use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES, kap_
     ! print Energy data
         implicit none
         integer, intent(in) :: save_ind
@@ -1375,9 +1359,9 @@ contains
             open (unit = outFileUnit, file = fullName, status = 'new')
             write(outFileUnit,"(10A)",advance="no") "ind | id |"
             do ii = 1, NUMBER_OF_ENERGY_TYPES
-                write(outFileUnit,"(11A)",advance="no")  " E-",energyOf(ii)%name_str, " "
-                write(outFileUnit,"(11A)",advance="no")  " x-",energyOf(ii)%name_str, " "
-                write(outFileUnit,"(11A)",advance="no")  " c-",energyOf(ii)%name_str, " "
+                write(outFileUnit,"(12A)",advance="no")  " E-",energyOf(ii)%name_str, " "
+                write(outFileUnit,"(12A)",advance="no")  " x-",energyOf(ii)%name_str, " "
+                write(outFileUnit,"(12A)",advance="no")  " c-",energyOf(ii)%name_str, " "
             enddo
             write(outFileUnit,*) " "
         endif
@@ -1388,6 +1372,7 @@ contains
             call print_11char_float(outFileUnit, energyOf(ii)%x)
             write(outFileUnit,"(A)",advance="no") " "
             call print_11char_float(outFileUnit, energyOf(ii)%cof)
+            write(outFileUnit,"(A)",advance="no") " "
         enddo
         write(outFileUnit,*) " "
         close(outFileUnit)

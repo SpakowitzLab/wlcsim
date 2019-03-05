@@ -1,6 +1,7 @@
 subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
                            cofMtrx,xMtrx,nodeNumber,N_average,nExchange,ind,nTerms,s)
-    use params, only: dp, MAXFILENAMELEN, outFileUnit
+    use params, only: dp, MAXFILENAMELEN, outFileUnit, print_11char_float
+    use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
 ! print Energy data
     implicit none
     integer, intent(in) :: nTerms
@@ -17,6 +18,7 @@ subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
     integer rep
     logical isfile
     character(MAXFILENAMELEN) fullName
+    integer ii
     fullName=  'data/repHistory'
     inquire(file = fullName, exist = isfile)
     if (isfile) then
@@ -26,20 +28,32 @@ subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
     endif
 
     write(outFileUnit,*) "~~~~~~~~~~~exchange: ",nExchange,", ind:",ind,"~~~~~~~~~~~~~~~~~~~~"
-    write(outFileUnit,*) " rep | node|  up  | down |",&
-               " chi  |  x_chi |",&
-               " h_A  |  x_h_A |",&
-               " mu   |  x_mu  |  s   |"
+    write(outFileUnit,"(35A)", advance="no") " rep | node|  up   | down  |  s   |"
+    do ii = 1, NUMBER_OF_ENERGY_TYPES
+        if (energyOf(ii)%parallel_temper) then
+            write(outFileUnit,"(12A)",advance="no")  " c-",energyOf(ii)%name_str, " "
+            write(outFileUnit,"(12A)",advance="no")  " x-",energyOf(ii)%name_str, " "
+        endif
+    enddo
+    write(outFileUnit,*) " "
+
     do rep = 1,nPTReplicas
-        write(outFileUnit,"(2I6,2f7.4,f7.4,f9.1,f7.4,f9.1,f7.4,f9.1,f7.4)")&
+        write(outFileUnit,"(2I6,2f8.5,f7.4)", advance="no")&
                  rep, nodeNumber(rep), &
                  real(upSuccess(rep),dp)/real(N_average,dp), &
-                 real(downSuccess(rep),dp)/real(N_average,dp),&
-                 cofMtrx(rep,1), xMtrx(rep,1),&
-                 cofMtrx(rep,3), xMtrx(rep,3),&
-                 cofMtrx(rep,2), xMtrx(rep,2),s(rep)
+                 real(downSuccess(rep),dp)/real(N_average,dp),s(rep)
+        do ii = 1, NUMBER_OF_ENERGY_TYPES
+            if (energyOf(ii)%parallel_temper) then
+                call print_11char_float(outFileUnit,cofMtrx(rep,ii))
+                write(outFileUnit,"(A)",advance="no") " "
+                call print_11char_float(outFileUnit,xMtrx(rep,ii))
+                write(outFileUnit,"(A)",advance="no") " "
+            endif
+        enddo
+        write(outFileUnit,*) " "
     enddo
     close(outFileUnit)
+
     ! save which node each replica is running on
     fullName=  'data/nodeNumber'
     inquire(file = fullName, exist = isfile)
@@ -50,46 +64,20 @@ subroutine save_repHistory(upSuccess,downSuccess,nPTReplicas, &
     endif
     write(outFileUnit,*) ind, nodeNumber
     close(outFileUnit)
-    ! save chi values
-    fullName=  'data/chi'
-    inquire(file = fullName, exist = isfile)
-    if (isfile) then
-        open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
-    else
-        open (unit = outFileUnit, file = fullName, status = 'new')
-    endif
-    write(outFileUnit,*) ind, cofMtrx(:,1)
-    close(outFileUnit)
-    ! save field strength
-    fullName=  'data/h_A'
-    inquire(file = fullName, exist = isfile)
-    if (isfile) then
-        open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
-    else
-        open (unit = outFileUnit, file = fullName, status = 'new')
-    endif
-    write(outFileUnit,*) ind, cofMtrx(:,3)
-    close(outFileUnit)
-    ! save kap
-    fullName=  'data/kap'
-    inquire(file = fullName, exist = isfile)
-    if (isfile) then
-        open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
-    else
-        open (unit = outFileUnit, file = fullName, status = 'new')
-    endif
-    write(outFileUnit,*) ind, cofMtrx(:,5)
-    close(outFileUnit)
-    ! save mu
-    fullName=  'data/mu'
-    inquire(file = fullName, exist = isfile)
-    if (isfile) then
-        open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
-    else
-        open (unit = outFileUnit, file = fullName, status = 'new')
-    endif
-    write(outFileUnit,*) ind, cofMtrx(:,2)
-    close(outFileUnit)
+
+    ! save cofs that are subject to pt
+    do ii= 1, NUMBER_OF_ENERGY_TYPES
+        if (.not. energyOf(ii)%parallel_temper) cycle
+        fullName = 'data/' // trim(energyOf(ii)%name_str)
+        inquire(file = fullName, exist = isfile)
+        if (isfile) then
+            open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
+        else
+            open (unit = outFileUnit, file = fullName, status = 'new')
+        endif
+        write(outFileUnit,*) ind, cofMtrx(:,ii)
+        close(outFileUnit)
+    enddo
     ! save s
     fullName=  'data/s'
     inquire(file = fullName, exist = isfile)

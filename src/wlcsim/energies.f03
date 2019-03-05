@@ -31,14 +31,14 @@ module energies
         real(dp) dx
         real(dp) cof
         character(len = 8) name_str
+        logical(dp) parallel_temper
     end type
 
     type(MC_energy), dimension(NUMBER_OF_ENERGY_TYPES) :: energyOf
 
 contains
-    subroutine set_all_energy_to_zero()
+    subroutine set_up_energyOf()
         implicit none
-        integer ii
         energyOf(1)%name_str='chi     '
         energyOf(2)%name_str='mu      '
         energyOf(3)%name_str='field   '
@@ -55,6 +55,44 @@ contains
         energyOf(14)%name_str='self    '
         energyOf(15)%name_str='expl.Bnd'
         energyOf(16)%name_str='confine '
+
+        energyOf(1)%parallel_temper = WLC_P__PT_CHI
+        energyOf(2)%parallel_temper = WLC_P__PT_MU
+        energyOf(3)%parallel_temper = WLC_P__PT_H
+        energyOf(4)%parallel_temper = WLC_P__PT_COUPLE
+        energyOf(5)%parallel_temper = WLC_P__PT_KAP
+        energyOf(6)%parallel_temper = .FALSE.
+        energyOf(7)%parallel_temper = .FALSE.
+        energyOf(8)%parallel_temper = .FALSE.
+        energyOf(9)%parallel_temper = WLC_P__PT_MAIERSAUPE
+        energyOf(10)%parallel_temper = .FALSE.
+        energyOf(11)%parallel_temper = WLC_P__PT_A2B
+        energyOf(12)%parallel_temper = .FALSE.
+        energyOf(13)%parallel_temper = .FALSE.
+        energyOf(14)%parallel_temper = .FALSE.
+        energyOf(15)%parallel_temper = .FALSE.
+        energyOf(16)%parallel_temper = .FALSE.
+
+        energyOf(chi_)%cof      = WLC_P__CHI
+        energyOf(mu_)%cof       = WLC_P__MU
+        energyOf(field_)%cof       = WLC_P__HA
+        energyOf(couple_)%cof = WLC_P__HP1_BIND
+        energyOf(kap_)%cof      = WLC_P__KAP
+        energyOf(maierSaupe_)%cof   = WLC_P__CHI_L2
+        energyOf(external_)%cof       = WLC_P__AmplitudeExternalField
+        energyOf(twoBody_)%cof      = WLC_P__Amplitude2beadPotential
+        energyOf(confine_)%cof = 1.0_dp
+        energyOf(explicitBinding_)%cof = WLC_P__EXPLICIT_BIND_ENERGY
+        energyOf(self_)%cof = 1.0_dp
+        energyOf(bind_)%cof = 1.0_dp
+        energyOf(bend_)%cof = 1.0_dp
+        energyOf(stretch_)%cof = 1.0_dp
+        energyOf(shear_)%cof = 1.0_dp
+        energyOf(twist_)%cof = 1.0_dp
+    end subroutine
+    subroutine set_all_energy_to_zero()
+        implicit none
+        integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%dE=0.0_dp
             energyOf(ii)%E=0.0_dp

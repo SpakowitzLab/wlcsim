@@ -69,7 +69,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     integer nExchange ! total number of exchanges attemted
     real(dp) energy ! for deciding to accept exchange
     integer term ! for loopin over terms
-    real(dp) h_path,chi_path,mu_path,kap_path,HP1_Bind_path,maierSaupe_path,AEF_path, A2B_path ! functions
+    real(dp) cof_path_by_energy_type ! function
     integer nPTReplicas
 
     !   Quinn's parallel tempering head node variables
@@ -97,43 +97,8 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     ! Set initial values for parrallel tempering values
     do rep = 1,nPTReplicas
         do ii = 1,NUMBER_OF_ENERGY_TYPES
-            cofMtrx(rep,ii) = energyOf(ii)%cof ! Use Defaul
+            cofMtrx(rep,ii) = cof_path_by_energy_type(ii,s_vals(rep))
         enddo
-
-        if (WLC_P__PT_CHI) then
-            cofMtrx(rep,chi_) = chi_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_MU) then
-            cofMtrx(rep,mu_) = mu_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_H) then
-            cofMtrx(rep,field_) = h_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_COUPLE) then
-            cofMtrx(rep,couple_) = HP1_Bind_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_KAP) then
-            cofMtrx(rep,kap_) = kap_path(s_vals(rep))
-        endif
-
-        !if (WLC_P__PT_ELAS) then
-        !    cof(Mtrx(rep,bend_) = s/WLC_P__INITIAL_MAX_S
-        !    cof(Mtrx(rep,stretch_) = s/WLC_P__INITIAL_MAX_S
-        !    cof(Mtrx(rep,shear_) = s/WLC_P__INITIAL_MAX_S
-        !    cof(Mtrx(rep,twist_) = s/WLC_P__INITIAL_MAX_S
-        !endif
-
-        if (WLC_P__PT_MAIERSAUPE) then
-            cofMtrx(rep,maierSaupe_) = maierSaupe_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_AEF) then
-            cofMtrx(rep,external_) = AEF_path(s_vals(rep))
-        endif
-        if (WLC_P__PT_A2B) then
-            cofMtrx(rep,twoBody_) = A2B_path(s_vals(rep))
-        endif
-
-        ! Todo: Add PT for explicit binding, confinement, bind, self here
     enddo
 
     N_average = 0
@@ -219,24 +184,9 @@ use params, only: wlc_mc_ind, wlc_rand_stat
                                WLC_P__LOWERCOFRAIL,WLC_P__UPPERCOFRAIL,&
                                WLC_P__REPANNEALSPEED,WLC_P__REPLICABOUNDS)
                 do rep = 1,nPTReplicas
-                    if (WLC_P__PT_CHI) then
-                        cofMtrx(rep,1) = chi_path(s_vals(rep))
-                    endif
-                    if (WLC_P__PT_MU) then
-                        cofMtrx(rep,2) = mu_path(s_vals(rep))
-                    endif
-                    if (WLC_P__PT_H) then
-                        cofMtrx(rep,3) = h_path(s_vals(rep))
-                    endif
-                    if (WLC_P__PT_COUPLE) then
-                        cofMtrx(rep,4) = HP1_Bind_path(s_vals(rep))
-                    endif
-                    if (WLC_P__PT_KAP) then
-                        cofMtrx(rep,5) = kap_path(s_vals(rep))
-                    endif
-                    if (WLC_P__PT_MAIERSAUPE) then
-                        cofMtrx(rep,9) = maiersaupe_path(s_vals(rep))
-                    endif
+                    do ii = 1,NUMBER_OF_ENERGY_TYPES
+                        cofMtrx(rep,ii) = cof_path_by_energy_type(ii,s_vals(rep))
+                    enddo
                 enddo
             endif
             N_average = 0
@@ -256,72 +206,28 @@ use params, only: wlc_mc_ind, wlc_rand_stat
 end subroutine head_node
 #endif
 
-function chi_path(s) result(chi)
+function cof_path_by_energy_type(energy_type, s) result(cof)
+    use energies, only: energyOf, mu_
     use params, only: dp
     implicit none
+    integer, intent(in) :: energy_type
     real(dp), intent(in) :: s
-    real(dp) chi
-    real(dp) chi_max
-    if (.false.) then
-        chi_max = 2.00_dp
-        if (s.lt.0.5_dp) then
-            chi = 0.0_dp
-        else
-            chi = chi_max*2.0_dp*(s-0.5_dp)
+    real(dp) cof
+
+    cof = energyOf(energy_type)%cof ! Use Default value
+
+    if (energyOf(energy_type)%parallel_temper) then
+        ! Parallel temper from 0 to default value
+        cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
+
+        ! special instructions for specified types
+        if (energy_type == mu_ ) then
+            cof = s-2.5_dp
         endif
-    else
-        chi = -s
     endif
-end function chi_path
-function h_path(s) result(h)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) h
-    h = 1.0_dp*s
-end function h_path
-function mu_path(s) result(mu)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) mu
-    mu = s-2.5_dp
-end function mu_path
-function kap_path(s) result(kap)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) kap
-    kap = s*10.0_dp
-end function kap_path
-function maierSaupe_path(s) result(output)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) output
-    output = s*(-1.0_dp)
-end function maierSaupe_path
-function hp1_bind_path(s) result(hp1_bind)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) hp1_bind
-    hp1_bind = s
-end function hp1_bind_path
-function AEF_path(s) result(AEF)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) AEF
-    AEF = -1.0_dp*s
-end function AEF_path
-function A2B_path(s) result(A2B)
-    use params, only: dp
-    implicit none
-    real(dp), intent(in) :: s
-    real(dp) A2B
-    A2B = s
-end function A2B_path
+    return
+end function cof_path_by_energy_type
+
 
 #if MPI_VERSION
 subroutine worker_node(wlc_p)
