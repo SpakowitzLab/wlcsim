@@ -80,6 +80,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     integer ii
 
     nPTReplicas=process-1
+    nExchange = 0
 
     ! Allocate the head node variables for keeping track of which node is which
     allocate( xMtrx(nPTReplicas,NUMBER_OF_ENERGY_TYPES))
@@ -166,6 +167,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
                 x = xMtrx(rep,:)
                 xMtrx(rep,:) = xMtrx(rep + 1,:)
                 xMtrx(rep + 1,:) = x
+                nExchange = nExchange + 1
             endif
         enddo
 
@@ -195,7 +197,6 @@ use params, only: wlc_mc_ind, wlc_rand_stat
                 downSuccess(rep) = 0
             enddo
         endif
-        nExchange = nExchange + 1
     enddo
 
     deallocate(xMtrx)
