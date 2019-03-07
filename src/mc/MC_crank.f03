@@ -71,6 +71,8 @@ if (IB1>1) then
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 endif
 if (IB2<length_of_chain(IP)) then
     wlc_nBend = wlc_nBend + 1
@@ -79,6 +81,8 @@ if (IB2<length_of_chain(IP)) then
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 endif
 
 if (WLC_P__RING) then                    !Polymer is a ring

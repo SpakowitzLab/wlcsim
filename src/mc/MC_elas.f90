@@ -8,13 +8,14 @@
 !
 subroutine MC_eelas(wlc_p,EB,EPAR,EPERP,GAM,ETA)
 ! values from wlcsim_data
-use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V, wlc_DEELAS&
+use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V&
     , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend
 
 use params, only: dp, wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_GAUSS
 use nucleosome, only: nucleosome_energy
 use polydispersity, only: is_right_end, leftmost_from, is_left_end, rightmost_from
+use energies, only: energyOf, bend_, stretch_, shear_, twist_
 
 implicit none
 type(wlcsim_params), intent(in) :: wlc_p
@@ -33,11 +34,7 @@ real(dp) energy_change(4)
 integer ii
 
 ! Setup parameters
-
-wlc_DEELAS(1) = 0.0_dp ! bending energy
-wlc_DEELAS(2) = 0.0_dp ! parallel stretch energy
-wlc_DEELAS(3) = 0.0_dp ! perpendicular stretch energy
-wlc_DEELAS(4) = 0.0_dp ! WLC_P__TWIST energy
+energy_change = 0.0_dp
 
 !     Calculate the change in the energy
 do ii=1,wlc_nBend
@@ -64,41 +61,41 @@ do ii=1,wlc_nBend
             Print*, "This section is out of date"
             print*, "The variable IT2M1 is never used!"
             stop
-            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_RP(:,IT2M1),wlc_RP(:,IT2),wlc_R(:,IT2P1),EB)
-            wlc_DEELAS(1) = wlc_DEELAS(1) - E_wlc(wlc_R(:,IT2M1),wlc_R(:,IT2),wlc_R(:,IT2P1),EB)
+            energyOf(bend_)%dx = energyOf(bend_)%dx - E_wlc(wlc_RP(:,IT2M1),wlc_RP(:,IT2),wlc_R(:,IT2P1),EB)
+            energyOf(bend_)%dx = energyOf(bend_)%dx - E_wlc(wlc_R(:,IT2M1),wlc_R(:,IT2),wlc_R(:,IT2P1),EB)
 
         elseif (wlc_p%SIMTYPE == 2) then
             !function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-            energy_change = E_SSWLC(wlc_RP(:,IT2P1),wlc_RP(:,IT2),&
+            energy_change = energy_change + E_SSWLC(wlc_RP(:,IT2P1),wlc_RP(:,IT2),&
                                                   wlc_UP(:,IT2P1),wlc_UP(:,IT2),&
                                                   EB,EPAR,EPERP,ETA,GAM)
-            wlc_DEELAS = wlc_DEELAS + energy_change
-            energy_change = E_SSWLC(wlc_R(:,IT2P1), wlc_R(:,IT2),&
+            energy_change = energy_change - E_SSWLC(wlc_R(:,IT2P1), wlc_R(:,IT2),&
                                                   wlc_U(:,IT2P1), wlc_U(:,IT2),&
                                                   EB,EPAR,EPERP,ETA,GAM)
-            wlc_DEELAS = wlc_DEELAS - energy_change
 
         elseif (wlc_p%SIMTYPE == 3) then
-            wlc_DEELAS(2) = wlc_DEELAS(2) + E_GAUSS(wlc_R(:,IT2P1),wlc_RP(:,IT2),EPAR)
-            wlc_DEELAS(2) = wlc_DEELAS(2) - E_GAUSS(wlc_R(:,IT2P1), wlc_R(:,IT2),EPAR)
+            energyOf(stretch_)%dx = energyOf(stretch_)%dx + E_GAUSS(wlc_R(:,IT2P1),wlc_RP(:,IT2),EPAR)
+            energyOf(stretch_)%dx = energyOf(stretch_)%dx - E_GAUSS(wlc_R(:,IT2P1), wlc_R(:,IT2),EPAR)
         endif
     elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
-            energy_change = nucleosome_energy(wlc_RP(:,IT2P1),wlc_RP(:,IT2)&
+            energy_change = energy_change + nucleosome_energy(wlc_RP(:,IT2P1),wlc_RP(:,IT2)&
                                             ,wlc_UP(:,IT2P1),wlc_UP(:,IT2)&
                                             ,wlc_VP(:,IT2P1),wlc_VP(:,IT2)&
                                             ,wlc_basepairs(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
-            wlc_DEELAS = wlc_DEELAS + energy_change
-            energy_change = nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
+            energy_change = energy_change - nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
                                             ,wlc_U(:,IT2P1),wlc_U(:,IT2)&
                                             ,wlc_V(:,IT2P1),wlc_V(:,IT2)&
                                             ,wlc_basepairs(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
-            wlc_DEELAS = wlc_DEELAS - energy_change
     endif
 enddo
-
-
+if (wlc_p%SIMTYPE == 2 .or. WLC_P__ELASTICITY_TYPE == "nucleosomes") then
+    energyOf(bend_)%dx = energy_change(1)
+    energyOf(stretch_)%dx = energy_change(2)
+    energyOf(shear_)%dx = energy_change(3)
+    energyOf(twist_)%dx = energy_change(4)
+endif
 RETURN
 END
 

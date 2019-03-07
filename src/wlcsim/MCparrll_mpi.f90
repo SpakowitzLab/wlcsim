@@ -3,23 +3,22 @@
 ! MPI. Thus, only compiled if MPI is available.
 #if MPI_VERSION
 
-subroutine startWorker(wlc_p)
+subroutine startWorker()
 ! values from wlcsim_data
 use params, only: wlc_id, wlc_AB, wlc_rep, wlc_repSuffix, wlc_METH
 use params
 use mpi
-! Override initialization with parallel setup parameters
-!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%MU, wlc_repSuffix
+use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
+! Override initialization with parallel setup parameters energyOf(*_)%cof
     Implicit none
-    type(wlcsim_params), intent(inout) :: wlc_p
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
     integer (kind = 4) id, nThreads
     integer (kind = 4) error  ! error id for MIP functions
     character(MAXFILENAMELEN) iostrg    ! for file naming
     integer ( kind = 4 ) status(MPI_status_SIZE) ! MPI stuff
-    integer, parameter :: nTerms = 10  ! number of energy terms
-    real(dp) cof(nTerms)
+    real(dp) cof(NUMBER_OF_ENERGY_TYPES)
+    integer ii
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,error)
@@ -78,19 +77,13 @@ use mpi
     call MPI_Recv ( wlc_rep, 1, MPI_integer, source, 0, &
       MPI_COMM_WORLD, status, error )
 
-    call MPI_Recv ( cof, nTerms, MPI_doUBLE_PRECISION, source, 0, &
+    call MPI_Recv ( cof, NUMBER_OF_ENERGY_TYPES, MPI_doUBLE_PRECISION, source, 0, &
       MPI_COMM_WORLD, status, error )
 
-    wlc_p%CHI      =cof(1)
-    wlc_p%MU       =cof(2)
-    wlc_p%HA      =cof(3)
-    wlc_p%HP1_BIND =cof(4)
-    wlc_p%KAP      =cof(5)
-    !wlc_p%para(1)  =cof(6) ! eb, eperp, epar
-    !wlc_p%para(2)  =cof(7)
-    !wlc_p%para(3)  =cof(8)
-    wlc_p%CHI_L2   =cof(9)
-    wlc_p%AEF      =cof(10)
+    ! set cof values
+    do ii = 1, NUMBER_OF_ENERGY_TYPES
+        energyOf(ii)%cof = cof(ii)
+    enddo
 
     write(iostrg,"(I4)") wlc_rep
     iostrg = adjustL(iostrg)
@@ -100,125 +93,74 @@ use mpi
     wlc_repSuffix = iostrg
 
 end subroutine
-subroutine replicaExchange(wlc_p)
+subroutine replicaExchange()
 ! values from wlcsim_data
-use params, only: wlc_x_mu, wlc_x_maierSaupe, wlc_mc_ind, wlc_rep, wlc_x_Chi&
-    , wlc_x_kap, wlc_x_Externalfield, wlc_eMaierSaupe, wlc_x_field, wlc_x_chi, wlc_EMu&
-    , wlc_x_ExternalField, wlc_x_Field, wlc_EField, wlc_x_couple, wlc_ECouple, wlc_repSuffix&
-    , wlc_EChi, wlc_EKap, wlc_x_Kap, wlc_eExternalField
+use params, only: wlc_mc_ind, wlc_rep,  wlc_repSuffix
 ! This checks in with the mpi head node to
 ! For parallel tempering of the form:  E = cof*x
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
 ! 3: Recive assigned cof value
-use params, only : wlcsim_params,  dp, MAXFILENAMELEN, epsApprox
+use params, only : dp, MAXFILENAMELEN, epsApprox
 use mpi
+use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
     implicit none
-    integer, parameter :: nTerms = 10  ! number of energy terms
     integer (kind = 4) id, error
-    type(wlcsim_params), intent(inout) :: wlc_p
     integer (kind = 4) dest ! message destination
     integer (kind = 4) source ! message source
     integer (kind = 4) nThreads
     character(MAXFILENAMELEN) iostr ! for handling sufix string
     integer status(MPI_status_SIZE)  ! MPI status
-    real(dp) cof(nTerms)
-    real(dp) chi_Old
-    real(dp) mu_old
-    real(dp) hA_Old
-    real(dp) HP1_Bind_Old
-    real(dp) Kap_Old
-    real(dp) chi_l2_old
-    real(dp) AEF_old
-    real(dp) x(nTerms)
+    real(dp) cof(NUMBER_OF_ENERGY_TYPES)
+    real(dp) cof_old(NUMBER_OF_ENERGY_TYPES)
+    real(dp) x(NUMBER_OF_ENERGY_TYPES)
+    integer ii
 
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nThreads,error)
     if (nThreads.lt.3) return
 
-    x(1) = wlc_x_Chi
-    x(2) = wlc_x_mu
-    x(3) = wlc_x_Field
-    x(4) = wlc_x_couple
-    x(5) = wlc_x_kap
-    x(6) = 0.0_dp !x(6) = wlc_p%EElas(1)/wlc_p%para(1)
-    x(7) = 0.0_dp !x(7) = wlc_p%EElas(2)/wlc_p%para(2)
-    x(8) = 0.0_dp !x(8) = wlc_p%EElas(3)/wlc_p%para(3)
-    x(9) = wlc_x_maierSaupe
-    x(10) = wlc_x_ExternalField
+    do ii = 1,NUMBER_OF_ENERGY_TYPES
+        x(ii) = energyOf(ii)%x  ! package x values for sending
+        cof_old(ii) = energyOf(ii)%cof ! save old cof values for below
+    enddo
 
-    chi_Old = wlc_p%CHI
-    mu_old = wlc_p%MU
-    hA_Old = wlc_p%HA
-    HP1_Bind_Old = wlc_p%HP1_BIND
-    Kap_Old = wlc_p%KAP
-    chi_l2_old = wlc_p%CHI_L2
-    AEF_Old = wlc_p%AEF
-
-    ! send number bound to head node
+    ! send x to head node
     dest = 0
-    call MPI_Send(x,nTerms,MPI_doUBLE_PRECISION,dest,0,MPI_COMM_WORLD,error)
+    call MPI_Send(x,NUMBER_OF_ENERGY_TYPES,MPI_doUBLE_PRECISION,dest,0,MPI_COMM_WORLD,error)
     call MPI_COMM_RANK(MPI_COMM_WORLD,id,error)
     ! send ind to head node
     if (id.eq.1) then
         call MPI_Send(wlc_mc_ind,1,MPI_integer,dest,0,MPI_COMM_WORLD,error)
     endif
-    ! hear back on which replica and it's mu value
+    ! hear back on which replica and it's cof value
     source = 0
     ! get new replica number
     call MPI_Recv(wlc_rep,1,MPI_integer,source,0, &
                   MPI_COMM_WORLD,status,error)
-    ! get new mu value
-    call MPI_Recv(cof,nTerms,MPI_doUBLE_PRECISION,source,0,&
+    ! get new cof value
+    call MPI_Recv(cof,NUMBER_OF_ENERGY_TYPES,MPI_doUBLE_PRECISION,source,0,&
                   MPI_COMM_WORLD,status,error)
 
-    wlc_p%CHI      =cof(1)
-    wlc_p%MU       =cof(2)
-    wlc_p%HA       =cof(3)
-    wlc_p%HP1_BIND =cof(4)
-    wlc_p%KAP      =cof(5)
-    !wlc_p%para(1)  =cof(6)
-    !wlc_p%para(2)  =cof(7)
-    !wlc_p%para(3)  =cof(8)
-    wlc_p%CHI_L2 = cof(9)
-    wlc_p%AEF      =cof(10)
-
-    if (abs(wlc_EChi-wlc_x_chi*chi_old).gt.epsApprox) then
-        print*, "Error in replicaExchange"
-        print*, "wlc_p%EChi",wlc_EChi,"x(1)*CofOld(1)",wlc_x_chi*chi_old
-        stop 1
-    endif
-    if (abs(wlc_eExternalField-AEF_old*wlc_x_ExternalField).gt.epsApprox) then
-        print*, "Error before replicaExchange"
-        print*, "wlc_eExternalField",wlc_eExternalField,"AEF_old*wlc_x_ExternalField",AEF_old*wlc_x_ExternalField
-        print*, "wlc_p%AEF",wlc_p%AEF,"- AEF_old",AEF_old,"=",wlc_p%AEF       -AEF_old
-        print*, "wlc_x_Externalfield",wlc_x_Externalfield
-        stop 1
-    endif
-
-    wlc_EChi    =wlc_EChi    +wlc_x_chi      *(wlc_p%CHI      -chi_old)
-    wlc_EMu     =wlc_EMu     +wlc_x_mu       *(wlc_p%MU       -mu_old)
-    wlc_EField  =wlc_EField  +wlc_x_field    *(wlc_p%HA       -hA_old)
-    wlc_eExternalField  =wlc_eExternalField  +wlc_x_Externalfield    *(wlc_p%AEF       -AEF_old)
-    wlc_ECouple =wlc_ECouple +wlc_x_couple   *(wlc_p%HP1_BIND -HP1_Bind_Old)
-    wlc_EKap    =wlc_EKap    +wlc_x_Kap      *(wlc_p%KAP      -Kap_Old)
-   ! wlc_p%EElas(1) = wlc_p%EElas(1) + x(6)*(Cof(6)-CofOld(6))
-   ! wlc_p%EElas(2) = wlc_p%EElas(2) + x(7)*(Cof(7)-CofOld(7))
-   ! wlc_p%EElas(3) = wlc_p%EElas(3) + x(8)*(Cof(8)-CofOld(8))
-    wlc_eMaierSaupe    =wlc_eMaierSaupe    +wlc_x_maierSaupe*(wlc_p%CHI_L2-chi_l2_old)
-
-    if (abs(wlc_eExternalField-wlc_p%AEF*wlc_x_ExternalField).gt.epsApprox) then
-        print*, "Error in replicaExchange"
-        print*, "wlc_eExternalField",wlc_eExternalField,"wlc_p%AEF*wlc_x_ExternalField)",wlc_p%AEF*wlc_x_ExternalField
-        print*, "wlc_p%AEF",wlc_p%AEF,"- AEF_old",AEF_old,"=",wlc_p%AEF       -AEF_old
-        print*, "wlc_x_Externalfield",wlc_x_Externalfield
-        stop 1
-    endif
-    if (abs(wlc_EChi-wlc_p%CHI*wlc_x_chi).gt.epsApprox) then
-        print*, "Error in replicaExchange"
-        print*, "wlc_p%EChi",wlc_EChi,"x(1)*Cof(1)",wlc_p%CHI*wlc_x_chi
-        stop 1
-    endif
-
+    do ii = 1,NUMBER_OF_ENERGY_TYPES
+        ! update cof
+        energyOf(ii)%cof = cof(ii)
+        ! Verify that the old E=cof*x
+        if (abs(energyOf(ii)%E-energyOf(ii)%x*cof_old(ii)).gt.epsApprox) then
+            print*, "Error in replicaExchange of ", energyOf(ii)%name_str, " before"
+            print*, "E=",energyOf(ii)%E," != x*CofOld",energyOf(ii)%x*cof_old(ii)
+            stop 1
+        endif
+        ! Update energy useing x and change in cof
+        energyOf(ii)%E=energyOf(ii)%E+energyOf(ii)%x*(energyOf(ii)%cof-cof_old(ii))
+        ! Verify that the new E=cof*x
+        if (abs(energyOf(ii)%E-energyOf(ii)%cof*energyOf(ii)%x).gt.epsApprox) then
+            print*, "Error in replicaExchange of ", energyOf(ii)%name_str, " after"
+            print*, "E=",energyOf(ii)%E," but  cof*x)=",energyOf(ii)%cof*energyOf(ii)%x
+            print*, "cof",energyOf(ii)%cof,"- cof_old",cof_old(ii),"=",energyOf(ii)%cof-cof_old(ii)
+            print*, "x",energyOf(ii)%x
+            stop 1
+        endif
+    enddo
     ! change output file sufix
     write(iostr,"(I4)") wlc_rep
     iostr = adjustL(iostr)

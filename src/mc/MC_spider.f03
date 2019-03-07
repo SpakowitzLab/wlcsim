@@ -13,13 +13,14 @@ subroutine MC_spider(MCAMP,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_UP, wlc_RP, wlc_explicitbindingpair, wlc_U, wlc_VP&
     , wlc_spiders, wlc_V, wlc_R, wlc_numberOfSpiders, wlc_nBend, wlc_bendPoints&
-    , wlc_nPointsMoved, wlc_pointsMoved
+    , wlc_nPointsMoved, wlc_pointsMoved, wlc_spider_id, wlc_spider_dr
 
 use mersenne_twister
 use params, only: wlcsim_params,  pi, ERROR_UNIT
 use precision, only: dp, eps
 use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
-                        round_into_pm1, rotateR, rotateU, axisAngle, rotateAintoB, random_perp
+                        round_into_pm1, rotateR, rotateU, axisAngle, &
+                        rotateAintoB, random_perp
 use windowTools, only: drawWindow
 use polydispersity, only: are_on_same_chain
 
@@ -28,11 +29,9 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 logical, intent(out) :: success
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 
-integer spider_id ! which spider
 integer leg_n, I, section_n
 integer irnd(1) ! random intiger
 real(dp) urnd(1) ! single random number
-real(dp) dr(3) ! ranslation
 integer hip, knee, toe
 real(dp) thigh, shin, dold, dnew
 real(dp) dalpha ! amount to rotate shin
@@ -55,18 +54,18 @@ endif
 call random_number(urnd,rand_stat)
 if (WLC_P__PROBABILITY_PRECALC_SPIDER > urnd(1)) then
     call random_index(wlc_numberOfSpiders,irnd,rand_stat)
-    spider_id=irnd(1)
+    wlc_spider_id=irnd(1)
 else
     call drawWindow(WLC_P__SPIDER_WINDOW,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                     IT1,IT2,IB1,IB2,IP,DIB,success)
     if (success .eqv. .false.) return
 
 
-    spider_id=wlc_numberOfSpiders+1
-    wlc_spiders(spider_id)%nSections=1
-    wlc_spiders(spider_id)%nLegs=2
-    wlc_spiders(spider_id)%sections(1,1) = IT1
-    wlc_spiders(spider_id)%sections(2,1) = IT2
+    wlc_spider_id=wlc_numberOfSpiders+1
+    wlc_spiders(wlc_spider_id)%nSections=1
+    wlc_spiders(wlc_spider_id)%nLegs=2
+    wlc_spiders(wlc_spider_id)%sections(1,1) = IT1
+    wlc_spiders(wlc_spider_id)%sections(2,1) = IT2
 
     if (WLC_P__EXPLICIT_BINDING) then
         !  Right Leg
@@ -102,9 +101,9 @@ else
             endif
             toe = otherEnd
         enddo
-        wlc_spiders(spider_id)%legs(1,1) = IT2
-        wlc_spiders(spider_id)%legs(2,1) = knee
-        wlc_spiders(spider_id)%legs(3,1) = toe
+        wlc_spiders(wlc_spider_id)%legs(1,1) = IT2
+        wlc_spiders(wlc_spider_id)%legs(2,1) = knee
+        wlc_spiders(wlc_spider_id)%legs(3,1) = toe
 
         !  Left Leg
         knee = IT1
@@ -139,24 +138,24 @@ else
             endif
             toe = otherEnd
         enddo
-        wlc_spiders(spider_id)%legs(1,2) = IT1
-        wlc_spiders(spider_id)%legs(2,2) = knee
-        wlc_spiders(spider_id)%legs(3,2) = toe
+        wlc_spiders(wlc_spider_id)%legs(1,2) = IT1
+        wlc_spiders(wlc_spider_id)%legs(2,2) = knee
+        wlc_spiders(wlc_spider_id)%legs(3,2) = toe
     else
         knee = IT2+WLC_P__SPIDER_LEG_LENGTH
         toe = knee + WLC_P__SPIDER_LEG_LENGTH
-        wlc_spiders(spider_id)%legs(1,1) = IT2
-        wlc_spiders(spider_id)%legs(2,1) = knee
-        wlc_spiders(spider_id)%legs(3,1) = toe
+        wlc_spiders(wlc_spider_id)%legs(1,1) = IT2
+        wlc_spiders(wlc_spider_id)%legs(2,1) = knee
+        wlc_spiders(wlc_spider_id)%legs(3,1) = toe
 
         knee = IT1-WLC_P__SPIDER_LEG_LENGTH
         toe = knee - WLC_P__SPIDER_LEG_LENGTH
-        wlc_spiders(spider_id)%legs(1,2) = IT1
-        wlc_spiders(spider_id)%legs(2,2) = knee
-        wlc_spiders(spider_id)%legs(3,2) = toe
+        wlc_spiders(wlc_spider_id)%legs(1,2) = IT1
+        wlc_spiders(wlc_spider_id)%legs(2,2) = knee
+        wlc_spiders(wlc_spider_id)%legs(3,2) = toe
     endif
 
-    toe = wlc_spiders(spider_id)%legs(3,1)
+    toe = wlc_spiders(wlc_spider_id)%legs(3,1)
     if (.not. are_on_same_chain(toe,IT2)) then ! is on a different polyme
         success = .False.
         return
@@ -165,9 +164,9 @@ else
         success = .False.
         return
     endif
-    wlc_spiders(spider_id)%moved_sections(2,1) = toe
+    wlc_spiders(wlc_spider_id)%moved_sections(2,1) = toe
 
-    toe = wlc_spiders(spider_id)%legs(3,2)
+    toe = wlc_spiders(wlc_spider_id)%legs(3,2)
     if (.not. are_on_same_chain(toe,IT1)) then
         success = .False.
         return
@@ -180,27 +179,27 @@ else
         success = .False.
         return
     endif
-    wlc_spiders(spider_id)%moved_sections(1,1) = toe
+    wlc_spiders(wlc_spider_id)%moved_sections(1,1) = toe
 
 
 endif
 
 
 ! choose random offset.  Here we use p~r^(-2) between 0 and MCAMP
-call randomUnitVec(dr,rand_stat)
+call randomUnitVec(wlc_spider_dr,rand_stat)
 call random_number(urnd,rand_stat)
-dr=dr*urnd(1)*MCAMP
+wlc_spider_dr=wlc_spider_dr*urnd(1)*MCAMP
 
 ! check to see if all legs will reach
-do leg_n = 1,wlc_spiders(spider_id)%nLegs
-    hip = wlc_spiders(spider_id)%legs(1,leg_n)
-    knee= wlc_spiders(spider_id)%legs(2,leg_n)
-    toe = wlc_spiders(spider_id)%legs(3,leg_n)
+do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
+    hip = wlc_spiders(wlc_spider_id)%legs(1,leg_n)
+    knee= wlc_spiders(wlc_spider_id)%legs(2,leg_n)
+    toe = wlc_spiders(wlc_spider_id)%legs(3,leg_n)
     hipR=wlc_R(:,hip)
     kneeR=wlc_R(:,knee)
     toeR=wlc_R(:,toe)
     ! check triangle inequlity
-    extent=hipR+dr
+    extent=hipR+wlc_spider_dr
     if (distance(hipR,kneeR)+distance(kneeR,toeR) < distance(extent,toeR)) then
         success = .FALSE.
         return
@@ -209,8 +208,8 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
         success = .FALSE.
         return
     endif
-    ! make sure dr>0
-    if (norm2(dr)<eps) then
+    ! make sure wlc_spider_dr>0
+    if (norm2(wlc_spider_dr)<eps) then
         success = .False.
         return
     endif
@@ -218,20 +217,22 @@ enddo
 success= .TRUE.
 
 ! Record which points are moved
-do section_n=1,wlc_spiders(spider_id)%nSections
-   IT1 = wlc_spiders(spider_id)%moved_sections(1,section_n)
-   IT2 = wlc_spiders(spider_id)%moved_sections(2,section_n)
-   do I = IT1, IT2  ! +1 and -1 because toes don't move
+do section_n=1,wlc_spiders(wlc_spider_id)%nSections
+   IT1 = wlc_spiders(wlc_spider_id)%moved_sections(1,section_n)
+   IT2 = wlc_spiders(wlc_spider_id)%moved_sections(2,section_n)
+   do I = IT1, IT2
+       ! Could do  IT1+1,IT2-1 because toes don't move
+       ! except that sometimes it doesn't end on a toe
        wlc_nPointsMoved=wlc_nPointsMoved+1
        wlc_pointsMoved(wlc_nPointsMoved)=I
    enddo
 enddo
 
 ! move legs
-do leg_n = 1,wlc_spiders(spider_id)%nLegs
-    hip = wlc_spiders(spider_id)%legs(1,leg_n)
-    knee= wlc_spiders(spider_id)%legs(2,leg_n)
-    toe = wlc_spiders(spider_id)%legs(3,leg_n)
+do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
+    hip = wlc_spiders(wlc_spider_id)%legs(1,leg_n)
+    knee= wlc_spiders(wlc_spider_id)%legs(2,leg_n)
+    toe = wlc_spiders(wlc_spider_id)%legs(3,leg_n)
     if (toe>hip) then
         ! note that U(knee) doesn't rotate strictly with either segment
         wlc_nBend=wlc_nBend+1
@@ -265,7 +266,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
 
     rold = hipR-toeR
     dold = norm2(rold)
-    rnew = hipR+dr-toeR
+    rnew = hipR+wlc_spider_dr-toeR
     dnew = norm2(rnew)
 
     if (dold<=eps) then
@@ -331,9 +332,9 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     temp = wlc_RP(:,toe)
 
     !Check toe stayed in the sampe place
-    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps ) then
-        print*, "Broken toe in spider move"
-        stop 1
+    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps .and. WLC_P__WARNING_LEVEL >= 1) then
+        write(ERROR_UNIT,*) "Broken toe in spider move"
+        write(ERROR_UNIT,*) "value", distance(wlc_RP(:,toe),wlc_R(:,toe))
     endif
 
     ! angle to rotate thigh
@@ -345,7 +346,8 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     temp = temp + rinter - rold
 
     ! Check knee
-    if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps ) then
+    if ( distance(wlc_RP(:,knee),temp) > 100.0_dp*eps .and. WLC_P__WARNING_LEVEL >= 1) then
+        write(ERROR_UNIT,*) "---------------------"
         write(ERROR_UNIT,*) "randomBend",randomBend
         write(ERROR_UNIT,*) "swing past", swing_past
         write(ERROR_UNIT,*) "hip",hip,"knee",knee,"toe",toe
@@ -362,7 +364,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
         write(ERROR_UNIT,*) "cross", cross(extent3,extent2)
         write(ERROR_UNIT,*) "shin",shin
         write(ERROR_UNIT,*) "thigh",thigh
-        write(ERROR_UNIT,*) "dr",dr
+        write(ERROR_UNIT,*) "wlc_spider_dr",wlc_spider_dr
         write(ERROR_UNIT,*) "dalpha",dalpha
         write(ERROR_UNIT,*) "dbeta",dbeta
         write(ERROR_UNIT,*) "before", angle_of_triangle(thigh,shin,dold)
@@ -377,6 +379,7 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
         write(ERROR_UNIT,*) "direction", direction
         write(ERROR_UNIT,*) "norm(direction)", norm2(direction)
         write(ERROR_UNIT,*) "Broken knee"
+        write(ERROR_UNIT,*) "---------------------"
     endif
 
     ! rotate thigh
@@ -409,28 +412,44 @@ do leg_n = 1,wlc_spiders(spider_id)%nLegs
     endif
 
     !Check toe stayed in the sampe place
-    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps ) then
-        print*, "Broken toe in second half of spider move"
-        stop 1
+    if ( distance(wlc_RP(:,toe),wlc_R(:,toe)) > eps .and. WLC_P__WARNING_LEVEL >=1) then
+        write(ERROR_UNIT,*) "---------------------"
+        write(ERROR_UNIT,*) "Broken toe in second half of spider move"
+        write(ERROR_UNIT,*) "wlc_spider_id",wlc_spider_id,"wlc_spider_dr",wlc_spider_dr
+        write(ERROR_UNIT,*) "leg_n",leg_n
+        write(ERROR_UNIT,*) "value", distance(wlc_RP(:,toe),wlc_R(:,toe))
+        call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
+        write(ERROR_UNIT,*) "---------------------"
     endif
+    wlc_RP(:,toe) = wlc_R(:,toe) ! correct roundoff error, toe doesn't move
+    wlc_UP(:,toe) = wlc_U(:,toe) ! correct roundoff error, toe doesn't move
+
     ! chack to make sure hip moved the correct amount
-    extent = hipR+dr
-    if ( distance(wlc_RP(:,hip),extent) > eps ) then
-        print*, "Broken hip"
+    extent = hipR+wlc_spider_dr
+    if ( distance(wlc_RP(:,hip),extent) > eps .and. WLC_P__WARNING_LEVEL >=1) then
+        write(ERROR_UNIT,*) "---------------------"
+        write(ERROR_UNIT,*) "Broken hip"
+        write(ERROR_UNIT,*) "wlc_spider_id",wlc_spider_id,"wlc_spider_dr",wlc_spider_dr
+        write(ERROR_UNIT,*) "extent",extent
+        write(ERROR_UNIT,*) "leg_n",leg_n
+        write(ERROR_UNIT,*) "value", distance(wlc_RP(:,hip),extent)
+        call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
+        write(ERROR_UNIT,*) "---------------------"
     endif
+    wlc_RP(:,hip) = extent ! correct roundoff error
 
 enddo
 
 ! translate sections
-do section_n = 1,wlc_spiders(spider_id)%nSections
-    do I = wlc_spiders(spider_id)%sections(1,section_n), &
-           wlc_spiders(spider_id)%sections(2,section_n)
-        wlc_RP(:,I) = wlc_R(:,I) + dr
+do section_n = 1,wlc_spiders(wlc_spider_id)%nSections
+    do I = wlc_spiders(wlc_spider_id)%sections(1,section_n), &
+           wlc_spiders(wlc_spider_id)%sections(2,section_n)
+        wlc_RP(:,I) = wlc_R(:,I) + wlc_spider_dr
         wlc_UP(:,I) = wlc_U(:,I)
         if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
     enddo
 enddo
 
-!call MC_discribe_spider(spider_id,dr)
+!call MC_discribe_spider(wlc_spider_id,wlc_spider_dr)
 
 end subroutine

@@ -1,4 +1,21 @@
+"""Simulate stocatic positioning of loop extrussion factors.
 
+This module implements a Gillespie algorithm to simulate positioning of
+loop extrusion factors on a chromatin chain.
+
+Example:
+    beadsPerLoop = 500
+    processivity = 500.0
+    nloops = int(np.floor(L/beadsPerLoop))
+    chain = loopSim.LoopExtrusionChain(L, nloops, CTCF_file)
+
+    forward_rate = 1.0
+    reverse_rate = 0.0
+    falloff_rate = (forward_rate-reverse_rate)/processivity
+    delta_t = 20.0/falloff_rate
+    chain.run_for_time(delta_t, forward_rate, reverse_rate,
+                           falloff_rate)
+"""
 import random
 import numpy as np
 
@@ -50,17 +67,21 @@ class LoopExtrusionChain:
         reverse_moves (:obj:`list` of :obj:`tuple` of :obj:`int`): Each element
             is of the form (cohesin index, foot)
         beads (:obj:`list`): None if no foot is on that bead
-        blocks (:obj:`list`): -1 for block left feet, +1 for block right feet
+        blocks (:obj:`list`): -1 for block left feet, +1 for block right feet, 2 for both
     """
-    def __init__(self, nbeads, ncohesin=None):
+    def __init__(self, nbeads, ncohesin=None, CTCF_file=None):
         """ Create a chain with nbeads beads
 
         Args:
             nbeads (int): Number of beads in chain
             ncohesin (int, optional): Number of cohesin to insert
+            CTCF_file (str, optional): File name of CTCF locations, see
+                load_CTCF_file
         """
         self.beads = [None] * nbeads
         self.blocks = [None] * nbeads
+        if type(CTCF_file) != type(None):
+            self.load_CTCF_file(CTCF_file)
         self.forward_moves = []
         self.reverse_moves = []
         self.cohesins = []
@@ -68,6 +89,38 @@ class LoopExtrusionChain:
             return
         for ii in range(ncohesin):
             self.add_cohesin()
+
+    def load_CTCF_file(self,file_name):
+        """Load CTCF locations from text file.
+
+        """
+        nbeads = len(self.beads)
+        if not hasattr(self, 'blocks'):
+            self.blocks = [None] * nbeads
+
+        with open(file_name) as f:
+            for line in f:
+                cols = line.split()
+                try:
+                    index = int(cols[0])
+                except ValueError:
+                    raise ValueError(
+                        "Expected int in first column of CTCF file, got "
+                         + cols[0])
+                direction = cols[1]
+                if direction in [">", "0", "L"]:
+                    # Forward CTCF motif, prevents leftward motion
+                    # 5'- CCACNAGGTGGCAG - 3'
+                    self.blocks[index] = 0
+                elif direction in ["<", "1", "R"]:
+                    # Reverse CTCF motif, prevents rightward motion
+                    # 5' - CTGCCACCTNGTGG - 3'
+                    self.blocks[index] = 1
+                elif direction in ["x", "2", "B"]:
+                    # Both CTCF motif dicrections on same bead
+                    self.blocks[index] = 2
+                else:
+                    raise ValueError(direction+" is not a valid direction")
 
     def check_consistancy(self):
         """Does internal check to see if structure is self consistant.
@@ -148,9 +201,12 @@ class LoopExtrusionChain:
             if self.blocks[ii]==0:
                 indexes.append(ii)
                 cohesin.append(">")
-            if self.blocks[ii]==1:
+            elif self.blocks[ii]==1:
                 indexes.append(ii)
                 cohesin.append("<")
+            elif self.blocks[ii]==2:
+                indexes.append(ii)
+                cohesin.append("x")
         iostr = ""
 
         for ii in range(len(cohesin)-1):
@@ -217,7 +273,7 @@ class LoopExtrusionChain:
             return False
         if (self.beads[bead] != None):
             return False
-        if (LR == self.blocks[bead]):
+        if (LR == self.blocks[bead] or self.blocks[bead]==2):
             return False
         return True
 
@@ -273,12 +329,25 @@ class LoopExtrusionChain:
         # remove the duplicate from the end of the list
         del self.reverse_moves[-1]
 
-
+    def is_motion_blocked(self, from_bead, to_bead):
+        if self.blocks[to_bead] == None:
+            return False
+        if from_bead<to_bead and self.blocks[to_bead] == 1:
+            return True
+        if from_bead>to_bead and self.blocks[to_bead] == 0:
+            return True
+        if self.blocks[to_bead] == 2:
+            return True
+        return False
 
     def prevent_motion(self,from_bead,to_bead):
         """Prevents feet from moving from from_bead to to_bead.
         Edits: self.cohesins, self.forward_moves, self.reverse_moves
         """
+        if self.is_motion_blocked(from_bead, to_bead):
+            # Check to see if move is already blocked
+            return
+
         to_stop = self.cohesin_located_at(from_bead)
         if (to_stop != None):
             # The cohesin you ran into can move
@@ -293,9 +362,14 @@ class LoopExtrusionChain:
                 self.cohesins[coh_ind_other].rev_ind[foot_other]=None
 
     def allow_motion(self,from_bead,to_bead):
-        """Allos feet to move from from_bead to to_bead.
+        """Allows feet to move from from_bead to to_bead.
+        Still doesn't allow if blocked by bloks.
         Edits: self.cohesins, self.forward_moves, self.reverse_moves
         """
+        if self.is_motion_blocked(from_bead, to_bead):
+            # can't allow because of block
+            return
+
         # Motion of a cohesin may allow another to move to follow it
         freed = self.cohesin_located_at(from_bead)
         if (freed != None):
@@ -341,7 +415,7 @@ class LoopExtrusionChain:
             self.beads[left] = (cohesin_ind,0)
             self.beads[right] = (cohesin_ind,1)
 
-            # Can the input feet move forward?  (They can move backward.)
+            # Can the input feet move forward?  (They can't move backward.)
             if self.is_available(left-1,LR=0):
                 my_cohesin.for_ind[0] = len(self.forward_moves)
                 self.forward_moves.append((cohesin_ind,0))
@@ -522,4 +596,5 @@ class LoopExtrusionChain:
             t=t+dt
             self.makeMove(rate_forward, rate_reverse, rate_falloff,
                           rtotal=total_rate)
+
 

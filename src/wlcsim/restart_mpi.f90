@@ -2,17 +2,18 @@
 #if MPI_VERSION
 subroutine pt_restart(wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix, wlc_EKap, wlc_rep&
-    , wlc_EElas, wlc_ECouple, wlc_EChi, wlc_EField, wlc_ebind, wlc_MCAMP&
-    , wlc_x_Mu, wlc_x_Field, wlc_x_Chi, wlc_U, wlc_R, wlc_id&
-    , wlc_x_Kap, wlc_mc_ind, wlc_x_Couple, wlc_AB, wlc_eMu
+use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix,  wlc_rep&
+    , wlc_MCAMP&
+    , wlc_U, wlc_R, wlc_id&
+    , wlc_mc_ind, wlc_AB 
+use energies
 ! Takes wlcsim_params and wlcsim_data and restarts the MPI workers for running
 ! parallel-tempered MC simulations.
 !
 ! This function takes the place of PT_override in the case of restart
 ! This will read from a output directory and restart multiple replicas
 ! Override initialization with parallel setup parameters
-!  In particualar it changes: wlc_p%AB, wlc_p%rep, wlc_p%MU, wlc_p%repSuffix
+!  In particualar it changes: wlc_p%AB, wlc_p%rep, energyOf(mu_)%cof, wlc_p%repSuffix
     use mpi
     use params
     Implicit none
@@ -68,20 +69,20 @@ use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix, wlc_EKap, wlc_rep&
                              temp(15), temp(16)
         if (ios.eq.0) then
             wlc_mc_ind = nint(temp(1))
-            wlc_EElas(1) = temp(3)
-            wlc_EElas(2) = temp(4)
-            wlc_EElas(3) = temp(5)
-            wlc_ECouple = temp(6)
-            wlc_EKap = temp(7)
-            wlc_EChi = temp(8)
-            wlc_EField = temp(9)
-            wlc_ebind = temp(10)
-            wlc_x_Mu = temp(11)
-            wlc_p%HP1_BIND = temp(12)
-            wlc_p%CHI = temp(13)
-            wlc_p%MU = temp(14)
-            wlc_p%KAP = temp(15)
-            wlc_p%HA = temp(16)
+            energyOf(bend_)%E = temp(3)
+            energyOf(stretch_)%E = temp(4)
+            energyOf(shear_)%E = temp(5)
+            energyOf(couple_)%E = temp(6)
+            energyOf(kap_)%E = temp(7)
+            energyOf(chi_)%E = temp(8)
+            energyOf(field_)%E = temp(9)
+            energyOf(bind_)%E = temp(10)
+            energyOf(mu_)%x = temp(11)
+            energyOf(couple_)%cof = temp(12)
+            energyOf(chi_)%cof = temp(13)
+            energyOf(mu_)%cof = temp(14)
+            energyOf(kap_)%cof = temp(15)
+            energyOf(field_)%cof = temp(16)
             ! x_ms
             ! chi_l2
             ! E_mu
@@ -93,20 +94,20 @@ use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix, wlc_EKap, wlc_rep&
     print*, "first set from file", iostrg
     print*, temp
     ! not sure if the following if statments are necessary
-    if (wlc_p%CHI.ne.0.0) then
-        wlc_x_Chi = wlc_EChi/wlc_p%CHI
+    if (energyOf(chi_)%cof.ne.0.0) then
+        energyOf(chi_)%x = energyOf(chi_)%E/energyOf(chi_)%cof
     endif
-    if (wlc_p%CHI.ne.0.0) then
-        wlc_x_Couple = wlc_ECouple/wlc_p%HP1_BIND
+    if (energyOf(chi_)%cof.ne.0.0) then
+        energyOf(couple_)%x = energyOf(couple_)%E/energyOf(couple_)%cof
     endif
-    if (wlc_p%KAP.ne.0) then
-        wlc_x_Kap = wlc_EKap/wlc_p%KAP
+    if (energyOf(kap_)%cof.ne.0) then
+        energyOf(kap_)%x = energyOf(kap_)%E/energyOf(kap_)%cof
     endif
-    if (wlc_x_Field.ne.0.0) then
-        wlc_x_Field = wlc_EField/wlc_p%HA
+    if (energyOf(field_)%x.ne.0.0) then
+        energyOf(field_)%x = energyOf(field_)%E/energyOf(field_)%cof
     endif
-    if (wlc_p%MU.ne.0.0) then
-        wlc_x_Mu = wlc_eMu/wlc_p%MU
+    if (energyOf(mu_)%cof.ne.0.0) then
+        energyOf(mu_)%x = energyOf(mu_)%E/energyOf(mu_)%cof
     endif
 
     ! read back in addaptation stuff, May make slight difference
@@ -181,11 +182,11 @@ use params, only: wlc_WindoW, wlc_PHIT, wlc_repSuffix, wlc_EKap, wlc_rep&
     close(5)
 
     ! Let head node know what cof values you read
-    cof(1) = wlc_p%CHI
-    cof(2) = wlc_p%MU
-    cof(3) = wlc_p%HA
-    cof(4) = wlc_p%HP1_BIND
-    cof(5) = wlc_p%KAP
+    cof(1) = energyOf(chi_)%cof
+    cof(2) = energyOf(mu_)%cof
+    cof(3) = energyOf(field_)%cof
+    cof(4) = energyOf(couple_)%cof
+    cof(5) = energyOf(kap_)%cof
     cof(6) = 0
     cof(7) = 0
     cof(8) = 0

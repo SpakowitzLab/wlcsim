@@ -80,6 +80,8 @@ endif
             wlc_RP(:,I)=wlc_R(:,I)
             wlc_UP(:,I)=wlc_U(:,I)
             if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            wlc_nPointsMoved=wlc_nPointsMoved+1
+            wlc_pointsMoved(wlc_nPointsMoved)=I
         endif
     else
         ! pivot right end of chain
@@ -104,6 +106,8 @@ endif
             wlc_RP(:,I)=wlc_R(:,I)
             wlc_UP(:,I)=wlc_U(:,I)
             if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+            wlc_nPointsMoved=wlc_nPointsMoved+1
+            wlc_pointsMoved(wlc_nPointsMoved)=I
         endif
     endif
 

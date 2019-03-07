@@ -65,6 +65,8 @@ if (IB1>1) then
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 endif
 if (.not. is_right_end(IT2)) then
     wlc_nBend = wlc_nBend + 1
@@ -73,6 +75,8 @@ if (.not. is_right_end(IT2)) then
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
 endif
 ! Move Explicity Bound points along with they are bound to
 if (WLC_P__EXPLICIT_BINDING) then
@@ -87,8 +91,10 @@ if (WLC_P__EXPLICIT_BINDING) then
         wlc_RP(:,I)=wlc_R(:,I) + DR
         wlc_UP(:,I)=wlc_U(:,I)
         if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-        wlc_nPointsMoved=wlc_nPointsMoved+1
-        wlc_pointsMoved(wlc_nPointsMoved)=otherEnd
+        if (isnan(wlc_RP(1,I))) then
+            wlc_nPointsMoved=wlc_nPointsMoved+1
+            wlc_pointsMoved(wlc_nPointsMoved)=I
+        endif
         ! Add ajacent points to RP and bendPoints
         if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
             if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd)) then
@@ -100,6 +106,8 @@ if (WLC_P__EXPLICIT_BINDING) then
                 wlc_RP(:,I)=wlc_R(:,I)
                 wlc_UP(:,I)=wlc_U(:,I)
                 if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+                wlc_nPointsMoved=wlc_nPointsMoved+1
+                wlc_pointsMoved(wlc_nPointsMoved)=I
             endif
         endif
         if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
@@ -112,6 +120,8 @@ if (WLC_P__EXPLICIT_BINDING) then
                 wlc_RP(:,I)=wlc_R(:,I)
                 wlc_UP(:,I)=wlc_U(:,I)
                 if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+                wlc_nPointsMoved=wlc_nPointsMoved+1
+                wlc_pointsMoved(wlc_nPointsMoved)=I
             endif
         endif
     enddo

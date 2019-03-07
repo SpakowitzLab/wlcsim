@@ -14,9 +14,10 @@
 
 subroutine MC_explicit_binding()
 ! values from wlcsim_data
-use params, only: wlc_DEExplicitBinding, wlc_R, wlc_RP, &
+use params, only: wlc_R, wlc_RP, &
     wlc_ExplicitBindingPair,  wlc_nPointsMoved, wlc_pointsMoved
 use params, only:  dp
+use energies, only: energyOf, explicitBinding_
 implicit none
 
 !   Internal variables
@@ -25,7 +26,7 @@ integer ii,jj
 integer otherEnd
 real(dp) r(3)
 
-wlc_DEExplicitBinding = 0.0_dp
+energyOf(explicitBinding_)%dx = 0.0_dp
 
 
 do jj = 1,wlc_nPointsMoved
@@ -40,25 +41,24 @@ do jj = 1,wlc_nPointsMoved
         if (otherEnd .le. ii) cycle ! don't doule count
         r = wlc_RP(:,ii) - wlc_RP(:,otherEnd)
     endif
-    wlc_DEExplicitBinding = wlc_DEExplicitBinding + &
-        WLC_P__EXPLICIT_BIND_ENERGY*(r(1)**2 + r(2)**2 + r(3)**2 )
+    energyOf(explicitBinding_)%dx = energyOf(explicitBinding_)%dx + &
+                                      (r(1)**2 + r(2)**2 + r(3)**2 )
 
     ! minus old
     r = wlc_R(:,ii) - wlc_R(:,otherEnd)
-    wlc_DEExplicitBinding = wlc_DEExplicitBinding - &
-        WLC_P__EXPLICIT_BIND_ENERGY*(r(1)**2 + r(2)**2 + r(3)**2 )
+    energyOf(explicitBinding_)%dx = energyOf(explicitBinding_)%dx - &
+                                      (r(1)**2 + r(2)**2 + r(3)**2 )
 
 enddo
-
-
 RETURN
 END
 
 !---------------------------------------------------------------!
 subroutine MC_explicit_binding_from_scratch()
 ! values from wlcsim_data
-use params, only: wlc_DEExplicitBinding, wlc_R, wlc_ExplicitBindingPair
+use params, only: wlc_R, wlc_ExplicitBindingPair
 use params, only:  dp
+use energies, only: energyOf, explicitBinding_
 implicit none
 
 !   iputs
@@ -69,7 +69,7 @@ integer ii
 integer otherEnd
 real(dp) r(3)
 
-wlc_DEExplicitBinding = 0.0_dp
+energyOf(explicitBinding_)%dx = 0.0_dp
 
 do ii = 1,WLC_P__NT
     otherEnd = wlc_ExplicitBindingPair(ii)
@@ -81,12 +81,9 @@ do ii = 1,WLC_P__NT
 
     ! plus new
     r = wlc_R(:,ii) - wlc_R(:,otherEnd)
-    wlc_DEExplicitBinding = wlc_DEExplicitBinding + &
-        WLC_P__EXPLICIT_BIND_ENERGY*(r(1)**2 + r(2)**2 + r(3)**2 )
-
+    energyOf(explicitBinding_)%dx = energyOf(explicitBinding_)%dx + &
+                                     (r(1)**2 + r(2)**2 + r(3)**2 )
 enddo
-
-
 RETURN
 END
 

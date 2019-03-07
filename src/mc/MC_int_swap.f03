@@ -11,11 +11,12 @@
 !---------------------------------------------------------------!
 subroutine MC_int_swap(wlc_p,I1,I2,I3,I4)
 ! values from wlcsim_data
-use params, only: wlc_UP, wlc_DPHIA, wlc_DEKap, wlc_RP, wlc_NPHI&
+use params, only: wlc_UP, wlc_DPHIA, wlc_RP, wlc_NPHI&
     , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI&
     , wlc_ind_in_list
 use params,only:dp,wlcsim_params
 use polydispersity, only: length_of_chain_containing
+use energies, only: energyOf, kap_
 implicit none
 
 TYPE(wlcsim_params), intent(inout) :: wlc_p   ! <---- Contains output
@@ -156,9 +157,9 @@ do IB = I1,I2
 enddo ! loop over IB  A.k.a. beads
 call hamiltonian(wlc_p,.false.)
 
-if (abs(wlc_DEKap).gt.0.0001_dp) then
+if (abs(energyOf(kap_)%dx).gt.0.0001_dp) then
     print*, "Error in MC_int_swap.  Kappa energy shouldn't change on move 9"
-    print*, "DEKap", wlc_DEKap
+    print*, "DEKap", energyOf(kap_)%dx
     stop 1
 endif
 RETURN

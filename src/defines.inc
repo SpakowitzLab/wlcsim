@@ -9,6 +9,11 @@
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__WARNING_LEVEL 1
+! VARIABLE COMMENT: ! 0 = no warnings, 1 = moderate performance impact, 2 = considerable slowdown
+! DEFAULTS COMMENT: !
+! TYPE: INTEGER
+
 #define WLC_P__RING .FALSE.
 ! VARIABLE COMMENT: ! whether the polymer is a ring
 ! DEFAULTS COMMENT: ! not a ring by default
@@ -25,6 +30,11 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CONFINETYPE 'NONE'
+! VARIABLE COMMENT: ! type of Boundary Conditions
+! DEFAULTS COMMENT: ! based on geometery of current problem
+! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__BOUNDARY_TYPE "SolidEdgeBin"
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -123,6 +133,11 @@
 ! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic"
 ! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__APPLY_2body_potential .FALSE.
+! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
 
 #define WLC_P__EXPLICIT_BINDING .FALSE.
 ! VARIABLE COMMENT: ! Include specific interactions between specified beads
@@ -254,6 +269,11 @@
 #define WLC_P__MAX_BACEPAIRS_PER_BEAD 350
 ! VARIABLE COMMENT: ! Number of spheres
 ! DEFAULTS COMMENT: ! 203 linker + 147 wrap
+! TYPE: INTEGER
+
+#define WLC_P__N_EXTERNAL_BIND_POINTS 10
+! VARIABLE COMMENT: ! number of points bound to boundary
+! DEFAULTS COMMENT: ! 0 for off
 ! TYPE: INTEGER
 
 ! ----------------------------
@@ -444,6 +464,16 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: REAL(DP)
 
+#define WLC_P__Amplitude2beadPotential 3.0_DP
+! VARIABLE COMMENT: ! Amplitude of two body potential
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
+! VARIABLE COMMENT: ! Amplitude of two body potential
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Time / steps variables
@@ -579,6 +609,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+# define WLC_P__ENSEMBLE_METH .FALSE.
+! VARIABLE COMMENT: ! set but not parrallel temered
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__PT_TWIST .FALSE.
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper linking number (twist) by default
@@ -614,9 +649,14 @@
 ! DEFAULTS COMMENT: ! don't parallel temper maier Saupe by default
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_AEF .TRUE.
+#define WLC_P__PT_AEF .FALSE.
 ! VARIABLE COMMENT: ! parallel temper over external applied field
 ! DEFAULTS COMMENT: ! don't parallel temper h by default
+! TYPE: LOGICAL
+
+#define WLC_P__PT_A2B .FALSE.
+! VARIABLE COMMENT: ! parallel temper two body interaction
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000

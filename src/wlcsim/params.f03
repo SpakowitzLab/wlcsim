@@ -81,24 +81,12 @@ module params
         real(dp) xiu    ! rotational drag
         real(dp) eps      ! number of kuhn lengths between beads
         real(dp) del      ! number of persistence lengths between beads
-        real(dp) chi      ! Chi parameter value (solvent-polymer) (Flory-Huggins separation constant (how much A/B's hate each))
-        real(dp) chi_l2   ! maier saupe parameter (possibly multiplied by 4pi or something like that)
-        real(dp) kap      ! Incompressibility parameter of the melt
         real(dp) lhc    !TOdo something to do with intrapolymer interaction strength
         real(dp) vhc    !TOdo something to do with intrapolymer interaction strength, fill in defaults, etc
         real(dp) eb     ! effective bending energy for ssWLC
         real(dp) eperp  ! effective shearing energy for ssWLC
         real(dp) epar   ! effective stretch energy for ssWLC
         real(dp) etwist
-
-    !   for passing 1st order phase transition in (quinn/shifan's) random copolymer wlc_p sims
-        real(dp) hA       ! strength of applied sinusoidal field (used in PT to step around 1st order phase transition)
-        real(dp) AEF      ! strength of applied external field
-        real(dp) rend   ! initial end-to-end distance (if applicable in initialization)
-
-    !   for simulating chromatin methylation
-        real(dp) HP1_Bind ! Energy of binding of HP1 to eachother
-        real(dp) mu       ! chemical potential of HP1
 
     !   boundary/box things
         integer NBin     ! Number of bins
@@ -124,10 +112,6 @@ module params
         logical field_int_on_currently ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical chi_l2_on
 
-    !   parallel Tempering parameters
-
-    !   Replica Dynamic Cof choice
-
     end type
 
     real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj
@@ -138,10 +122,12 @@ module params
     real(dp), allocatable, dimension(:,:):: wlc_UP !Test target vectors - only valid from IT1 to IT2
     real(dp), allocatable, dimension(:,:):: wlc_VP !Test target vectors - only valid from IT1 to IT2
     integer, allocatable, dimension(:):: wlc_ExplicitBindingPair ! List of other points bound to this one
+    logical, allocatable, dimension(:):: wlc_external_bind_points ! Random points attached to boundary
     real(dp), allocatable, dimension(:):: wlc_PHIA ! Volume fraction of A
     real(dp), allocatable, dimension(:):: wlc_PHIB ! Volume fraction of B
     real(dp), allocatable, dimension(:,:):: wlc_PHI_l2 ! l=2 oreientational field
-    real(dp), allocatable, dimension(:):: wlc_PHIH ! Quinn's sinusoidal field for passing 1st order phase transitions
+    real(dp), allocatable, dimension(:):: wlc_PHIH ! Applied field in hamiltonian
+    real(dp), allocatable, dimension(:,:):: wlc_PHIH_L2 ! Applied field in hamiltonian
     real(dp), allocatable, dimension(:):: wlc_Vol  ! Volume fraction of A
     integer, allocatable, dimension(:):: wlc_AB    ! Chemical identity of beads
     integer, allocatable, dimension(:):: wlc_ABP   ! Test Chemical identity of beads
@@ -156,6 +142,8 @@ module params
     real(dp) :: wlc_wr
     type(spider), allocatable, dimension(:) :: wlc_spiders ! spiders based on polymer network
     integer wlc_numberOfSpiders
+    integer wlc_spider_id
+    real(dp) wlc_spider_dr(3)
 
     type(binType) wlc_bin ! Structure for keeping track of neighbors
 
@@ -175,41 +163,6 @@ module params
     integer wlc_successTOTAL(nMoveTypes)               !Total number of successes
     real(dp) wlc_PHit(nMoveTypes) ! hit rate
 
-    !   Energys
-    real(dp) wlc_eElas(4) ! Elastic energy
-    real(dp) wlc_eChi     ! CHI energy
-    real(dp) wlc_eKap     ! KAP energy
-    real(dp) wlc_eCouple  ! Coupling
-    real(dp) wlc_eBind    ! binding energy
-    real(dp) wlc_eMu      ! Chemical potential energy
-    real(dp) wlc_eField   ! Field energy
-    real(dp) wlc_eExternalField   ! Field energy
-    real(dp) wlc_eSelf    ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
-    real(dp) wlc_eMaierSaupe ! Maier Saupe energy
-    real(dp) wlc_eExplicitBinding
-
-    !   Congigate Energy variables (needed to avoid NaN when cof-> 0 in rep exchange)
-    real(dp) wlc_x_Chi,   wlc_dx_Chi
-    real(dp) wlc_x_Couple,wlc_dx_Couple
-    real(dp) wlc_x_Kap,   wlc_dx_Kap
-    real(dp) wlc_x_Field, wlc_dx_Field
-    real(dp) wlc_x_ExternalField, wlc_dx_ExternalField
-    real(dp) wlc_x_Mu,    wlc_dx_Mu
-    real(dp) wlc_x_maierSaupe, wlc_dx_maierSaupe ! Maier Saupe energy / chi_l2
-
-    !   Move Variables
-    real(dp) wlc_DEELAS(4) ! Change in bending energy
-    real(dp) wlc_DECouple ! Coupling energy
-    real(dp) wlc_DEChi    ! chi interaction energy
-    real(dp) wlc_DEKap    ! compression energy
-    real(dp) wlc_Debind   ! Change in binding energy
-    real(dp) wlc_DEMu   ! Change in binding energy
-    real(dp) wlc_DEField  ! Change in field energy
-    real(dp) wlc_DEExternalField  ! Change in field energy
-    real(dp) wlc_DESelf   ! change in self interaction energy
-    real(dp) wlc_DEExplicitBinding
-    real(dp) wlc_ECon     ! Confinement Energy
-    real(dp) wlc_deMaierSaupe ! change in Maier Saupe energy
     integer wlc_NPHI  ! NUMBER o phi values that change, i.e. number of bins that were affected
     integer, allocatable, dimension(:) :: wlc_bendPoints ! index of left end of bends presint in chain
     integer wlc_nBend ! the number of points bent
@@ -255,6 +208,7 @@ module params
 contains
 
     subroutine set_param_defaults(wlc_p)
+        use energies, only: set_up_energyOf
         implicit none
         ! WARNinG: changing this to intent(out) means that unassigned values
         ! here will become undefined upon return, due to Fortran's weird
@@ -266,23 +220,17 @@ contains
         ! behavior will depend on which compiler is used
         type(wlcsim_params), intent(inout) :: wlc_p
 
+
         wlc_p%EPS=WLC_P__L0/(2.0_dp*WLC_P__LP)
 
-        ! parallel temper variables
-        wlc_p%CHI      = WLC_P__CHI
-        wlc_p%MU       = WLC_P__MU
-        wlc_p%HA       = WLC_P__HA
-        wlc_p%HP1_BIND = WLC_P__HP1_BIND
-        wlc_p%KAP      = WLC_P__KAP
-        wlc_p%CHI_L2   = WLC_P__CHI_L2
-        wlc_p%AEF       = WLC_P__AmplitudeExternalField
+        call set_up_energyOf()
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
-        wlc_p%couple_on = 1.0_dp ! on by default
-        wlc_p%kap_on = 1.0_dp ! on by default
-        wlc_p%chi_on = 1.0_dp ! on by default
-        wlc_p%chi_l2_on = .TRUE. ! on by default
+        wlc_p%COUPLE_ON = 1.0_dp ! on by default
+        wlc_p%KAP_ON = 1.0_dp ! on by default
+        wlc_p%CHI_ON = 1.0_dp ! on by default
+        wlc_p%CHI_L2_ON = .TRUE. ! on by default
         wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
@@ -408,7 +356,8 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
         logical err
 
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')) then
+        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')&
+            .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
             print*, "The code is untested for Neighbor bins and other confinetypes"
             print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
             print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"
@@ -435,48 +384,34 @@ contains
             endif
         endif
 
-        if (WLC_P__LBOX_X .ne. WLC_P__LBOX_X) then
-            print*, "No box size set.  If you need a box please specify it."
-            call stop_if_err(WLC_P__INITCONDTYPE /= 'randomWalkWithBoundary', &
-                'Only one initial polymer config supported if you''re not '//&
-                'using LBOX to define a MC simulation box.')
-        else
-            if ((wlc_p%NBIN > 8000000).or.(wlc_p%NBIN.lt.1)) then
-                print*, "ERROR: Requested ", wlc_p%NBIN," bins."
-                print*, "You probably don't want this."
-                print*, "Comment me out if you do."
-                stop 1
-            endif
-        endif
+        err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
+        call stop_if_err(err, "Explicit binding not set up for exchange move")
 
-        if (WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
-            call stop_if_err(err, "Explicit binding not set up for exchange move")
-        endif
-        if (WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1) then
-            call stop_if_err(err, "External field not set up for exchange move")
-        endif
-        if (WLC_P__MOVEON_REPTATION ==1 .and. WLC_P__LOCAL_TWIST) then
-            call stop_if_err(err, "Reptation move energy calc not set up for twist.")
-        endif
-        if ((WLC_P__FRACTIONAL_BIN) .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
-            call stop_if_err(err, "Fractional bin only implimented for sphere")
-        endif
+        err = WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
+        call stop_if_err(err, "External field not set up for exchange move")
 
-        if (WLC_P__FIELD_INT_ON .and. (WLC_P__LBOX_X .ne. WLC_P__LBOX_Y .or. WLC_P__LBOX_Y .ne. WLC_P__LBOX_Z)) then
-            call stop_if_err(.True., 'Bin-based fields not tested with non-cube boundary box size.')
-        endif
+        err = WLC_P__MOVEON_REPTATION ==1 .and. WLC_P__LOCAL_TWIST
+        call stop_if_err(err, "Reptation move energy calc not set up for twist.")
+
+        err = WLC_P__FRACTIONAL_BIN .and. (WLC_P__CONFINETYPE .ne. 'sphere')
+        call stop_if_err(err, "Fractional bin only implimented for sphere")
+
+        err = WLC_P__ENSEMBLE_METH .and. WLC_P__PTON
+        call stop_if_err(err,"Parallel tmpering isn't valid for differet Meth profiles")
 
         call stop_if_err(WLC_P__COLLISIONDETECTIONTYPE == 2, &
             'KD-tree based collision detection not yet implemented.')
 
-        call stop_if_err(wlc_p%REND > WLC_P__L, &
-            "Requesting initial end-to-end distance larger than polymer length.")
+        err = (WLC_P__BOUNDARY_TYPE == 'SolidEdgeBin') .and. &
+              (WLC_P__FIELD_INT_ON) .and. &
+              (WLC_P__CONFINETYPE == 'sphere' .or. WLC_P__CONFINETYPE == 'ecoli')
+        call stop_if_err(err,"I don't know how to do SolidEdgeBin for curved boundary")
 
         if (WLC_P__CODENAME == 'quinn') then
            if ((WLC_P__NBIN_X-WLC_P__NBIN_Y.ne.0).or. &
                 (WLC_P__NBIN_X-WLC_P__NBIN_Z.ne.0)) then
-              err = WLC_P__CONFINETYPE.ne.'periodicUnequal'
-              call stop_if_err(err, "Unequal boundaries require confinetype = periodicUnequal")
+              err = (WLC_P__CONFINETYPE.eq.'sphere')
+              call stop_if_err(err, "Don't use unequal boundaries for phsere")
               err = WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary'
               call stop_if_err(err, "You shouldn't put a sphere in and unequal box!")
            endif
@@ -567,6 +502,7 @@ contains
     subroutine initialize_wlcsim_data( wlc_p)
         use nucleosome, only: loadNucleosomePositions
         use polydispersity, only: max_chain_length, setup_polydispersity
+        use energies, only: set_all_energy_to_zero
 #if MPI_VERSION
         use mpi
 #endif
@@ -597,7 +533,7 @@ contains
 
         call setup_polydispersity()
         allocate(wlc_R(3,WLC_P__NT))
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+        if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             allocate(wlc_R_period(3,WLC_P__NT))
         endif
         allocate(wlc_U(3,WLC_P__NT))
@@ -629,6 +565,10 @@ contains
             if (WLC_P__CHI_L2_ABLE) then
                 allocate(wlc_PHI_l2(-2:2,NBin))
                 allocate(wlc_dPHI_l2(-2:2,NBin))
+            endif
+            if (WLC_P__FIELDINTERACTIONTYPE=='AppliedAligningFieldMelt') then
+                allocate(wlc_PHIH_l2(-2:2,NBin))
+                call load_l2_field(wlc_p)
             endif
             allocate(wlc_PHIA(NBin))
             allocate(wlc_PHIB(NBin))
@@ -678,6 +618,10 @@ contains
             print*, "Read explidit binding"
             print*, wlc_ExplicitBindingPair(1:10)
             print*, "..."
+        endif
+
+        if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side' .and. WLC_P__APPLY_EXTERNAL_FIELD) then
+            allocate(wlc_external_bind_points(WLC_P__NT))
         endif
 
         allocate(wlc_pointsMoved(WLC_P__NT))
@@ -804,7 +748,11 @@ contains
         call initcond(wlc_R, wlc_U, WLC_P__NT, &
             WLC_P__NP, WLC_P__FRMFILE, wlc_rand_stat,wlc_p)
 
-        if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')) then
+        if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side' .and. WLC_P__APPLY_EXTERNAL_FIELD) then
+            call set_external_bindpoints(wlc_rand_stat)
+        endif
+
+        if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             do ii=1,WLC_P__NT
                 wlc_R_period(1,ii)=modulo(wlc_R(1,ii),WLC_P__LBOX_X)
                 wlc_R_period(2,ii)=modulo(wlc_R(2,ii),WLC_P__LBOX_Y)
@@ -824,8 +772,18 @@ contains
             if (WLC_P__VARIABLE_CHEM_STATE) then
                 if (WLC_P__CHEM_SEQ_FROM_FILE) then
                     print*, "Loding input meth seq..."
-                    iostr='input/meth'
-                    call wlcsim_params_loadMeth(iostr)
+                    if (WLC_P__ENSEMBLE_METH .and. wlc_id>0) then
+                        write(iostr,"(I4)") wlc_id
+                        iostr = adjustL(iostr)
+                        iostr = trim(iostr)
+                        iostr = "input/meth_"//trim(iostr)
+                        iostr = trim(iostr)
+                        print*, "reading ",iostr
+                        call wlcsim_params_loadMeth(iostr)
+                    else
+                        iostr='input/meth'
+                        call wlcsim_params_loadMeth(iostr)
+                    endif
                 else
                     call init_chemical_state(wlc_meth,WLC_P__LAM_METH,WLC_P__F_METH,.False.)
                 endif
@@ -850,12 +808,15 @@ contains
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
-                if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
+                if (WLC_P__NEIGHBOR_BINS .and.&
+                    ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
+                    .or. WLC_P__CONFINETYPE == 'none')) then
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
-                elseif (WLC_P__CONFINETYPE == 'none') then
+                elseif (WLC_P__CONFINETYPE == 'sphere') then
                     call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
                 else
                     print*, "Not an option yet.  See params."
+                    stop 1
                 endif
             enddo
         endif
@@ -866,29 +827,7 @@ contains
         !  Set all energies to zero in case they aren't set later
         !
         !--------------------------------------
-        wlc_eElas       = 0.0_dp ! Elastic force
-        wlc_eChi        = 0.0_dp ! CHI energy
-        wlc_eKap        = 0.0_dp ! KAP energy
-        wlc_eCouple     = 0.0_dp ! Coupling
-        wlc_eBind       = 0.0_dp ! binding energy
-        wlc_eMu         = 0.0_dp ! chemical potential energy
-        wlc_eField      = 0.0_dp ! Field energy
-        wlc_eExternalField      = 0.0_dp ! External Field energy
-        wlc_eSelf       = 0.0_dp ! repulsive lennard jones on closest approach self-interaction energy (polymer on polymer)
-        wlc_eMaierSaupe = 0.0_dp ! Maier Saupe energy
-        wlc_eExplicitBinding = 0.0_dp ! Explicit Binding energy
-        wlc_DEELAS      = 0.0_dp ! Change in bending energy
-        wlc_DECouple    = 0.0_dp ! Coupling energy
-        wlc_DEChi       = 0.0_dp ! chi interaction energy
-        wlc_DEKap       = 0.0_dp ! compression energy
-        wlc_Debind      = 0.0_dp ! Change in binding energy
-        wlc_DeMu        = 0.0_dp ! Change in chemcial potential energy
-        wlc_DEExternalField     = 0.0_dp ! Change in external field energy
-        wlc_DEField     = 0.0_dp ! Change in field energy
-        wlc_DESelf      = 0.0_dp ! change in self interaction energy
-        wlc_ECon        = 0.0_dp ! Confinement Energy
-        wlc_deMaierSaupe= 0.0_dp ! change in Maier Saupe energy
-        wlc_DEExplicitBinding = 0.0_dp ! change in explicit binding energy
+        call set_all_energy_to_zero()
         wlc_NPHI = 0  ! NUMBER o phi values that change, i.e. number of bins that were affected
 
         wlc_time = 0.0_dp
@@ -901,9 +840,9 @@ contains
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
         real(dp) para(10)
-        para(1) = wlc_p%EB
-        para(2) = wlc_p%EPAR
-        para(3) = wlc_p%EPERP
+        para(1) = wlc_p%eb
+        para(2) = wlc_p%epar
+        para(3) = wlc_p%eperp
         para(4) = wlc_p%GAM
         para(5) = wlc_p%ETA
         para(6) = wlc_p%XIR
@@ -915,6 +854,7 @@ contains
 
 
     subroutine printDescription(wlc_p)
+        use energies
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
         print*, "---------------System Description---------------"
@@ -945,14 +885,15 @@ contains
         print*, " "
         print*, "Energy Variables"
         print*, " elasticity EPS =", wlc_p%EPS
-        print*, " solvent-polymer CHI =",wlc_p%CHI
-        print*, " compression cof, KAP =", wlc_p%KAP
-        print*, " field strength, hA =", wlc_p%HA
-        print*, " field strength, AEF =", wlc_p%AEF
+        print*, " solvent-polymer CHI =",energyOf(chi_)%cof
+        print*, " compression cof, KAP =", energyOf(kap_)%cof
+        print*, " field strength, hA =", energyOf(field_)%cof
+        print*, " field strength, AEF =", energyOf(external_)%cof
+        print*, " two body potential strength, A2B =", energyOf(twoBody_)%cof
         print*, " -energy of binding unmethalated ", WLC_P__EU," more positive for favorable binding"
         print*, " -energy of binding methalated",WLC_P__EM
-        print*, " HP1_Binding energy parameter", wlc_p%HP1_BIND
-        print*, " chemical potential of HP1, mu", wlc_p%MU
+        print*, " HP1_Binding energy parameter", energyOf(couple_)%cof
+        print*, " chemical potential of HP1, mu", energyOf(mu_)%cof
         print*, " bend-shear coupling parameter, eta ", wlc_p%ETA
         print*, " "
         print*, "Time Variables"
@@ -1065,7 +1006,7 @@ contains
             R0(1) = wlc_R(1,IB) - MODULO(wlc_R(1,IB),WLC_P__LBOX_X)
             R0(2) = wlc_R(2,IB) - MODULO(wlc_R(2,IB),WLC_P__LBOX_Y)
             R0(3) = wlc_R(3,IB) - MODULO(wlc_R(3,IB),WLC_P__LBOX_Z)
-            if ((abs(R0(ii)) .gt. eps)) then
+            if ( abs(R0(1))+abs(R0(2))+abs(R0(3)) .gt. eps) then
                 do J = 1,length_of_chain(I)
                     wlc_R(:,IB) = wlc_R(:,IB)-R0(:)
                     IB = IB + 1
@@ -1085,36 +1026,21 @@ contains
 
     subroutine printEnergies()
     ! For realtime feedback on wlc_p simulation
+        use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
         implicit none
-        print*, "ECouple:", wlc_ECouple
-        print*, "Bending energy", wlc_EELAS(1)
-        print*, "Par compression energy", wlc_EELAS(2)
-        print*, "Shear energy", wlc_EELAS(3)
-        print*, "ECHI", wlc_ECHI
-        print*, "ECHI l=2", wlc_eMaierSaupe
-        print*, "EField", wlc_EField
-        print*, "EExtrnalField", wlc_EExternalField
-        print*, "EKAP", wlc_EKAP
-        print*, "ebind", wlc_ebind
-        print*, "eMu", wlc_eMu
-        print*, "eExplicitBinding", wlc_eExplicitBinding
+        integer ii
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            print*, "Energy of ",energyOf(ii)%name_str,"=",energyOf(ii)%E
+        enddo
     end subroutine
 
     subroutine printEnergyChanges()
+        use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
         implicit none
-        print*, "ECouple:", wlc_dECouple
-        print*, "Bending energy", wlc_dEELAS(1)
-        print*, "Par compression energy", wlc_dEELAS(2)
-        print*, "Shear energy", wlc_dEELAS(3)
-        print*, "ECHI", wlc_dECHI
-        print*, "ECHI l=2", wlc_deMaierSaupe
-        print*, "EField", wlc_dEField
-        print*, "EExtrnalField", wlc_dEExternalField
-        print*, "EKAP", wlc_dEKAP
-        print*, "ebind", wlc_debind
-        print*, "eMu", wlc_deMu
-        print*, "eExplicitBinding", wlc_deExplicitBinding
-        print*, "confinement energy", wlc_Econ
+        integer ii
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            print*, "Change in energy of ",energyOf(ii)%name_str,"=",energyOf(ii)%dE
+        enddo
     end subroutine
 
     subroutine calcTotalPolymerVolume(wlc_p,totalVpoly)
@@ -1136,6 +1062,7 @@ contains
     end subroutine
 
     subroutine wlcsim_params_printPhi(wlc_p)
+        use energies, only: energyOf, chi_, kap_, couple_
     ! prints densities for trouble shooting
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
@@ -1148,10 +1075,10 @@ contains
             if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
             if (VV.le.0.1_dp) cycle
             PHIPOLY = wlc_PHIA(I) + wlc_PHIB(I)
-            EChi = VV*(wlc_p%CHI/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
-            ECouple = VV*wlc_p%HP1_BIND*(wlc_PHIA(I))**2
+            EChi = VV*(energyOf(chi_)%cof/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
+            ECouple = VV*energyOf(couple_)%cof*(wlc_PHIA(I))**2
             if(PHIPoly > 1.0_dp) then
-            EKap = VV*(wlc_p%KAP/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            EKap = VV*(energyOf(kap_)%cof/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
             else
             cycle
             EKap = 0.0_dp
@@ -1187,6 +1114,17 @@ contains
         open (unit = inFileUnit, file = fileName, status = 'OLD')
         do I = 1,wlc_p%NBIN
             read(inFileUnit,*) wlc_PHIH(I)
+        enddo
+        return
+    end subroutine
+
+    subroutine load_l2_field(wlc_p)
+        implicit none
+        type(wlcsim_params), intent(in) :: wlc_p
+        integer I
+        open (unit = inFileUnit, file = 'input/field_l2', status = 'OLD')
+        do I = 1,wlc_p%NBIN
+            read(inFileUnit,*) wlc_PHIH_l2(:,I)
         enddo
         return
     end subroutine
@@ -1355,6 +1293,7 @@ contains
     end subroutine
 
     subroutine save_parameters(wlc_p,fileName)
+        use energies, only: energyOf, chi_, couple_
         ! Write a number of parameters ASCII variables to file for reccords
         implicit none
         type(wlcsim_params), intent(in) :: wlc_p
@@ -1368,11 +1307,11 @@ contains
             write(outFileUnit,"(I8)") WLC_P__NBPM  ! 6 Number of beads per monomer
 
             write(outFileUnit,"(f10.5)") WLC_P__L0    ! Equilibrium segment length
-            write(outFileUnit,"(f10.5)") wlc_p%CHI  ! 8  initail CHI parameter value
+            write(outFileUnit,"(f10.5)") energyOf(chi_)%cof  ! 8  initail CHI parameter value
             write(outFileUnit,"(f10.5)") WLC_P__LBOX_X  ! 10 Lenth of box
             write(outFileUnit,"(f10.5)") WLC_P__EU    ! Energy unmethalated
             write(outFileUnit,"(f10.5)") WLC_P__EM    ! 12 Energy methalated
-            write(outFileUnit,"(f10.5)") wlc_p%HP1_BIND ! Energy of HP1 binding
+            write(outFileUnit,"(f10.5)") energyOf(couple_)%cof ! Energy of HP1 binding
             write(outFileUnit,"(f10.5)") (WLC_P__L0/wlc_p%EPS) ! 14 Khun lenth
             write(outFileUnit,"(A)") "-999"  ! for historic reasons
             write(outFileUnit,"(f10.5)") WLC_P__F_METH  ! methalation fraction
@@ -1380,30 +1319,62 @@ contains
         close(outFileUnit)
     end subroutine
 
-    subroutine wlcsim_params_appendEnergyData(save_ind, wlc_p, fileName)
+    subroutine print_11char_float(outFileUnit,x)
+        implicit none
+        integer, intent(in) :: outFileUnit
+        real(dp), intent(in) :: x
+        if (x > 999999999.9 .or. x < -99999999.9) then
+            write(outFileUnit, "(E11.3)") x
+        elseif (x > 9999999.99 .or. x < -999999.99) then
+            write(outFileUnit, "(F11.1)", advance="no") x
+        elseif (x > 999999.999 .or. x < -99999.999) then
+            write(outFileUnit, "(F11.2)", advance="no") x
+        elseif (x > 99999.9999 .or. x < -9999.9999) then
+            write(outFileUnit, "(F11.3)", advance="no") x
+        elseif (x > 9999.99999 .or. x < -999.99999) then
+            write(outFileUnit, "(F11.4)", advance="no") x
+        elseif (x > 999.999999 .or. x < -99.999999) then
+            write(outFileUnit, "(F11.5)", advance="no") x
+        elseif (x > 99.9999999 .or. x < -9.9999999) then
+            write(outFileUnit, "(F11.6)", advance="no") x
+        else
+            write(outFileUnit, "(F11.7)", advance="no") x
+        endif
+    end subroutine
+
+    subroutine wlcsim_params_appendEnergyData(save_ind, fileName)
+        use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES, kap_
     ! print Energy data
         implicit none
-        type(wlcsim_params), intent(in) :: wlc_p
         integer, intent(in) :: save_ind
         character(MAXFILENAMELEN), intent(in) :: fileName
         LOGICAL isfile
         character(MAXFILENAMELEN) fullName
+        integer ii
         fullName=  trim(fileName) // trim(wlc_repSuffix)
         inquire(file = fullName, exist = isfile)
         if (isfile) then
             open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
         else
             open (unit = outFileUnit, file = fullName, status = 'new')
-            write(outFileUnit,*) "ind | id |",&
-                       "  ebend    |  eparll   |  EShear   |  ECoupl   |  E Kap    |  E Chi    |",&
-                       "  EField   |  ebind    |   x_Mu    |  Couple   |   Chi     |   mu      |",&
-                       "   Kap     |  Field    |   x_MS    |  chi_l2   |  E_Mu     |x_ExternalF|"
+            write(outFileUnit,"(10A)",advance="no") "ind | id |"
+            do ii = 1, NUMBER_OF_ENERGY_TYPES
+                write(outFileUnit,"(12A)",advance="no")  " E-",energyOf(ii)%name_str, " "
+                write(outFileUnit,"(12A)",advance="no")  " x-",energyOf(ii)%name_str, " "
+                write(outFileUnit,"(12A)",advance="no")  " c-",energyOf(ii)%name_str, " "
+            enddo
+            write(outFileUnit,*) " "
         endif
-        write(outFileUnit,"(2I5, 9f12.1,5f12.5,f12.1,f12.5,2f12.2)") save_ind, wlc_id, &
-            wlc_EELAS(1), wlc_EELAS(2), wlc_EELAS(3), wlc_ECouple, &
-            wlc_EKap, wlc_ECHI, wlc_EField, wlc_ebind, wlc_x_Mu, &
-            wlc_p%HP1_BIND*wlc_p%COUPLE_ON, wlc_p%CHI*wlc_p%CHI_ON, wlc_p%MU, wlc_p%KAP*wlc_p%KAP_ON,&
-            wlc_p%HA, wlc_x_maierSaupe, wlc_p%CHI_L2,wlc_EMu,wlc_x_ExternalField
+        write(outFileUnit,"(2I5)",advance="no") save_ind, wlc_id
+        do ii = 1, NUMBER_OF_ENERGY_TYPES
+            call print_11char_float(outFileUnit, energyOf(ii)%E)
+            write(outFileUnit,"(A)",advance="no") " "
+            call print_11char_float(outFileUnit, energyOf(ii)%x)
+            write(outFileUnit,"(A)",advance="no") " "
+            call print_11char_float(outFileUnit, energyOf(ii)%cof)
+            write(outFileUnit,"(A)",advance="no") " "
+        enddo
+        write(outFileUnit,*) " "
         close(outFileUnit)
     end subroutine
 
@@ -1656,7 +1627,7 @@ contains
 
         !Save various energy contiributions to file
         filename = trim(adjustL(outfile_base)) // 'energies'
-        call wlcsim_params_appendEnergyData(save_ind, wlc_p, filename)
+        call wlcsim_params_appendEnergyData(save_ind, filename)
 
         !part 2.5 - adaptations
         filename = trim(adjustL(outfile_base)) // 'adaptations'
@@ -1731,12 +1702,27 @@ contains
     type(wlcsim_params), intent(inout) :: wlc_p
 
     ! calculate metrics that don't change between WLC, ssWLC, GC
-    wlc_p%DEL = WLC_P__L0/WLC_P__LP
+    if (WLC_P__ELASTICITY_TYPE == "constant") then
+        wlc_p%DEL = WLC_P__L0/WLC_P__LP
 
-    call calc_elastic_constants(wlc_p%DEL,WLC_P__LP,WLC_P__LT,&
-                                wlc_p%EB,wlc_p%EPAR, &
-                                wlc_p%GAM,wlc_p%XIR,wlc_p%EPERP,wlc_p%ETA, &
-                                wlc_p%XIU,wlc_p%DT, &
-                                wlc_p%SIGMA,wlc_p%ETWIST,wlc_p%simtype)
+        call calc_elastic_constants(wlc_p%DEL,WLC_P__LP,WLC_P__LT,&
+                                    wlc_p%eb,wlc_p%epar, &
+                                    wlc_p%GAM,wlc_p%XIR,wlc_p%eperp,wlc_p%ETA, &
+                                    wlc_p%XIU,wlc_p%DT, &
+                                    wlc_p%SIGMA,wlc_p%etwist,wlc_p%simtype)
+    elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
+        wlc_p%DEL = 0.0 ! not used
+        wlc_p%GAM = 0.0 ! not used
+        wlc_p%XIR = 0.0 ! not used
+        wlc_p%ETA = 0.0 ! not used
+        wlc_p%DT = 0.0 ! not used
+        wlc_p%SIGMA = 0.0 ! not used
+        wlc_p%eb = 0.0 ! not used
+        wlc_p%epar = 0.0 ! not used
+        wlc_p%eperp = 0.0 ! not used
+        wlc_p%etwist = 0.0 ! not used
+        wlc_p%XIU = 0.0 ! not used
+        wlc_p%DT = 0.0 ! not used
+    endif
     end subroutine get_renormalized_chain_params
 end module params

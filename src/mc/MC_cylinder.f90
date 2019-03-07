@@ -142,11 +142,9 @@ do ii = left,right
                 enddo
             enddo
         enddo
-    elseif (WLC_P__CONFINETYPE == 'none') then
-        call findNeighbors(wlc_bin,wlc_RP(:,II),radius,wlc_R, &
-            WLC_P__NT,maxNeighbors,neighbors,distances,nNeighbors)
     else
         print*, "you need to decide whether to use R or R_period"
+        print*, "make sure you use the same in other files that call binning functions"
         stop
     endif
 
