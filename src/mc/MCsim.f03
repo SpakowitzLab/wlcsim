@@ -18,7 +18,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
     , wlc_UP, wlc_CrossSize, wlc_NCrossP, wlc_R, wlc_SUCCESS &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
-    , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints
+    , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints &
+    , wlcsim_params_recenter
     use energies
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
@@ -177,7 +178,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
               stop 1
           endif
 !   Calculate the change in the binding energy
-          if (MCTYPE == 7 .or. MCTYPE == 11) then
+          if (WLC_P__CHANGINGCHEMICALIDENTITY .and. MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
               call MC_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
           endif
@@ -262,7 +263,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_NPHI
                    J = wlc_inDPHI(I)
-                   if (wlc_p%CHI_L2_ON) then
+                   if (WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                        do m_index = -2,2
                            wlc_PHI_l2(m_index,J) =  wlc_PHI_l2(m_index,J) + wlc_DPHI_l2(m_index,I)
                        enddo

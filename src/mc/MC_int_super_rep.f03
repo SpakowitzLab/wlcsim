@@ -193,6 +193,10 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte change in energy
 !
 !---------------------------------------------------------------------
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
 call hamiltonian(wlc_p,.false.)
 
 RETURN

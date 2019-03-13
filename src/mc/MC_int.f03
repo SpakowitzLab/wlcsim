@@ -57,7 +57,7 @@ do IB = 1,WLC_P__NT
    RBin(2) = wlc_R(2,IB)
    RBin(3) = wlc_R(3,IB)
 
-   if (wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1 ) then
+   if (WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1 ) then
        call Y2calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -94,7 +94,7 @@ do IB = 1,WLC_P__NT
             if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
                 wlc_PHIA(indBin) = wlc_PHIA(indBin) + contribution*wlc_AB(IB)
                 wlc_PHIB(indBin) = wlc_PHIB(indBin) + contribution
-                if(wlc_p%CHI_L2_ON) then
+                if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                     do m_index = -2,2
                         wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
@@ -104,7 +104,7 @@ do IB = 1,WLC_P__NT
             if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
                 wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + contribution
-                if(wlc_p%CHI_L2_ON) then
+                if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
                     do m_index = -2,2
                         wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
