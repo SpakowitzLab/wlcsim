@@ -26,7 +26,7 @@ integer, intent(in) :: I3      ! Test bead, first bead of second section
 integer, intent(in) :: I4      ! Test bead, second bead of second section
 
 !   Internal variables
-integer I                 ! For looping over bins
+integer I, J                 ! For looping over bins
 integer IB                ! Bead index
 integer IB2               ! Index you are swapping with
 integer rrdr ! -1 if r, 1 if r + dr
