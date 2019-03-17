@@ -19,12 +19,13 @@ function exponential_random_int(window,rand_stat) result(output)
 end function exponential_random_int
 
 !Expand [IB1,IB2] and [IT1,IT2] regions to include bound pairs
+!Return success=False not able to do this
 subroutine enforceBinding(rand_stat,IB1,IB2,IT1,IT2,max_window,success)
 ! values from wlcsim_data
-use params, only: wlc_ExplicitBindingPair
+use params, only: wlc_ExplicitBindingPair, wlc_network_start_index, wlc_other_beads
 use params, only: dp
 use mersenne_twister
-use polydispersity, only: are_on_same_chain
+use polydispersity, only: are_on_same_chain, get_IB
 implicit none
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 integer, intent(inout) :: IT1,IT2,IB1,IB2
@@ -33,45 +34,85 @@ logical, intent(out) :: success
 integer otherEnd
 real(dp) urnd(1) ! single random number
 integer IT1_temp, IT2_temp, IB1_temp, IB2_temp, I
+logical test_move
+integer indx
 success = .True.
-call random_number(urnd,rand_stat)
-if (WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)) then
-    IB1_temp=IB1
-    IT1_temp=IT1
-    IB2_temp=IB2
-    IT2_temp=IT2
-    do I =IT1,IT2
-        otherEnd=wlc_ExplicitBindingPair(I)
-        if (WLC_P__NP>1) then
-            ! make sure the other end is on the same polymer
-            if (.not. are_on_same_chain(IT1,otherEnd)) then 
-                if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp) then
-                    ! If only bind respecting moves allowed
-                    ! can't have a loop to a different polymer
-                    success=.FALSE.
+if (WLC_P__PROB_BIND_RESPECTING_MOVE < 1.0_dp) then
+    call random_number(urnd,rand_stat)
+    test_move = WLC_P__PROB_BIND_RESPECTING_MOVE > urnd(1)
+else
+    test_move = .TRUE.
+endif
+if (test_move) then
+    if (WLC_P__NO_LEF_CROSSING) then
+        ! IF we can be guarunteed that not loop will cross
+        if (WLC_P__NETWORK) then
+            print*, "NO_LEF_CROSSING is inconsistant with network"
+            stop
+        endif
+        IB1_temp=IB1
+        IT1_temp=IT1
+        IB2_temp=IB2
+        IT2_temp=IT2
+        do I =IT1,IT2
+            otherEnd=wlc_ExplicitBindingPair(I)
+            if (WLC_P__NP>1) then
+                ! make sure the other end is on the same polymer
+                if (.not. are_on_same_chain(IT1,otherEnd)) then
+                    if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp) then
+                        ! If only bind respecting moves allowed
+                        ! can't have a loop to a different polymer
+                        success=.FALSE.
+                        return
+                    endif
+                    cycle ! don't expand [IT1,IT2] to different polymer
                 endif
-                cycle ! don't expand [IT1,IT2] to different polymer
             endif
+            if (otherEnd < 1) cycle
+            if (otherEnd < IT1) then  ! Loop to point before IT1
+                IB1_temp=IB1-IT1+otherEnd
+                IT1_temp=otherEnd
+            elseif (otherEnd > IT2) then ! Loop to point after IT2
+                IB2_temp=IB2-IT2+otherEnd
+                IT2_temp=otherEnd
+                exit
+            endif
+        enddo
+        if (IB2_temp-IB1_temp<max_window) then
+            ! prevent extremely long crank shaft moves
+            IB1=IB1_temp
+            IT1=IT1_temp
+            IB2=IB2_temp
+            IT2=IT2_temp
+            if (WLC_P__WARNING_LEVEL >= 1) then
+                if (IB2 /= get_IB(IT2) .or. IB1 /= get_IB(IT1)) then
+                    print*, "Error in enforce binding"
+                    stop 1
+                endif
+            endif
+            return
+        else
+            if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp)  success=.FALSE.
+            return
         endif
-        if (otherEnd < 1) cycle
-        if (otherEnd < IT1) then  ! Loop to point before IT1
-            IB1_temp=IB1-IT1+otherEnd
-            IT1_temp=otherEnd
-        elseif (otherEnd > IT2) then ! Loop to point after IT2
-            IB2_temp=IB2-IT2+otherEnd
-            IT2_temp=otherEnd
-            exit
-        endif
-    enddo
-    if (IB2_temp-IB1_temp<max_window) then
-        ! prevent extremely long crank shaft moves
-        IB1=IB1_temp
-        IT1=IT1_temp
-        IB2=IB2_temp
-        IT2=IT2_temp
+    endif ! NO_LEF_CROSSING
+
+    ! Check for any loops out of region
+    if (WLC_P__NETWORK) then
+        do indx = wlc_network_start_index(I),&
+                      wlc_network_start_index(I+1)-1
+            otherEnd = wlc_other_beads(indx)
+            if (otherEnd < IT1 .or. otherEnd > IT2) then
+                success = .False.
+                return
+            endif
+        enddo
     else
-        if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp)  success=.FALSE.
-        return
+        otherEnd=wlc_ExplicitBindingPair(I)
+        if (otherEnd < IT1 .or. otherEnd > IT2) then
+            success = .False.
+            return
+        endif
     endif
 endif
 end subroutine
@@ -125,6 +166,8 @@ if (WLC_P__RING) then
         print*, "Need to write special loop skiping code"
         stop
     endif
+    IT2 = get_I(IB2,IP)
+    IT1 = get_I(IB1,IP)
 else
     if (IB2 > length) then
         IB2 = length
@@ -145,8 +188,6 @@ else
     endif
 endif
 
-IT2 = get_I(IB2,IP)
-IT1 = get_I(IB1,IP)
 
 DIB = IB2-IB1
 end subroutine drawWindow

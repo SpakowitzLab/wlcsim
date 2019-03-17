@@ -58,6 +58,10 @@ logical checkR
 
 integer otherEnd
 otherEnd= wlc_ExplicitBindingPair(I)
+if (WLC_P__NETWORK) then
+    print*, "checkR not implemented for Network"
+    stop 1
+endif
 if (otherEnd == -1) then
     checkR = .False.
     return
