@@ -144,6 +144,16 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
+#define WLC_P__NETWORK .FALSE.
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__NO_LEF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! no explicit binding pairs can cross eachother, e.g. 1-to-10 and 5-15
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__ELASTICITY_TYPE "constant"
 ! VARIABLE COMMENT: ! which simulation code to run
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
