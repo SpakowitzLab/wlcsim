@@ -52,7 +52,7 @@ function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
 end function E_SSWLC
 
 function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
-    use vector_utils, only: cross, axisAngle, rotateU
+    use vector_utils, only: cross, axisAngle, rotateU, angle_between
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
     real(dp), intent(in), dimension(3) :: R ! R of bead i
@@ -80,13 +80,39 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     E_SSWLCWT(2)=0.5_dp*EPAR*(DRPAR-GAM)**2
     E_SSWLCWT(3)=0.5_dp*EPERP*dot_product(DRPERP,DRPERP)
 
+    ! We find the rotation matrix which takes UM1 to U and apply it to
+    ! VM1 and then see how much VM1 differst from V.  The resulting angle
+    ! contributes to the twist energy.
     TA = cross(UM1,U)
     mag = norm2(TA)
-    alpha = asin(mag)
-    TA = TA/mag
-    call axisAngle(ROT, alpha, TA, P)
-    E_SSWLCWT(4) = 0.5_dp*ETWIST*(acos(dot_product(rotateU(ROT,VM1),V))**2)
+    if (mag > 10**-10) then
+        alpha = angle_between(UM1, U)
+        TA = TA/mag
+        if (isnan(alpha)) then
+            print*, "alpha = nan"
+            print*, "mag", mag
+            print*, "|U|", norm2(U)
+            print*, "|UM1|", norm2(UM1)
+        endif
+        call axisAngle(ROT, alpha, TA, P)
+        E_SSWLCWT(4) = 0.5_dp*ETWIST*angle_between(rotateU(ROT,VM1),V)**2
+    else
+        ! if UM1 ~ U then don't rotate (avoids Nan)
+        E_SSWLCWT(4) = 0.5_dp*ETWIST*angle_between(VM1,V)**2
+    endif
     ! ETWIST = lt/l0
+    if (isnan(E_SSWLCWT(4))) then
+        print*, "Nan in twist"
+        if (mag > 10**-7) then
+            print*, "R VM1", rotateU(ROT,VM1)
+            print*, "V", V
+        else
+            print*, "VM1", VM1
+            print*, "V", V
+            print*, "mag", mag
+        endif
+    endif
+
 
 
 end function E_SSWLCWT

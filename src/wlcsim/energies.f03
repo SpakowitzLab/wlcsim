@@ -116,6 +116,13 @@ contains
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             total_energy = total_energy + energyOf(ii)%dE
         enddo
+        if (isnan(total_energy)) then
+            print*, "--- NaN found in dE ---"
+            do ii = 1, NUMBER_OF_ENERGY_TYPES
+                print*, "Chance in energy of ", energyOf(ii)%name_str, " = ", energyOf(ii)%dE
+            enddo
+            stop
+        endif
     end subroutine
     subroutine accept_all_energies()
         implicit none

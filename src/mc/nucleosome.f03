@@ -14,7 +14,7 @@ module nucleosome
     real(dp), dimension(3,3,147) :: nucleosomeROT
     real(dp), dimension(3,147) :: nucleosomeTran
 
-    private :: nucleosomeROT, nucleosomeTran, multiParams
+    private :: nucleosomeROT, nucleosomeTran
 contains
 
 ! -------------------------------------------------------------

@@ -18,7 +18,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
     , wlc_UP, wlc_CrossSize, wlc_NCrossP, wlc_R, wlc_SUCCESS &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
-    , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints
+    , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
+    , wlcsim_params_recenter
     use energies
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti

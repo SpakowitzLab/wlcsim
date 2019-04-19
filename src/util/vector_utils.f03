@@ -31,6 +31,18 @@ function cross(a,b)
 
 end function cross
 
+function angle_between(a,b)
+    implicit none
+    real(dp) angle_between
+    real(dp), dimension(3), intent(in) :: a,b
+
+    real(dp) amag, bmag
+    amag = norm2(a)
+    bmag = norm2(b)
+    angle_between = 2.0*atan2(norm2( amag*b - bmag*a ),norm2( amag*b + bmag*a ))
+    ! algorithm from https://www.jwwalker.com/pages/angle-between-vectors.html
+end function angle_between
+
 function rotateR(ROT,R)
     use, intrinsic :: iso_fortran_env, only: ERROR_UNIT
     implicit none
@@ -255,6 +267,7 @@ if (WLC_P__WARNING_LEVEL >= 1) then
             write(ERROR_UNIT,*) "TAin", TAin
             write(ERROR_UNIT,*) "P1", P1
             write(ERROR_UNIT,*) "ROT", ROT
+            stop
         endif
     enddo
 endif
