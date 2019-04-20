@@ -27,7 +27,6 @@ endif
 wlc_R(:,I) = wlc_RP(:,I)
 wlc_U(:,I) = wlc_UP(:,I)
 if (WLC_P__LOCAL_TWIST) then
-    wlc_VP(:,I) = wlc_VP(:,I)/dot_product(wlc_VP(:,I),wlc_RP(:,I))
     wlc_V(:,I) = wlc_VP(:,I)/norm2(wlc_VP(:,I))
 endif
 if (WLC_P__NEIGHBOR_BINS) then
