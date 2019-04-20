@@ -453,7 +453,7 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
                             wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
                             U(:,IB), wlc_V(:,IB), R(:,IB))
         ! Translation due to zero-enery linker
-        R(:,IB) = R(:,IB) + U(:,IB)*multiParams(4, wlc_basepairs(IB-1) )
+        R(:,IB) = R(:,IB) + U(:,IB)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB-1)
     enddo
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)

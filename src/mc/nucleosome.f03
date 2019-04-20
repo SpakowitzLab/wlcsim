@@ -44,8 +44,8 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     real(dp), parameter :: angle = 2*pi/basePairsPerTurn ! intrinsic rotation/bp
 
     mtrx(:,1) = Vin
-    mtrx(:,3) = Uin
     mtrx(:,2) = cross(Uin,Vin)
+    mtrx(:,3) = Uin
 
     Rout = Rin + MATMUL(mtrx,nucleosomeTran(:,wrapBP))
 
