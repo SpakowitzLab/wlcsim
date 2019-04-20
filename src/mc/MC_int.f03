@@ -17,6 +17,7 @@ use params, only: wlc_PHIB, wlc_NPHI, wlc_PHI_l2, wlc_U, wlc_AB&
     , wlc_PHIA, wlc_R, wlc_phi_l2, wlc_dphi_l2, wlc_inDPHI, wlc_DPHIA&
     , wlc_DPHIB
 use params, only: dp, wlcsim_params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
@@ -46,7 +47,7 @@ wlc_DPHIA = 0.0_dp
 wlc_PHIB = 0.0_dp
 wlc_DPHIB = 0.0_dp
 wlc_inDPHI = 0
-if (wlc_p%CHI_L2_ON) then
+if (energyOf(maierSaupe_)%isOn) then
     wlc_phi_l2 = 0.0_dp
     wlc_dphi_l2 = 0.0_dp
 endif
@@ -57,7 +58,7 @@ do IB = 1,WLC_P__NT
    RBin(2) = wlc_R(2,IB)
    RBin(3) = wlc_R(3,IB)
 
-   if (wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1 ) then
+   if (energyOf(maierSaupe_)%isOn .and. wlc_AB(IB).eq.1 ) then
        call Y2calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -94,7 +95,7 @@ do IB = 1,WLC_P__NT
             if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
                 wlc_PHIA(indBin) = wlc_PHIA(indBin) + contribution*wlc_AB(IB)
                 wlc_PHIB(indBin) = wlc_PHIB(indBin) + contribution
-                if(wlc_p%CHI_L2_ON) then
+                if(energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
@@ -104,7 +105,7 @@ do IB = 1,WLC_P__NT
             if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
                 wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + contribution
-                if(wlc_p%CHI_L2_ON) then
+                if(energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
@@ -175,6 +176,7 @@ use params, only: wlc_NPHI, wlc_RP, wlc_U, wlc_AB, wlc_R&
     , wlc_UP, wlc_DPHI_l2, wlc_inDPHI, wlc_DPHIA, wlc_DPHIB&
     , wlc_ind_in_list
 use params, only: dp, wlcsim_params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p
@@ -226,7 +228,7 @@ integer ind_Z_temp, ind_ZY_temp
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON .and. wlc_AB(IB).eq.1) then
+   if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn .and. wlc_AB(IB).eq.1) then
        if (rrdr == -1) then
            call Y2calc(wlc_U(:,IB),phi2)
        else
@@ -254,7 +256,7 @@ integer ind_Z_temp, ind_ZY_temp
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = contribution*wlc_AB(IB)
                     wlc_DPHIB(wlc_NPHI) = contribution
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                 + phi2(m_index)*contribution
@@ -263,7 +265,7 @@ integer ind_Z_temp, ind_ZY_temp
                 else
                     wlc_DPHIA(I) = wlc_DPHIA(I) + contribution*wlc_AB(IB)
                     wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                 + phi2(m_index)*contribution
@@ -292,7 +294,7 @@ integer ind_Z_temp, ind_ZY_temp
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = contribution
                     wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                 + phi2(m_index)*contribution
@@ -300,7 +302,7 @@ integer ind_Z_temp, ind_ZY_temp
                     endif
                 else
                     wlc_DPHIA(I) = wlc_DPHIA(I) + contribution
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                 + phi2(m_index)*contribution
@@ -326,7 +328,7 @@ integer ind_Z_temp, ind_ZY_temp
                     wlc_ind_in_list(indBin) = wlc_NPHI
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 0.0_dp
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo
@@ -354,7 +356,7 @@ integer ind_Z_temp, ind_ZY_temp
                     wlc_ind_in_list(indBin) = wlc_NPHI
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 2.0_dp*contribution
-                    if(WLC_P__CHI_L2_ABLE .and. wlc_p%CHI_L2_ON) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo

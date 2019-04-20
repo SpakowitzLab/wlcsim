@@ -8,6 +8,7 @@ subroutine MC_int_chem(wlc_p,I1,I2)
 use params, only: wlc_inDPHI, wlc_DPHIA, wlc_DPHIB, wlc_U, wlc_AB&
     , wlc_ABP, wlc_R, wlc_DPHI_l2, wlc_NPHI
 use params, only: dp, wlcsim_params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
@@ -26,7 +27,7 @@ integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 
 ! Copy so I don't have to type wlc_p% everywhere
-real(dp) contribution 
+real(dp) contribution
 integer m_index ! m from spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) AminusB ! +1 if A and -1 if B
@@ -58,7 +59,7 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (wlc_p%CHI_L2_ON) then
+   if (energyOf(maierSaupe_)%isOn) then
        call Y2calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -67,7 +68,7 @@ do IB = I1,I2
 
 
    AminusB = number_bound_table(wlc_ABP(IB))-&
-             number_bound_table(wlc_AB(IB)) 
+             number_bound_table(wlc_AB(IB))
 
    do ISX = 1,2
       do ISY = 1,2
@@ -85,7 +86,7 @@ do IB = I1,I2
                   wlc_inDPHI(wlc_NPHI) = inDBin
                   wlc_DPHIA(wlc_NPHI) = contribution
                   wlc_DPHIB(wlc_NPHI) = -1.0*contribution
-                  if(wlc_p%CHI_L2_ON) then
+                  if(energyOf(maierSaupe_)%isOn) then
                       do m_index = -2,2
                           wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                      phi2(m_index)*contribution
@@ -95,7 +96,7 @@ do IB = I1,I2
                elseif (inDBin == wlc_inDPHI(I)) then
                   wlc_DPHIA(I) = wlc_DPHIA(I) +  contribution
                   wlc_DPHIB(I) = wlc_DPHIB(I) -  contribution
-                  if(wlc_p%CHI_L2_ON) then
+                  if(energyOf(maierSaupe_)%isOn) then
                       do m_index = -2,2
                           wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) + &
                                                      phi2(m_index)*contribution

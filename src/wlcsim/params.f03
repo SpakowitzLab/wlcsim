@@ -106,9 +106,6 @@ module params
 
     !   Switches
         integer LK                ! Linking number
-        real(dp) KAP_ON     ! fraction of KAP energy contributing to "calculated" energy
-        real(dp) CHI_ON     ! fraction of CHI energy contributing to "calculated" energy
-        real(dp) Couple_ON  ! fraction of Coupling energy contributing to "calculated" energy
         logical field_int_on_currently ! include field interactions (e.g. A/B interactions) uses many of the same functions as the chemical identity/"meth"ylation code, but energies are calcualted via a field-based approach
         logical chi_l2_on
 
@@ -227,10 +224,6 @@ contains
 
         wlc_p%lhc = NAN ! I have no idea what this does
         wlc_p%vhc = NAN ! I have no idea what this does
-        wlc_p%COUPLE_ON = 1.0_dp ! on by default
-        wlc_p%KAP_ON = 1.0_dp ! on by default
-        wlc_p%CHI_ON = 1.0_dp ! on by default
-        wlc_p%CHI_L2_ON = .TRUE. ! on by default
         wlc_p%field_int_on_currently = WLC_P__FIELD_INT_ON ! on by default
 
         wlc_p%PDESIRE(1) = WLC_P__PDESIRE_CRANK_SHAFT
@@ -1126,6 +1119,7 @@ contains
         do I = 1,wlc_p%NBIN
             read(inFileUnit,*) wlc_PHIH_l2(:,I)
         enddo
+        close(inFileUnit)
         return
     end subroutine
 
@@ -1227,15 +1221,14 @@ contains
               do J = 1,length_of_chain(I)
                   if (WLC_P__SAVEAB) then
                      if (WLC_P__CHANGINGCHEMICALIDENTITY) then
-                         write(outFileUnit,"(3f10.3,2I3)") &
-                                wlc_R(1,IB),wlc_R(2,IB),wlc_R(3,IB),wlc_AB(IB),wlc_METH(IB)
+                         call print_11char_vec(outFileUnit, wlc_R(:,IB), .False.)
+                         write(outFileUnit,"(2I3)") wlc_AB(IB), wlc_METH(IB)
                      else
-                         write(outFileUnit,"(3f10.3,I2)") &
-                                wlc_R(1,IB),wlc_R(2,IB),wlc_R(3,IB),wlc_AB(IB)
+                         call print_11char_vec(outFileUnit, wlc_R(:,IB), .False.)
+                         write(outFileUnit,"(I2)") wlc_AB(IB)
                      endif
                   else
-                     write(outFileUnit,"(3f10.3)") &
-                           wlc_R(1,IB),wlc_R(2,IB),wlc_R(3,IB)
+                      call print_11char_vec(outFileUnit, wlc_R(:,IB), .True.)
                   endif
                   IB = IB + 1
               enddo
@@ -1246,6 +1239,7 @@ contains
       end subroutine wlcsim_params_saveR
 
     subroutine wlcsim_params_savePHI(wlc_p,fileName)
+        use energies, only: energyOf, maierSaupe_
     ! Saves PHIA and PHIB to file for analysis
         implicit none
         integer I  ! counters
@@ -1254,7 +1248,7 @@ contains
         character(MAXFILENAMELEN) fullName
         fullName=  trim(fileName) // trim(wlc_repSuffix)
         open (unit = outFileUnit, file = fullName, status = 'NEW')
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
                 write(outFileUnit,"(7f7.2)") wlc_PHIA(I),wlc_PHIB(I),wlc_PHI_l2(:,I)
             enddo
@@ -1281,10 +1275,10 @@ contains
         do I = 1,WLC_P__NP
             do J = 1,length_of_chain(I)
                 if (WLC_P__LOCAL_TWIST) then
-                    write(outFileUnit,"(6f8.3,2I2)") wlc_U(1,IB),wlc_U(2,IB),wlc_U(3,IB) &
-                                                   , wlc_V(1,IB),wlc_V(2,IB),wlc_V(3,IB)
+                    call print_11char_vec(outFileUnit, wlc_U(:,IB), .False.)
+                    call print_11char_vec(outFileUnit, wlc_V(:,IB), .True.)
                 else
-                    write(outFileUnit,"(3f8.3,2I2)") wlc_U(1,IB),wlc_U(2,IB),wlc_U(3,IB)
+                    call print_11char_vec(outFileUnit, wlc_U(:,IB), .True.)
                 endif
                 IB = IB + 1
             enddo
@@ -1319,6 +1313,21 @@ contains
         close(outFileUnit)
     end subroutine
 
+    subroutine print_11char_vec(outFileUnit,vec, nextLine)
+        implicit none
+        integer, intent(in) :: outFileUnit
+        real(dp), intent(in), dimension(3) :: vec
+        logical nextLine
+        integer ii
+
+        do ii = 1,3
+            call print_11char_float(outFileUnit,vec(ii))
+        enddo
+        if (nextLine) then
+            write(outFileUnit, "(a)") ""
+        endif
+
+    end subroutine
     subroutine print_11char_float(outFileUnit,x)
         implicit none
         integer, intent(in) :: outFileUnit

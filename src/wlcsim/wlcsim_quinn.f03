@@ -316,10 +316,12 @@ end subroutine onlyNode
 subroutine schedule(wlc_p,system_has_been_changed)
 ! values from wlcsim_data
 use params, only: wlc_mc_ind, eps
+    use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     use params
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
     logical, intent(out) :: system_has_been_changed
+    integer ii
 
     system_has_been_changed = .False.
     ! ------------------------------
@@ -328,32 +330,20 @@ use params, only: wlc_mc_ind, eps
     !
     !  --------------------------------
     if (wlc_mc_ind <= 1) system_has_been_changed = .TRUE.
-    if (wlc_mc_ind <= WLC_P__NNOINT) then
+    if (wlc_mc_ind < WLC_P__NNOINT) then
         wlc_p%field_int_on_currently = .false.
     elseif (WLC_P__FIELD_INT_ON) then
         if (.not.wlc_p%field_int_on_currently)  system_has_been_changed = .TRUE.
         wlc_p%field_int_on_currently = .true.
     endif
-    if(wlc_mc_ind.lt.WLC_P__N_KAP_ON) then
-        wlc_p%KAP_ON = 0.0_dp
-    else
-        if (abs(wlc_p%KAP_ON) < eps) system_has_been_changed = .TRUE.
-        wlc_p%KAP_ON = 1.0_dp
-    endif
 
-    if(wlc_mc_ind.lt.WLC_P__N_CHI_ON) then
-        wlc_p%CHI_ON = 0.0_dp
-    else
-        if (abs(wlc_p%CHI_ON) < eps) system_has_been_changed = .TRUE.
-        wlc_p%CHI_ON = 1.0_dp
-    endif
-
-    if(wlc_mc_ind.lt.WLC_P__N_CHI_L2_ON) then
-        wlc_p%CHI_L2_ON = .False.
-    else
-        if (.not. wlc_p%CHI_L2_ON) system_has_been_changed = .TRUE.
-        wlc_p%CHI_L2_ON = .True.
-    endif
+    do ii = 1,NUMBER_OF_ENERGY_TYPES
+        if(wlc_mc_ind >= energyOf(ii)%ind_on) then
+            if (energyOf(ii)%isOn) cycle
+            system_has_been_changed = .TRUE.
+            energyOf(ii)%isOn =  .TRUE.
+        endif
+    enddo
 
     if ((wlc_mc_ind.gt.WLC_P__INDSTARTREPADAPT).and. &
         (wlc_mc_ind.le.WLC_P__INDENDREPADAPT)) then ! addapt Cof was run

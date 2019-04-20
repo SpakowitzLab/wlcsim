@@ -232,6 +232,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
           endif
 
 !   Change the position if appropriate
+          call apply_energy_isOn()
           call calc_all_dE_from_dx()
           call sum_all_dEnergies(ENERGY)
           !call MC_save_energy_data(MCTYPE)
@@ -263,7 +264,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_NPHI
                    J = wlc_inDPHI(I)
-                   if (wlc_p%CHI_L2_ON) then
+                   if (energyOf(maierSaupe_)%isOn) then
                        do m_index = -2,2
                            wlc_PHI_l2(m_index,J) =  wlc_PHI_l2(m_index,J) + wlc_DPHI_l2(m_index,I)
                        enddo

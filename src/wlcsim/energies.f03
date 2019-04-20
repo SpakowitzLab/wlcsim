@@ -25,13 +25,15 @@ module energies
     integer, parameter :: confine_ = 16
 
     type MC_energy
-        real(dp) E
-        real(dp) dE
-        real(dp) x
-        real(dp) dx
-        real(dp) cof
-        character(len = 8) name_str
+        real(dp) E  ! Energy in units of kT
+        real(dp) dE ! Change in energy
+        real(dp) x  ! Energy/cof, i.e. observable that energy depends on
+        real(dp) dx  ! Change in x
+        real(dp) cof ! Energy coefficienet, e.g. chi, kap, ...
+        character(len = 8) name_str ! Name for display
         logical(dp) parallel_temper
+        logical(dp) isOn ! Is energy type currently on?
+        integer ind_on ! Time when to turn energy on
     end type
 
     type(MC_energy), dimension(NUMBER_OF_ENERGY_TYPES) :: energyOf
@@ -39,6 +41,7 @@ module energies
 contains
     subroutine set_up_energyOf()
         implicit none
+        integer ii
         energyOf(1)%name_str='chi     '
         energyOf(2)%name_str='mu      '
         energyOf(3)%name_str='field   '
@@ -89,6 +92,17 @@ contains
         energyOf(stretch_)%cof = 1.0_dp
         energyOf(shear_)%cof = 1.0_dp
         energyOf(twist_)%cof = 1.0_dp
+
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            energyOf(ii)%isOn = .TRUE.
+            energyOf(ii)%ind_on = 0
+        enddo
+        energyOf(kap_)%ind_on = WLC_P__N_KAP_ON
+        energyOf(chi_)%ind_on = WLC_P__N_CHI_ON
+        energyOf(maierSaupe_)%ind_on = WLC_P__N_CHI_L2_ON
+        energyOf(external_)%ind_on = WLC_P__N_EXTERNAL_ON
+        energyOf(field_)%ind_on = WLC_P__N_FIELD_ON
+
     end subroutine
     subroutine set_all_energy_to_zero()
         implicit none
@@ -139,5 +153,14 @@ contains
             energyOf(ii)%dE=energyOf(ii)%dx * energyOf(ii)%cof
         enddo
     end subroutine
+    subroutine apply_energy_isOn()
+        implicit none
+        integer ii
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            if (energyOf(ii)%isOn) cycle
+            energyOf(ii)%dx=0.0_dp
+        enddo
+    end subroutine
+
 
 end module

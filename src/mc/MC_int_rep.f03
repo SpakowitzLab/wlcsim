@@ -17,6 +17,7 @@ subroutine MC_int_rep(wlc_p,I1,I2,forward)
 use params, only: wlc_DPHI_l2, wlc_U, wlc_UP, wlc_DPHIA, wlc_R&
     , wlc_NPHI, wlc_RP, wlc_DPHIB, wlc_inDPHI, wlc_AB, wlc_ind_in_list
 use params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 !   iputs
@@ -88,7 +89,7 @@ do II = 1,2
        print*, "The Reptation move is not currently set up for two Tail"
        stop 1
    endif
-   if (wlc_p%CHI_L2_ON .and. isA) then
+   if (energyOf(maierSaupe_)%isOn .and. isA) then
        if (rrdr == -1) then
            call Y2calc(wlc_U(:,IB),phi2)
        else
@@ -129,7 +130,7 @@ do II = 1,2
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = temp
                     wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                    if(wlc_p%CHI_L2_ON) then
+                    if(energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                 + phi2(m_index)*temp
@@ -137,7 +138,7 @@ do II = 1,2
                     endif
                 else
                     wlc_DPHIA(I) = wlc_DPHIA(I) + temp
-                    if(wlc_p%CHI_L2_ON) then
+                    if(energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                 + phi2(m_index)*temp
@@ -161,7 +162,7 @@ do II = 1,2
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 0.0_dp
                     wlc_DPHIB(wlc_NPHI) = WTOT*change
-                    if(wlc_p%CHI_L2_ON) then
+                    if(energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo
@@ -209,7 +210,7 @@ do IB = I1,I2-1
    ! --------------------------------------------------
    call interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
 
-   if (wlc_p%CHI_L2_ON) then
+   if (energyOf(maierSaupe_)%isOn) then
        if (forward) then
            call Y2calc(wlc_UP(:,IB),phi2)
        else
@@ -240,7 +241,7 @@ do IB = I1,I2-1
                 wlc_inDPHI(wlc_NPHI) = inDBin
                 wlc_DPHIA(wlc_NPHI) = temp
                 wlc_DPHIB(wlc_NPHI) = -temp
-                if(wlc_p%CHI_L2_ON) then
+                if(energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_DPHI_l2(m_index,wlc_NPHI) = &
                             + phi2(m_index)*temp
@@ -249,7 +250,7 @@ do IB = I1,I2-1
             else
                 wlc_DPHIA(I) = wlc_DPHIA(I) + temp
                 wlc_DPHIB(I) = wlc_DPHIB(I)-temp
-                if(wlc_p%CHI_L2_ON) then
+                if(energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                             + phi2(m_index)*temp

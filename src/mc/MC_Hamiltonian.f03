@@ -41,7 +41,7 @@ if (initialize) then  ! calculate absolute energy
     !
     !-------------------------------------------------------
     case('AppliedAligningField')
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
                 if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
                 energyOf(field_)%dx =  energyOf(field_)%dx + VV*wlc_PHI_l2(0,I)
@@ -53,7 +53,7 @@ if (initialize) then  ! calculate absolute energy
     !
     !-------------------------------------------------------
     case('AppliedAligningFieldMelt')
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
                 if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
                 do m_index = -2,2
@@ -77,7 +77,7 @@ if (initialize) then  ! calculate absolute energy
     ! In this problem Kap and chi are in units of kT/(simulation units cubed)
     ! If VV=1.0 than this is just kT/(bin volume)
     case('MaierSaupe')
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
                 do m_index = -2,2
                     if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
@@ -170,7 +170,7 @@ else ! Calculate change in energy
     !-------------------------------------------------------
     case('AppliedAligningField')
         if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_NPHI
                 energyOf(field_)%dx =  energyOf(field_)%dx + VV*wlc_DPHI_l2(0,I)
             enddo
@@ -183,7 +183,7 @@ else ! Calculate change in energy
     case('AppliedAligningFieldMelt')
         do I = 1,wlc_NPHI
             J = wlc_inDPHI(I)
-            if (wlc_p%CHI_L2_ON) then
+            if (energyOf(maierSaupe_)%isOn) then
                 do m_index = -2,2
                     energyOf(field_)%dx = energyOf(field_)%dx + &
                                         VV*wlc_DPHI_l2(m_index,I)*wlc_PHIH_l2(m_index,J)
@@ -203,7 +203,7 @@ else ! Calculate change in energy
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/binVolume
     case('MaierSaupe')
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_NPHI
                 if (WLC_P__FRACTIONAL_BIN) then
                     VV = wlc_Vol(I)
@@ -359,9 +359,9 @@ else ! Calculate change in energy
         enddo
     end select
 endif
-energyOf(chi_)%dx = energyOf(chi_)%dx*wlc_p%CHI_ON
-energyOf(couple_)%dx = energyOf(couple_)%dx*wlc_p%COUPLE_ON
-energyOf(kap_)%dx = energyOf(kap_)%dx*wlc_p%KAP_ON
+energyOf(chi_)%dx = energyOf(chi_)%dx
+energyOf(couple_)%dx = energyOf(couple_)%dx
+energyOf(kap_)%dx = energyOf(kap_)%dx
 RETURN
 END subroutine
 

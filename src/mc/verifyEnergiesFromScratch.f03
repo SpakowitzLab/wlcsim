@@ -89,6 +89,7 @@ use params, only: wlcsim_params
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
 
+    call apply_energy_isOn()
     call calc_all_dE_from_dx()
 end subroutine
 

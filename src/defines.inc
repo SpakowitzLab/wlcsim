@@ -144,6 +144,16 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
+#define WLC_P__NETWORK .FALSE.
+! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__NO_LEF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! no explicit binding pairs can cross eachother, e.g. 1-to-10 and 5-15
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__ELASTICITY_TYPE "constant"
 ! VARIABLE COMMENT: ! which simulation code to run
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
@@ -518,6 +528,16 @@
 #define WLC_P__N_CHI_L2_ON 1
 ! VARIABLE COMMENT: ! when to turn CHI energy on
 ! DEFAULTS COMMENT: ! turn on chi energy immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_EXTERNAL_ON 0
+! VARIABLE COMMENT: ! when to turn external potential
+! DEFAULTS COMMENT: ! turn on immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_FIELD_ON 0
+! VARIABLE COMMENT: ! when to turn applied field
+! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
 #define WLC_P__NINITMCSTEPS 4000
