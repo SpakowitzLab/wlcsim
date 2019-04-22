@@ -56,6 +56,9 @@ if (WLC_P__PROBABILITY_PRECALC_SPIDER > urnd(1)) then
     call random_index(wlc_numberOfSpiders,irnd,rand_stat)
     wlc_spider_id=irnd(1)
 else
+    if (WLC_P__NETWORK) then
+        print*, "Netowrk only set up for precalced spider"
+    endif
     call drawWindow(WLC_P__SPIDER_WINDOW,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                     IT1,IT2,IB1,IB2,IP,DIB,success)
     if (success .eqv. .false.) return

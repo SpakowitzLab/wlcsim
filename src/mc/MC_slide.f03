@@ -13,7 +13,7 @@ subroutine MC_slide(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
     wlc_nBend, wlc_bendPoints, wlc_pointsMoved, wlc_nPointsMoved, &
-    wlc_ExplicitBindingPair
+    wlc_ExplicitBindingPair, wlc_network_start_index, wlc_other_beads
 
 use mersenne_twister
 use params, only: dp
@@ -39,7 +39,7 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 !integer, intent(in) :: WLC_P__WINTYPE
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
-
+integer indx
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -81,48 +81,16 @@ endif
 ! Move Explicity Bound points along with they are bound to
 if (WLC_P__EXPLICIT_BINDING) then
     do ii=IT1,IT2
-        otherEnd = wlc_ExplicitBindingPair(ii)
-        if (otherEnd == -1) cycle
-
-        if (otherEnd >= IT1 .and. otherEnd <= IT2) cycle
-
-        ! Move Explicitly bound point along with section
-        I=otherEnd
-        wlc_RP(:,I)=wlc_R(:,I) + DR
-        wlc_UP(:,I)=wlc_U(:,I)
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-        if (isnan(wlc_RP(1,I))) then
-            wlc_nPointsMoved=wlc_nPointsMoved+1
-            wlc_pointsMoved(wlc_nPointsMoved)=I
-        endif
-        ! Add ajacent points to RP and bendPoints
-        if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
-            if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd)) then
-                wlc_nBend=wlc_nBend+1
-                wlc_bendPoints(wlc_nBend)=otherEnd
-            endif
-            I=otherEnd+1
-            if (isnan(wlc_RP(1,I))) then
-                wlc_RP(:,I)=wlc_R(:,I)
-                wlc_UP(:,I)=wlc_U(:,I)
-                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-                wlc_nPointsMoved=wlc_nPointsMoved+1
-                wlc_pointsMoved(wlc_nPointsMoved)=I
-            endif
-        endif
-        if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
-            if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd-1)) then
-                wlc_nBend=wlc_nBend+1
-                wlc_bendPoints(wlc_nBend)=otherEnd-1
-            endif
-            I=otherEnd-1
-            if (isnan(wlc_RP(1,I))) then
-                wlc_RP(:,I)=wlc_R(:,I)
-                wlc_UP(:,I)=wlc_U(:,I)
-                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-                wlc_nPointsMoved=wlc_nPointsMoved+1
-                wlc_pointsMoved(wlc_nPointsMoved)=I
-            endif
+        if (WLC_P__NETWORK) then
+            do indx = wlc_network_start_index(ii), &
+                          wlc_network_start_index(ii+1)-1
+                otherEnd = wlc_other_beads(indx)
+                call slide_another_bead(IT1, IT2, otherEnd, DR)
+            enddo
+        else
+            otherEnd = wlc_ExplicitBindingPair(ii)
+            if (otherEnd == -1) cycle
+            call slide_another_bead(IT1, IT2, otherEnd, DR)
         endif
     enddo
 endif
@@ -142,4 +110,56 @@ do  J = 0,DIB
     I = I + 1
 
 ENDdo
+end subroutine
+
+subroutine slide_another_bead(IT1,IT2, otherEnd, DR)
+use polydispersity, only: is_right_end, is_left_end
+use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
+    wlc_nBend, wlc_bendPoints, wlc_pointsMoved, wlc_nPointsMoved, dp
+integer, intent(in) :: IT1
+integer, intent(in) :: IT2
+integer, intent(in) :: otherEnd
+real(dp), intent(in) :: DR(3)    ! Displacement for slide move
+
+if (otherEnd >= IT1 .and. otherEnd <= IT2) return
+
+! Move Explicitly bound point along with section
+I=otherEnd
+wlc_RP(:,I)=wlc_R(:,I) + DR
+wlc_UP(:,I)=wlc_U(:,I)
+if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+if (isnan(wlc_RP(1,I))) then
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=I
+endif
+! Add ajacent points to RP and bendPoints
+if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
+    if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd)) then
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend)=otherEnd
+    endif
+    I=otherEnd+1
+    if (isnan(wlc_RP(1,I))) then
+        wlc_RP(:,I)=wlc_R(:,I)
+        wlc_UP(:,I)=wlc_U(:,I)
+        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        wlc_nPointsMoved=wlc_nPointsMoved+1
+        wlc_pointsMoved(wlc_nPointsMoved)=I
+    endif
+endif
+if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
+    if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd-1)) then
+        wlc_nBend=wlc_nBend+1
+        wlc_bendPoints(wlc_nBend)=otherEnd-1
+    endif
+    I=otherEnd-1
+    if (isnan(wlc_RP(1,I))) then
+        wlc_RP(:,I)=wlc_R(:,I)
+        wlc_UP(:,I)=wlc_U(:,I)
+        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        wlc_nPointsMoved=wlc_nPointsMoved+1
+        wlc_pointsMoved(wlc_nPointsMoved)=I
+    endif
+endif
+
 end subroutine

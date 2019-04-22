@@ -178,7 +178,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
               stop 1
           endif
 !   Calculate the change in the binding energy
-          if (MCTYPE == 7 .or. MCTYPE == 11) then
+          if (WLC_P__CHANGINGCHEMICALIDENTITY .and. MCTYPE == 7 .or. MCTYPE == 11) then
               !print*, 'MCsim says EM:',EM,'EU',EU
               call MC_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
           endif
@@ -264,7 +264,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
                 do I = 1,wlc_NPHI
                    J = wlc_inDPHI(I)
-                   if (energyOf(maierSaupe_)%isOn) then
+                   if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                        do m_index = -2,2
                            wlc_PHI_l2(m_index,J) =  wlc_PHI_l2(m_index,J) + wlc_DPHI_l2(m_index,I)
                        enddo

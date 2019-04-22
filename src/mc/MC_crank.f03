@@ -20,7 +20,6 @@ use windowTools, only: drawWindow
 use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain
 
 implicit none
-!integer, intent(in) :: ExplicitBindingPair(WLC_P__NT)
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2

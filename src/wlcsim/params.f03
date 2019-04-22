@@ -111,7 +111,7 @@ module params
 
     end type
 
-    real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains to asldkfjalsdkfj askldf aklsjf aklsf alskf alskdfj alskdfj asldkf asldkf alsdkfj
+    real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
     real(dp), allocatable, dimension(:,:):: wlc_U   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_V   ! Conformation of polymer chains
@@ -119,6 +119,8 @@ module params
     real(dp), allocatable, dimension(:,:):: wlc_UP !Test target vectors - only valid from IT1 to IT2
     real(dp), allocatable, dimension(:,:):: wlc_VP !Test target vectors - only valid from IT1 to IT2
     integer, allocatable, dimension(:):: wlc_ExplicitBindingPair ! List of other points bound to this one
+    integer, allocatable, dimension(:):: wlc_network_start_index ! Index in of first in wlc_network_start_index
+    integer, allocatable, dimension(:):: wlc_other_beads ! Other beads attached to beads see wlc_network_start_index
     logical, allocatable, dimension(:):: wlc_external_bind_points ! Random points attached to boundary
     real(dp), allocatable, dimension(:):: wlc_PHIA ! Volume fraction of A
     real(dp), allocatable, dimension(:):: wlc_PHIB ! Volume fraction of B
@@ -379,6 +381,9 @@ contains
 
         err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
         call stop_if_err(err, "Explicit binding not set up for exchange move")
+        
+        err = WLC_P__NETWORK .and. .not. WLC_P__EXPLICIT_BINDING
+        call stop_if_err(err, "Network requeires explicit binding")
 
         err = WLC_P__APPLY_EXTERNAL_FIELD .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
         call stop_if_err(err, "External field not set up for exchange move")
@@ -518,6 +523,7 @@ contains
         real(dp) setBinSize(3)
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
+        integer len_file
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -588,29 +594,46 @@ contains
             allocate(wlc_nucleosomeWrap(WLC_P__NT))
         endif
         if (WLC_P__EXPLICIT_BINDING) then
-            allocate(wlc_ExplicitBindingPair(WLC_P__NT))
-            if (WLC_P__ENSEMBLE_BIND .and. wlc_id>0) then
-                write(iostr,"(I4)") wlc_id
-                iostr = adjustL(iostr)
-                iostr = trim(iostr)
-                iostr = "input/L393216nloops50000_"//trim(iostr)//".txt"
-                iostr = trim(iostr)
-                print*, "reading ",iostr
-                open(unit = 5,file = iostr,status = 'OLD')
+            if (WLC_P__NETWORK) then
+                allocate(wlc_network_start_index(WLC_P__NT+1))
+                open(unit = 5,file = "input/network_start_index",status = 'OLD')
+                do I = 1, WLC_P__NT+1
+                    READ(5,*) wlc_network_start_index(I)
+                enddo
+                close(5)
+
+                open(unit = 5,file = "input/other_beads",status = 'OLD')
+                READ(5,*) len_file ! First line is number of lines to follow
+                allocate(wlc_other_beads(len_file))
+                do I = 1, len_file
+                    READ(5,*) wlc_other_beads(I)
+                enddo
+                close(5)
             else
-                open(unit = 5,file = "input/bindpairs",status = 'OLD')
-            endif
-            do I = 1,WLC_P__NT
-                Read(5,'(I10)') wlc_ExplicitBindingPair(I)
-                if (wlc_ExplicitBindingPair(I) .gt. WLC_P__NT) then
-                    print*, "Loop to nonexistant bead"
-                    stop 1
+                allocate(wlc_ExplicitBindingPair(WLC_P__NT))
+                if (WLC_P__ENSEMBLE_BIND .and. wlc_id>0) then
+                    write(iostr,"(I4)") wlc_id
+                    iostr = adjustL(iostr)
+                    iostr = trim(iostr)
+                    iostr = "input/L393216nloops50000_"//trim(iostr)//".txt"
+                    iostr = trim(iostr)
+                    print*, "reading ",iostr
+                    open(unit = 5,file = iostr,status = 'OLD')
+                else
+                    open(unit = 5,file = "input/bindpairs",status = 'OLD')
                 endif
-            enddo
-            close(5)
-            print*, "Read explidit binding"
-            print*, wlc_ExplicitBindingPair(1:10)
-            print*, "..."
+                do I = 1,WLC_P__NT
+                    Read(5,*) wlc_ExplicitBindingPair(I)
+                    if (wlc_ExplicitBindingPair(I) .gt. WLC_P__NT) then
+                        print*, "Loop to nonexistant bead"
+                        stop 1
+                    endif
+                enddo
+                close(5)
+                print*, "Read explidit binding"
+                print*, wlc_ExplicitBindingPair(1:10)
+                print*, "..."
+            endif
         endif
 
         if (WLC_P__EXTERNAL_FIELD_TYPE == 'Random_to_cube_side' .and. WLC_P__APPLY_EXTERNAL_FIELD) then

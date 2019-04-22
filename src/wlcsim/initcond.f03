@@ -12,7 +12,8 @@
 !
 subroutine initcond(R,U,NT,NP,FRMFILE,rand_stat, wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeWrap
+use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeWrap, &
+                  wlc_network_start_index
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
@@ -409,7 +410,12 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         otherEnd = IB+1
         do
             if (otherEnd == WLC_P__NT) exit
-            if (wlc_ExplicitBindingPair(otherEnd) /= -1) exit
+            if (WLC_P__NETWORK) then
+                if (wlc_network_start_index(otherEnd) /= &
+                    wlc_network_start_index(otherEnd+1)) exit
+            else
+                if (wlc_ExplicitBindingPair(otherEnd) /= -1) exit
+            endif
             otherEnd=otherEnd+1
         enddo
 

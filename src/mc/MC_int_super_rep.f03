@@ -22,7 +22,7 @@ integer, intent(in) :: I1  ! Test bead position 1
 integer, intent(in) :: I2  ! Test bead position 2
 
 !   Internal variables
-integer I                 ! For looping over bins
+integer I, J                 ! For looping over bins
 integer II                ! For looping over IB
 integer IB                ! Bead index
 integer rrdr ! -1 if r, 1 if r + dr
@@ -194,6 +194,10 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte change in energy
 !
 !---------------------------------------------------------------------
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
 call hamiltonian(wlc_p,.false.)
 
 RETURN

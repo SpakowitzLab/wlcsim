@@ -26,7 +26,7 @@ integer, intent(in) :: I1  ! Test bead position 1
 integer, intent(in) :: I2  ! Test bead position 2
 
 !   Internal variables
-integer I                 ! For looping over bins
+integer I, J                 ! For looping over bins
 integer II                ! For looping over IB
 integer IB                ! Bead index
 integer rrdr ! -1 if r, 1 if r + dr
@@ -130,7 +130,7 @@ do II = 1,2
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = temp
                     wlc_DPHIB(wlc_NPHI) = 0.0_dp
-                    if(energyOf(maierSaupe_)%isOn) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                 + phi2(m_index)*temp
@@ -138,7 +138,7 @@ do II = 1,2
                     endif
                 else
                     wlc_DPHIA(I) = wlc_DPHIA(I) + temp
-                    if(energyOf(maierSaupe_)%isOn) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
                                 + phi2(m_index)*temp
@@ -162,7 +162,7 @@ do II = 1,2
                     wlc_inDPHI(wlc_NPHI) = inDBin
                     wlc_DPHIA(wlc_NPHI) = 0.0_dp
                     wlc_DPHIB(wlc_NPHI) = WTOT*change
-                    if(energyOf(maierSaupe_)%isOn) then
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                         do m_index = -2,2
                             wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
                         enddo
@@ -266,6 +266,10 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte change in energy
 !
 !---------------------------------------------------------------------
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
 call hamiltonian(wlc_p,.false.)
 
 RETURN

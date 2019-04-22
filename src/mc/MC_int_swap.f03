@@ -26,7 +26,7 @@ integer, intent(in) :: I3      ! Test bead, first bead of second section
 integer, intent(in) :: I4      ! Test bead, second bead of second section
 
 !   Internal variables
-integer I                 ! For looping over bins
+integer I, J                 ! For looping over bins
 integer IB                ! Bead index
 integer IB2               ! Index you are swapping with
 integer rrdr ! -1 if r, 1 if r + dr
@@ -94,7 +94,7 @@ do IB = I1,I2
        RBin(3) = wlc_RP(3,IB)
    endif
    AminusB = -1+2*wlc_AB(IB) ! -1 if B and +1 if A
-   if (energyOf(maierSaupe_)%isOn) then
+   if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
        if (rrdr == -1) then
            call Y2calc(wlc_U(:,IB),phi2)
        else
@@ -135,7 +135,7 @@ do IB = I1,I2
                 wlc_inDPHI(wlc_NPHI) = inDBin
                 wlc_DPHIA(wlc_NPHI) = temp
                 wlc_DPHIB(wlc_NPHI) = -temp
-                if(energyOf(maierSaupe_)%isOn) then
+                if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_dPHI_l2(m_index,wlc_NPHI) = phi2(m_index)*temp
                     enddo
@@ -143,7 +143,7 @@ do IB = I1,I2
             else
                 wlc_DPHIA(I) = wlc_DPHIA(I) + temp
                 wlc_DPHIB(I) = wlc_DPHIB(I)-temp
-                if(energyOf(maierSaupe_)%isOn) then
+                if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
                         wlc_dPHI_l2(m_index,I) = wlc_dPHI_l2(m_index,I) + &
                                     phi2(m_index)*temp
@@ -155,6 +155,10 @@ do IB = I1,I2
    enddo
  enddo ! loop over rrdr.  A.k.a new and old
 enddo ! loop over IB  A.k.a. beads
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
 call hamiltonian(wlc_p,.false.)
 
 if (abs(energyOf(kap_)%dx).gt.0.0001_dp) then
