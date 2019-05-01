@@ -1,6 +1,7 @@
+#include "../defines.inc"
 !--------------------------------------------------------------*
 
-      subroutine BDsim(R,U,NT,N,NP,TIME,TTOT,DT,BROWN, &
+      subroutine BDsim(R,U,TIME,TTOT,DT,BROWN, &
            inTON,IDUM,PARA,SIMTYPE,COLLISION_TIME,COL_DIST, &
            COL_TYPE)
 !
@@ -8,33 +9,32 @@
 !
 !     Andrew Spakowitz
 !     Written 11-11-13
-
+      use polydispersity, only : length_of_chain
       use mt19937, only : rnorm
       use params, only : dp
       implicit none
-      real(dp) R(3,NT)  ! Bead positions
-      real(dp) U(3,NT)  ! Tangent vectors
+      real(dp) R(3,WLC_P__NT)  ! Bead positions
+      real(dp) U(3,WLC_P__NT)  ! Tangent vectors
       real(dp) TIME     ! Time of BD simulation
       real(dp) TTOT     ! Final time of BD simulation
-      integer N,NP,NT           ! Number of beads
 
 !     Variables in the simulation
 
-      real(dp) RS(3,NT) ! R during the step
-      real(dp) US(3,NT) ! R during the step
+      real(dp) RS(3,WLC_P__NT) ! R during the step
+      real(dp) US(3,WLC_P__NT) ! R during the step
       real(dp) DT,DT0       ! Time step size
       integer RK                ! Runge-Kutta index
-      real(dp) DRDT(3,NT,4) ! Position rate of change
-      real(dp) DUDT(3,NT,4) ! Position rate of change
+      real(dp) DRDT(3,WLC_P__NT,4) ! Position rate of change
+      real(dp) DUDT(3,WLC_P__NT,4) ! Position rate of change
       integer I,J,IB            ! Index Holders
       real(dp) doTU
 
 !     Variables for use in the force calculations
 
-      real(dp) FELAS(3,NT) ! Elastic force
-      real(dp) FPONP(3,NT) ! self-int force
-      real(dp) TELAS(3,NT) ! Elastic force
-      real(dp) TPONP(3,NT) ! self-int force
+      real(dp) FELAS(3,WLC_P__NT) ! Elastic force
+      real(dp) FPONP(3,WLC_P__NT) ! self-int force
+      real(dp) TELAS(3,WLC_P__NT) ! Elastic force
+      real(dp) TPONP(3,WLC_P__NT) ! self-int force
       real(dp) FORCE    ! External force
 
 !     Variables in the simulation
@@ -50,8 +50,8 @@
 
 !     Variables used for the Brownian forces
 
-      real(dp) FRAND(3,NT) ! Random force
-      real(dp) TRAND(3,NT) ! Random force
+      real(dp) FRAND(3,WLC_P__NT) ! Random force
+      real(dp) TRAND(3,WLC_P__NT) ! Random force
       real(dp) MAGR,MAGU ! Mag of Brownian forces
       integer BROWN             ! Logic for BD forces
       integer inTON             ! Include polymer interactions
@@ -62,7 +62,7 @@
       integer SWDT
 
 !     Variable to hold time of first collisions between each bead
-      real(dp) COLLISION_TIME(NT,NT)
+      real(dp) COLLISION_TIME(WLC_P__NT,WLC_P__NT)
       real(dp) COL_DIST ! l1 dist to trigger collision
       integer COL_TYPE ! algorithm to use for collision detection
 
@@ -87,8 +87,8 @@
 !     Setup the geometric parameters and initialize random forces
 
       IB = 1
-      do 10 I = 1,NP
-         do 20 J = 1,N
+      do 10 I = 1,WLC_P__NP
+         do 20 J = 1,length_of_chain(I)
             RS(1,IB) = R(1,IB)
             RS(2,IB) = R(2,IB)
             RS(3,IB) = R(3,IB)
@@ -121,7 +121,7 @@
 
       do while (TIME < TTOT)
 
-         call CHECK_COLLISIONS(R, NT, COLLISION_TIME, COL_DIST, TIME, COL_TYPE)
+         call CHECK_COLLISIONS(R, WLC_P__NT, COLLISION_TIME, COL_DIST, TIME, COL_TYPE)
 
 !     Calculate the random forces and torques for use in this
 !     timestep calculation if BROWN = 1
@@ -133,8 +133,8 @@
 
             if (BROWN == 1.AND.RK == 1) then
                IB = 1
-               do 30 I = 1,NP
-                  do 40 J = 1,N
+               do 30 I = 1,WLC_P__NP
+                  do 40 J = 1,length_of_chain(I)
                      FRAND(1,IB) = MAGR*rnorm()
                      FRAND(2,IB) = MAGR*rnorm()
                      FRAND(3,IB) = MAGR*rnorm()
@@ -151,12 +151,12 @@
 
 !     Calculate the elastic forces (same as free chain)
 
-            call force_elas(FELAS,TELAS,R,U,NT,N,NP,EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
+            call force_elas(FELAS,TELAS,R,U,EB,EPAR,EPERP,GAM,ETA,SIMTYPE)
 
 !     Calculate the self forces
 
             if (inTON == 1) then
-               call force_ponp(FPONP,R,NT,N,NP,LHC,VHC,LBOX,GAM,DT,XIR,SWDT)
+               call force_ponp(FPONP,R,LHC,VHC,LBOX,GAM,DT,XIR,SWDT)
 
 !     If timestep is switch, reset coords and redo step
 
@@ -166,8 +166,8 @@
                   MAGR = sqrt(XIR*2.0/DT)
                   MAGU = sqrt(XIU*2.0/DT)
                   IB = 1
-                  do 60 I = 1,NP
-                     do 65 J = 1,N
+                  do 60 I = 1,WLC_P__NP
+                     do 65 J = 1,length_of_chain(I)
                         R(1,IB) = RS(1,IB)
                         R(2,IB) = RS(2,IB)
                         R(3,IB) = RS(3,IB)
@@ -186,8 +186,8 @@
 !     Calculate the change in the position vector
 
             IB = 1
-            do 70 I = 1,NP
-               do 80 J = 1,N
+            do 70 I = 1,WLC_P__NP
+               do 80 J = 1,length_of_chain(I)
                   DRDT(1,IB,RK) = (FELAS(1,IB) + FPONP(1,IB))/XIR
                   DRDT(2,IB,RK) = (FELAS(2,IB) + FPONP(2,IB))/XIR
                   DRDT(3,IB,RK) = (FELAS(3,IB) + FPONP(3,IB))/XIR
@@ -207,8 +207,8 @@
 
             if (BROWN == 1) then
                IB = 1
-               do 90 I = 1,NP
-                  do 100 J = 1,N
+               do 90 I = 1,WLC_P__NP
+                  do 100 J = 1,length_of_chain(I)
                      DRDT(1,IB,RK) = DRDT(1,IB,RK) + FRAND(1,IB)/XIR
                      DRDT(2,IB,RK) = DRDT(2,IB,RK) + FRAND(2,IB)/XIR
                      DRDT(3,IB,RK) = DRDT(3,IB,RK) + FRAND(3,IB)/XIR
@@ -229,12 +229,12 @@
 !     If SIMTYPE = 1 (WLC), calculate the constraint forces
 
             if (SIMTYPE == 1) then
-               call concalc(R,DRDT,NT,N,NP,XIR,GAM,DT,RK,BROWN)
+               call concalc(R,DRDT,XIR,GAM,DT,RK,BROWN)
             endif
 
 !     Step forward using the RK algorithm
 
-            call RKstep(RS,R,US,U,DRDT,DUDT,NT,N,NP,RK,DT)
+            call RKstep(RS,R,US,U,DRDT,DUDT,RK,DT)
 
             RK = RK + 1
 
@@ -249,8 +249,8 @@
          MAGU = sqrt(XIU*2.0/DT)
 
          IB = 1
-         do 110 I = 1,NP
-            do 120 J = 1,N
+         do 110 I = 1,WLC_P__NP
+            do 120 J = 1,length_of_chain(I)
                RS(1,IB) = R(1,IB)
                RS(2,IB) = R(2,IB)
                RS(3,IB) = R(3,IB)

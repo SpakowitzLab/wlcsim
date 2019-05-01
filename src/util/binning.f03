@@ -37,9 +37,9 @@ module binning
 
     ! The following are optimization constants.
     ! Their optimal values will, in general, depend on the application
-    integer, Parameter :: maxBeadsPerBin = 20
-    integer, Parameter :: subdivisionRatio = 4
-    integer, Parameter :: nBeadsToTrigerBinMerge = 3
+    Integer, Parameter :: maxBeadsPerBin = 32
+    Integer, Parameter :: subdivisionRatio = 4
+    Integer, Parameter :: nBeadsToTrigerBinMerge = 5
 
     type binType
         !-----------
@@ -155,6 +155,7 @@ contains
             !    print*, "Number of beads doesn't add up"
             !    stop
             !endif
+            deallocate(bin%bins)
             bin%isSuperBin = .False.
         else
             do ii = 1,bin%numberOfBins
@@ -366,6 +367,9 @@ contains
                          +(R(3,bin%beads(ii))-location(3))**2
                 if (distance.le.(radius**2)) then
                     !if (nNeighbors .ge. maxNeighbors) then
+                    !    print*, "nNeighbors", nNeighbors
+                    !    print*, "maxNeighbors",maxNeighbors
+                    !    print*, "NT",NT
                     !    print*, "Error: Too many neighbors"
                     !    stop
                     !endif

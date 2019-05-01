@@ -43,10 +43,11 @@ SRC := $(shell find "src" -type f -name '*.f*' \
 			    -not -path "src/legacy/*" \
 				-not -path "src/tests/*" \
 				-not -path "src/third_party/FLAP/*" \
+				-not -path "src/third_party/mersenne_twister.f90" \
 				-not -path '*/\.*' )
 
 # takes each *.f* -> *.o
-OBJ := $(addsuffix .o,$(basename $(SRC)))
+OBJ := $(addsuffix .o,$(basename $(SRC))) src/third_party/mersenne_twister.o
 TEST := $(shell find "src/tests" -type f -name '*.f*')
 
 # program name
@@ -67,6 +68,9 @@ $(PROGRAM): flap depend dummy_prog
 # way to do this
 dummy_prog: $(OBJ)
 	$(FC) $(FCFLAGS) -o $(PROGRAM) $^ $(INCLUDE_DIRS) $(shell find "src/third_party/FLAP/exe/obj" -type f -not -path "src/third_party/FLAP/exe/obj/test_minimal.o") $(FLFLAGS)
+
+src/third_party/mersenne_twister.o: src/third_party/mersenne_twister.f90
+	$(FC) -c -fdefault-real-8 $(FCFLAGS) src/third_party/mersenne_twister.f90 -o src/third_party/mersenne_twister.o 
 
 doc:
 	make -C doc html

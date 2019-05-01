@@ -11,13 +11,17 @@
 !     Edited by Shifan
 !     Edited by Quinn in 2016
 
-subroutine MC_int_initialize(wlc_p,wlc_d)
-use params, only: dp, wlcsim_params, wlcsim_data
+subroutine MC_int_initialize(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_PHIB, wlc_NPHI, wlc_PHI_l2, wlc_U, wlc_AB&
+    , wlc_PHIA, wlc_R, wlc_phi_l2, wlc_dphi_l2, wlc_inDPHI, wlc_DPHIA&
+    , wlc_DPHIB
+use params, only: dp, wlcsim_params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
-TYPE(wlcsim_data), intent(inout) :: wlc_d
-LOGICAL initialize   ! if true, calculate absolute energy
+LOGICAL,parameter :: initialize = .TRUE.   ! if true, calculate absolute energy
 
 !   Internal variables
 integer IB                ! Bead index
@@ -32,32 +36,31 @@ real(dp), dimension(-2:2) :: phi2
 integer m_index ! m for spherical harmonics
 
 ! Copy so I don't have to type wlc_p% everywhere
-integer NBinX(3)
-NBinX = wlc_p%NBINX
 
 ! -------------------------------------------------------------
 !
 !  Calculate change (or value if initialize) of phi for A and B
 !
 !--------------------------------------------------------------
-wlc_d%PHIA = 0.0_dp
-wlc_d%DPHIA = 0.0_dp
-wlc_d%PHIB = 0.0_dp
-wlc_d%DPHIB = 0.0_dp
-wlc_d%inDPHI = 0
-if (wlc_p%CHI_L2_ON) then
-    wlc_d%phi_l2 = 0.0_dp
-    wlc_d%dphi_l2 = 0.0_dp
+wlc_PHIA = 0.0_dp
+wlc_DPHIA = 0.0_dp
+wlc_PHIB = 0.0_dp
+wlc_DPHIB = 0.0_dp
+wlc_inDPHI = 0
+if (energyOf(maierSaupe_)%isOn) then
+    wlc_phi_l2 = 0.0_dp
+    wlc_dphi_l2 = 0.0_dp
 endif
 
-wlc_d%NPHI = 0
-do IB = 1,wlc_p%NT
-   RBin(1) = wlc_d%R(1,IB)
-   RBin(2) = wlc_d%R(2,IB)
-   RBin(3) = wlc_d%R(3,IB)
+wlc_NPHI = 0
+do IB = 1,WLC_P__NT
+   RBin(1) = wlc_R(1,IB)
+   RBin(2) = wlc_R(2,IB)
+   RBin(3) = wlc_R(3,IB)
 
-   if (wlc_p%CHI_L2_ON .and. wlc_d%AB(IB).eq.1 ) then
-       call Y2calc(wlc_d%U(:,IB),phi2)
+   if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn .and.&
+       wlc_AB(IB).eq.1 ) then
+       call Y2calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp
@@ -79,33 +82,43 @@ do IB = 1,wlc_p%NT
    do ISX = 1,2
       do ISY = 1,2
          do ISZ = 1,2
-            if (((IX(ISX).le.0).OR.(IX(ISX).ge.(NBinX(1) + 1))) .or.&
-                ((IY(ISY).le.0).OR.(IY(ISY).ge.(NBinX(2) + 1))) .or.&
-                ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(NBinX(3) + 1)))) then
+            if (((IX(ISX).le.0).OR.(IX(ISX).ge.(WLC_P__NBIN_X + 1))) .or.&
+                ((IY(ISY).le.0).OR.(IY(ISY).ge.(WLC_P__NBIN_Y + 1))) .or.&
+                ((IZ(ISZ).le.0).OR.(IZ(ISZ).ge.(WLC_P__NBIN_Z + 1)))) then
                 print*, "Out of Bounds!"
                 stop
             endif
 
             WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-            inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
+            inDBin = IX(ISX) + (IY(ISY)-1)*WLC_P__NBIN_X + (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
             contribution =  WTOT*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
 
-            if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then! A, chrystal, singally bound
-                ! Set all phi values on initialize
-                wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + contribution
-                if(wlc_p%CHI_L2_ON) then
+            if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+                wlc_PHIA(indBin) = wlc_PHIA(indBin) + contribution*wlc_AB(IB)
+                wlc_PHIB(indBin) = wlc_PHIB(indBin) + contribution
+                if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
                     do m_index = -2,2
-                        wlc_d%PHI_l2(m_index,indBin) = wlc_d%PHI_l2(m_index,indBin) + phi2(m_index)*contribution
+                        wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
                     enddo
                 endif
-            else if (wlc_d%AB(IB) == 0) then
+                cycle ! take care of all types
+            endif
+            if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then! A, chrystal, singally bound
                 ! Set all phi values on initialize
-                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) + contribution
-            else if (wlc_d%AB(IB) == 3) then 
+                wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + contribution
+                if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                    do m_index = -2,2
+                        wlc_PHI_l2(m_index,indBin) = wlc_PHI_l2(m_index,indBin) + phi2(m_index)*contribution
+                    enddo
+                endif
+            else if (wlc_AB(IB) == 0) then
+                ! Set all phi values on initialize
+                wlc_PHIB(inDBin) = wlc_PHIB(inDBin) + contribution
+            else if (wlc_AB(IB) == 3) then
                 ! phiA + phiB = phi_poly
                 ! phiA = n_hp1*v/Vol**3
-                wlc_d%PHIA(inDBin) = wlc_d%PHIA(inDBin) + 2.0_dp*contribution
-                wlc_d%PHIB(inDBin) = wlc_d%PHIB(inDBin) - contribution
+                wlc_PHIA(inDBin) = wlc_PHIA(inDBin) + 2.0_dp*contribution
+                wlc_PHIB(inDBin) = wlc_PHIB(inDBin) - contribution
             endif
          enddo
       enddo
@@ -116,8 +129,7 @@ enddo ! loop over IB  A.k.a. beads
 ! Calcualte abosolute energy
 !
 !---------------------------------------------------------------------
-initialize = .True.
-call hamiltonian(wlc_p,wlc_d,initialize)
+call hamiltonian(wlc_p,initialize)
 
 RETURN
 END
@@ -135,48 +147,72 @@ END
 !     Edited by Shifan
 !     Edited by Quinn in 2016
 !--------------------------------------------------------------!
-subroutine MC_int_update(wlc_p,wlc_d,I1,I2)
-use params, only: dp, wlcsim_params, wlcsim_data
+subroutine MC_int_update(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_NPHI, wlc_inDPHI,wlc_ind_in_list, wlc_nPointsMoved, wlc_pointsMoved
+use params, only: wlcsim_params
+implicit none
+TYPE(wlcsim_params), intent(in) :: wlc_p
+LOGICAL, parameter :: initialize = .False.  ! if true, calculate absolute energy
+integer I,J
+
+wlc_NPHI = 0
+do I = 1,wlc_nPointsMoved
+    J = wlc_pointsMoved(I)
+    call CalcDphi(wlc_p,J)
+enddo
+do I = 1,wlc_NPHI
+   J = wlc_inDPHI(I)
+   wlc_ind_in_list(J) = -1
+enddo
+call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
+end subroutine MC_int_update
+
+subroutine CalcDphi(wlc_p,IB)
+!  Note: This subroutine assumes you have set wlc_bin_in_list=FALSE
+!  some time before the start of the move.
+
+! values from wlcsim_data
+use params, only: wlc_NPHI, wlc_RP, wlc_U, wlc_AB, wlc_R&
+    , wlc_UP, wlc_DPHI_l2, wlc_inDPHI, wlc_DPHIA, wlc_DPHIB&
+    , wlc_ind_in_list
+use params, only: dp, wlcsim_params
+use energies, only: energyOf, maierSaupe_
 implicit none
 
 TYPE(wlcsim_params), intent(in) :: wlc_p
-TYPE(wlcsim_data), intent(inout) :: wlc_d
-LOGICAL initialize   ! if true, calculate absolute energy
-integer, intent(in) :: I1           ! Test bead position 1
-integer, intent(in) :: I2           ! Test bead position 2
+integer, intent(in) :: IB           ! Test bead position 1
 
 !   Internal variables
 integer I                 ! For looping over bins
-integer IB                ! Bead index
 integer rrdr ! -1 if r, 1 if r + dr
 integer IX(2),IY(2),IZ(2)
 real(dp) WX(2),WY(2),WZ(2)
-real(dp) WTOT       ! total weight ascribed to bin
 real(dp) RBin(3)    ! bead position
 integer inDBin              ! index of bin
 integer ISX,ISY,ISZ
 
 ! Copy so I don't have to type wlc_p% everywhere
-integer NBinX(3)
 integer m_index ! m for spherical harmonics
 real(dp), dimension(-2:2) :: phi2
 real(dp) contribution
+real(dp) change
+real(dp) W_ZY, W_Z
+integer ind_Z_temp, ind_ZY_temp
 
-NBinX = wlc_p%NBINX
-
-wlc_d%NPHI = 0
-do IB = I1,I2
   do rrdr = -1,1,2
    ! on initialize only add current position
    ! otherwise subract current and add new
    if (rrdr.eq.-1) then
-       RBin(1) = wlc_d%R(1,IB)
-       RBin(2) = wlc_d%R(2,IB)
-       RBin(3) = wlc_d%R(3,IB)
+       RBin(1) = wlc_R(1,IB)
+       RBin(2) = wlc_R(2,IB)
+       RBin(3) = wlc_R(3,IB)
+       change = -1.0_dp*WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
    else
-       RBin(1) = wlc_d%RP(1,IB)
-       RBin(2) = wlc_d%RP(2,IB)
-       RBin(3) = wlc_d%RP(3,IB)
+       RBin(1) = wlc_RP(1,IB)
+       RBin(2) = wlc_RP(2,IB)
+       RBin(3) = wlc_RP(3,IB)
+       change = WLC_P__BEADVOLUME/(WLC_P__DBIN**3)
    endif
    ! --------------------------------------------------
    !
@@ -193,134 +229,152 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (wlc_p%CHI_L2_ON .and. wlc_d%AB(IB).eq.1) then
+   if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn .and. wlc_AB(IB).eq.1) then
        if (rrdr == -1) then
-           call Y2calc(wlc_d%U(:,IB),phi2)
+           call Y2calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_d%UP(:,IB),phi2)
+           call Y2calc(wlc_UP(:,IB),phi2)
        endif
-   else
+   elseif (WLC_P__CHI_L2_ABLE) then
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp
    endif
 
-   if (wlc_d%AB(IB) == 1 .or. wlc_d%AB(IB) == 2) then ! A, chrystal, singally bound
-       do ISX = 1,2
+   if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
+       do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_d%NPHI
-                ! Generate list of which phi's change and by how much
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = contribution
-                      wlc_d%DPHIB(wlc_d%NPHI) = 0.0_dp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = &
-                                  + phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + contribution
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              wlc_d%DPHI_l2(m_index,I) = wlc_d%DPHI_l2(m_index,I) &
-                                  + phi2(m_index)*contribution
-                          enddo
-                      endif
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
+             do ISX = 1,2
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = contribution*wlc_AB(IB)
+                    wlc_DPHIB(wlc_NPHI) = contribution
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + contribution*wlc_AB(IB)
+                    wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                endif
              enddo
           enddo
        enddo
-   else if (wlc_d%AB(IB) == 0) then
-       do ISX = 1,2
+       cycle ! take care of all types
+   endif
+   if (wlc_AB(IB) == 1 .or. wlc_AB(IB) == 2) then ! A, chrystal, singally bound
+       do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = 0.0_dp
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
-                          enddo
-                      endif
-                      wlc_d%DPHIB(wlc_d%NPHI) = contribution
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) + contribution
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
+             do ISX = 1,2
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = contribution
+                    wlc_DPHIB(wlc_NPHI) = 0.0_dp
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + contribution
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) &
+                                + phi2(m_index)*contribution
+                        enddo
+                    endif
+                endif
              enddo
           enddo
        enddo
-   else if (wlc_d%AB(IB) == 3) then
-       do ISX = 1,2
+   else if (wlc_AB(IB) == 0) then
+       do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
+          W_Z = WZ(ISZ) * change
           do ISY = 1,2
-             do ISZ = 1,2
-                WTOT = WX(ISX)*WY(ISY)*WZ(ISZ)
-                inDBin = IX(ISX) + (IY(ISY)-1)*NBinX(1) + (IZ(ISZ)-1)*NBinX(1)*NBinX(2)
-                contribution = rrdr*WTOT*WLC_P__BEADVOLUME/&
-                                  (WLC_P__DBIN**3)
-                I = wlc_d%NPHI
-                do
-                   if (I.eq.0) then
-                      wlc_d%NPHI = wlc_d%NPHI + 1
-                      wlc_d%inDPHI(wlc_d%NPHI) = inDBin
-                      wlc_d%DPHIA(wlc_d%NPHI) = 2.0_dp*contribution
-                      if(wlc_p%CHI_L2_ON) then
-                          do m_index = -2,2
-                              ! This is somewhat wastefull, could eliminate for speedup by having another NPHI for L=2
-                              wlc_d%DPHI_l2(m_index,wlc_d%NPHI) = 0.0_dp
-                          enddo
-                      endif
-                      wlc_d%DPHIB(wlc_d%NPHI) = -1.0_dp*contribution
-                      exit
-                   elseif (inDBin == wlc_d%inDPHI(I)) then
-                      wlc_d%DPHIA(I) = wlc_d%DPHIA(I) + 2.0*contribution
-                      wlc_d%DPHIB(I) = wlc_d%DPHIB(I) - contribution
-                      exit
-                   else
-                      I = I-1
-                   endif
-                enddo
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
+             do ISX = 1,2
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = 0.0_dp
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
+                        enddo
+                    endif
+                    wlc_DPHIB(wlc_NPHI) = contribution
+                else
+                    wlc_DPHIB(I) = wlc_DPHIB(I) + contribution
+                endif
+             enddo
+          enddo
+       enddo
+   else if (wlc_AB(IB) == 3) then
+       do ISZ = 1,2
+          ind_Z_temp = (IZ(ISZ)-1)*WLC_P__NBIN_X*WLC_P__NBIN_Y
+          W_Z = WZ(ISZ) * change
+          do ISY = 1,2
+             ind_ZY_temp = (IY(ISY)-1)*WLC_P__NBIN_X + ind_Z_temp
+             W_ZY = WY(ISY)*W_Z
+             do ISX = 1,2
+                inDBin = IX(ISX) + ind_ZY_temp
+                contribution = WX(ISX)*W_ZY
+                I = wlc_ind_in_list(indBin)
+                if (I == -1) then
+                    wlc_NPHI = wlc_NPHI + 1
+                    wlc_ind_in_list(indBin) = wlc_NPHI
+                    wlc_inDPHI(wlc_NPHI) = inDBin
+                    wlc_DPHIA(wlc_NPHI) = 2.0_dp*contribution
+                    if(WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
+                        do m_index = -2,2
+                            wlc_DPHI_l2(m_index,wlc_NPHI) = 0.0_dp
+                        enddo
+                    endif
+                    wlc_DPHIB(wlc_NPHI) = -1.0_dp*contribution
+                else
+                    wlc_DPHIA(I) = wlc_DPHIA(I) + 2.0_dp*contribution
+                    wlc_DPHIB(I) = wlc_DPHIB(I) - contribution
+                endif
              enddo
           enddo
        enddo
    else
-       print*, "AB state",wlc_d%AB(IB)," not defined"
+       print*, "AB state",wlc_AB(IB)," not defined"
        stop
    endif
  enddo ! loop over rrdr.  A.k.a new and old
-enddo ! loop over IB  A.k.a. beads
-! ---------------------------------------------------------------------
-!
-! Calcualte change in energy
-!
-!---------------------------------------------------------------------
-initialize = .False.
-call hamiltonian(wlc_p,wlc_d,initialize)
 
 RETURN
 END

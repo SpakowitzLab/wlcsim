@@ -31,14 +31,14 @@ ISTEP = -1
 wlc_p%inD = 1
 do while (wlc_p%inD.le.wlc_p%inDMAX)
 do ISTEP = 1,wlc_p%NSTEP
-    if (abs(wlc_p%ECHI-wlc_p%CHI*(r(1)**2)).gt.0.001) then
+    if (abs(wlc_p%ECHI-energyOf(chi_)%cof*(r(1)**2)).gt.0.001) then
         print*, "-----------------------"
         print*, "Energy mismatch"
         print*, "wlc_p%ECHI = ",wlc_p%ECHI
-        print*, "wlc_p%CHI*r(1)**2",wlc_p%CHI*r(1)**2
+        print*, "energyOf(chi_)%cof*r(1)**2",energyOf(chi_)%cof*r(1)**2
         print*, "inD", wlc_p%inD, "  ISTEP", ISTEP
         print*, "r1", r(1), " rp(1)", rp(1)
-        print*, "chiOld", chiOld, " CHI", wlc_p%CHI
+        print*, "chiOld", chiOld, " CHI", energyOf(chi_)%cof
         print*, "xchiOld", xchiOld, " wlc_p%x_chi",wlc_p%x_chi
         print*, "EChiOld",EchiOld," Echi", wlc_p%Echi
         stop 1
@@ -51,7 +51,7 @@ do ISTEP = 1,wlc_p%NSTEP
         print*, "r(1)", r(1), "rp(1)", rp(1)
         stop 1
     endif
-    wlc_p%ECHI = wlc_p%CHI*(r(1)**2)
+    wlc_p%ECHI = energyOf(chi_)%cof*(r(1)**2)
     ! Make Move
     do term = 1,8
         if (mod(istep,8) + 1.eq.term) then
@@ -70,15 +70,15 @@ do ISTEP = 1,wlc_p%NSTEP
     wlc_p%dx_couple = -(rp(4)**2-r(4)**2)
     wlc_p%dx_kap=   (rp(5)**2-r(5)**2)
 
-    wlc_p%DEBind = wlc_p%MU*(rp(2)**2-r(2)**2) + (rp(2)-r(2))
+    wlc_p%DEBind = energyOf(mu_)%cof*(rp(2)**2-r(2)**2) + (rp(2)-r(2))
 
     wlc_p%dx_chi = wlc_p%dx_chi*wlc_p%CHI_ON
     wlc_p%dx_couple = wlc_p%dx_couple*wlc_p%COUPLE_ON
     wlc_p%dx_Kap = wlc_p%dx_Kap*wlc_p%KAP_ON
 
-    wlc_p%DEChi = wlc_p%CHI*        wlc_p%dx_chi
-    wlc_p%DECouple = wlc_p%HP1_BIND*wlc_p%dx_couple
-    wlc_p%DEKap = wlc_p%KAP*        wlc_p%dx_Kap
+    wlc_p%DEChi = energyOf(chi_)%cof*        wlc_p%dx_chi
+    wlc_p%DECouple = energyOf(couple_)%cof*wlc_p%dx_couple
+    wlc_p%DEKap = energyOf(kap_)%cof*        wlc_p%dx_Kap
     wlc_p%DEField = wlc_p%h_A*      wlc_p%dx_Field
 
     ! wlc_p%deelas(1) = wlc_p%Para(1)*(rp(6)**2-r(6)**2)
@@ -93,7 +93,7 @@ do ISTEP = 1,wlc_p%NSTEP
     TEST = urnd(1)
     if (TEST <= PROB) then
         r = rp
-        wlc_p%EBind = wlc_p%EBind + wlc_p%DEBind
+        wlc_p%ebind = wlc_p%ebind + wlc_p%DEBind
         wlc_p%x_mu = wlc_p%x_mu + wlc_p%dx_mu
         wlc_p%EELAS(1) = wlc_p%EELAS(1) + wlc_p%DEELAS(1)
         wlc_p%EELAS(2) = wlc_p%EELAS(2) + wlc_p%DEELAS(2)
@@ -108,12 +108,12 @@ do ISTEP = 1,wlc_p%NSTEP
         wlc_p%x_field = wlc_p%x_field + wlc_p%dx_field
 
     endif
-    if (abs(wlc_p%EChi-wlc_p%x_chi*wlc_p%CHI).gt.0.0000001_dp) then
+    if (abs(wlc_p%EChi-wlc_p%x_chi*energyOf(chi_)%cof).gt.0.0000001_dp) then
         print*, "~~~~~~~~~~~~~~~"
-        print*, "Error. wlc_p%Echi", wlc_p%Echi," wlc_p%x_chi*wlc_p%CHI",wlc_p%x_chi*wlc_p%CHI
+        print*, "Error. wlc_p%Echi", wlc_p%Echi," wlc_p%x_chi*energyOf(chi_)%cof",wlc_p%x_chi*energyOf(chi_)%cof
         stop 1
     endif
-    chiOld = wlc_p%CHI
+    chiOld = energyOf(chi_)%cof
     xchiOld = wlc_p%x_chi
     EchiOld = wlc_p%EChi
     if ((mod(ISTEP,4)).eq.0) then
@@ -136,7 +136,7 @@ do ISTEP = 1,wlc_p%NSTEP
             inquire(file = fullName, exist = isfile)
             if (.not.isfile) then
                 open (UNIT = 2, FILE = fullName, STATUS = 'NEW')
-                write(2,*), wlc_p%CHI, wlc_p%MU, wlc_p%h_A, wlc_p%HP1_BIND,wlc_p%KAP,&
+                write(2,*), energyOf(chi_)%cof, energyOf(mu_)%cof, wlc_p%h_A, energyOf(couple_)%cof,energyOf(kap_)%cof,&
                             ! wlc_p%Para(1),wlc_p%Para(2), wlc_p%Para(3),
                             wlc_p%id
                 close(2)

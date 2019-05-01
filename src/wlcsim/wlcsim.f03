@@ -14,9 +14,10 @@ program main
     use flap, only: command_line_interface
 
     ! structs that will hold simulation params and state
-    use params, only: wlcsim_params, wlcsim_data, &
+    use precision, only: setup_runtime_floats
+    use params, only: wlcsim_params, wlc_repSuffix, &
         MAXFILENAMELEN, save_simulation_state, set_parameters, &
-        initialize_wlcsim_data, save_parameters, setup_runtime_floats, &
+        initialize_wlcsim_data, save_parameters, &
         printDescription, printWindowStats
 
     implicit none
@@ -31,7 +32,6 @@ program main
 
     ! Simulation state
     type(wlcsim_params) :: wlc_p
-    type(wlcsim_data)   :: wlc_d
 
     call cli%init(progname = 'wlcsim.exe', &
                   description = 'WLCSIM: A Mesoscopic Polymer Simulator')
@@ -58,43 +58,43 @@ program main
 
     call setup_runtime_floats()
 
-    call set_parameters(wlc_d, wlc_p)
+    call set_parameters( wlc_p)
 
-    call initialize_wlcsim_data(wlc_d, wlc_p)
+    call initialize_wlcsim_data( wlc_p)
 
     call save_parameters(wlc_p, &
-        trim(outfile) // 'params' // trim(adjustL(wlc_d%repSuffix)))
+        trim(outfile) // 'params' // trim(adjustL(wlc_repSuffix)))
 
     i = 0
-    call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+    call save_simulation_state(i, wlc_p, outfile, 'NEW')
 
     select case (trim(adjustL(WLC_P__CODENAME)))
     case ('quinn', 'parallel temper continuous parameters')
         do i = 1,WLC_P__NUMSAVEPOINTS
-            call wlcsim_quinn(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+            call wlcsim_quinn(i, wlc_p)
+            call save_simulation_state(i, wlc_p, outfile, 'NEW')
         enddo
     case ('brad', 'parallel temper discrete parameters', 'twist')
         do i = 1,WLC_P__NUMSAVEPOINTS
-           call wlcsim_brad(wlc_d,wlc_p)
-           call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+           call wlcsim_brad(wlc_p)
+           call save_simulation_state(i, wlc_p, outfile, 'NEW')
            print *, 'i is', i
            print *, '*******************'
         enddo
     case ('bruno', 'brownian dynamics')
         do i = 1,WLC_P__NUMSAVEPOINTS
-            call wlcsim_bruno(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+            call wlcsim_bruno(i, wlc_p)
+            call save_simulation_state(i, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_mc', 'simple monte carlo')
         do i = 1,WLC_P__NUMSAVEPOINTS
-            call wlcsim_bruno_mc(i, wlc_d, wlc_p)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+            call wlcsim_bruno_mc(i, wlc_p)
+            call save_simulation_state(i, wlc_p, outfile, 'NEW')
         enddo
     case ('bruno_loop', 'get looping events')
         do i = 1,WLC_P__NUMSAVEPOINTS
-            call wlcsim_bruno_looping_events(i, wlc_d, wlc_p, outfile)
-            call save_simulation_state(i, wlc_d, wlc_p, outfile, 'NEW')
+            call wlcsim_bruno_looping_events(i, wlc_p, outfile)
+            call save_simulation_state(i, wlc_p, outfile, 'NEW')
         enddo
     case default
         call stop_if_err(1, 'Invalid simulation code name specified.')

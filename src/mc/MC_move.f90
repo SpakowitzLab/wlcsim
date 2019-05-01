@@ -8,80 +8,54 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(wlc_p,wlc_d,IB1,IB2,IT1,IT2,IT3,IT4,IP,MCTYPE,forward,rand_stat,dib)
-use mersenne_twister
-use params, only: dp, pi, wlcsim_data, wlcsim_params
+subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success)
+! values from wlcsim_data
+use params, only: wlc_Window, wlc_MCAMP
+use mersenne_twister, only: random_stat
+use params, only:  wlcsim_params
 implicit none
 
-integer, intent(out) :: IT1, IT2, IT3, IT4, IP, IB1, IB2, dib
+integer, intent(out) :: IT1, IT2, IT3, IT4, IB1, IB2, dib
+logical, intent(out) :: success
 integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 
 
-type(wlcsim_params), intent(in) :: wlc_p
-type(wlcsim_data), intent(inout) :: wlc_d
 
+success = .TRUE.
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
-case(1) 
-call MC_crank(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
-       ,dib)
+case(1)
+call MC_crank(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
+       ,dib,success)
 case(2)
-call MC_slide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat &
-       ,dib)
+call MC_slide(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
+       ,dib,success)
 case(3)
-call MC_pivot(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),wlc_d%Window(MCTYPE),rand_stat)
+call MC_pivot(IB1,IB2,IT1,IT2 &
+       ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat,success)
 case(4)
-call MC_rotate(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_rotate(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(5)
-call MC_fullChainRotation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_fullChainRotation(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(6)
-call MC_fullChainSlide(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP&
-       ,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%MCAMP(MCTYPE),rand_stat)
+call MC_fullChainSlide(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP,IP,IB1,IB2,IT1,IT2 &
-       ,wlc_d%Window(MCTYPE),rand_stat)
+call MC_chemMove(IB1,IB2,IT1,IT2,wlc_Window(MCTYPE),rand_stat,success)
 case(8)
 case(9)
-call MC_chainSwap(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IB1,IB2,IT1,IT2 &
-       ,rand_stat &
-       ,IT3,IT4)
+call MC_chainSwap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 case(10)
-call MC_reptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,IP,IT1,IT2,IB1,IB2&
-       ,rand_stat &
-       ,forward)
+call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
 case(11)
-call MC_superReptation(wlc_p,wlc_d%R,wlc_d%U,wlc_d%RP,wlc_d%UP,wlc_d%AB,wlc_d%ABP&
-        ,IP,IT1,IT2,IB1,IB2,rand_stat &
-       ,forward)
-end select 
+call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
+case(12)
+call MC_spider(wlc_MCAMP,rand_stat,success)
+end select
 RETURN
 END
-function exponential_random_int(window,rand_stat) result(output)
-    ! this function gives a random exponentially distributed intiger
-    ! the most likely outcome is 0
-    use params, only: dp
-    use mersenne_twister
-    implicit none
-    type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-    real urnd(1) ! single random number
-    real(dp), intent(in) :: window
-    integer output
-    call random_number(urnd,rand_stat)
-    output  = nint(-1.0_dp*log(urnd(1)+0.000001_dp)*window+0.0001_dp)
-    output = abs(output)
-end function exponential_random_int
 subroutine test_equiv_forward(U,R,UP,RP,NT,IT1,IT2,RparaMag,RperpMag)
 use params, only: dp, eps
 implicit none
@@ -164,83 +138,6 @@ if (abs(GIOld(1)**2 + GIOld(2)**2 + GIOld(3)**2&
   print*, "RparaMag",RparaMag,"RperpMag",RperpMag
   stop 1
 endif
-
-return
-end subroutine
-subroutine random_perp(u,p,t,rand_stat)
-! The subroutine generates the second two vectors in a unit triad
-! The output vectors, p and t, are perpendicular to eachother and u
-! The triad is randomly left or right handed
-use mersenne_twister
-use params, only: pi, dp, eps
-implicit none
-!real(dp), PARAMETER :: PI = 3.141592654 ! Value of pi
-type(random_stat) rand_stat  ! status of random number generator
-real urnd(1) ! single random number
-
-real(dp) v(2) ! random 2-vec
-real(dp), intent(in) :: u(3) ! input
-real(dp), intent(out) :: p(3) ! output: random perpendicular to u
-real(dp), intent(out) :: t(3) ! orthogonal to p and u
-real(dp) f
-
-if (abs(u(1)**2 + u(2)**2 + u(3)**2-1.0_dp) .gt.eps) then
-    print*, u
-    print*, "Error in random_perp, please give me a unit vector"
-    stop 1
-endif
-
-call random_number(urnd,rand_stat)
-v(1) = cos(2*PI*urnd(1))
-v(2) = sin(2*PI*urnd(1))
-
-if (u(3).gt.0.0) then
-    f = 1.0_dp/(1 + u(3))
-    p(1) = (u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
-    p(2) = (u(3) + f*u(1)**2)*v(2) - u(2)*u(1)*v(1)*f
-    p(3) = -1.0_dp*(u(2)*v(2) + u(1)*v(1))
-else
-    f = 1.0_dp/(1-u(3))
-    p(1) = (-u(3) + f*u(2)**2)*v(1) - u(2)*u(1)*v(2)*f
-    p(2) = (-u(3) + f*u(1)**2)*v(2) - u(2)*u(1)*v(1)*f
-    p(3) = (u(2)*v(2) + u(1)*v(1))
-
-endif
-
-t(1) = u(2)*p(3)-u(3)*p(2)
-t(2) = u(3)*p(1)-u(1)*p(3)
-t(3) = u(1)*p(2)-u(2)*p(1)
-
-! random sign
-call random_number(urnd,rand_stat)
-if (urnd(1).lt.0.5_dp) then
-    t(1) = -1.0_dp*t(1)
-    t(2) = -1.0_dp*t(2)
-    t(3) = -1.0_dp*t(3)
-endif
-
-! Testing
-!if (abs(p(1)*u(1) + p(2)*u(2) + p(3)*u(3)).gt.0.000001_dp) then
-!    print*, "Error in random_perp, 1"
-!    stop 1
-!endif
-!if (abs(p(1)**2 + p(2)**2 + p(3)**2-1) .gt. 0.0000001_dp) then
-!    print*, "Error in random_perp, 2"
-!    stop 1
-!endif
-!if (abs(t(1)**2 + t(2)**2 + t(3)**2 -1).gt.0.000001_dp) then
-!    print*, "Error in random_perp, 3"
-!    stop 1
-!endif
-!if (abs(t(1)*p(1) + t(2)*p(2) + t(3)*p(3)).gt.0.0000001_dp) then
-!    print*, "Error in random_perp, 4"
-!    stop 1
-!endif
-!if (abs(t(1)*u(1) + t(2)*u(2) + t(3)*u(3)).gt.0.0000001_dp) then
-!    print*, "Error in random_perp, 5"
-!    stop 1
-!endif
-! END Testing
 
 return
 end subroutine

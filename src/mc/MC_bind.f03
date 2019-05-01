@@ -9,18 +9,15 @@
 !  sign convention: WLC_P__EM and WLC_P__EU are more positive for favorable binding
 !  Typical Values: WLC_P__EU = -1.52 and WLC_P__EM = 0.01
 
-subroutine MC_bind(wlc_p,IT1,IT2,AB,ABP,METH,DEBind,dx_mu,demu)
+subroutine MC_bind(IT1,IT2,AB,ABP,METH)
 use params, only: dp,wlcsim_params
+use energies, only: energyOf, mu_, bind_
 implicit none
-type(wlcsim_params), intent(in) :: wlc_p
 integer, intent(in) :: IT1    ! Start test bead
 integer, intent(in) :: IT2    ! Final test bead
-integer, intent(in) :: AB(wlc_p%NT)   ! Chemical identity (a.k.a. binding state)
-integer, intent(in) :: ABP(wlc_p%NT)  ! Test Chemical identity
-integer, intent(in) :: METH(wlc_p%NT) ! Methalation state (unerlyin chamical type)
-real(dp), intent(out) :: DEBind    ! Change in binding energy
-real(dp), intent(out) :: DEMu    ! Change in chemcial potential energy
-real(dp), intent(out) :: dx_mu ! -n_bound
+integer, intent(in) :: AB(WLC_P__NT)   ! Chemical identity (a.k.a. binding state)
+integer, intent(in) :: ABP(WLC_P__NT)  ! Test Chemical identity
+integer, intent(in) :: METH(WLC_P__NT) ! Methalation state (unerlyin chamical type)
 integer I      ! Index of bead being compared
 
 real(dp), parameter :: selfInt= WLC_P__HP1_BIND* &
@@ -51,23 +48,21 @@ real(dp), parameter, dimension(0:2,0:3) :: dEBind_table = &
 real(dp), parameter, dimension(0:3) :: dxMu_table = &
     [0.0_dp, 1.0_dp, 1.0_dp, 2.0_dp]
 
-DEBind = 0.0_dp
-Dx_mu = 0.0_dp
 if (WLC_P__TWO_TAIL) then
     do I = IT1,IT2,WLC_P__NBPM
-        DEBind = DEBind + dEBind_table(METH(I),ABP(I)) &
+        energyOf(bind_)%dx = energyOf(bind_)%dx + dEBind_table(METH(I),ABP(I)) &
                         - dEBind_table(METH(I), AB(I))
-        Dx_mu = Dx_mu - (dxMu_table(ABP(I)) - dxMu_table(AB(I)))
+        energyOf(mu_)%dx = energyOf(mu_)%dx - (dxMu_table(ABP(I)) - dxMu_table(AB(I)))
     ENDdo
 else
     do I = IT1,IT2,WLC_P__NBPM
         if(METH(I) == 1) then
-            DEBind = DEBind + EM_cor*real(ABP(I)-AB(I))
+            energyOf(bind_)%dx = energyOf(bind_)%dx + EM_cor*real(ABP(I)-AB(I),dp)
         else
-            DEBind = DEBind + EU_cor*real(ABP(I)-AB(I))
+            energyOf(bind_)%dx = energyOf(bind_)%dx + EU_cor*real(ABP(I)-AB(I),dp)
         endif
-        Dx_mu = Dx_mu - real(ABP(I)-AB(I))
+        energyOf(mu_)%dx = energyOf(mu_)%dx - real(ABP(I)-AB(I),dp)
     ENDdo
 endif
-DEMu=Dx_mu*wlc_p%MU
+
 END

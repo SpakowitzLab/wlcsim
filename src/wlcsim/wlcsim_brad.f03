@@ -10,9 +10,13 @@
 
 
 !wlcsim subroutine for performing monte carlo simulation
-subroutine wlcsim_brad(wlc_d,wlc_p)
+subroutine wlcsim_brad(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
+    , wlc_LKs, wlc_Wr, wlc_nLKs
   use params
   use mersenne_twister
+  use energies, only:energyOf, bend_, stretch_, shear_, twist_ 
 #if MPI_VERSION
   use mpi
 #endif
@@ -21,7 +25,6 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
 
   !Structures for simulation
   type(wlcsim_params) :: wlc_p
-  type(wlcsim_data) :: wlc_d
   
   !MPI status variables
 #if MPI_VERSION
@@ -58,21 +61,21 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      !Head node
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     if (wlc_d%id.eq.0) then
+     if (wlc_id.eq.0) then
        
         !During replica exchange, replicas alternate between switching with
         !replica above and replica below. Initially, set the replica looking above
         !to the be first one
         repSTART = 1
-        repEND = wlc_d%nLKs - 1
+        repEND = wlc_nLKs - 1
 
         !Begin replica exchange loop
         do repinD = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
            
            !Send out Lk to the worker nodes to begin their simulations
-           do rep = 1,wlc_d%nLKs
-              LK = wlc_d%LKs(rep)
-              dest = wlc_d%nodeNUMBER(rep)
+           do rep = 1,wlc_nLKs
+              LK = wlc_LKs(rep)
+              dest = wlc_nodeNUMBER(rep)
               call MPI_Send (LK,1, MPI_integer, dest,   0, &
                    MPI_COMM_WORLD,error )
            enddo
@@ -80,19 +83,19 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
            !LK, Wr, and EELAS from the worker nodes to perform
            !replica exchange
 
-           do rep = 1,wlc_d%nLKs
-              LK = wlc_d%LKs(rep)
-              source = wlc_d%nodeNUMBER(rep)
+           do rep = 1,wlc_nLKs
+              LK = wlc_LKs(rep)
+              source = wlc_nodeNUMBER(rep)
               call MPI_Recv(Wr,1, MPI_doUBLE_PRECISION, source, 0, &
                    MPI_COMM_WORLD,status,error )
               call MPI_Recv(eelas,4, MPI_doUBLE_PRECISION, source, 0, &
                    MPI_COMM_WORLD,status,error )
-              wlc_d%Wrs(rep) = Wr
-              wlc_d%eelasREPLICAS(rep,:) = eelas
+              wlc_Wrs(rep) = Wr
+              wlc_eelasREPLICAS(rep,:) = eelas
            enddo
 
            !peform replica exchange
-           call replicaEXCHANGE_brad(wlc_p,wlc_d)
+           call replicaEXCHANGE_brad(wlc_p)
            
 
         enddo
@@ -110,20 +113,22 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
            wlc_p%LK = LK
 
            !Run a monte carlo simulation for NSTEPS
-           call MCsim(wlc_p,wlc_d,WLC_P__STEPSPEREXCHANGE)
+           call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
          
            !Recalculate structural quantities and energies
-           call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
-           call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
-                wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
-                    
+           call writhe(wlc_R,WLC_P__NB, wlc_Wr)
+           call energy_elas(eelas,wlc_p)
+           energyOf(bend_)%E    =eelas(1)
+           energyOf(shear_)%E   =eelas(2)
+           energyOf(stretch_)%E =eelas(3)
+           energyOf(twist_)%E   =eelas(4)
 
            !Communicate with the head node for replica exchange
          
            !Send back writhe and elastic energy back to the head node
-           call MPI_SEND(wlc_d%Wr,1, MPI_doUBLE_PRECISION, source, 0, &
+           call MPI_SEND(wlc_Wr,1, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,error )
-           call MPI_SEND(wlc_d%eelas,4, MPI_doUBLE_PRECISION, source, 0, &
+           call MPI_SEND(eelas,4, MPI_doUBLE_PRECISION, source, 0, &
                 MPI_COMM_WORLD,error )
 
 
@@ -140,12 +145,15 @@ subroutine wlcsim_brad(wlc_d,wlc_p)
   else
      !Run a MC simulation for nstepsPerExchange
 
-     call MCsim(wlc_p,wlc_d,WLC_P__STEPSPEREXCHANGE)
+     call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
 
      !Recalculate structural quantities and energies
-     call writhe(wlc_d%R,WLC_P__NB, wlc_d%Wr)
-     call energy_elas(wlc_d%eelas,wlc_d%R,wlc_d%U,wlc_p%NT,WLC_P__NB,WLC_P__NP,wlc_p%EB,wlc_p%EPAR, &
-          wlc_p%EPERP,wlc_p%GAM,wlc_p%ETA,WLC_P__RING,WLC_P__TWIST,wlc_p%LK,WLC_P__LT,WLC_P__LP,WLC_P__L)
+     call writhe(wlc_R,WLC_P__NB, wlc_Wr)
+     call energy_elas(eelas,wlc_p)
+     energyOf(bend_)%E    =eelas(1)
+     energyOf(shear_)%E   =eelas(2)
+     energyOf(stretch_)%E =eelas(3)
+     energyOf(twist_)%E   =eelas(4)
 
   end if
 end subroutine wlcsim_brad
@@ -159,7 +167,11 @@ end subroutine wlcsim_brad
 !exchange of their linking numbers 
 
 #if MPI_VERSION
-subroutine replicaEXCHANGE_brad(wlc_p,wlc_d)
+subroutine replicaEXCHANGE_brad(wlc_p)
+! values from wlcsim_data
+use params, only: wlc_replicaSTART, wlc_eelasREPLICAS, wlc_Wrs, wlc_rand_stat, wlc_nTRIALdown&
+    , wlc_replicaEND, wlc_LKs, wlc_nTRIALup, wlc_nodeNUMBER, wlc_nSWAPdown, wlc_nLKs&
+    , wlc_nSWAPup
   use params
   use mersenne_twister
   use mpi
@@ -168,12 +180,11 @@ subroutine replicaEXCHANGE_brad(wlc_p,wlc_d)
 
   !Global structures for wlc params and data
   type(wlcsim_params) :: wlc_p
-  type(wlcsim_data) :: wlc_d
 
   !Variables for replica exchange
   integer rep             !replica index
   real(dp) deEXCHANGE     !change in energy for exchange for linking number
-  real urand(1)       !random number for exchange
+  real(dp) urand(1)       !random number for exchange
   real(dp) prob               !probability of exchange
   integer tempLK
   integer dest
@@ -183,60 +194,60 @@ subroutine replicaEXCHANGE_brad(wlc_p,wlc_d)
   !For the replica exchange, each replica keeps its polymer conformation, and exchanges
   !linking number
 
-  do rep = wlc_d%replicaSTART, wlc_d%replicaEND,2
+  do rep = wlc_replicaSTART, wlc_replicaEND,2
 
      !Update number of trial exchanges
-     wlc_d%nTRIALup(rep) = wlc_d%nTRIALup(rep) + 1 
-     wlc_d%nTRIALdown(rep + 1) = wlc_d%nTRIALdown(rep + 1) + 1 
+     wlc_nTRIALup(rep) = wlc_nTRIALup(rep) + 1 
+     wlc_nTRIALdown(rep + 1) = wlc_nTRIALdown(rep + 1) + 1 
 
      deEXCHANGE = 0.0_dp
 
      !Include energy from original twist energy of each replica
-     deEXCHANGE = -wlc_d%eelasREPLICAS(rep,4) - wlc_d%eelasREPLICAS(rep + 1,4)
+     deEXCHANGE = -wlc_eelasREPLICAS(rep,4) - wlc_eelasREPLICAS(rep + 1,4)
 
      !Add change in twist energy due to rep taking LK from above
-     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep + 1)-wlc_d%Wrs(rep)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
+     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_LKs(rep + 1)-wlc_Wrs(rep)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
 
      !Add change in twist energy due to rep + 1 takign LK from below
-     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_d%LKs(rep)-wlc_d%Wrs(rep + 1)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
+     deEXCHANGE = deEXCHANGE +((2.0_dp*pi*(wlc_LKs(rep)-wlc_Wrs(rep + 1)))**2.0_dp)*WLC_P__LT/(2.0_dp*WLC_P__L)
 
      !Generate a random number and test for exchange
-     call random_number(urand,wlc_d%rand_stat)
+     call random_number(urand,wlc_rand_stat)
      prob = exp(-deEXCHANGE)
 
      !Exchange linking numbers according to Metropolis-Hastings criterion
      !This means that the node number associated with each LK is swapped
      if (urand(1).le.prob) then
 
-        tempLK = wlc_d%nodeNUMBER(rep)
-        wlc_d%nodeNUMBER (rep) = wlc_d%nodeNUMBER (rep + 1)
-        wlc_d%nodeNUMBER(rep + 1) = tempLK
+        tempLK = wlc_nodeNUMBER(rep)
+        wlc_nodeNUMBER (rep) = wlc_nodeNUMBER (rep + 1)
+        wlc_nodeNUMBER(rep + 1) = tempLK
 
         !update number of swaps
-        wlc_d%nSWAPup(rep) = wlc_d%nSWAPup(rep) + 1
-        wlc_d%nSWAPdown(rep + 1) = wlc_d%nSWAPdown(rep + 1) + 1
+        wlc_nSWAPup(rep) = wlc_nSWAPup(rep) + 1
+        wlc_nSWAPdown(rep + 1) = wlc_nSWAPdown(rep + 1) + 1
 
      endif
   enddo
 
   !Alternatve value of replica start and replica end
-  if (wlc_d%replicaSTART.eq.1) then
-     wlc_d%replicaSTART = 2
+  if (wlc_replicaSTART.eq.1) then
+     wlc_replicaSTART = 2
   else
-     wlc_d%replicaSTART = 1
+     wlc_replicaSTART = 1
   endif
 
-  if (wlc_d%replicaEND.eq.wlc_d%nLKs-1) then
-     wlc_d%replicaEND = wlc_d%nLKs-2
+  if (wlc_replicaEND.eq.wlc_nLKs-1) then
+     wlc_replicaEND = wlc_nLKs-2
   else
-     wlc_d%replicaEND = wlc_d%nLKs -1
+     wlc_replicaEND = wlc_nLKs -1
   endif
 
   !Tell nodes their new LKs
 
-  do rep = 1,wlc_d%nLKs
-     LK = wlc_d%LKs(rep)
-     dest = wlc_d%nodeNUMBER(rep)
+  do rep = 1,wlc_nLKs
+     LK = wlc_LKs(rep)
+     dest = wlc_nodeNUMBER(rep)
      call MPI_Send (LK,1, MPI_integer, dest,   0, &
           MPI_COMM_WORLD,error )
   enddo

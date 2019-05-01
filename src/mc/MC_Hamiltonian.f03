@@ -3,8 +3,6 @@
 !
 !
 ! This subroutine calculates the field Hamiltonian from the phi values.
-! It puts the output in: wlc_d%dx_chi, wlc_d%dx_chi, wlc_d%dx_couple, wlc_d%dx_couple, wlc_d%dx_Kap, wlc_d%dx_Kap, wlc_d%DEChi,wlc_d%dx_chi, wlc_d%DECouple,
-! wlc_d%dx_couple, wlc_d%DEKap, wlc_d%dx_Kap, wlc_d%DEField, wlc_d%dx_Field
 !      by Quinn MacPherson based on code from Shifan Mao
 !       Made a separate function on 7/8/16
 !
@@ -12,11 +10,17 @@
 !   Otherwise calcualte only specified bins.
 !-------------------------------------------------------------------
 
-subroutine hamiltonian(wlc_p,wlc_d,initialize)
-use params,only: dp,wlcsim_params,wlcsim_data
+subroutine hamiltonian(wlc_p,initialize)
+! values from wlcsim_data
+use params, only: wlc_NPHI, wlc_inDPHI &
+    , wlc_PHIB, wlc_PHIH, wlc_PHI_l2 &
+    , wlc_DPHIB, wlc_DPHI_l2 &
+    , wlc_Vol, wlc_DPHIA &
+    , wlc_PHIA, wlc_phiH_l2
+use energies, only: energyOf, chi_, couple_, kap_, field_, maierSaupe_
+use params,only: dp,wlcsim_params
 implicit none
 TYPE(wlcsim_params), intent(inout) :: wlc_p
-TYPE(wlcsim_data), intent(inout) :: wlc_d
 logical, intent(in) :: initialize ! Need to do all beads
 real(dp) PHIPoly ! fraction polymer
 real(dp) phi_A ! demsotu of A
@@ -26,11 +30,7 @@ real(dp) phi_l2 ! strength of field
 real(dp) VV ! volume of bin
 integer I,J,m_index ! for looping
 
-wlc_d%dx_Chi = 0.0_dp
-wlc_d%Dx_Couple = 0.0_dp
-wlc_d%Dx_Kap = 0.0_dp
-wlc_d%Dx_Field = 0.0_dp
-wlc_d%dx_maierSaupe = 0.0_dp
+VV = WLC_P__DBIN**3
 if (initialize) then  ! calculate absolute energy
 
     select case(WLC_P__FIELDINTERACTIONTYPE) ! pick which keyword, case matchign string must be all uppercase
@@ -41,12 +41,34 @@ if (initialize) then  ! calculate absolute energy
     !
     !-------------------------------------------------------
     case('AppliedAligningField')
-        VV = WLC_P__DBIN**3
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
-                wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%PHI_l2(0,I)
+                if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
+                energyOf(field_)%dx =  energyOf(field_)%dx + VV*wlc_PHI_l2(0,I)
             enddo
         endif
+    !-------------------------------------------------------
+    !
+    !   Applied aligning field for Luke
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningFieldMelt')
+        if (energyOf(maierSaupe_)%isOn) then
+            do I = 1,wlc_p%NBIN
+                if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
+                do m_index = -2,2
+                    energyOf(field_)%dx = energyOf(field_)%dx + &
+                                        VV*wlc_PHI_l2(m_index,I)*wlc_PHIH_l2(m_index,I)
+                enddo
+            enddo
+        endif
+        do I = 1,wlc_p%NBIN
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            energyOf(kap_)%dx = energyOf(kap_)%dx + VV*((wlc_PHIA(I) + wlc_PHIB(I)-1.0_dp)**2)
+        enddo
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
@@ -55,19 +77,20 @@ if (initialize) then  ! calculate absolute energy
     ! In this problem Kap and chi are in units of kT/(simulation units cubed)
     ! If VV=1.0 than this is just kT/(bin volume)
     case('MaierSaupe')
-        VV = WLC_P__DBIN**3
-
-        if (wlc_p%CHI_L2_ON) then
+        if (energyOf(maierSaupe_)%isOn) then
             do I = 1,wlc_p%NBIN
                 do m_index = -2,2
-                    wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*wlc_d%PHI_l2(m_index,I)**2
+                    if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
+                    energyOf(maierSaupe_)%dx =  energyOf(maierSaupe_)%dx + VV*wlc_PHI_l2(m_index,I)**2
                 enddo
             enddo
         endif
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
-            wlc_d%Dx_Kap = wlc_d%dx_Kap + VV*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            energyOf(kap_)%dx = energyOf(kap_)%dx + VV*((wlc_PHIA(I) + wlc_PHIB(I)-1.0_dp)**2)
         enddo
     !------------------------------------------------------------
     !
@@ -77,11 +100,13 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABmelt') ! Melt Hamiltonian
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
-            wlc_d%Dx_Kap = wlc_d%dx_Kap + (VV/WLC_P__BEADVOLUME)*((wlc_d%PHIA(I) + wlc_d%PHIB(I)-1.0_dp)**2)
-            wlc_d%Dx_Field = wlc_d%dx_Field-wlc_d%PHIH(I)*wlc_d%PHIA(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*(wlc_PHIA(I)*wlc_PHIB(I))
+            energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*((wlc_PHIA(I) + wlc_PHIB(I)-1.0_dp)**2)
+            energyOf(field_)%dx = energyOf(field_)%dx-wlc_PHIH(I)*wlc_PHIA(I)
         enddo
     !------------------------------------------------------------
     !
@@ -91,12 +116,14 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABsolution') ! A,B,Solvent Hamiltonian
         do I = 1,wlc_p%NBIN
-            VV = wlc_d%Vol(I)
-            if (VV.le.0.1_dp) CYCLE
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*(wlc_d%PHIA(I)*wlc_d%PHIB(I))
-            PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*(wlc_PHIA(I)*wlc_PHIB(I))
+            PHIPoly = wlc_PHIA(I) + wlc_PHIB(I)
             if(PHIPoly > 1.0_dp) then
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+                energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
             endif
         enddo
     !---------------------------------------------------------
@@ -107,14 +134,27 @@ if (initialize) then  ! calculate absolute energy
     ! Here Chi and Kap are in units of KT/beadVolume
     case('chromatin')
         do I = 1,wlc_p%NBIN
-            !VV = wlc_d%Vol(I)
-            VV = WLC_P__DBIN**3
-            if (VV.le.0.1_dp) CYCLE
-            PHIPoly = wlc_d%PHIA(I) + wlc_d%PHIB(I)
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
-            wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(I))**2
-            if(PHIPoly > 1.0_dp) then
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            PHIPoly = wlc_PHIA(I) + wlc_PHIB(I)
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
+            energyOf(couple_)%dx = energyOf(couple_)%dx + VV*(wlc_PHIA(I))**2
+            if(PHIPoly > 0.5_dp) then
+                energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
+            endif
+        enddo
+    case('chromatin2')
+        do I = 1,wlc_p%NBIN
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            energyOf(chi_)%dx = energyOf(chi_)%dx + VV*wlc_PHIB(I)*(1.0_dp-wlc_PHIB(I))
+            energyOf(couple_)%dx = energyOf(couple_)%dx + VV*(wlc_PHIA(I))**2
+            if(wlc_PHIB(I) > 0.5_dp) then
+                energyOf(kap_)%dx = energyOf(kap_)%dx + VV*(wlc_PHIB(I) - 0.5_dp)**2
             endif
         enddo
     end select
@@ -129,12 +169,33 @@ else ! Calculate change in energy
     !
     !-------------------------------------------------------
     case('AppliedAligningField')
-        VV = WLC_P__DBIN**3
-        if (wlc_p%CHI_L2_ON) then
-            do I = 1,wlc_d%NPHI
-                wlc_d%dx_Field =  wlc_d%dx_Field + VV*wlc_d%DPHI_l2(0,I)
+        if (WLC_P__FRACTIONAL_BIN) VV = wlc_Vol(I)
+        if (energyOf(maierSaupe_)%isOn) then
+            do I = 1,wlc_NPHI
+                energyOf(field_)%dx =  energyOf(field_)%dx + VV*wlc_DPHI_l2(0,I)
             enddo
         endif
+    !-------------------------------------------------------
+    !
+    !   Applied aligning field for Luke
+    !
+    !-------------------------------------------------------
+    case('AppliedAligningFieldMelt')
+        do I = 1,wlc_NPHI
+            J = wlc_inDPHI(I)
+            if (energyOf(maierSaupe_)%isOn) then
+                do m_index = -2,2
+                    energyOf(field_)%dx = energyOf(field_)%dx + &
+                                        VV*wlc_DPHI_l2(m_index,I)*wlc_PHIH_l2(m_index,J)
+                enddo
+            endif
+            phi_A = wlc_PHIA(J)
+            phi_B = wlc_PHIB(J)
+            energyOf(kap_)%dx = energyOf(kap_)%dx - VV*((phi_A + phi_B-1.0_dp)**2)
+            phi_A = phi_A + wlc_DPHIA(I)
+            phi_B = phi_B + wlc_DPHIB(I)
+            energyOf(kap_)%dx = energyOf(kap_)%dx + VV*((phi_A + phi_B-1.0_dp)**2)
+        enddo
     !-------------------------------------------------------
     !
     !   Maier Saupe Melt Interaction
@@ -142,42 +203,49 @@ else ! Calculate change in energy
     !-------------------------------------------------------
     ! In this problem Kap and chi are in units of kT/binVolume
     case('MaierSaupe')
-        VV = WLC_P__DBIN**3
-        if (wlc_p%CHI_L2_ON) then
-            do I = 1,wlc_d%NPHI
-                J = wlc_d%inDPHI(I)
+        if (energyOf(maierSaupe_)%isOn) then
+            do I = 1,wlc_NPHI
+                if (WLC_P__FRACTIONAL_BIN) then
+                    VV = wlc_Vol(I)
+                    if (VV.le.0.1_dp) CYCLE
+                endif
+                J = wlc_inDPHI(I)
                 ! minus old
-                phi_A = wlc_d%PHIA(J)
-                phi_B = wlc_d%PHIB(J)
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
+                phi_A = wlc_PHIA(J)
+                phi_B = wlc_PHIB(J)
+                energyOf(kap_)%dx = energyOf(kap_)%dx - VV*((phi_A + phi_B-1.0_dp)**2)
 
 
                 ! plus new
-                phi_A = phi_A + wlc_d%DPHIA(I)
-                phi_B = phi_B + wlc_d%DPHIB(I)
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+                phi_A = phi_A + wlc_DPHIA(I)
+                phi_B = phi_B + wlc_DPHIB(I)
+                energyOf(kap_)%dx = energyOf(kap_)%dx + VV*((phi_A + phi_B-1.0_dp)**2)
 
                 do m_index = -2,2
                         ! minus old
-                        phi_l2 = wlc_d%PHI_l2(m_index,J)
-                        wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe - VV*phi_l2**2
+                        phi_l2 = wlc_PHI_l2(m_index,J)
+                        energyOf(maierSaupe_)%dx =  energyOf(maierSaupe_)%dx - VV*phi_l2**2
                         ! plus new
-                        phi_l2 = phi_l2 + wlc_d%DPHI_l2(m_index,I)
-                        wlc_d%dx_maierSaupe =  wlc_d%dx_maierSaupe + VV*phi_l2**2
+                        phi_l2 = phi_l2 + wlc_DPHI_l2(m_index,I)
+                        energyOf(maierSaupe_)%dx =  energyOf(maierSaupe_)%dx + VV*phi_l2**2
                 enddo
             enddo
         else
-            do I = 1,wlc_d%NPHI
-                J = wlc_d%inDPHI(I)
+            do I = 1,wlc_NPHI
+                if (WLC_P__FRACTIONAL_BIN) then
+                    VV = wlc_Vol(I)
+                    if (VV.le.0.1_dp) CYCLE
+                endif
+                J = wlc_inDPHI(I)
                 ! minus old
-                phi_A = wlc_d%PHIA(J)
-                phi_B = wlc_d%PHIB(J)
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap - VV*((phi_A + phi_B-1.0_dp)**2)
+                phi_A = wlc_PHIA(J)
+                phi_B = wlc_PHIB(J)
+                energyOf(kap_)%dx = energyOf(kap_)%dx - VV*((phi_A + phi_B-1.0_dp)**2)
 
                 ! plus new
-                phi_A = phi_A + wlc_d%DPHIA(I)
-                phi_B = phi_B + wlc_d%DPHIB(I)
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + VV*((phi_A + phi_B-1.0_dp)**2)
+                phi_A = phi_A + wlc_DPHIA(I)
+                phi_B = phi_B + wlc_DPHIB(I)
+                energyOf(kap_)%dx = energyOf(kap_)%dx + VV*((phi_A + phi_B-1.0_dp)**2)
             enddo
         endif
 
@@ -188,21 +256,23 @@ else ! Calculate change in energy
     !--------------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABmelt') ! Melt Hamiltonian
-        do I = 1,wlc_d%NPHI
-            J = wlc_d%inDPHI(I)
-            VV = wlc_d%Vol(J)
-            if (VV.le.0.1_dp) CYCLE
+        do I = 1,wlc_NPHI
+            J = wlc_inDPHI(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new
-            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
-            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-            phi_h = wlc_d%PHIH(J)
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*phi_A*phi_B
-            wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*((phi_A + phi_B-1.0_dp)**2)
-            wlc_d%Dx_Field = wlc_d%Dx_Field-phi_h*phi_A
+            phi_A = wlc_PHIA(J) + wlc_DPHIA(I)
+            phi_B = wlc_PHIB(J) + wlc_DPHIB(I)
+            phi_h = wlc_PHIH(J)
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*phi_A*phi_B
+            energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*((phi_A + phi_B-1.0_dp)**2)
+            energyOf(field_)%dx = energyOf(field_)%dx-phi_h*phi_A
             ! minus old
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/WLC_P__BEADVOLUME)*(wlc_d%PHIA(J)*wlc_d%PHIB(J))
-            wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/WLC_P__BEADVOLUME)*((wlc_d%PHIA(J) + wlc_d%PHIB(J)-1.0_dp)**2)
-            wlc_d%Dx_Field = wlc_d%Dx_Field + phi_h*wlc_d%PHIA(J)
+            energyOf(chi_)%dx = energyOf(chi_)%dx-(VV/WLC_P__BEADVOLUME)*(wlc_PHIA(J)*wlc_PHIB(J))
+            energyOf(kap_)%dx = energyOf(kap_)%dx-(VV/WLC_P__BEADVOLUME)*((wlc_PHIA(J) + wlc_PHIB(J)-1.0_dp)**2)
+            energyOf(field_)%dx = energyOf(field_)%dx + phi_h*wlc_PHIA(J)
         enddo
     !------------------------------------------------------------
     !
@@ -211,27 +281,29 @@ else ! Calculate change in energy
     !--------------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
     case('ABsolution') ! Melt Hamiltonian
-        do I = 1,wlc_d%NPHI
-            J = wlc_d%inDPHI(I)
-            VV = wlc_d%Vol(J)
-            if (VV.le.0.1_dp) CYCLE
+        do I = 1,wlc_NPHI
+            J = wlc_inDPHI(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new
-            phi_A = wlc_d%PHIA(J) + wlc_d%DPHIA(I)
-            phi_B = wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-            phi_h = wlc_d%PHIH(J)
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*phi_A*phi_B
+            phi_A = wlc_PHIA(J) + wlc_DPHIA(I)
+            phi_B = wlc_PHIB(J) + wlc_DPHIB(I)
+            phi_h = wlc_PHIH(J)
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*phi_A*phi_B
             PHIPoly = phi_A + phi_B
             if(PHIPoly > 1.0_dp) then
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+                energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
             endif
             ! minus old
-            phi_A = wlc_d%PHIA(J)
-            phi_B = wlc_d%PHIB(J)
+            phi_A = wlc_PHIA(J)
+            phi_B = wlc_PHIB(J)
             PHIPoly = phi_A + phi_B
             if(PHIPoly > 1.0_dp) then
-                wlc_d%Dx_Kap = wlc_d%Dx_Kap - (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+                energyOf(kap_)%dx = energyOf(kap_)%dx - (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
             endif
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/WLC_P__BEADVOLUME)*(phi_A+phi_B)
+            energyOf(chi_)%dx = energyOf(chi_)%dx-(VV/WLC_P__BEADVOLUME)*(phi_A+phi_B)
         enddo
     !---------------------------------------------------------
     !
@@ -240,37 +312,56 @@ else ! Calculate change in energy
     ! ---------------------------------------------------------
     ! Here Chi and Kap are in units of KT/beadVolume
     case('chromatin')
-        do I = 1,wlc_d%NPHI
-            J = wlc_d%inDPHI(I)
-            !VV = wlc_d%Vol(J)
-            VV = WLC_P__DBIN**3
-            if (VV.le.0.1_dp) CYCLE
+        do I = 1,wlc_NPHI
+            J = wlc_inDPHI(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
             ! new ...
-            PHIPoly = wlc_d%PHIA(J) + wlc_d%DPHIA(I) + wlc_d%PHIB(J) + wlc_d%DPHIB(I)
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
-            wlc_d%Dx_Couple = wlc_d%Dx_Couple + VV*(wlc_d%PHIA(J) + wlc_d%DPHIA(I))**2
-            if(PHIPoly > 1.0_dp) then
-               wlc_d%Dx_Kap = wlc_d%Dx_Kap + (VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            PHIPoly = wlc_PHIA(J) + wlc_DPHIA(I) + wlc_PHIB(J) + wlc_DPHIB(I)
+            energyOf(chi_)%dx = energyOf(chi_)%dx + (VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
+            energyOf(couple_)%dx = energyOf(couple_)%dx + VV*(wlc_PHIA(J) + wlc_DPHIA(I))**2
+            if(PHIPoly > 0.5_dp) then
+               energyOf(kap_)%dx = energyOf(kap_)%dx + (VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
             endif
             ! minus old
-            PHIPoly = wlc_d%PHIA(J) + wlc_d%PHIB(J)
-            wlc_d%Dx_Chi = wlc_d%Dx_Chi-(VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
-            wlc_d%Dx_Couple = wlc_d%Dx_Couple-VV*(wlc_d%PHIA(J))**2
-            if(PHIPoly > 1.0_dp) then
-               wlc_d%Dx_Kap = wlc_d%Dx_Kap-(VV/WLC_P__BEADVOLUME)*(PHIPoly-1.0_dp)**2
+            PHIPoly = wlc_PHIA(J) + wlc_PHIB(J)
+            energyOf(chi_)%dx = energyOf(chi_)%dx-(VV/WLC_P__BEADVOLUME)*PHIPoly*(1.0_dp-PHIPoly)
+            energyOf(couple_)%dx = energyOf(couple_)%dx-VV*(wlc_PHIA(J))**2
+            if(PHIPoly > 0.5_dp) then
+               energyOf(kap_)%dx = energyOf(kap_)%dx-(VV/WLC_P__BEADVOLUME)*(PHIPoly-0.5_dp)**2
+            endif
+        enddo
+    case('chromatin2')
+        do I = 1,wlc_NPHI
+            J = wlc_inDPHI(I)
+            if (WLC_P__FRACTIONAL_BIN) then
+                VV = wlc_Vol(I)
+                if (VV.le.0.1_dp) CYCLE
+            endif
+            ! new ...
+            PHI_A = wlc_PHIA(J) + wlc_DPHIA(I)
+            PHI_B = wlc_PHIB(J) + wlc_DPHIB(I)
+            energyOf(chi_)%dx = energyOf(chi_)%dx + VV*PHI_B*(1.0_dp-PHI_B)
+            energyOf(couple_)%dx = energyOf(couple_)%dx + VV*(PHI_A**2)
+            if(PHI_B > 0.5_dp) then
+               energyOf(kap_)%dx = energyOf(kap_)%dx + VV*(PHI_B-0.5_dp)**2
+            endif
+            ! minus old
+            PHI_A = wlc_PHIA(J)
+            PHI_B = wlc_PHIB(J)
+            energyOf(chi_)%dx = energyOf(chi_)%dx - VV*PHI_B*(1.0_dp-PHI_B)
+            energyOf(couple_)%dx = energyOf(couple_)%dx - VV*(PHI_A**2)
+            if(PHI_B > 0.5_dp) then
+               energyOf(kap_)%dx = energyOf(kap_)%dx - VV*(PHI_B-0.5_dp)**2
             endif
         enddo
     end select
 endif
-wlc_d%dx_chi = wlc_d%dx_chi*wlc_p%CHI_ON
-wlc_d%dx_couple = wlc_d%dx_couple*wlc_p%COUPLE_ON
-wlc_d%dx_Kap = wlc_d%dx_Kap*wlc_p%KAP_ON
-
-wlc_d%DEChi = wlc_p%CHI*        wlc_d%dx_chi
-wlc_d%DECouple = wlc_p%HP1_BIND*wlc_d%dx_couple
-wlc_d%DEKap = wlc_p%KAP*        wlc_d%dx_Kap
-wlc_d%DEField = wlc_p%HA*       wlc_d%dx_Field
-wlc_d%deMaierSaupe = wlc_p%CHI_L2*wlc_d%dx_maierSaupe
+energyOf(chi_)%dx = energyOf(chi_)%dx
+energyOf(couple_)%dx = energyOf(couple_)%dx
+energyOf(kap_)%dx = energyOf(kap_)%dx
 RETURN
 END subroutine
 

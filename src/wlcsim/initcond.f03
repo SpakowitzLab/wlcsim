@@ -10,31 +10,34 @@
 !
 !     Updated by Quinn in 2016
 !
-subroutine initcond(R,U,NT,NB,NP,FRMFILE,PARA, &
-                    rand_stat, wlc_p)
+subroutine initcond(R,U,NT,NP,FRMFILE,rand_stat, wlc_p)
+! values from wlcsim_data
+use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeWrap, &
+                  wlc_network_start_index
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
-use params, only: dp, pi, wlcsim_params
-
+use params, only: dp, pi, wlcsim_params,  nan
+use vector_utils, only: randomUnitVec, random_perp
+use nucleosome, only: nucleosomeProp, multiParams
+use polydispersity, only: length_of_chain
 implicit none
 
 type(wlcsim_params), intent(in) :: wlc_p
 
-integer NB,NP,NT           ! Number of beads
+integer NP,NT           ! Number of beads
 real(dp) R(3,NT)  ! Bead positions
 real(dp) U(3,NT)  ! Tangent vectors
-real(dp) GAM      ! Equil bead separation
 real(dp) LBOX(3)  ! Box edge length
 integer I,J,IB            ! Index Holders
 LOGICAL FRMFILE           ! Is conformation in file?
 !real(dp) RMin
 real(dp) R0(3)
-real(dp) PARA(10)
 
 !     Varibles for type 2
 
 real(dp) Uold(3) ! save previous direction
+real(dp) Vold(3) ! save previous direction
 real(dp) Rold(3) ! save previous position
 real(dp) theta   ! random angle
 real(dp) z       ! random z position
@@ -49,14 +52,20 @@ real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 
 !      Random number generator initiation
 type(random_stat) rand_stat
-real urand(3)
+real(dp) urand(3)
 logical in_confinement
+
+real(dp) center(3)
+real(dp) RloopVec(3)
+real(dp) perpVec(3)
+real(dp) trash(3)
+integer length
+integer otherEnd
+real(dp) nloops
 
 LBOX(1)=WLC_P__LBOX_X
 LBOX(2)=WLC_P__LBOX_Y
 LBOX(3)=WLC_P__LBOX_Z
-
-GAM = PARA(4)
 
 !     Setup the choice parameters
 
@@ -75,7 +84,15 @@ if (FRMFILE)then
        U(2,I) = U(2,I)/mag
        U(3,I) = U(3,I)/mag
    enddo
+   CLOSE(5)
 
+   if (WLC_P__LOCAL_TWIST) then
+       open (UNIT = 5, FILE = 'input/v0', STATUS = 'OLD')
+       Do I = 1,NT
+          READ(5,*) wlc_V(1,I),wlc_V(2,I),wlc_V(3,I)
+           wlc_V = wlc_V/norm2(wlc_V)
+       enddo
+   endif
    CLOSE(5)
    return
 endif
@@ -84,13 +101,16 @@ if (WLC_P__INITCONDTYPE.eq.'lineInYFromOrigin') then
 ! straight line in y direction starting at origin, equilibrium bond lengths
     iB = 1
     do i = 1,nP
-        do j = 1,nB
+        do j = 1,length_of_chain(I)
             R(1,iB) = 0.0_dp
-            R(2,iB) = gam*j
+            R(2,iB) = wlc_p%GAM*j
             R(3,iB) = 0.0_dp
             U(1,iB) = 0.0_dp
             U(2,iB) = 1.0_dp
             U(3,iB) = 0.0_dp
+            if (WLC_P__LOCAL_TWIST) then
+                wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
+            endif
             iB = iB + 1
         enddo
     enddo
@@ -105,13 +125,17 @@ else if (WLC_P__INITCONDTYPE.eq.'lineInY') then
        R0(2) = urand(2)*LBOX(2)
        R0(3) = urand(3)*LBOX(3)
 
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
           R(1,IB) = R0(1)
-          R(2,IB) = R0(2) + GAM*(J - NB/2.0_dp - 0.5_dp) ! center on box
+          R(2,IB) = R0(2) + wlc_p%GAM*(J - length/2.0_dp - 0.5_dp) ! center on box
           R(3,IB) = R0(3)
           U(1,IB) = 0.0_dp
           U(2,IB) = 1.0_dp
           U(3,IB) = 0.0_dp
+          if (WLC_P__LOCAL_TWIST) then
+              wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
+          endif
           IB = IB + 1
 
        enddo
@@ -128,14 +152,11 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
         Rold(1) = urand(1)*LBOX(1)
         Rold(2) = urand(2)*LBOX(2)
         Rold(3) = urand(3)*LBOX(3)
-        call random_number(urand,rand_stat)
-        theta = urand(1)*2*PI
-        z = urand(2)*2.0_dp-1.0_dp
-        Uold(1) = sqrt(1-z*z)*cos(theta)
-        Uold(2) = sqrt(1-z*z)*sin(theta)
-        Uold(3) = z
+        call randomUnitVec(Uold,rand_stat)
+        if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
 
-        do J = 1,NB
+        length = length_of_chain(I)
+        do J = 1,length
            search = .TRUE.
            ii = 0
            do while(search)
@@ -146,17 +167,13 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
                     print*,'test = ',test(1),test(2),test(3)
                     exit
                 endif
-                test(1) = Rold(1) + Uold(1)*GAM
-                test(2) = Rold(2) + Uold(2)*GAM
-                test(3) = Rold(3) + Uold(3)*GAM
+                test(1) = Rold(1) + Uold(1)*wlc_p%GAM
+                test(2) = Rold(2) + Uold(2)*wlc_p%GAM
+                test(3) = Rold(3) + Uold(3)*wlc_p%GAM
                 search = .not. in_confinement(test, 1, 1, 1)
                 if (search) then
-                     call random_number(urand,rand_stat)
-                     theta = urand(1)*2*PI
-                     z = urand(2)*2.0_dp-1.0_dp
-                     Uold(1) = sqrt(1-z*z)*cos(theta)
-                     Uold(2) = sqrt(1-z*z)*sin(theta)
-                     Uold(3) = z
+                     call randomUnitVec(Uold,rand_stat)
+                     if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
                 endif
            enddo
            R(1,IB) = test(1)
@@ -168,6 +185,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSlitInZBoundary') then
            U(1,IB) = Uold(1)
            U(2,IB) = Uold(2)
            U(3,IB) = Uold(3)
+           if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = Vold
 
            IB = IB + 1
         enddo
@@ -180,17 +198,20 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
     IB = 1
     do  I = 1,NP
        call random_number(urand,rand_stat)
-       Rold(1) = urand(1)*LBOX(1)
-       Rold(2) = urand(2)*LBOX(2)
-       Rold(3) = urand(3)*LBOX(3)
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
+       if (WLC_P__BOUNDARY_TYPE == "ExtendBinsPast") then
+           Rold(1) = urand(1)*(LBOX(1)-2*WLC_P__DBIN)+WLC_P__DBIN
+           Rold(2) = urand(2)*(LBOX(2)-2*WLC_P__DBIN)+WLC_P__DBIN
+           Rold(3) = urand(3)*(LBOX(3)-2*WLC_P__DBIN)+WLC_P__DBIN
+       else
+           Rold(1) = urand(1)*LBOX(1)
+           Rold(2) = urand(2)*LBOX(2)
+           Rold(3) = urand(3)*LBOX(3)
+       endif
+       call randomUnitVec(Uold,rand_stat)
+       if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
 
-       do J = 1,NB
+       length = length_of_chain(I)
+       do J = 1,length
           search = .TRUE.
           ii = 0
           do while(search)
@@ -201,17 +222,13 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
                    print*,'test = ',test(1),test(2),test(3)
                    exit
                endif
-               test(1) = Rold(1) + Uold(1)*GAM
-               test(2) = Rold(2) + Uold(2)*GAM
-               test(3) = Rold(3) + Uold(3)*GAM
+               test(1) = Rold(1) + Uold(1)*wlc_p%GAM
+               test(2) = Rold(2) + Uold(2)*wlc_p%GAM
+               test(3) = Rold(3) + Uold(3)*wlc_p%GAM
                search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1-z*z)*cos(theta)
-                    Uold(2) = sqrt(1-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
+                    if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
                endif
           enddo
           R(1,IB) = test(1)
@@ -223,40 +240,37 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineCubeBoundary') then
           U(1,IB) = Uold(1)
           U(2,IB) = Uold(2)
           U(3,IB) = Uold(3)
+          if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = Vold
 
           IB = IB + 1
        enddo
     enddo
 
 else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
-    ! start in a sphercal shell
     ! travel in radom direction
     ! rerandomize when reaching boundary
     ! internalshpere boundary
-    ! radius of LBox/2 centered at LBox/2
     Rc = WLC_P__CONFINEMENT_SPHERE_DIAMETER/2.0_dp ! use LBOX as radius
     IB = 1
     do  I = 1,NP
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2.0_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       rr = Rc*(urand(3)+1.0_dp)  ! should have an r**2 from jacobian
-       Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
-       Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
-       Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
-       do J = 1,NB
+       search = .TRUE.
+       do while(search)
+           call random_number(urand,rand_stat)
+           Rold(1) = urand(1)*LBOX(1)
+           Rold(2) = urand(2)*LBOX(2)
+           Rold(3) = urand(3)*LBOX(3)
+           search = .not. in_confinement(Rold, 1, 1, 1)
+       enddo
+       call randomUnitVec(Uold,rand_stat)
+       if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
+       length = length_of_chain(I)
+       do J = 1,length
            search = .TRUE.
            ii=0
            do while(search)
-               test(1) = Rold(1) + Uold(1)*GAM
-               test(2) = Rold(2) + Uold(2)*GAM
-               test(3) = Rold(3) + Uold(3)*GAM
+               test(1) = Rold(1) + Uold(1)*wlc_p%GAM
+               test(2) = Rold(2) + Uold(2)*wlc_p%GAM
+               test(3) = Rold(3) + Uold(3)*wlc_p%GAM
                search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
                     ii = ii + 1
@@ -270,12 +284,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
                                         WLC_P__LBOX_Z/2.0_dp
                         stop
                     endif
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2.0_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1.0_dp-z*z)*cos(theta)
-                    Uold(2) = sqrt(1.0_dp-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
+                    if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
                endif
            enddo
            R(1,IB) = test(1)
@@ -287,6 +297,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineOutsideOfSphere') then
            U(1,IB) = Uold(1)
            U(2,IB) = Uold(2)
            U(3,IB) = Uold(3)
+           if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = Vold
            IB = IB + 1
        enddo ! loop to N
     enddo ! loop to np
@@ -305,19 +316,16 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
        Rold(1) = sqrt(1.0_dp-z*z)*cos(theta)*rr + WLC_P__LBOX_X/2.0_dp
        Rold(2) = sqrt(1.0_dp-z*z)*sin(theta)*rr + WLC_P__LBOX_Y/2.0_dp
        Rold(3) = z*rr + WLC_P__LBOX_Z/2.0_dp
-       call random_number(urand,rand_stat)
-       theta = urand(1)*2_dp*PI
-       z = urand(2)*2.0_dp-1.0_dp
-       Uold(1) = sqrt(1-z*z)*cos(theta)
-       Uold(2) = sqrt(1-z*z)*sin(theta)
-       Uold(3) = z
-       do J = 1,NB
+       call randomUnitVec(Uold,rand_stat)
+       if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
+       length = length_of_chain(I)
+       do J = 1,length
            search = .TRUE.
            ii=0
            do while(search)
-               test(1) = Rold(1) + Uold(1)*GAM
-               test(2) = Rold(2) + Uold(2)*GAM
-               test(3) = Rold(3) + Uold(3)*GAM
+               test(1) = Rold(1) + Uold(1)*wlc_p%GAM
+               test(2) = Rold(2) + Uold(2)*wlc_p%GAM
+               test(3) = Rold(3) + Uold(3)*wlc_p%GAM
                search = .not. in_confinement(test, 1, 1, 1)
                if (search) then
                     ii = ii + 1
@@ -331,12 +339,8 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
                                         WLC_P__LBOX_Z/2.0_dp
                         stop
                     endif
-                    call random_number(urand,rand_stat)
-                    theta = urand(1)*2.0_dp*PI
-                    z = urand(2)*2.0_dp-1.0_dp
-                    Uold(1) = sqrt(1.0_dp-z*z)*cos(theta)
-                    Uold(2) = sqrt(1.0_dp-z*z)*sin(theta)
-                    Uold(3) = z
+                    call randomUnitVec(Uold,rand_stat)
+                    if (WLC_P__LOCAL_TWIST) call random_perp(Uold,Vold,trash,rand_stat)
                endif
            enddo
            R(1,IB) = test(1)
@@ -348,6 +352,7 @@ else if (WLC_P__INITCONDTYPE.eq.'randomLineSphereBoundary') then
            U(1,IB) = Uold(1)
            U(2,IB) = Uold(2)
            U(3,IB) = Uold(3)
+           if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = Vold
            IB = IB + 1
        enddo ! loop to N
     enddo ! loop to np
@@ -366,8 +371,9 @@ else if (WLC_P__INITCONDTYPE.eq.'randomlyDistributeBeadsInSphere') then
         R(2,IB) = test(2)
         R(3,IB) = test(3)
         U(1,IB) = 0.00_dp
-        U(2,IB) = 0.00_dp
+        U(2,IB) = 1.00_dp
         U(3,IB) = 0.00_dp
+        if (WLC_P__LOCAL_TWIST) wlc_V(:,IB) = [1.0_dp, 0.0_dp, 0.0_dp]
     enddo
 else if (WLC_P__INITCONDTYPE == 'ring') then
     IB = 1
@@ -376,16 +382,85 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
         R0(1) = urand(1)*LBOX(1)
         R0(2) = urand(2)*LBOX(1)
         R0(3) = urand(3)*LBOX(1)
-        do  J = 1,NB
-             R(1,IB) = R0(1) + ((GAM*NB)/(2*PI))*Cos(J*2.0_dp*PI/NB)
-             R(2,IB) = R0(2) + ((GAM*NB)/(2*PI))*Sin(J*2.0_dp*PI/NB)
+        length = length_of_chain(I)
+        do  J = 1,length
+             R(1,IB) = R0(1) + ((wlc_p%GAM*length)/(2*PI))*Cos(J*2.0_dp*PI/length)
+             R(2,IB) = R0(2) + ((wlc_p%GAM*length)/(2*PI))*Sin(J*2.0_dp*PI/length)
              R(3,IB) = 0.0_dp
-             U(1,IB) = -Sin(J*2.0_dp*PI/NB)
-             U(2,IB) = Cos(J*2.0_dp*PI/NB)
+             U(1,IB) = -Sin(J*2.0_dp*PI/length)
+             U(2,IB) = Cos(J*2.0_dp*PI/length)
              U(3,IB) = 0.0_dp;
+             wlc_V(:,IB) = [0.0_dp, 0.0_dp, 1.0_dp]
              IB = IB + 1
         ENDdo
     ENDdo
+elseif (WLC_P__INITCONDTYPE == 'multiRing') then
+    IB = 1
+    center(1) = WLC_P__LBOX_X/2.0_dp
+    center(2) = WLC_P__LBOX_Y/2.0_dp
+    center(3) = WLC_P__LBOX_Z/2.0_dp
+    do while (IB .le. WLC_P__NT)
+        if (IB == WLC_P__NT) then
+            R(:,IB) = center
+            call randomUnitVec(RloopVec,rand_stat)
+            U(:,IB) = RloopVec
+            if (WLC_P__LOCAL_TWIST) call random_perp(U(:,IB),wlc_V(:,IB),trash,rand_stat)
+            exit
+        endif
+        otherEnd = IB+1
+        do
+            if (otherEnd == WLC_P__NT) exit
+            if (WLC_P__NETWORK) then
+                if (wlc_network_start_index(otherEnd) /= &
+                    wlc_network_start_index(otherEnd+1)) exit
+            else
+                if (wlc_ExplicitBindingPair(otherEnd) /= -1) exit
+            endif
+            otherEnd=otherEnd+1
+        enddo
+
+        call randomUnitVec(RloopVec,rand_stat)
+        !if (otherEnd == IB) then
+        !    R(:,I) = center
+        !    U(:,I) = RloopVec
+        !    if (WLC_P__LOCAL_TWIST) call random_perp(U(:,I),wlc_V(:,I),trash,rand_stat)
+        !endif
+        call random_perp(RloopVec,perpVec,trash,rand_stat)
+
+        length = ((otherEnd-IB)*wlc_p%GAM/(2.0_dp*PI))
+        nloops = real(ceiling(length/(WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.25_dp)),dp)
+        length = length/nloops
+
+        do I = IB,otherEnd
+            R(:,I) = center + length*( &
+                     + cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*RloopVec &
+                     + sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*perpVec &
+                     - RloopVec)
+            U(:,I) = cos(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*perpVec &
+                    -sin(2.0_dp*PI*nloops*(I-IB)/real(otherEnd-IB,dp))*RloopVec
+            if (WLC_P__LOCAL_TWIST) wlc_V(:,I) = trash
+        enddo
+        IB=otherEnd+1
+    enddo
+elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
+    R(1,1) = 0.0_dp
+    R(2,1) = 0.0_dp
+    R(3,1) = 0.0_dp
+    U(1,1) = 0.0_dp
+    U(2,1) = 0.0_dp
+    U(3,1) = 1.0_dp
+    wlc_V(1,1) = 1.0_dp
+    wlc_V(2,1) = 0.0_dp
+    wlc_V(3,1) = 0.0_dp
+
+    do IB=2,WLC_P__NT
+        ! Rotation (and translation) due to nucleosome
+        call nucleosomeProp(U(:,IB-1), wlc_V(:,IB-1), R(:,IB-1), &
+                            wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
+                            U(:,IB), wlc_V(:,IB), R(:,IB))
+        ! Translation due to zero-enery linker
+        R(:,IB) = R(:,IB) + U(:,IB)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB-1)
+    enddo
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 else if (WLC_P__INITCONDTYPE == 'randomWalkWithBoundary') then
@@ -412,7 +487,7 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
 
     integer J
     real(dp) N1(3), N2(3), z, theta
-    real urand(3)
+    real(dp) urand(3)
 
     do J = 2,NB
          call random_number(urand,rand_stat)
@@ -436,6 +511,11 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
          U(3,J) = sqrt(1-z*z)*cos(theta)*N1(3)+sqrt(1-z*z)*sin(theta)*N2(3)+z*U(3,J-1)
          U(:,J) = U(:,J)/norm2(U(:,J))
 
+         if (WLC_P__LOCAL_TWIST) then
+             print*, "wlc chain initialization is not implimented for local twist"
+             stop
+         endif
+
          R(1,J) = R(1,J-1) + l0*U(1,J)
          R(2,J) = R(2,J-1) + l0*U(2,J)
          R(3,J) = R(3,J-1) + l0*U(3,J)
@@ -444,7 +524,9 @@ end subroutine wlc_init
 
 subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
     use mersenne_twister
-    use params, only : wlcsim_params, dp, max_wlc_l0, max_sswlc_delta
+    use params, only : wlcsim_params, dp, max_wlc_l0, maxWlcDelta
+    use vector_utils, only: randomUnitVec
+    use polydispersity, only: length_of_chain
     implicit none
     integer, intent(in) :: nt
     type(wlcsim_params), intent(in) :: wlc_p
@@ -453,13 +535,17 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 
     integer IB, NgB, i, j
     real(dp) l0, eps
-    real urand(3)
+    real(dp) urand(3)
     real(dp), dimension(:,:), allocatable :: tmpR, tmpU
 
-    if (max_sswlc_delta < wlc_p%DEL) then
+    if (maxWlcDelta < wlc_p%DEL) then
         print *, "You can use gaussian chain-based initialization since your beads are so far apart, stopping..."
         stop 1
     end if
+    if (WLC_P__LOCAL_TWIST) then
+        print*, "wlc chain initialization is not implimented for local twist"
+        stop
+    endif
     IB = 1
     if (wlc_p%DEL > max_wlc_l0) then
         NgB = ceiling(wlc_p%DEL/max_wlc_l0) + 1
@@ -477,11 +563,9 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
         R(2,IB) = urand(2)*WLC_P__LBOX_Y
         R(3,IB) = urand(3)*WLC_P__LBOX_Z
         ! uniformly from unit sphere first tan vec
-        call random_gauss(urand, rand_stat)
-        U(:,IB) = urand
-        U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        call randomUnitVec(U(:,IB),rand_stat)
         IB = IB + 1
-        do J = 2,WLC_P__NB
+        do J = 2,length_of_chain(I)
             tmpR(:,1) = R(:,IB-1)
             tmpU(:,1) = U(:,IB-1)
             call wlc_init(tmpR, tmpU, NgB, EPS, l0, rand_stat)
@@ -495,16 +579,22 @@ subroutine effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
 end subroutine effective_wormlike_chain_init
 
 subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
+    ! values from wlcsim_data
+    use params, only: wlc_V
+    use params, only: wlcsim_params, dp
     use mersenne_twister
-    use params
+    use vector_utils, only: random_perp
+    use polydispersity, only: length_of_chain
+
     implicit none
     integer, intent(in) :: NT
     type(wlcsim_params), intent(in) :: wlc_p
     real(dp), intent(out) :: R(3,NT), U(3,NT)
     type(random_stat), intent(inout) :: rand_stat
-    real urand(3)
+    real(dp) urand(3)
     real(dp) :: init_e2e(3)
-    integer i, j, ib
+    integer i, j, ib, length
+    real(dp) trash(3)
 
 
     ! init_e2e makes easy to add fixed distances between specific beads in future
@@ -513,14 +603,16 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
         init_e2e = 0.0_dp
         ib = 1
         do i = 1,WLC_P__NP
-            call make_rw_fix_end2end(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, init_e2e, wlc_p, rand_stat)
-            IB = IB + WLC_P__NB
+            length = length_of_chain(i)
+            call make_rw_fix_end2end(R(:,IB:IB+length-1), length, init_e2e, wlc_p, rand_stat)
+            IB = IB + length
         enddo
     else
         ib = 1
         do i = 1, WLC_P__NP
-            call make_rw_with_boundary(R(:,IB:IB+WLC_P__NB-1), WLC_P__NB, wlc_p, rand_stat)
-            IB = IB + WLC_P__NB
+            length = length_of_chain(i)
+            call make_rw_with_boundary(R(:,IB:IB+length-1), length, wlc_p, rand_stat)
+            IB = IB + length
         enddo
 
     end if
@@ -530,18 +622,21 @@ subroutine gaus_init(R, U, NT, wlc_p, rand_stat)
         U(2,IB) = R(2,IB + 1) - R(2,IB)
         U(3,IB) = R(3,IB + 1) - R(3,IB)
         U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        if (WLC_P__LOCAL_TWIST) call random_perp(U(:,IB),wlc_V(:,IB),trash,rand_stat)
         IB = IB + 1
-        do J = 2,WLC_P__NB-1
+        do J = 2,length_of_chain(I)-1
             U(1,IB) = R(1,IB + 1) - R(1,IB - 1)
             U(2,IB) = R(2,IB + 1) - R(2,IB - 1)
             U(3,IB) = R(3,IB + 1) - R(3,IB - 1)
             U(:,IB) = U(:,IB)/norm2(U(:,IB))
+            if (WLC_P__LOCAL_TWIST) call random_perp(U(:,IB),wlc_V(:,IB),trash,rand_stat)
             IB = IB + 1
         enddo
         U(1,IB) = R(1,IB) - R(1,IB - 1)
         U(2,IB) = R(2,IB) - R(2,IB - 1)
         U(3,IB) = R(3,IB) - R(3,IB - 1)
         U(:,IB) = U(:,IB)/norm2(U(:,IB))
+        if (WLC_P__LOCAL_TWIST) call random_perp(U(:,IB),wlc_V(:,IB),trash,rand_stat)
         IB = IB + 1
      enddo
 end subroutine gaus_init
@@ -585,7 +680,7 @@ subroutine make_rw_with_boundary(R, NB, wlc_p, rand_stat)
     integer, intent(in) :: nb
     real(dp), intent(out) :: R(3,nb)
     integer :: ib, j
-    real nrand(3)
+    real(dp) nrand(3)
     logical in_confinement, is_inside_boundary
 
 

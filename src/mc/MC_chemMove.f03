@@ -9,36 +9,30 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(wlc_p,R,U,RP,UP,AB,ABP,IP,IB1,IB2,IT1,IT2 &
-                  ,WindoW,rand_stat)
+subroutine MC_chemMove(IB1,IB2,IT1,IT2,WindoW,rand_stat,success)
+! values from wlcsim_data
+use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
+    , wlc_UP, wlc_ABP, wlc_VP, wlc_pointsMoved, wlc_nPointsMoved
 
 use mersenne_twister
-use params, only: dp,wlcsim_params
+use params, only: dp
+use windowTools, only: drawWindow
+use polydispersity, only: get_I
 
 implicit none
-type(wlcsim_params), intent(in) :: wlc_p
-real(dp), intent(in) :: R(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(in) :: U(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(in) :: AB(wlc_p%NT)  ! Tangent vectors
-real(dp), intent(out) :: RP(3,wlc_p%NT)  ! Bead positions
-real(dp), intent(out) :: UP(3,wlc_p%NT)  ! Tangent vectors
-integer, intent(out) :: ABP(wlc_p%NT)  ! Tangent vectors
-!integer, intent(in) :: WLC_P__NBPM    ! Beads per monomer, aka G
-integer, intent(out) :: IP    ! Test polymer
 integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
+logical, intent(out) ::success
+integer dib   ! number of beads moved by move
 
-integer I,J  ! Test indices
+integer IP    ! Test polymer
+integer J  ! Test indices
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real urand(3)  ! random vector
-real urnd(1) ! single random number
-integer irnd(1)
+real(dp) urnd(1) ! single random number
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
-integer TEMP
-integer exponential_random_int
 
 integer, parameter, dimension(0:3) :: changeBoth = [3, 2, 1, 0]
 integer, parameter, dimension(0:3) :: changeFirst = [2, 3, 0, 1]
@@ -46,70 +40,52 @@ integer, parameter, dimension(0:3) :: changeSecond = [1,0, 3, 2]
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    RP = R
-    UP = U
+    wlc_RP = wlc_R
+    wlc_UP = wlc_U
 endif
 
-! Change wlc_d%AB (a.k.a HP1 binding type fore section of polymer)
-! Move amplitude is ignored for this move type
-call random_index(WLC_P__NP,irnd,rand_stat)
-IP=irnd(1)
-call random_index(WLC_P__NB,irnd,rand_stat)
-IB1=irnd(1)
-call random_number(urand,rand_stat)
-IB2 = IB1 + (2*nint(urand(3))-1)* &
-        exponential_random_int(window,rand_stat)
+! Change wlc_AB (a.k.a HP1 binding type fore section of polymer)
 
-if (IB2 < 1) then
-   IB2 = 1
-endif
-if (IB2 > WLC_P__NB) then
-   IB2 = WLC_P__NB
-endif
-
-if (IB2 < IB1) then
-   TEMP = IB1
-   IB1 = IB2
-   IB2 = TEMP
-endif
-IT1 = WLC_P__NB*(IP-1) + IB1
-IT2 = WLC_P__NB*(IP-1) + IB2
+call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
+                IT1,IT2,IB1,IB2,IP,DIB,success)
+if (success .eqv.  .false.) return
 
 !keep binding constant within monomers
-IT1 = IT1-MOD(IT1-1,WLC_P__NBPM)
-IT2 = IT2-MOD(IT2-1,WLC_P__NBPM) + WLC_P__NBPM-1
+if (WLC_P__NBPM>1) then
+    IB1 = IB1-MOD(IB1-1,WLC_P__NBPM)
+    IB2 = IB2-MOD(IB2-1,WLC_P__NBPM) + WLC_P__NBPM-1
+    IT1 = get_I(IT1,IP)
+    IT2 = get_I(IT2,IP)
+endif
 
 
 if (WLC_P__TWO_TAIL) then
     call random_number(urnd,rand_stat)
     if (urnd(1)>WLC_P__PROBSINGLESWAP) then
         do J = IT1, IT2
-            ABP(J) = changeBoth(AB(J))
+            wlc_ABP(J) = changeBoth(wlc_AB(J))
         enddo
     elseif (urnd(1)<WLC_P__PROBSINGLESWAP/2.0_dp) then
         do J = IT1, IT2
-            ABP(J) = changeFirst(AB(J))
+            wlc_ABP(J) = changeFirst(wlc_AB(J))
         enddo
     else
         do J = IT1, IT2
-            ABP(J) = changeSecond(AB(J))
+            wlc_ABP(J) = changeSecond(wlc_AB(J))
         enddo
     endif
 else
     do J = IT1,IT2
-        ABP(J) = 1-AB(J)
+        wlc_ABP(J) = 1-wlc_AB(J)
     ENDdo
 endif
 
-
-
-!This loop may not be necessary
-do I = IT1,IT2
-   RP(1,I) = R(1,I)
-   RP(2,I) = R(2,I)
-   RP(3,I) = R(3,I)
-   UP(1,I) = U(1,I)
-   UP(2,I) = U(2,I)
-   UP(3,I) = U(3,I)
-ENDdo
+! Copy over R,U,V to RP, UP, and VP
+wlc_RP(:,IT1:IT2) = wlc_R(:,IT1:IT2)
+wlc_UP(:,IT1:IT2) = wlc_U(:,IT1:IT2)
+if (WLC_P__LOCAL_TWIST) wlc_VP(:,IT1:IT2) = wlc_V(:,IT1:IT2)
+do J = IT1,IT2
+    wlc_nPointsMoved=wlc_nPointsMoved+1
+    wlc_pointsMoved(wlc_nPointsMoved)=J
+enddo
 end subroutine

@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !
@@ -7,25 +8,23 @@
 !     Andrew Spakowitz
 !     Written 6-6-04
 
-      subroutine RKstep(RS,R,US,U,DRDT,DUDT,NT,N,NP,RK,DT)
+      subroutine RKstep(RS,R,US,U,DRDT,DUDT,RK,DT)
 
       use params, only : dp, pi
       implicit none
-      real(dp) RS(3,NT)  ! Saved bead positions
-      real(dp) R(3,NT)  ! Temp bead positions
-      real(dp) US(3,NT) ! Unit tangent
-      real(dp) U(3,NT) ! Unit tangent
-      real(dp) DRDT(3,NT,4) ! Change rate of beads
-      real(dp) DUDT(3,NT,4) ! Change rate of beads
+      real(dp) RS(3,WLC_P__NT)  ! Saved bead positions
+      real(dp) R(3,WLC_P__NT)  ! Temp bead positions
+      real(dp) US(3,WLC_P__NT) ! Unit tangent
+      real(dp) U(3,WLC_P__NT) ! Unit tangent
+      real(dp) DRDT(3,WLC_P__NT,4) ! Change rate of beads
+      real(dp) DUDT(3,WLC_P__NT,4) ! Change rate of beads
       real(dp) DT       ! Time step size
-      integer N,NT,NP              ! Bead numbers
       integer RK                ! RK number
       integer I,J,IB         ! Index number
       real(dp) MAGU
 
       IB = 1
-      do 10 I = 1,NP
-         do 20 J = 1,N
+      do 10 I = 1,WLC_P__NT
             if(RK == 1) then
                R(1,IB) = RS(1,IB) + DT*DRDT(1,IB,RK)/2.
                R(2,IB) = RS(2,IB) + DT*DRDT(2,IB,RK)/2.
@@ -62,7 +61,6 @@
             U(3,IB) = U(3,IB)/MAGU
 
             IB = IB + 1
- 20      continue
  10   continue
 
       RETURN

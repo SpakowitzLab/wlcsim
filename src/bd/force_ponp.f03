@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !
@@ -7,12 +8,12 @@
 !     Andrew Spakowitz
 !     Written 11-12-13
 
-      subroutine force_ponp(FPONP,R,NT,N,NP,LHC,VHC,LBOX,GAM,DT,XIR,SWDT) 
+      subroutine force_ponp(FPONP,R,LHC,VHC,LBOX,GAM,DT,XIR,SWDT)
       use params, only : dp
+      use polydispersity, only: length_of_chain,first_bead_of_chain
       implicit none
-      real(dp) R(3,NT)   ! Bead positions
-      integer N,NT,NP            ! Current number of beads
-      real(dp) FPONP(3,NT) ! Self-interaction force
+      real(dp) R(3,WLC_P__NT)   ! Bead positions
+      real(dp) FPONP(3,WLC_P__NT) ! Self-interaction force
       real(dp) FMAG     ! Mag of force
       real(dp) RIJ      ! Interbead dist
       real(dp) EIJ(3)   ! Interbead unit vector
@@ -47,8 +48,8 @@
 !     Setup the parameters
 
       IB1 = 1
-      do 10 I1 = 1,NP
-         do 20 J1 = 1,N
+      do 10 I1 = 1,WLC_P__NP
+         do 20 J1 = 1,length_of_chain(I1)
             FPONP(1,IB1) = 0.
             FPONP(2,IB1) = 0.
             FPONP(3,IB1) = 0.
@@ -58,12 +59,12 @@
 
 !     Calculate the self-interaction forces
 
-      do 30 I1 = 1,(NP-1)
-         do 40 J1 = 1,(N-1)
-            IB1 = J1 + N*(I1-1)
-            do 50 I2 = (I1 + 1),NP
-               do 60 J2 = 1,(N-1)
-                  IB2 = J2 + N*(I2-1)
+      do 30 I1 = 1,(WLC_P__NP-1)
+         do 40 J1 = 1,(length_of_chain(I1)-1)
+            IB1 = first_bead_of_chain(I1) + J1 - 1
+            do 50 I2 = (I1 + 1),WLC_P__NP
+               do 60 J2 = 1,(length_of_chain(I2)-1)
+                  IB2 = J2 + first_bead_of_chain(I2) - 1
                   R12(1) = R(1,IB2)-R(1,IB1)
                   R12(2) = R(2,IB2)-R(2,IB1)
                   R12(3) = R(3,IB2)-R(3,IB1)

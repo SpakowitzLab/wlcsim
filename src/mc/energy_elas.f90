@@ -1,3 +1,4 @@
+#include "../defines.inc"
 !---------------------------------------------------------------*
 
 !
@@ -6,83 +7,58 @@
 !     moduli are fed along with the bead positions.
 
 
-      subroutine energy_elas(EELAS,R,U,NT,NB,NP,PARA,RinG,TWIST,Lk,lt,L)
-      use params, only: dp, pi
+      subroutine energy_elas(EELAS,wlc_p)
+      ! values from wlcsim_data
+      use params, only: wlc_nucleosomeWrap, wlc_basepairs, wlc_V, wlc_R, wlc_U
+      use params, only: dp, pi,  wlcsim_params, nan
+      use MC_wlc, only: E_SSWLC
+      use nucleosome, only: nucleosome_energy
+      use polydispersity, only: first_bead_of_chain, length_of_chain
       implicit none
-      integer, intent(in) :: NB           ! Number of beads in a polymer
-      integer, intent(in) :: NT           ! Number of beads total
-      integer, intent(in) :: NP           ! Number of polymers
-      integer, intent(in) :: lk
-      real(dp), intent(in) :: l, lt
-      real(dp), intent(in) :: R(3,NT)  ! Bead positions
-      real(dp), intent(in) :: U(3,NT)  ! Tangent vectors
-      real(dp), intent(out):: EELAS(6) ! Elastic force
+      type(wlcsim_params),intent(in) :: wlc_p
+      real(dp), intent(out):: EELAS(4) ! Elastic force
       integer WR,TW ! writhe, twist
       integer I,J,IB,ibp1            ! Index holders
-      LOGICAL, intent(in) :: RinG, TWIST
+      real(dp) energy_change(4)
 
-!     Polymer properties
-
-      real(dp), intent(in) :: PARA(10)
-      real(dp) EB,EPAR,EPERP
-      real(dp) GAM,ETA
-
-      real(dp) DR(3),DRPAR,DRPERP(3)
-      real(dp) GI(3) !,U1U2
-
-
-      EB = PARA(1)
-      EPAR = PARA(2)
-      EPERP = PARA(3)
-      GAM = PARA(4)
-      ETA = PARA(5)
-
-      EELAS(1) = 0.0_dp
-      EELAS(2) = 0.0_dp
-      EELAS(3) = 0.0_dp
+      EELAS = 0.0_dp
       IB = 1
-      do I = 1,NP
-         do J = 1,NB
-            if (RinG) then
-                if (J == NB) then
-                    IBP1 = 1 + (I-1)*NB
+      do I = 1,WLC_P__NP
+         do J = 1,length_of_chain(I)
+            if (WLC_P__RING) then
+                if (J == length_of_chain(I)) then
+                    IBP1 = first_bead_of_chain(I)
                 else
                     IBP1 = IB + 1
                 ENDif
-            elseif (J == NB) then
+            elseif (J == length_of_chain(I)) then
                 CYCLE
             else
                 IBP1 = IB + 1
             ENDif
-            DR(1) = R(1,IBP1)-R(1,IB)
-            DR(2) = R(2,IBP1)-R(2,IB)
-            DR(3) = R(3,IBP1)-R(3,IB)
-            DRPAR = DR(1)*U(1,IB) + DR(2)*U(2,IB) + DR(3)*U(3,IB)
-
-            DRPERP(1) = DR(1)-DRPAR*U(1,IB)
-            DRPERP(2) = DR(2)-DRPAR*U(2,IB)
-            DRPERP(3) = DR(3)-DRPAR*U(3,IB)
-            ! energy does not depend on u\cdot{}u
-            !U1U2 = U(1,IB)*U(1,IBP1) + U(2,IB)*U(2,IBP1) + U(3,IB)*U(3,IBP1)
-
-            GI(1) = (U(1,IBP1)-U(1,IB)-ETA*DRPERP(1))
-            GI(2) = (U(2,IBP1)-U(2,IB)-ETA*DRPERP(2))
-            GI(3) = (U(3,IBP1)-U(3,IB)-ETA*DRPERP(3))
-
-            EELAS(1) = EELAS(1) + 0.5*EB*(GI(1)**2. + GI(2)**2. + GI(3)**2.)
-            EELAS(2) = EELAS(2) + 0.5*EPAR*(DRPAR-GAM)**2.
-            EELAS(3) = EELAS(3) + 0.5*EPERP*(DRPERP(1)**2. + DRPERP(2)**2. + DRPERP(3)**2.)
-
+            if (WLC_P__ELASTICITY_TYPE == "constant") then
+                 energy_change =  E_SSWLC( wlc_R(:,IBP1), wlc_R(:,IB),&
+                                           wlc_U(:,IBP1), wlc_U(:,IB),&
+                                           wlc_p%EB, wlc_p%EPAR, wlc_p%EPERP,wlc_p%ETA, wlc_p%GAM)
+                 EELAS = EELAS + energy_change
+            elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
+                 energy_change = nucleosome_energy(wlc_R(:,IBP1),wlc_R(:,IB)&
+                                                  ,wlc_U(:,IBP1),wlc_U(:,IB)&
+                                                  ,wlc_V(:,IBP1),wlc_V(:,IB)&
+                                                  ,wlc_basepairs(IB)&
+                                                  ,wlc_nucleosomeWrap(IB))
+                 EELAS = EELAS + energy_change
+            endif
             IB = IB + 1
          ENDdo
          IB = IB + 1
       ENDdo
 
       ! Get Twist Energy
-      if (TWIST) then
-          call WRITHE(R,NB,Wr)
-          Tw = Lk-Wr
-          EELAS(4) = ((2*PI*Tw)**2)*LT/(2*L)
+      if (WLC_P__TWIST) then
+          call WRITHE(wlc_R,WLC_P__NB,Wr)
+          Tw = wlc_p%Lk-Wr
+          EELAS(4) = ((real(2*Tw,dp)*PI)**2)*WLC_P__LT/(2*WLC_P__L)
       ENDif
 
       RETURN
