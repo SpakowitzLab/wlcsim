@@ -183,7 +183,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
     ! In the future you can set up code here to choose nucleosome spacing
     wlc_nucleosomeWrap = 147
-    wlc_basepairs = 36
+    wlc_basepairs = WLC_P__LL
 
 
 end subroutine
