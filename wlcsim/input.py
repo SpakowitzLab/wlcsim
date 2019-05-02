@@ -17,6 +17,7 @@ from enum import Enum
 class InputFormat(Enum):
     ORIGINAL=1
     LENA=2
+    DEFINES=3 # TODO: implement
 
 renamer = {'COL_TYPE': 'COLLISIONDETECTIONTYPE', 'COLTYPE': 'COLLISIONDETECTIONTYPE', 'FPT_DIST': 'COLLISIONRADIUS',
            'INTON': 'INTERPBEADLENNARDJONES', 'N': 'NB', 'INDMAX': 'NUMSAVEPOINTS'}
@@ -111,6 +112,10 @@ class ParsedInput(object):
             elif self.file_format == InputFormat.LENA:
                 for name in self.ordered_param_names:
                     f.write(str(name) + ' ' + str(self.params[name]) + '\n')
+            elif self.file_format == InputFormat.DEFINES:
+                for name in self.ordered_param_names:
+                    f.write('#define ' + str(name) + ' ' +
+                            str(self.params[name]) + '\n')
             else:
                 raise ValueError('wlcsim.input: attempt to print a ParsedInput'
                                  ' with unknown file_format.')
@@ -131,7 +136,11 @@ class ParsedInput(object):
                     self.input_format = InputFormat.ORIGINAL
                     return
                 elif line[0] == '#':
-                    self.input_format = InputFormat.LENA
+                    #if line starts with #define, interpret as defines.inc file
+                    if line.split()[0] == '#define':
+                        self.input_format = InputFormat.DEFINES
+                    else:
+                        self.input_format = InputFormat.LENA
                     return
                 else:
                     continue
@@ -142,19 +151,23 @@ class ParsedInput(object):
         self.input_format = InputFormat.LENA
         return
 
+        
     def parse_params_file(self):
         """Parse and populate ParsedInput's params, ordered_param_names
-        This parser currently understands two file formats:
+        This parser currently understands three file formats:
         1) "ORIGINAL" is the input method understood by Andy's hardcoded
         input reader in the original code used the Spakowitz lab was
         founded.
         2) "LENA" is a spec using slightly more general input reader
         written by Elena Koslover while Andy's student.
+        3) "DEFINES" is the format of the src/defines.inc file.
         """
         if self.input_format == InputFormat.ORIGINAL:
             self.parse_original_params_file()
         elif self.input_format == InputFormat.LENA:
             self.parse_lena_params_file()
+        elif self.input_format == InputFormat.DEFINES:
+            self.parse_defines_params_file()
 
     def parse_lena_params_file(self):
         """Lena-style input files have comment lines starting with a "#". Any
@@ -178,6 +191,27 @@ class ParsedInput(object):
                     continue
                 name, value = match.groups()
                 self.append_param(name, value)
+
+    
+    def parse_defines_params_file(self): 
+        """Parse file in the format of src/defines.inc. Each line begins with 
+        #define WLC_P__[PARAM_NAME] [_a-zA-Z0-9] 
+        where WLC_P__[A-Z]* is the parameter name and the piece after the space is the value of 
+        the parameter.
+
+        TODO:test
+        """
+        name_value_re = re.compile('#define (WLC_P__[_A-Z]*) ([_a-zA-Z0-9]*)')
+        with open(self.input_file) as f:
+            for line in f:
+                if not line:
+                    continue
+                match = name_value_re.match(line)
+                if match is None:
+                    continue
+                name, value = match.groups()
+                self.append_param(name, value)
+
 
     def parse_original_params_file(self):
         """Original-style input files have three garbage lines at the top used

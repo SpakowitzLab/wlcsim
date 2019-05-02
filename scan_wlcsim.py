@@ -21,7 +21,7 @@ count_funcs = []
 # specify where simulations will be run and where output will go
 # you'll probably want to CHANGE run_name FOR EACH PARAMETER SCAN YOU DO to
 # preserve your sanity
-run_name = 'max-stiffness-10lp-mc-equil-new-defaults'
+run_name = 'test-nuc'
 output_base = 'par-run-dir'
 
 # the following uses numpy to create arrays of parameters
@@ -41,7 +41,7 @@ output_base = 'par-run-dir'
 # to change how many times each parameter set is run, change number below
 # for more advanced control of how many times to run sims based on param
 # values, see the docs of pscan.py
-default_repeats_per_param = 1000
+default_repeats_per_param = 100
 count_funcs.append(lambda p: default_repeats_per_param)
 #count_funcs.append(lambda p: max(1,int(default_repeats_per_param/50)) if p['DT'] < 0.1 else None)
 
@@ -55,8 +55,9 @@ os.chdir(script_dir)
 
 # read in parameter names and "default" values
 # from files in Andy's input format
-params_file = os.path.join('input', 'input')
+params_file = os.path.join('src', 'defines.inc')
 input_file = os.path.join(script_dir, params_file)
+print(input_file)
 parsed_input = wlcsim.input.ParsedInput(input_file)
 ordered_param_names = parsed_input.ordered_param_names
 # update params dict with the values requested by the user
@@ -64,6 +65,7 @@ ordered_param_names = parsed_input.ordered_param_names
 # of params
 simulation_params = {name.upper(): [value] for name, value in
                      parsed_input.params.items()}
+print(simulation_params)
 simulation_params.update(params)
 scan = pscan.Scan(simulation_params)
 for jparam in jparams:
@@ -90,12 +92,22 @@ while True:
         skel_num = skel_num + 1
 with open(os.path.join(skeleton_dir, 'commit_hash'), 'w') as commit_hash:
     subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=commit_hash)
-shutil.copyfile(os.path.join(script_dir, 'wlcsim.exe'),
-                os.path.join(skeleton_dir, 'wlcsim.exe'))
+# some versions of the code have compile-time parameters, in which case we need
+# to copy over the whole src directory and makefile
+if parsed_input.input_format == wlcsim.input.InputFormat.DEFINES:
+    #TODO fill this in
+    shutil.copyfile(os.path.join(script_dir, 'Makefile'),
+                    os.path.join(skeleton_dir, 'Makefile'))
+    copy_tree('src', os.path.join(skeleton_dir, 'src'))
+# some have an input file read at runtime, in which case we only need to copy
+# over the executable file
+else:
+    shutil.copyfile(os.path.join(script_dir, 'wlcsim.exe'),
+                    os.path.join(skeleton_dir, 'wlcsim.exe'))
+    os.chmod(os.path.join(skeleton_dir, 'wlcsim.exe'), 0o755)
 # copy over ourselves to make inspecting an old scan easier
 shutil.copyfile(os.path.join(script_dir, 'scan_wlcsim.py'),
                 os.path.join(skeleton_dir, 'scan_wlcsim.py'))
-os.chmod(os.path.join(skeleton_dir, 'wlcsim.exe'), 0o755)
 # make pre-filled input directory
 copy_tree('input', os.path.join(skeleton_dir, 'input'))
 # make empty output directory
@@ -123,6 +135,8 @@ def run_wlcsim(params):
     # now we're in the right directory, with input and output ready, go ahead
     # and run the simulation
     with open('./data/wlcsim.log', 'w') as f:
+        if not os.path.exists('./wlcsim.exe'):
+            subprocess.run(['make'], stdout=f, stderr=subprocess.STDOUT)
         subprocess.run(['time', './wlcsim.exe'], stdout=f, stderr=subprocess.STDOUT)
     # finally, stick a file flag saying that we've finished our simulation
     # here, for ease of sifting through runs
