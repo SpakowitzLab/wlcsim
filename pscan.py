@@ -26,6 +26,29 @@ import collections
 #             keys = dic.keys()
 #         return cls([P(key, dic[key]) for key in keys])
 
+def unravel_index(i, shape):
+    """Rewrite of np.unravel_index that allows shape to have more than 32
+    dimensions."""
+    if len(shape) <= 32:
+        np.unravel_index(i, shape)
+    # equivalend to cumulative_sizes = np.cumprod(shape[::-1])[::-1]
+    cumulative_sizes = []
+    j = 1
+    for size in shape[::-1]:
+        j *= int(size)
+        cumulative_sizes.append(j)
+    cumulative_sizes = cumulative_sizes[::-1]
+    if cumulative_sizes[0] <= i:
+        raise ValueError('Requested index outside of range.')
+    indexes = []
+    j = i
+    # base change algorithm, but each digit can be of a different base
+    for size in cumulative_sizes[1:]:
+        indexes.append(j // size)
+        j = j % size
+    indexes.append(j)
+    return indexes
+
 def get_first(iterable, default=None):
     if iterable:
         for item in iterable:
@@ -181,7 +204,7 @@ class Scan:
         all_sizes = comb_sizes + joint_sizes
         total_combinations = reduce(operator.mul, all_sizes, 1)
         for i in range(total_combinations):
-            sub = np.unravel_index(i, all_sizes)
+            sub = unravel_index(i, all_sizes)
             params = {}
             # get the comb_params
             for j in range(len(comb_sizes)):
