@@ -135,8 +135,8 @@
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__APPLY_2body_potential .FALSE.
-! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
-! DEFAULTS COMMENT: !
+! VARIABLE COMMENT: ! explicit two body interactions (arbitrary potential)
+! DEFAULTS COMMENT: ! off by default
 ! TYPE: LOGICAL
 
 #define WLC_P__EXPLICIT_BINDING .FALSE.
@@ -485,9 +485,9 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
-! VARIABLE COMMENT: ! Amplitude of two body potential
-! DEFAULTS COMMENT: !
-! TYPE: REAL(DP)
+! VARIABLE COMMENT: ! how many beads to your left/right to exclude from two-body interaction explicitly
+! DEFAULTS COMMENT: ! if abs(bead1 - bead2) <= 2, don't calculate interbead potential
+! TYPE: INTEGER
 
 ! ----------------------------
 !
