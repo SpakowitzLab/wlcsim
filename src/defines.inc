@@ -383,14 +383,14 @@
 ! DEFAULTS COMMENT: ! should always be 1.0_dp according to quinn
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_CUBE_LENGTH NAN
+#define WLC_P__CONFINEMENT_CUBE_LENGTH WLC_P__LBOX_Z
 ! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
-! DEFAULTS COMMENT: ! Must set if in use
+! DEFAULTS COMMENT: ! Set to match LBOX_Z
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SLIT_WIDTH NAN
+#define WLC_P__CONFINEMENT_SLIT_WIDTH WLC_P__LBOX_Z
 ! VARIABLE COMMENT: !  Size of confinement. Set = LBOX -2*DBIN if bin interation is on
-! DEFAULTS COMMENT: ! Must set if in use
+! DEFAULTS COMMENT: ! Set to match LBOX_Z
 ! TYPE: REAL(DP)
 
 #define WLC_P__CONFINEMENT_SPHERE_DIAMETER NAN

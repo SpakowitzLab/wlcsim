@@ -85,7 +85,7 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     ! contributes to the twist energy.
     TA = cross(UM1,U)
     mag = norm2(TA)
-    if (mag > 10**-10) then
+    if (mag > 10**(-10)) then
         alpha = angle_between(UM1, U)
         TA = TA/mag
         if (isnan(alpha)) then
@@ -103,7 +103,7 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     ! ETWIST = lt/l0
     if (isnan(E_SSWLCWT(4))) then
         print*, "Nan in twist"
-        if (mag > 10**-10) then
+        if (mag > 10**(-10)) then
             print*, "R VM1", rotateU(ROT,VM1)
             print*, "V", V
         else

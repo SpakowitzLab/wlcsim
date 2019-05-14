@@ -390,7 +390,7 @@
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SLIT_WIDTH 2.0_dp
+#define WLC_P__CONFINEMENT_SLIT_WIDTH WLC_P__LBOX_Z
 ! VARIABLE COMMENT: !  Size of confinement. Set = LBOX -2*DBIN if bin interation is on
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
