@@ -138,7 +138,7 @@
 
 #define WLC_P__EXTERNAL_FIELD_TYPE "nonSpecificToCubeSide"
 ! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic", "NSTCS_plus_binding"
-! DEFAULTS COMMENT: ! 
+! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__APPLY_2body_potential .FALSE.
@@ -523,7 +523,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 12000 
+#define WLC_P__STEPSPEREXCHANGE 6000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering.  Was 6000000
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -568,12 +568,12 @@
 ! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
-#define WLC_P__N_FIELD_ON 0
+#define WLC_P__N_FIELD_ON 10
 ! VARIABLE COMMENT: ! when to turn applied field
 ! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
-#define WLC_P__N_UMBRELLA_ON 5
+#define WLC_P__N_UMBRELLA_ON 10
 ! VARIABLE COMMENT: ! when to turn applied field
 ! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
@@ -614,7 +614,7 @@
 ! DEFAULTS COMMENT: ! full chain slide <default 6>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_CHANGE_BINDING_STATE 10
+#define WLC_P__MOVESPERSTEP_CHANGE_BINDING_STATE 20
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! bind < default 10>
 ! TYPE: INTEGER
@@ -639,7 +639,7 @@
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_SPIDER 30
+#define WLC_P__MOVESPERSTEP_SPIDER 15
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER

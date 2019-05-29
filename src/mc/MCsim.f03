@@ -220,7 +220,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
              endif
           endif
 
-          if (WLC_P__APPLY_EXTERNAL_FIELD .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
+          if (WLC_P__APPLY_EXTERNAL_FIELD .and. energyOf(external_)%isOn &
+              .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
               call MC_external_field()
           endif
 
@@ -232,7 +233,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
               call MC_explicit_binding()
           endif
 
-          if (WLC_P__UMBRELLA .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
+          if (WLC_P__UMBRELLA .and. energyOf(umbrella_)%isOn &
+              .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
               call umbrella_energy()
           endif
 

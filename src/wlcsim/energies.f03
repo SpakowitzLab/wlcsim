@@ -112,6 +112,9 @@ contains
         energyOf(field_)%ind_on = WLC_P__N_FIELD_ON
         energyOf(umbrella_)%ind_on = WLC_P__N_UMBRELLA_ON
         energyOf(umbrellaQuadratic_)%ind_on = WLC_P__N_UMBRELLA_ON
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            if (energyOf(ii)%ind_on > 0) energyOf(ii)%isOn = .FALSE.
+        enddo
 
     end subroutine
     subroutine set_all_energy_to_zero()
