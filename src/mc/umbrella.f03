@@ -64,15 +64,17 @@ subroutine umbrella_energy()
     use energies, only: energyOf, umbrella_, umbrellaQuadratic_
     use params, only: wlc_R, wlc_RP, wlc_nPointsMoved, wlc_pointsMoved
     implicit none
-    real(dp) rxn_coordinate
+    real(dp) drxn_coordinate
     integer ii
-    rxn_coordinate=0.0_dp
+    drxn_coordinate=0.0_dp
     do ii = 1, wlc_nPointsMoved
-        rxn_coordinate = rxn_coordinate + boundary_weight(wlc_R(1,wlc_pointsMoved(ii)))
+        drxn_coordinate = drxn_coordinate - boundary_weight(wlc_R(1,wlc_pointsMoved(ii)))
+        drxn_coordinate = drxn_coordinate + boundary_weight(wlc_RP(1,wlc_pointsMoved(ii)))
     enddo
-    rxn_coordinate = rxn_coordinate/WLC_P__NT
-    energyOf(umbrella_)%dx = rxn_coordinate
-    energyOf(umbrellaQuadratic_)%dx = rxn_coordinate**2
+    drxn_coordinate = drxn_coordinate/WLC_P__NT
+    energyOf(umbrella_)%dx = drxn_coordinate
+    ! d(x^2) = dx^2 + 2*x*dx
+    energyOf(umbrellaQuadratic_)%dx = drxn_coordinate**2 + 2.0_dp*energyOf(umbrella_)%x*drxn_coordinate
 end subroutine
 
 

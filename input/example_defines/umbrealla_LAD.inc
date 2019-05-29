@@ -52,7 +52,7 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__INITCONDTYPE 'multiRing'
-! VARIABLE COMMENT: ! initial condition type
+! VARIABLE COMMENT: ! initial condition type eg: 'lineInY', 'randomLineCubeBoundary', 'multiRing'
 ! DEFAULTS COMMENT: ! needed to matach boundary/binding conditions
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
@@ -156,7 +156,7 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
-#define WLC_P__NO_LEF_CROSSING .FALSE.
+#define WLC_P__NO_LEF_CROSSING .TRUE.
 ! VARIABLE COMMENT: ! no explicit binding pairs can cross eachother, e.g. 1-to-10 and 5-15
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -506,7 +506,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
 
-#define WLC_P__MAX_RXN_COORD 1.0_DP
+#define WLC_P__MAX_RXN_COORD 0.4_DP
 ! VARIABLE COMMENT: ! Max of umbrella sampled reaction coordinate
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
@@ -657,7 +657,7 @@
 !
 ! --------------------------
 
-#define WLC_P__PTON .FALSE.
+#define WLC_P__PTON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
@@ -717,7 +717,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__NREPADAPT 1000
+#define WLC_P__NREPADAPT 500
 ! VARIABLE COMMENT: ! number of exchange attemts between adapt
 ! DEFAULTS COMMENT: ! 1000 exchange attempts between adaptations
 ! TYPE: INTEGER
