@@ -366,6 +366,10 @@ contains
             print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
             stop
         endif
+        if ((.not. WLC_P__EXPLICIT_BINDING) .and. WLC_P__INITCONDTYPE ==  "multiRing") then
+            print*, "multiRing initial condition not possible if explicit binding is off"
+            stop
+        endif
         if (WLC_P__RING) then
             if (WLC_P__NP .gt. 1) then
                 print*, "As of the writing of this error message"

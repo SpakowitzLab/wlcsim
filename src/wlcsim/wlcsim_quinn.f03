@@ -208,7 +208,8 @@ end subroutine head_node
 #endif
 
 function cof_path_by_energy_type(energy_type, s) result(cof)
-    use energies, only: energyOf, mu_
+    use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_
+    use umbrella, only: setUmbrellaCof, setUmbrellaQuadraticCof
     use params, only: dp
     implicit none
     integer, intent(in) :: energy_type
@@ -218,12 +219,16 @@ function cof_path_by_energy_type(energy_type, s) result(cof)
     cof = energyOf(energy_type)%cof ! Use Default value
 
     if (energyOf(energy_type)%parallel_temper) then
-        ! Parallel temper from 0 to default value
-        cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
-
         ! special instructions for specified types
-        if (energy_type == mu_ ) then
-            cof = s-2.5_dp
+        if (energy_type == umbrella_ .and. WLC_P__UMBRELLA) then
+            cof = setUmbrellaCof(s)
+        elseif (energy_type == umbrellaQuadratic_ .and. WLC_P__UMBRELLA) then
+            cof = setUmbrellaQuadraticCof(s)
+        elseif (energy_type == mu_ ) then
+            cof = s-2.5_dp ! set for Quinn's chromatin problem
+        else
+            ! Parallel temper from 0 to default value
+            cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
         endif
     endif
     return

@@ -21,6 +21,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
     , wlcsim_params_recenter
     use energies
+    use umbrella, only: umbrella_energy
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
@@ -229,6 +230,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
 
           if (WLC_P__EXPLICIT_BINDING .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
               call MC_explicit_binding()
+          endif
+
+          if (WLC_P__UMBRELLA .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
+              call umbrella_energy()
           endif
 
 !   Change the position if appropriate

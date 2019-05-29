@@ -10,6 +10,7 @@ use params, only: wlc_METH, wlc_Cross, wlc_Wr, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
     , wlc_R, wlc_ind_in_list, dp
 use params, only: wlcsim_params
+    use umbrella, only: umbrella_energy_from_scratch
     use iso_fortran_env
     use energies
     implicit none
@@ -86,6 +87,10 @@ use params, only: wlcsim_params
         print*, "Add the correct checks to VerifyEnergiesFromScratch"
         stop 1
     ENDif
+
+    if(WLC_P__UMBRELLA) then
+        call umbrella_energy_from_scratch()
+    endif
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
 
