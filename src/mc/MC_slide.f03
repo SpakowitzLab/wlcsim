@@ -40,6 +40,7 @@ real(dp), intent(in) :: MCAMP ! Amplitude of random change
 real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) DR(3)    ! Displacement for slide move
 integer indx
+logical duplicates
 
 !TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
 if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
@@ -89,7 +90,8 @@ if (WLC_P__EXPLICIT_BINDING) then
             enddo
         else
             otherEnd = wlc_ExplicitBindingPair(ii)
-            if (otherEnd == -1) cycle
+            if (otherEnd == -1) cycle ! not a loop
+            if (otherEnd >= IT1 .and. otherEnd <= IT2) cycle ! internal loop
             call slide_another_bead(IT1, IT2, otherEnd, DR)
         endif
     enddo
@@ -102,36 +104,72 @@ do  J = 0,DIB
        I = first_bead_of_chain(IP)
     endif
 
+    if (WLC_P__WARNING_LEVEL >= 2) then
+        if (.not. isnan(wlc_RP(1,I))) then
+            print*, "Should be nan still!!"
+            stop
+        endif
+    endif
     wlc_RP(:,I) = wlc_R(:,I) + DR
     wlc_UP(:,I) = wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
     wlc_nPointsMoved=wlc_nPointsMoved+1
     wlc_pointsMoved(wlc_nPointsMoved)=I
     I = I + 1
+    if (WLC_P__WARNING_LEVEL >= 2) then
+        if (duplicates(wlc_pointsMoved(1:wlc_nPointsMoved), wlc_nPointsMoved)) then
+            print*, "Duplicates"
+            stop
+        endif
+        if (duplicates(wlc_bendPoints(1:wlc_nBend), wlc_nBend)) then
+            print*, "Duplicates bend"
+            stop
+        endif
+    endif
 
 ENDdo
 end subroutine
+
+function duplicates(vec, length) result(output)
+    implicit none
+    integer length
+    integer vec(length)
+    integer ii
+    logical output
+    output = .FALSE.
+    if (length <2) then
+        return
+    endif
+    do ii = 1,length-1
+        if (ANY( vec(ii+1:length) == vec(ii)) ) then
+            output = .TRUE.
+            return
+        endif
+    enddo
+end function
 
 subroutine slide_another_bead(IT1,IT2, otherEnd, DR)
 use polydispersity, only: is_right_end, is_left_end
 use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
     wlc_nBend, wlc_bendPoints, wlc_pointsMoved, wlc_nPointsMoved, dp
+implicit none
 integer, intent(in) :: IT1
 integer, intent(in) :: IT2
 integer, intent(in) :: otherEnd
 real(dp), intent(in) :: DR(3)    ! Displacement for slide move
+integer I
 
 if (otherEnd >= IT1 .and. otherEnd <= IT2) return
 
 ! Move Explicitly bound point along with section
 I=otherEnd
-wlc_RP(:,I)=wlc_R(:,I) + DR
-wlc_UP(:,I)=wlc_U(:,I)
-if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 if (isnan(wlc_RP(1,I))) then
     wlc_nPointsMoved=wlc_nPointsMoved+1
     wlc_pointsMoved(wlc_nPointsMoved)=I
 endif
+wlc_RP(:,I)=wlc_R(:,I) + DR
+wlc_UP(:,I)=wlc_U(:,I)
+if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 ! Add ajacent points to RP and bendPoints
 if (otherEnd .ne. IT1-1 .and. (.not. is_right_end(otherEnd))) then
     if (.not. ANY(wlc_bendPoints(1:wlc_nBend)==otherEnd)) then
