@@ -52,11 +52,13 @@ subroutine umbrella_energy_from_scratch()
     implicit none
     real(dp) rxn_coordinate
     integer ii
+    ! -------- Calculate rxn coordinate from scratch --------
     rxn_coordinate=0.0_dp
     do ii = 1, WLC_P__NT
         rxn_coordinate = rxn_coordinate + boundary_weight(wlc_R(1,ii))
     enddo
     rxn_coordinate = rxn_coordinate/WLC_P__NT
+    ! -------- End caluclate rxn coordinate from scratch ---
     energyOf(umbrella_)%dx = rxn_coordinate
     energyOf(umbrellaQuadratic_)%dx = rxn_coordinate**2
 end subroutine
@@ -66,12 +68,14 @@ subroutine umbrella_energy()
     implicit none
     real(dp) drxn_coordinate
     integer ii
+    ! --------- Calculate change in rxn coordinate ---------
     drxn_coordinate=0.0_dp
     do ii = 1, wlc_nPointsMoved
         drxn_coordinate = drxn_coordinate - boundary_weight(wlc_R(1,wlc_pointsMoved(ii)))
         drxn_coordinate = drxn_coordinate + boundary_weight(wlc_RP(1,wlc_pointsMoved(ii)))
     enddo
     drxn_coordinate = drxn_coordinate/WLC_P__NT
+    ! --------- End calculate change in rxn coordinate ----
     energyOf(umbrella_)%dx = drxn_coordinate
     ! d(x^2) = dx^2 + 2*x*dx
     energyOf(umbrellaQuadratic_)%dx = drxn_coordinate**2 + 2.0_dp*energyOf(umbrella_)%x*drxn_coordinate
