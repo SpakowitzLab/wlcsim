@@ -324,7 +324,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
     endif
 
     ! angle to rotate shin
-    if isnan(dalpha) then
+    if (isnan(dalpha)) then
         write(ERROR_UNIT,*) "dalpha is nan, shin", shin
         stop
     endif
@@ -345,7 +345,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
     endif
 
     ! angle to rotate thigh
-    if isnan(dbeta) then
+    if (isnan(dbeta)) then
         write(ERROR_UNIT,*) "dbeta is nan, thigh", thigh
         stop
     endif

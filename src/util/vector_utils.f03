@@ -274,6 +274,7 @@ endif
 end subroutine
 
 subroutine rotateAIntoB(A,B,P1,ROT)
+use, intrinsic :: iso_fortran_env, only: ERROR_UNIT
 implicit none
 real(dp), intent(in) :: A(3)
 real(dp), intent(in) :: B(3)
