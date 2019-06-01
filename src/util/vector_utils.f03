@@ -282,8 +282,18 @@ real(dp), intent(out) :: ROT(3,4) ! Rotation matrix
 real(dp) ALPHA    ! Angle of move
 real(dp) TA(3)    ! Normalized vector
 
+
 TA = cross(A,B)
 alpha = asin(norm2(TA)/(norm2(A)*norm2(B)))
+if (norm2(A) < 10**(-10) .or. norm2(B) < 10**(-10)) then
+    ROT = 0.0_dp
+    ROT(1,1) = 1.0_dp
+    ROT(2,2) = 1.0_dp
+    ROT(3,3) = 1.0_dp
+    write(ERROR_UNIT,*) "Tried to rotate", A, " into ", B
+    return
+endif
+
 call axisAngle(ROT,alpha,TA,P1)
 end subroutine rotateAIntoB
 end module
