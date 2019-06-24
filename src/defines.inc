@@ -169,6 +169,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__UMBRELLA .FALSE.
+! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 ! ----------------------------
 !
 !   Output
@@ -495,6 +500,17 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
+#define WLC_P__MAX_RXN_COORD 1.0_DP
+! VARIABLE COMMENT: ! Max of umbrella sampled reaction coordinate
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__MIN_RXN_COORD 0.0_DP
+! VARIABLE COMMENT: ! Min of umbrella sampled reaction coordinate
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+
 ! ----------------------------
 !
 !   Time / steps variables
@@ -547,6 +563,11 @@
 ! TYPE: INTEGER
 
 #define WLC_P__N_FIELD_ON 0
+! VARIABLE COMMENT: ! when to turn applied field
+! DEFAULTS COMMENT: ! turn on immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_UMBRELLA_ON 10
 ! VARIABLE COMMENT: ! when to turn applied field
 ! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
