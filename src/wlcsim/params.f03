@@ -382,6 +382,10 @@ contains
                 stop
             endif
         endif
+        err = WLC_P__FIELD_INT_ON .and. &
+            abs(WLC_P__DBIN*WLC_P__NBIN_X - WLC_P__LBOX_X)>eps
+        call stop_if_err(err, "DBIN*NBIN_X should be LBOX_X")
+
 
         err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
         call stop_if_err(err, "Explicit binding not set up for exchange move")
