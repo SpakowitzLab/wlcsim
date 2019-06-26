@@ -210,7 +210,7 @@ end subroutine head_node
 function cof_path_by_energy_type(energy_type, s) result(cof)
     use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_
     use umbrella, only: setUmbrellaCof, setUmbrellaQuadraticCof
-    use params, only: dp
+    use params, only: dp, nan
     implicit none
     integer, intent(in) :: energy_type
     real(dp), intent(in) :: s

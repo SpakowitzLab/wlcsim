@@ -5,13 +5,13 @@
 ! ---------------------------
 
 #define WLC_P__CODENAME ""
-! VARIABLE COMMENT: ! which simulation code to run
+! VARIABLE COMMENT: ! which simulation code to run (from when we combined our code)
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__WARNING_LEVEL 1
 ! VARIABLE COMMENT: ! 0 = no warnings, 1 = moderate performance impact, 2 = considerable slowdown
-! DEFAULTS COMMENT: !
+! DEFAULTS COMMENT: ! recommended
 ! TYPE: INTEGER
 
 #define WLC_P__RING .FALSE.
@@ -30,12 +30,12 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CONFINETYPE 'NONE'
-! VARIABLE COMMENT: ! type of Boundary Conditions
+! VARIABLE COMMENT: ! Boundary Condition: "platesInZperiodicXY", "cube", "sphere", "excludedShpereInPeriodic", "ecoli", "None"
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__BOUNDARY_TYPE "SolidEdgeBin"
-! VARIABLE COMMENT: ! type of Boundary Conditions
+! VARIABLE COMMENT: ! how to handle boundary for binned interaction choose from: "SolidEdgeBin", "ExtendBinsPast"
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
@@ -45,7 +45,7 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
-! VARIABLE COMMENT: ! initial condition type
+! VARIABLE COMMENT: ! initial condition: "lineInYFromOrigin", "lineInY", "randomLineSlitInZBoundary", "randomLineCubeBoundary", "randomLineOutsideOfSphere", "randomLineSphereBoundary", "randomlyDistributeBeadsInSphere", "ring", "multiRing"
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
@@ -75,12 +75,12 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__COLLISIONDETECTIONTYPE 0
-! VARIABLE COMMENT: ! save first passage time vectors to file
+! VARIABLE COMMENT: ! save first passage time vectors to file (for brownian dynamics simulation)
 ! DEFAULTS COMMENT: ! don't track first passage time collisions between beads
 ! TYPE: INTEGER
 
 #define WLC_P__RESTART .FALSE.
-! VARIABLE COMMENT: ! whether we are restarting from a previous sim or not
+! VARIABLE COMMENT: ! whether we are restarting from a previous sim or not, (code out of date)
 ! DEFAULTS COMMENT: ! don't restart from previously saved simulation
 ! TYPE: LOGICAL
 
@@ -90,27 +90,27 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CHANGINGCHEMICALIDENTITY .FALSE.
-! VARIABLE COMMENT: ! whether many types of bead exist
+! VARIABLE COMMENT: ! whether the bead types change curring simulation
 ! DEFAULTS COMMENT: ! Only one type of bead
 ! TYPE: LOGICAL
 
-#define WLC_P__VARIABLE_CHEM_STATE .FALSE.
-! VARIABLE COMMENT: !
-! DEFAULTS COMMENT: ! Only on type of bead
+#define WLC_P__VARIABLE_CHEM_STATE WLC_P__CHANGINGCHEMICALIDENTITY
+! VARIABLE COMMENT: ! Sames as WLC_P__CHANGINGCHEMICALIDENTITY
+! DEFAULTS COMMENT: ! Sames as WLC_P__CHANGINGCHEMICALIDENTITY
 ! TYPE: LOGICAL
 
 #define WLC_P__FIELD_INT_ON .FALSE.
-! VARIABLE COMMENT: whether or not to execute mc_int
+! VARIABLE COMMENT: whether or not to execute mc_int, i.e. bined based field interaction
 ! DEFAULTS COMMENT: ! no interactions by default
 ! TYPE: LOGICAL
 
 #define WLC_P__FIELDINTERACTIONTYPE 'NONE'
-! VARIABLE COMMENT: ! Choose the Hamiltonian you would like
+! VARIABLE COMMENT: ! Choose the Hamiltonian you would like, e.g. "AppliedAligningField", "AppliedAligningFieldMelt",  "MaierSaupe", "ABmelt", "ABsolution", "chromatin", "chromatin2"
 ! DEFAULTS COMMENT: ! See MC_Hamiltonian
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__RECENTER_ON .FALSE.
-! VARIABLE COMMENT: ! Wheter to move drifted chains back in periodic BC
+! VARIABLE COMMENT: ! Wheter to move drifted chains back in periodic BC (to prevent rounding error)
 ! DEFAULTS COMMENT: ! Not in periodic BC
 ! TYPE: LOGICAL
 
@@ -120,22 +120,22 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__NEIGHBOR_BINS .FALSE.
-! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
+! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning for pairwise interactions
 ! DEFAULTS COMMENT: ! Set off because expensive
 ! TYPE: LOGICAL
 
 #define WLC_P__APPLY_EXTERNAL_FIELD .FALSE.
 ! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
-! DEFAULTS COMMENT: !
+! DEFAULTS COMMENT: ! None applied
 ! TYPE: LOGICAL
 
 #define WLC_P__EXTERNAL_FIELD_TYPE "none"
-! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic"
+! VARIABLE COMMENT: ! options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic", "NSTCS_plus_binding"
 ! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__APPLY_2body_potential .FALSE.
-! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
+! VARIABLE COMMENT: ! Pairwise interaction potential
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
@@ -145,17 +145,17 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__NETWORK .FALSE.
-! VARIABLE COMMENT: ! Include specific interactions between specified beads
+! VARIABLE COMMENT: ! Pin pairs of beads together (to inforce the nextwork)
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
 #define WLC_P__NO_LEF_CROSSING .FALSE.
-! VARIABLE COMMENT: ! no explicit binding pairs can cross eachother, e.g. 1-to-10 and 5-15
-! DEFAULTS COMMENT: !
+! VARIABLE COMMENT: ! no explicit binding (Loop Extrusion Factors) pairs can cross eachother, e.g. 1-to-10 and 5-15
+! DEFAULTS COMMENT: ! not included so it doesnt matter
 ! TYPE: LOGICAL
 
 #define WLC_P__ELASTICITY_TYPE "constant"
-! VARIABLE COMMENT: ! whether to allow differential elasticity along polymer
+! VARIABLE COMMENT: ! whether to allow differential elasticity along polymer, also allows for kinks: "constant", "nucleosome"
 ! DEFAULTS COMMENT: ! by default, 'constant' bead spacing
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
@@ -165,8 +165,8 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CHI_L2_ABLE .FALSE.
-! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
-! DEFAULTS COMMENT: !
+! VARIABLE COMMENT: ! Quadraple interactions, Whether the l=2 component is ever calcualted
+! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: LOGICAL
 
 #define WLC_P__UMBRELLA .FALSE.
@@ -181,7 +181,7 @@
 ! ---------------------------
 
 #define WLC_P__EXITWHENCOLLIDED .FALSE.
-! VARIABLE COMMENT: ! stop sim after every n^2 loops have formed at least once
+! VARIABLE COMMENT: ! stop sim after every n^2 loops have formed at least once (for brownian dynamics)
 ! DEFAULTS COMMENT: ! don't stop sim when coltimes is full by default
 ! TYPE: LOGICAL
 
@@ -201,8 +201,8 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__SAVEPHI .FALSE.
-! VARIABLE COMMENT: ! save Phi vectors to file
-! DEFAULTS COMMENT: ! don't save A/B density per bin (not needed for restart)
+! VARIABLE COMMENT: ! save densities, Phi, vectors to file
+! DEFAULTS COMMENT: ! don't save A/B density per bin (you can always calcualte from R anyway)
 ! TYPE: LOGICAL
 
 #define WLC_P__APPEND_R .FALSE.
@@ -222,13 +222,13 @@
 ! TYPE: INTEGER
 
 #define WLC_P__NMPP WLC_P__NB/WLC_P__NBPM
-! VARIABLE COMMENT: ! Number of monomers (NOT BEADS!) in a polymer
-! DEFAULTS COMMENT: None
+! VARIABLE COMMENT: ! Number of monomers (NOT BEADS!) in a polymer, Monomers only meatter if chemical identites are specific
+! DEFAULTS COMMENT: ! None
 ! TYPE: INTEGER
 
-#define WLC_P__NBPM 10
+#define WLC_P__NBPM 1
 ! VARIABLE COMMENT: ! number beads per monomer
-! DEFAULTS COMMENT: None
+! DEFAULTS COMMENT: ! Assume each bead is a monomer
 ! TYPE: INTEGER
 
 #define WLC_P__NP 1
@@ -244,7 +244,7 @@
 #define WLC_P__POLY_DISP_TYPE "None"
 ! VARIABLE COMMENT: ! Whether to include chains of different lengths
 ! DEFAULTS COMMENT: ! "None" for all the same length, "FromFile" for different
-! TYPE: INTEGER
+! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__FA 0.5_DP
 ! VARIABLE COMMENT: ! Fraction of A beads
@@ -277,17 +277,17 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__N_SPHERES_TO_SIDE 1
-! VARIABLE COMMENT: ! Number of spheres
+! VARIABLE COMMENT: ! Number of spheres along a slide (for having excluded spheres in boundary condition)
 ! DEFAULTS COMMENT: ! one, wont be used unless you use corrisponding B.C.
 ! TYPE: INTEGER
 
 #define WLC_P__MAX_BACEPAIRS_PER_BEAD 350
-! VARIABLE COMMENT: ! Number of spheres
+! VARIABLE COMMENT: ! For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 203 linker + 147 wrap
 ! TYPE: INTEGER
 
 #define WLC_P__N_EXTERNAL_BIND_POINTS 10
-! VARIABLE COMMENT: ! number of points bound to boundary
+! VARIABLE COMMENT: ! number of points bound to boundary (origionally for Quinn's lamin project)
 ! DEFAULTS COMMENT: ! 0 for off
 ! TYPE: INTEGER
 
@@ -299,16 +299,16 @@
 
 #define WLC_P__LENGTH_PER_BP 0.332_DP
 ! VARIABLE COMMENT: ! length along dna for one bace pair
-! DEFAULTS COMMENT: ! in nm
+! DEFAULTS COMMENT: ! known value in nm
 ! TYPE: REAL(DP)
 
 
-#define WLC_P__LL NaN
-! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes
+#define WLC_P__LL 38_DP
+! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
 
-#define WLC_P__L WLC_P__LENGTH_PER_BP*WLC_P__LL*WLC_P__NB
+#define WLC_P__L WLC_P__LENGTH_PER_BP*WLC_P__LL*(WLC_P__NB-1)
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! by default, constant linker lengths of LL assumed
 ! TYPE: REAL(DP)
@@ -318,23 +318,18 @@
 ! DEFAULTS COMMENT: ! derive from L and NB
 ! TYPE: REAL(DP)
 
-#define WLC_P__LP 1.0_DP
-! VARIABLE COMMENT: ! persistence length
-! DEFAULTS COMMENT: ! units of lp by default
-! TYPE: REAL(DP)
-
-#define WLC_P__LT 1.0_DP
-! VARIABLE COMMENT: ! twist persistence length
-! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
-! TYPE: REAL(DP)
-
-#define WLC_P__LENGTH_PER_BP 0.33
-! VARIABLE COMMENT: ! length along dna for one bace pair
+#define WLC_P__LP 50.0_DP
+! VARIABLE COMMENT: ! persistence length of bare DNA
 ! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
+#define WLC_P__LT 100.0_DP
+! VARIABLE COMMENT: ! twist persistence length
+! DEFAULTS COMMENT: ! approximent twist persistance length of DNA in nm
+! TYPE: REAL(DP)
+
 #define WLC_P__BEADVOLUME 0.1_DP
-! VARIABLE COMMENT: ! Bead volume
+! VARIABLE COMMENT: ! Bead volume (for bined density interaction)
 ! DEFAULTS COMMENT: ! much smaller than space between beads
 ! TYPE: REAL(DP)
 
@@ -349,23 +344,23 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__NCOLBIN 1
-! VARIABLE COMMENT: ! Number of collision-detection bins on each edge
+! VARIABLE COMMENT: ! Number of collision-detection bins on each edge (internal setting for binned based pairwise interactions)
 ! DEFAULTS COMMENT: ! equivalent to collisionDetectionType = 1
 ! TYPE: INTEGER
 
 #define WLC_P__NBIN_X 20
-! VARIABLE COMMENT: ! Number of MC bins on an edge
+! VARIABLE COMMENT: ! Number of MC density calculation bins in the X direction
 ! DEFAULTS COMMENT: ! set this yourself!
 ! TYPE: INTEGER
 
 #define WLC_P__NBIN_Y WLC_P__NBIN_X
-! VARIABLE COMMENT: ! Number of MC bins on an edge
-! DEFAULTS COMMENT: ! set this yourself!
+! VARIABLE COMMENT: ! Number of MC bins in the y direction
+! DEFAULTS COMMENT: ! assume cube
 ! TYPE: INTEGER
 
 #define WLC_P__NBIN_Z WLC_P__NBIN_X
-! VARIABLE COMMENT: ! Number of MC bins on an edge
-! DEFAULTS COMMENT: ! set this yourself!
+! VARIABLE COMMENT: ! Number of MC bins in the z direction
+! DEFAULTS COMMENT: ! assume cube
 ! TYPE: INTEGER
 
 #define WLC_P__LBOX_X 20.0_dp
@@ -375,12 +370,12 @@
 
 #define WLC_P__LBOX_Y WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
-! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
+! DEFAULTS COMMENT: ! assume cube
 ! TYPE: REAL(DP)
 
 #define WLC_P__LBOX_Z WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
-! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
+! DEFAULTS COMMENT: ! assumbe cube
 ! TYPE: REAL(DP)
 
 #define WLC_P__DBIN 1.0_dp
@@ -389,17 +384,17 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__CONFINEMENT_CUBE_LENGTH WLC_P__LBOX_Z
-! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
+! VARIABLE COMMENT: ! Size of confinement. Set = LBOX   (LBOX - 2*DBIN if WLC_P__BOUNDARY_TYPE == "ExtendbinsPast")
 ! DEFAULTS COMMENT: ! Set to match LBOX_Z
 ! TYPE: REAL(DP)
 
 #define WLC_P__CONFINEMENT_SLIT_WIDTH WLC_P__LBOX_Z
-! VARIABLE COMMENT: !  Size of confinement. Set = LBOX -2*DBIN if bin interation is on
+! VARIABLE COMMENT: !  Size of confinement. Set = LBOX   (LBOX - 2*DBIN if WLC_P__BOUNDARY_TYPE == "ExtendbinsPast")
 ! DEFAULTS COMMENT: ! Set to match LBOX_Z
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SPHERE_DIAMETER NAN
-! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
+#define WLC_P__CONFINEMENT_SPHERE_DIAMETER WLC_P__LBOX_X - 2*WLC_P__DBIN
+! VARIABLE COMMENT: ! Size of confinement. set to LBOX - 2*DBIN
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
@@ -414,12 +409,12 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__BINDING_R 0.0_DP
-! VARIABLE COMMENT: ! Binding Radius
-! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
+! VARIABLE COMMENT: ! Binding Radius of extenral field
+! DEFAULTS COMMENT: ! Not included
 ! TYPE: REAL(DP)
 
 #define WLC_P__HP1_BINDING_R 0.0_DP
-! VARIABLE COMMENT: ! Binding Radius
+! VARIABLE COMMENT: ! Binding Radius of HP1
 ! DEFAULTS COMMENT: ! 3-5nm / Delta in nm
 ! TYPE: REAL(DP)
 
@@ -490,15 +485,15 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: REAL(DP)
 
-#define WLC_P__Amplitude2beadPotential 3.0_DP
+#define WLC_P__Amplitude2beadPotential 0.0_DP
 ! VARIABLE COMMENT: ! Amplitude of two body potential
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
 #define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
-! VARIABLE COMMENT: ! Amplitude of two body potential
+! VARIABLE COMMENT: ! Number of neighbors on either side to exclude in pairwise interaction
 ! DEFAULTS COMMENT: !
-! TYPE: REAL(DP)
+! TYPE: INTERGER
 
 #define WLC_P__MAX_RXN_COORD 1.0_DP
 ! VARIABLE COMMENT: ! Max of umbrella sampled reaction coordinate
@@ -517,12 +512,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 100
+#define WLC_P__STEPSPEREXCHANGE 1000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
 
-#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1000
+#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 100
 ! VARIABLE COMMENT: ! read teh variable name
 ! DEFAULTS COMMENT: ! make this large
 ! TYPE: INTEGER
@@ -533,7 +528,7 @@
 ! TYPE: INTEGER
 
 #define WLC_P__STEPSPERSAVE 2000
-! VARIABLE COMMENT: ! steps per save point
+! VARIABLE COMMENT: ! steps per save point in browning dynamics code
 ! DEFAULTS COMMENT: ! number of simulation steps to take
 ! TYPE: INTEGER
 
@@ -542,18 +537,18 @@
 ! DEFAULTS COMMENT: ! number of simulation steps before turning on interactions in Quinn's wlc_p scheduler
 ! TYPE: INTEGER
 
-#define WLC_P__N_KAP_ON 1
+#define WLC_P__N_KAP_ON 0
 ! VARIABLE COMMENT: ! when to turn KAP energy on
 ! DEFAULTS COMMENT: ! turn on compression energy immediately
 ! TYPE: INTEGER
 
-#define WLC_P__N_CHI_ON 1
+#define WLC_P__N_CHI_ON 0
 ! VARIABLE COMMENT: ! when to turn CHI energy on
 ! DEFAULTS COMMENT: ! turn on chi energy immediately
 ! TYPE: INTEGER
 
-#define WLC_P__N_CHI_L2_ON 1
-! VARIABLE COMMENT: ! when to turn CHI energy on
+#define WLC_P__N_CHI_L2_ON 0
+! VARIABLE COMMENT: ! when to turn alignment energy on
 ! DEFAULTS COMMENT: ! turn on chi energy immediately
 ! TYPE: INTEGER
 
@@ -797,7 +792,7 @@
 ! DEFAULTS COMMENT: ! full chain slide
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_CHANGE_BINDING_STATE 1
+#define WLC_P__MOVEON_CHANGE_BINDING_STATE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! Change in Binding state
 ! TYPE: INTEGER
@@ -807,7 +802,7 @@
 ! DEFAULTS COMMENT: ! Chain flip ! TOdo not working
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_CHAIN_EXCHANGE 1
+#define WLC_P__MOVEON_CHAIN_EXCHANGE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! Chain exchange
 ! TYPE: INTEGER

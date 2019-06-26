@@ -177,6 +177,7 @@ subroutine setup_nucleosome_constants()
 end subroutine setup_nucleosome_constants
 
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+    use precision, only: nan
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
