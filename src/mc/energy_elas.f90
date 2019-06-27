@@ -54,12 +54,7 @@
          IB = IB + 1
       ENDdo
 
-      ! Get Twist Energy
-      if (WLC_P__TWIST) then
-          call WRITHE(wlc_R,WLC_P__NB,Wr)
-          Tw = wlc_p%Lk-Wr
-          EELAS(4) = ((real(2*Tw,dp)*PI)**2)*WLC_P__LT/(2*WLC_P__L)
-      ENDif
+      ! Note Global twist is calculated elesweare, this only calculates local twist!
 
       RETURN
       END

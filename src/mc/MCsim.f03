@@ -11,7 +11,7 @@
 
 subroutine MCsim(wlc_p)
 ! values from wlcsim_data
-use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
+use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_DPHI_l2, wlc_AB, wlc_NCross &
     , wlc_ind_exchange, wlc_inDPHI, wlc_rand_stat, wlc_Cross&
     , wlc_Vol, wlc_PHI_l2, wlc_NPHI, wlc_DPHIB, wlc_ATTEMPTS&
@@ -168,9 +168,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p,EB,EPAR,EPERP,GAM,ETA)
-              if (WLC_P__RING.AND.WLC_P__TWIST.and. .not. WLC_P__LOCAL_TWIST) then
-                  call MC_global_twist(wlc_p,IT1,IT2,MCTYPE,WRP,energyOf(twist_)%dx)
-
+              if (WLC_P__RING.AND.WLC_P__TWIST) then
+                  print*, "Change this to new global twist energy!!!"
+                  stop
+                  call MC_global_twist(IT1,IT2,MCTYPE)
               endif
           endif
 
@@ -293,7 +294,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP, wlc_WR&
                 enddo
              endif
              if (WLC_P__RING) then
-                wlc_WR = WRP
                 wlc_NCross = wlc_NCrossP
                 wlc_Cross = wlc_CrossP
             endif

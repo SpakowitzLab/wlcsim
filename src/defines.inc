@@ -25,7 +25,7 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__TWIST .FALSE.
-! VARIABLE COMMENT: ! whether to include twist (wlc_p only for now)
+! VARIABLE COMMENT: ! whether to include global twist via Twist = Link - Writhe
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
 
@@ -240,6 +240,11 @@
 ! VARIABLE COMMENT: ! Total Number of beads
 ! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
 ! TYPE: INTEGER
+
+#define WLC_P__LINKING_NUMBER 0
+! VARIABLE COMMENT: ! Linking number for global twist energy calculation
+! DEFAULTS COMMENT: ! Simple loop
+! TYPE: REAL(DP)
 
 #define WLC_P__POLY_DISP_TYPE "None"
 ! VARIABLE COMMENT: ! Whether to include chains of different lengths
