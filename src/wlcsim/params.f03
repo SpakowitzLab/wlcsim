@@ -1648,28 +1648,6 @@ contains
         endif
     end subroutine save_simulation_state
 
-    !Get Lks for parallel tempering from file
-    subroutine get_LKs_from_file()
-    implicit none
-    integer nLKs !number of linking numbers
-    integer IOstatus
-    integer TempLk
-    integer i
-    nLKs = 0
-    open (unit = 1, file = 'input/LKs')
-    do
-        read(unit = 1, fmt = *,iostat = IOstatus) TempLk
-        if (IOstatus /= 0) exit
-        nLKs = nLKs + 1
-    end do
-    close(unit = 1)
-
-    open(unit = 1, file = 'input/LKs')
-    do i = 1, nLks
-        read(unit = 1,fmt = *) wlc_Lks(i)
-    enddo
-    close(unit = 1)
-    end subroutine get_LKs_from_file
 
     subroutine get_renormalized_chain_params(wlc_p)
     use MC_wlc, only: calc_elastic_constants

@@ -1,7 +1,7 @@
 #include "../defines.inc"
 
 module energies
-    use precision, only: dp, epsapprox
+    use precision, only: dp, epsapprox, pi
 
     implicit none
     public

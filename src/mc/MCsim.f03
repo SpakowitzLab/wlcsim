@@ -74,6 +74,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     integer sweepIndex
     logical collide
     logical success
+    logical wlc_AlexanderP
 
     !TODO: unpack parameters in MC_elas
     para = pack_as_para(wlc_p)
@@ -145,23 +146,26 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               goto 10 ! skip move, return RP to nan
           endif
 
+	  wlc_AlexanderP = .FALSE.
 
           if (WLC_P__RING) then
+	    if(wlc_AlexanderP) then !unsure if correct
               wlc_CrossP = wlc_Cross
               wlc_NCrossP = wlc_NCross
-              if (MCTYPE == 1) then
-                 CALL alexanderp_crank(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
+              if(MCTYPE == 1) then !was MCTYPE == 1
+                  CALL alexanderp_crank(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
               elseif (MCTYPE == 2) then
-                 if (DIB /= length_of_chain(chain_ID(IT1))) then
-                    CALL alexanderp_slide(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
-                 ENDif
+                  if (DIB /= length_of_chain(chain_ID(IT1))) then
+                     CALL alexanderp_slide(wlc_p,wlc_RP,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP,IT1,IT2,DIB)
+                  ENDif
               else
-                 CALL ALEXANDERP(wlc_RP,WLC_P__NB,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP)
+                  CALL ALEXANDERP(wlc_RP,WLC_P__NB,DELTA,wlc_CrossP,wlc_CrossSize,wlc_NCrossP)
               ENDif
-              if (DELTA /= 1) then
-                 wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                 goto 10 ! skip move, return RP to nan
-              ENDif
+            ENDif
+            if (DELTA /= 1) then
+                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                goto 10 ! skip move, return RP to nan
+            ENDif
           ENDif
 
 
@@ -199,12 +203,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                   energyOf(self_)%dx = ESELFP-energyOf(self_)%x
               elseif (MCTYPE == 3) then
                   CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
-                      para,WLC_P__RING,IB1,IB2)
-              elseif (MCTYPE == 10) then
-                  PRinT *, 'Nobody has used this branch before. write a DE_SELF_CRANK '
-                  PRinT *, 'to calculate change in self-interaction energy from this move, sorry!'
-                  STOP 1
-              ENDif
+                                     para,WLC_P__RING,IB1,IB2)
+              endif
           endif
 
 !   Calculate the change in the self-interaction energy (actually all
@@ -296,7 +296,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
              if (WLC_P__RING) then
                 wlc_NCross = wlc_NCrossP
                 wlc_Cross = wlc_CrossP
-            endif
+             endif
              wlc_SUCCESS(MCTYPE) = wlc_SUCCESS(MCTYPE) + 1
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
