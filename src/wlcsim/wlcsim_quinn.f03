@@ -208,7 +208,8 @@ end subroutine head_node
 #endif
 
 function cof_path_by_energy_type(energy_type, s) result(cof)
-    use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_
+    use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_, &
+        global_twistLiner_, global_twistQuadratic_
     use umbrella, only: setUmbrellaCof, setUmbrellaQuadraticCof
     use params, only: dp, nan
     implicit none

@@ -2,6 +2,8 @@
 
 subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
   use params, only : dp, pi
+  use precision, only : eps
+  use vector_utils, only : cross
   implicit none
 
   integer, intent(in) :: N                 ! Number of beads per polymer
@@ -97,9 +99,7 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
 
         sin2B = 1-(cosB**2)
 
-        e3(1) = e1(2)*e2(3)-e1(3)*e2(2)
-        e3(2) = e1(3)*e2(1)-e1(1)*e2(3)
-        e3(3) = e1(1)*e2(2)-e1(2)*e2(1)
+        e3 = cross(e1, e2)
 
         a1 = doT_PRODUCT(r12,e2*cosB-e1)/(sin2B)
         a2 = doT_PRODUCT(r12,e2-e1*cosB)/sin2B
