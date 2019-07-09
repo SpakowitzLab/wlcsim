@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import re
 import os
+from pathlib import Path
 from enum import Enum
 
 # def __init__(self, sim_dir):
@@ -17,7 +18,7 @@ from enum import Enum
 class InputFormat(Enum):
     ORIGINAL=1
     LENA=2
-    DEFINES=3 # TODO: implement
+    DEFINES=3
 
 renamer = {'COL_TYPE': 'COLLISIONDETECTIONTYPE', 'COLTYPE': 'COLLISIONDETECTIONTYPE', 'FPT_DIST': 'COLLISIONRADIUS',
            'INTON': 'INTERPBEADLENNARDJONES', 'N': 'NB', 'INDMAX': 'NUMSAVEPOINTS'}
@@ -70,8 +71,8 @@ class ParsedInput(object):
         input file is provided, params are just ignored if passed in."""
         self.params = {}
         self.ordered_param_names = []
-        self.file_format = InputFormat.LENA
-        self.input_file = input_file
+        self.file_format = InputFormat.DEFINES
+        self.input_file = Path(input_file)
         if input_file is not None:
             # if we get the sim dir or the input dir, resolve to the actual input file
             if not os.path.isfile(input_file) and os.path.isdir(input_file):
@@ -114,7 +115,7 @@ class ParsedInput(object):
                     f.write(str(name) + ' ' + str(self.params[name]) + '\n')
             elif self.file_format == InputFormat.DEFINES:
                 for name in self.ordered_param_names:
-                    f.write('#define ' + str(name) + ' ' +
+                    f.write('#define WLC_P__' + str(name) + ' ' +
                             str(self.params[name]) + '\n')
             else:
                 raise ValueError('wlcsim.input: attempt to print a ParsedInput'
@@ -126,7 +127,11 @@ class ParsedInput(object):
         out for, and the other uses bash style comments. Further, the former
         specifies param names and values on separate lines, while the latter
         specifies them on the same line."""
-        # first see if there are any comment lines. if so, we immediately know
+        # first see if the file has the expected name for the defines file
+        if self.input_file.name == 'defines.inc':
+            self.input_format = InputFormat.DEFINES
+            return
+        # then see if there are any comment lines. if so, we immediately know
         # the file type
         with open(self.input_file) as f:
             for line in f:
@@ -136,11 +141,7 @@ class ParsedInput(object):
                     self.input_format = InputFormat.ORIGINAL
                     return
                 elif line[0] == '#':
-                    #if line starts with #define, interpret as defines.inc file
-                    if line.split()[0] == '#define':
-                        self.input_format = InputFormat.DEFINES
-                    else:
-                        self.input_format = InputFormat.LENA
+                    self.input_format = InputFormat.LENA
                     return
                 else:
                     continue
@@ -151,7 +152,7 @@ class ParsedInput(object):
         self.input_format = InputFormat.LENA
         return
 
-        
+
     def parse_params_file(self):
         """Parse and populate ParsedInput's params, ordered_param_names
         This parser currently understands three file formats:
@@ -192,16 +193,16 @@ class ParsedInput(object):
                 name, value = match.groups()
                 self.append_param(name, value)
 
-    
-    def parse_defines_params_file(self): 
-        """Parse file in the format of src/defines.inc. Each line begins with 
-        #define WLC_P__[PARAM_NAME] [_a-zA-Z0-9] 
-        where WLC_P__[A-Z]* is the parameter name and the piece after the space is the value of 
+
+    def parse_defines_params_file(self):
+        """Parse file in the format of src/defines.inc. Each line begins with
+        #define WLC_P__[PARAM_NAME] [_a-zA-Z0-9]
+        where WLC_P__[A-Z]* is the parameter name and the piece after the space is the value of
         the parameter.
 
         TODO:test
         """
-        name_value_re = re.compile('#define (WLC_P__[_A-Z]*) ([_a-zA-Z0-9]*)')
+        name_value_re = re.compile('#define WLC_P__([_A-Z]*) ([_a-zA-Z0-9]*)')
         with open(self.input_file) as f:
             for line in f:
                 if not line:

@@ -12,7 +12,7 @@ from .utils.cached_property import cached_property
 import shutil
 
 from numba import double
-from numba.decorators import jit, autojit
+from numba.decorators import jit
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ i_arr = np.array([[1]])
 j_arr = np.array([[1]])
 ui = (np.array([0]), np.array([0]))
 
-@autojit
+@jit
 def pairwise_distances3(r):
     """
     Returns np.array of pairwise distances of points in R^3 stored in a
@@ -177,13 +177,14 @@ class Sim:
         self.overwrite_coltimes = overwrite_coltimes
         self._rfile_base = os.path.join(self.data_dir, rfile_base)
         self._ufile_base = os.path.join(self.data_dir, 'u')
-        self._file_suffix = '' if file_suffix is None else str(file_suffix)
+        self._file_suffix = 'v0' if file_suffix is None else str(file_suffix)
         self.load_method = load_method
         self._has_loaded_r = False
 
     def guess_input_name(sim_path, input_file):
         bruno_input_name = os.path.join(sim_path, 'input', 'input')
         quinn_input_name = os.path.join(sim_path, 'input', 'params')
+        def_input_name = os.path.join(sim_path, 'src', 'defines.inc')
         if input_file:
             if os.path.isfile(input_file):
                 return input_file
@@ -191,7 +192,9 @@ class Sim:
                 return os.path.join(sim_path, input_file)
             elif os.path.is_file(os.path.join(sim_path, 'input', input_file)):
                 return os.path.join(sim_path, 'input', input_file)
-        if os.path.isfile(bruno_input_name):
+        if os.path.isfile(def_input_name):
+            return def_input_name
+        elif os.path.isfile(bruno_input_name):
             return bruno_input_name
         elif os.path.isfile(quinn_input_name):
             return quinn_input_name
