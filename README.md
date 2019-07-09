@@ -1,6 +1,6 @@
 ## Chromatin Simulator
 
-This code is designed to simulation chromatin as described in our manuscript submitted to Nucleic Acids Research in 2019.  It built upon the code described in “Bottom-up modeling of chromatin segregation due to epigenetic modifications,” PNAS 2018.
+This code is designed to simulation chromatin as described in our manuscript "Chromosomal condensation leads to a preference for peripheral chterochromatin" submitted to Nucleic Acids Research in 2019.  This code builds upon the code described in “Bottom-up modeling of chromatin segregation due to epigenetic modifications,” PNAS 2018.
 The code is a joint effort of the members of the Spakowitz lab with particular contributions made by Quinn MacPherson for this version.
 
 ## Downloading
@@ -17,6 +17,7 @@ Built in visualization (optional) requires the freely available software package
 ## To Run
 
 Run the following script (you may need to change its permissions to executable if it is not already on your system).
+
 ``$ ./runwlcsim.sh``
 
 ## Results
@@ -27,11 +28,14 @@ Results are saved as time goes so a structure which may not be fully equilibrate
 ## Changing the Settings
 
 The manuscript submitted to NAR also refers to a simulation in which 150 beads are randomly attached to the boundary.  To run this simulation instead copy the relevant input file shown below before running the program.
+
 ``$ cp input/example_defines/defines_only150.inc src/defines.inc``
 
 ## Visualization 
 
 We have included a visualization tool which requires ``pymol``.  To visualize the final save point:
+
 ``$ cd visualization``
+
 ``$ python3 chromosomesLoc.py``
 
