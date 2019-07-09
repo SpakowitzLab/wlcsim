@@ -18,7 +18,7 @@ MAKEDEPEND=./fort_depend.py
 DEP_FILE = wlcsim.dep
 
 # compiler
-FC = mpifort
+FC = gfortran
 # FC = $(shell if [[ type mpifort >/dev/null 2>&1 & ]]; then echo "mpifort"; else; echo "gfortran"; fi)
 #TODO: fallback to gfortran gracefully, maybe with a dummy mpi.mod file?
 
