@@ -8,4 +8,4 @@ if [[ -f /usr/local/bin/mpirun ]] ; then
 else
     MPIEXE=/usr/bin/mpirun
 fi
-$MPIEXE -np 10 wlcsim.exe -i input/params
+$MPIEXE -np 1 wlcsim.exe -i input/params

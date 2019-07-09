@@ -285,7 +285,7 @@ function mu_path(s) result(mu)
     implicit none
     real(dp), intent(in) :: s
     real(dp) mu
-    mu = s-2.5_dp
+    mu = s-2.0_dp
 end function mu_path
 function kap_path(s) result(kap)
     use params, only: dp
@@ -495,7 +495,7 @@ use params, only: wlc_mc_ind, eps
     !
     !  --------------------------------
     if (wlc_mc_ind <= 1) system_has_been_changed = .TRUE.
-    if (wlc_mc_ind <= WLC_P__NNOINT) then
+    if (wlc_mc_ind < WLC_P__NNOINT) then
         wlc_p%field_int_on_currently = .false.
     elseif (WLC_P__FIELD_INT_ON) then
         if (.not.wlc_p%field_int_on_currently)  system_has_been_changed = .TRUE.
@@ -513,6 +513,13 @@ use params, only: wlc_mc_ind, eps
     else
         if (abs(wlc_p%CHI_ON) < eps) system_has_been_changed = .TRUE.
         wlc_p%CHI_ON = 1.0_dp
+    endif
+
+    if(wlc_mc_ind.lt.WLC_P__N_EXTERNAL_ON) then
+        wlc_p%AEF = 0.0_dp
+    else
+        if (wlc_mc_ind == WLC_P__N_EXTERNAL_ON) system_has_been_changed = .TRUE.
+        wlc_p%AEF = WLC_P__AmplitudeExternalField
     endif
 
     if(wlc_mc_ind.lt.WLC_P__N_CHI_L2_ON) then
