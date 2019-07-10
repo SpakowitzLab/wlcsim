@@ -73,7 +73,6 @@ module params
     !   Simulation parameters
         integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
         real(dp) dt ! sets time scale of simulation
-        real(dp) l0       ! Path length between beads. (meaning unknown for gaussian chain?)
         real(dp) gam    ! average equilibrium interbead spacing
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
