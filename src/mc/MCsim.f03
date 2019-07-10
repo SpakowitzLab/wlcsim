@@ -76,17 +76,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     logical success
     logical wlc_AlexanderP
 
-    !TODO: unpack parameters in MC_elas
-    para = pack_as_para(wlc_p)
-    EB=   PARA(1)
-    EPAR= PARA(2)
-    EPERP = PARA(3)
-    GAM=  PARA(4)
-    ETA=  PARA(5)
-    XIR=  PARA(6)
-    XIU=  PARA(7)
-    LHC=  PARA(9)
-    VHC=  PARA(10)
 
 ! -------------------------------------
 !
@@ -171,7 +160,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
-              call MC_eelas(wlc_p,EB,EPAR,EPERP,GAM,ETA)
+              call MC_eelas(wlc_p)
               if (WLC_P__RING.AND.WLC_P__TWIST) then
                   print*, "Change this to new global twist energy!!!"
                   stop
@@ -189,6 +178,18 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               call MC_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
+              !TODO: unpack parameters in MC_elas
+                para = pack_as_para(wlc_p)
+                EB=   PARA(1)
+                EPAR= PARA(2)
+                EPERP = PARA(3)
+                GAM=  PARA(4)
+                ETA=  PARA(5)
+                XIR=  PARA(6)
+                XIU=  PARA(7)
+                LHC=  PARA(9)
+                VHC=  PARA(10)
+
               !call MC_self(DESELF,wlc_R,wlc_U,wlc_RP,wlc_UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
                   CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
