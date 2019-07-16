@@ -390,7 +390,9 @@ else if (WLC_P__INITCONDTYPE == 'ring') then
              U(1,IB) = -Sin(J*2.0_dp*PI/length)
              U(2,IB) = Cos(J*2.0_dp*PI/length)
              U(3,IB) = 0.0_dp;
-             wlc_V(:,IB) = [0.0_dp, 0.0_dp, 1.0_dp]
+             if (WLC_P__LOCAL_TWIST) then
+                wlc_V(:,IB) = [0.0_dp, 0.0_dp, 1.0_dp]
+             endif
              IB = IB + 1
         ENDdo
     ENDdo

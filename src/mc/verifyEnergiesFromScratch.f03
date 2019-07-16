@@ -6,10 +6,11 @@
 !  Sets non-relivant dE's and dx's to zero
 ! -------------------------------------------------------------------
 subroutine CalculateEnergiesFromScratch(wlc_p)
-use params, only: wlc_METH, wlc_Cross, wlc_Wr, wlc_AB&
+use params, only: wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
     , wlc_R, wlc_ind_in_list, dp
 use params, only: wlcsim_params
+    use umbrella, only: umbrella_energy_from_scratch
     use iso_fortran_env
     use energies
     implicit none
@@ -75,7 +76,7 @@ use params, only: wlcsim_params
     endif
     if (WLC_P__RING) then
         ! --- Initial Writhe
-        call WRITHE(wlc_R,WLC_P__NB,wlc_Wr)
+        call WRITHE(wlc_R,WLC_P__NB,energyOf(global_twistLiner_)%x)
 
         !     Get initial value of Alexander polynomial and Cross matrix
         CALL ALEXANDERP(wlc_R,WLC_P__NB,DELTA,wlc_Cross,wlc_CrossSize,wlc_NCross)
@@ -86,6 +87,10 @@ use params, only: wlcsim_params
         print*, "Add the correct checks to VerifyEnergiesFromScratch"
         stop 1
     ENDif
+
+    if(WLC_P__UMBRELLA) then
+        call umbrella_energy_from_scratch()
+    endif
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
 

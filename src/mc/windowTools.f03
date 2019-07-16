@@ -46,6 +46,7 @@ endif
 if (test_move) then
     if (WLC_P__NO_LEF_CROSSING) then
         ! IF we can be guarunteed that not loop will cross
+        ! attempt to grow region to garuntee no external loops
         if (WLC_P__NETWORK) then
             print*, "NO_LEF_CROSSING is inconsistant with network"
             stop
@@ -95,25 +96,31 @@ if (test_move) then
             if (WLC_P__PROB_BIND_RESPECTING_MOVE > 0.9999_dp)  success=.FALSE.
             return
         endif
+        if (WLC_P__WARNING_LEVEL < 1) then
+            ! No need to check if we're sure it's taken care of
+            return
+        endif
     endif ! NO_LEF_CROSSING
 
-    ! Check for any loops out of region
-    if (WLC_P__NETWORK) then
-        do indx = wlc_network_start_index(I),&
-                      wlc_network_start_index(I+1)-1
-            otherEnd = wlc_other_beads(indx)
-            if (otherEnd < IT1 .or. otherEnd > IT2) then
+    ! Check for any loops out of moved region
+    do I =IT1,IT2
+        if (WLC_P__NETWORK) then
+            do indx = wlc_network_start_index(I),&
+                          wlc_network_start_index(I+1)-1
+                otherEnd = wlc_other_beads(indx)
+                if (otherEnd < IT1 .or. otherEnd > IT2) then
+                    success = .False.
+                    return
+                endif
+            enddo
+        else
+            otherEnd=wlc_ExplicitBindingPair(I)
+            if ((otherEnd < IT1 .or. otherEnd > IT2) .and. otherEnd > 0) then
                 success = .False.
                 return
             endif
-        enddo
-    else
-        otherEnd=wlc_ExplicitBindingPair(I)
-        if (otherEnd < IT1 .or. otherEnd > IT2) then
-            success = .False.
-            return
         endif
-    endif
+    enddo
 endif
 end subroutine
 

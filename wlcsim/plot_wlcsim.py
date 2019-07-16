@@ -7,9 +7,8 @@ matplotlib.use("Qt4Agg") # This program works with Qt only
 from matplotlib.widgets import Slider, Button, RadioButtons
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from PyQt4 import QtGui
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt
 import os
 import re
 from .data import Sim
@@ -25,17 +24,17 @@ class SimulationViewer(object):
         # define the actual axes layout
         self.fig = plt.figure()
         # area to plot polymers
-        self.ax3d = plt.axes([0.05, 0.15, 0.9, 0.8], axisbg='w', projection='3d')
+        self.ax3d = plt.axes([0.05, 0.15, 0.9, 0.8], facecolor='w', projection='3d')
         # area to plot "slider" for selecting what time to plot
-        self.ax = plt.axes([0.1, 0.025, 0.8, 0.05], axisbg='lightgoldenrodyellow')
+        self.ax = plt.axes([0.1, 0.025, 0.8, 0.05], facecolor='lightgoldenrodyellow')
         # set up the QtGui panel and textbox
         self.root = self.fig.canvas.manager.window
-        self.panel = QtGui.QWidget()
-        self.hbox = QtGui.QHBoxLayout(self.panel)
-        self.textbox = QtGui.QLineEdit(parent=self.panel)
+        self.panel = QtWidgets.QWidget()
+        self.hbox = QtWidgets.QHBoxLayout(self.panel)
+        self.textbox = QtWidgets.QLineEdit(parent=self.panel)
         self.hbox.addWidget(self.textbox)
         self.panel.setLayout(self.hbox)
-        self.dock = QtGui.QDockWidget("Simulation Directory", self.root)
+        self.dock = QtWidgets.QDockWidget("Simulation Directory", self.root)
         self.root.addDockWidget(Qt.BottomDockWidgetArea, self.dock)
         self.dock.setWidget(self.panel)
         # handler to check if new simulation directory has been entered

@@ -1,11 +1,11 @@
 #include "../defines.inc"
 
 module energies
-    use precision, only: dp, epsapprox
+    use precision, only: dp, epsapprox, pi
 
     implicit none
     public
-    integer, parameter :: NUMBER_OF_ENERGY_TYPES = 16
+    integer, parameter :: NUMBER_OF_ENERGY_TYPES = 20
 
     integer, parameter :: chi_ = 1
     integer, parameter :: mu_ = 2
@@ -23,6 +23,10 @@ module energies
     integer, parameter :: self_ = 14
     integer, parameter :: explicitBinding_ = 15
     integer, parameter :: confine_ = 16
+    integer, parameter :: umbrella_ = 17
+    integer, parameter :: umbrellaQuadratic_ = 18
+    integer, parameter :: global_twistLiner_ = 19
+    integer, parameter :: global_twistQuadratic_ = 20
 
     type MC_energy
         real(dp) E  ! Energy in units of kT
@@ -58,6 +62,10 @@ contains
         energyOf(14)%name_str='self    '
         energyOf(15)%name_str='expl.Bnd'
         energyOf(16)%name_str='confine '
+        energyOf(17)%name_str='umbrella'
+        energyOf(18)%name_str='umbrell2'
+        energyOf(19)%name_str='glbTwst1'
+        energyOf(20)%name_str='glbTwst2'
 
         energyOf(1)%parallel_temper = WLC_P__PT_CHI
         energyOf(2)%parallel_temper = WLC_P__PT_MU
@@ -75,6 +83,10 @@ contains
         energyOf(14)%parallel_temper = .FALSE.
         energyOf(15)%parallel_temper = .FALSE.
         energyOf(16)%parallel_temper = .FALSE.
+        energyOf(17)%parallel_temper = WLC_P__UMBRELLA
+        energyOf(18)%parallel_temper = WLC_P__UMBRELLA  ! Todo: should this not be paralel tempered ?
+        energyOf(19)%parallel_temper = .FALSE.
+        energyOf(20)%parallel_temper = .FALSE.
 
         energyOf(chi_)%cof      = WLC_P__CHI
         energyOf(mu_)%cof       = WLC_P__MU
@@ -92,6 +104,12 @@ contains
         energyOf(stretch_)%cof = 1.0_dp
         energyOf(shear_)%cof = 1.0_dp
         energyOf(twist_)%cof = 1.0_dp
+        energyOf(umbrella_)%cof = 0.0_dp ! set in umbrella/wlcsim_quinn
+        energyOf(umbrellaQuadratic_)%cof = 0.0_dp ! set in umbrella/wlcsim_quinn
+        energyOf(global_twistLiner_)%cof = -4*pi**2*WLC_P__LINKING_NUMBER*WLC_P__LT/WLC_P__L
+        energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L
+        ! We split global twist into a Wr**2 term and a Wr term
+        ! (2*pi*(LK-Wr))**2*LT/(2L) = 2*pi**2*LT*Wr**2/L + 4*pi**2*LK*LT*WR/L
 
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%isOn = .TRUE.
@@ -102,6 +120,11 @@ contains
         energyOf(maierSaupe_)%ind_on = WLC_P__N_CHI_L2_ON
         energyOf(external_)%ind_on = WLC_P__N_EXTERNAL_ON
         energyOf(field_)%ind_on = WLC_P__N_FIELD_ON
+        energyOf(umbrella_)%ind_on = WLC_P__N_UMBRELLA_ON
+        energyOf(umbrellaQuadratic_)%ind_on = WLC_P__N_UMBRELLA_ON
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            if (energyOf(ii)%ind_on > 0) energyOf(ii)%isOn = .FALSE.
+        enddo
 
     end subroutine
     subroutine set_all_energy_to_zero()
@@ -159,6 +182,14 @@ contains
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             if (energyOf(ii)%isOn) cycle
             energyOf(ii)%dx=0.0_dp
+        enddo
+    end subroutine
+    subroutine print_all_denergies()
+        implicit none
+        integer ii
+        print*, "-----------------"
+        do ii = 1,NUMBER_OF_ENERGY_TYPES
+            print*, "dE ",energyOf(ii)%name_str, energyOf(ii)%dE
         enddo
     end subroutine
 

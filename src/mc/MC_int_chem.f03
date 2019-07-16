@@ -59,7 +59,7 @@ do IB = I1,I2
    !   Add or Subtract volume fraction with weighting from each bin
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
-   if (energyOf(maierSaupe_)%isOn) then
+   if (energyOf(maierSaupe_)%isOn .and. WLC_P__CHI_L2_ABLE) then
        call Y2calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -86,7 +86,7 @@ do IB = I1,I2
                   wlc_inDPHI(wlc_NPHI) = inDBin
                   wlc_DPHIA(wlc_NPHI) = contribution
                   wlc_DPHIB(wlc_NPHI) = -1.0*contribution
-                  if(energyOf(maierSaupe_)%isOn) then
+                  if(energyOf(maierSaupe_)%isOn .and. WLC_P__CHI_L2_ABLE) then
                       do m_index = -2,2
                           wlc_DPHI_l2(m_index,wlc_NPHI) = &
                                      phi2(m_index)*contribution
@@ -96,7 +96,7 @@ do IB = I1,I2
                elseif (inDBin == wlc_inDPHI(I)) then
                   wlc_DPHIA(I) = wlc_DPHIA(I) +  contribution
                   wlc_DPHIB(I) = wlc_DPHIB(I) -  contribution
-                  if(energyOf(maierSaupe_)%isOn) then
+                  if(energyOf(maierSaupe_)%isOn .and. WLC_P__CHI_L2_ABLE) then
                       do m_index = -2,2
                           wlc_DPHI_l2(m_index,I) = wlc_DPHI_l2(m_index,I) + &
                                                      phi2(m_index)*contribution

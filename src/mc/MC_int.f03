@@ -47,7 +47,7 @@ wlc_DPHIA = 0.0_dp
 wlc_PHIB = 0.0_dp
 wlc_DPHIB = 0.0_dp
 wlc_inDPHI = 0
-if (energyOf(maierSaupe_)%isOn) then
+if (energyOf(maierSaupe_)%isOn .and. WLC_P__CHI_L2_ABLE) then
     wlc_phi_l2 = 0.0_dp
     wlc_dphi_l2 = 0.0_dp
 endif

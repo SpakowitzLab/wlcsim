@@ -74,13 +74,13 @@ program main
             call wlcsim_quinn(i, wlc_p)
             call save_simulation_state(i, wlc_p, outfile, 'NEW')
         enddo
-    case ('brad', 'parallel temper discrete parameters', 'twist')
-        do i = 1,WLC_P__NUMSAVEPOINTS
-           call wlcsim_brad(wlc_p)
-           call save_simulation_state(i, wlc_p, outfile, 'NEW')
-           print *, 'i is', i
-           print *, '*******************'
-        enddo
+!    case ('brad', 'parallel temper discrete parameters', 'twist')
+!        do i = 1,WLC_P__NUMSAVEPOINTS
+!           call wlcsim_brad(wlc_p)
+!           call save_simulation_state(i, wlc_p, outfile, 'NEW')
+!           print *, 'i is', i
+!           print *, '*******************'
+!        enddo
     case ('bruno', 'brownian dynamics')
         do i = 1,WLC_P__NUMSAVEPOINTS
             call wlcsim_bruno(i, wlc_p)

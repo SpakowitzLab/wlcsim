@@ -73,7 +73,6 @@ module params
     !   Simulation parameters
         integer simType           ! whether to use WLC, ssWLC, or Gaussian Chain
         real(dp) dt ! sets time scale of simulation
-        real(dp) l0       ! Path length between beads. (meaning unknown for gaussian chain?)
         real(dp) gam    ! average equilibrium interbead spacing
         real(dp) eta    ! bend-shear coupling parameter
         real(dp) xir    ! drag per unit persistence length
@@ -138,7 +137,6 @@ module params
     integer, allocatable, dimension(:):: wlc_ind_in_list ! index in indPhi
     ! simulation times at which (i,j)th bead pair first collided
     real(dp), allocatable, dimension(:,:) :: wlc_coltimes
-    real(dp) :: wlc_wr
     type(spider), allocatable, dimension(:) :: wlc_spiders ! spiders based on polymer network
     integer wlc_numberOfSpiders
     integer wlc_spider_id
@@ -174,17 +172,6 @@ module params
     integer wlc_rep  ! which replica am I
     integer wlc_id   ! which thread am I
     integer wlc_error  ! MPI error
-    integer, allocatable, dimension(:) ::  wlc_LKs    !Vector of linking numbers for replicas
-    integer wlc_nLKs      !Number of linking number replicas to parallel temper over
-    real(dp), allocatable, dimension(:) :: wlc_Wrs !Vector of writhe for each replica
-    real(dp), allocatable, dimension(:,:) :: wlc_eelasREPLICAS !elastic energies of replicas
-    integer wlc_replicaSTART !index for replica to start with for exchange loop
-    integer wlc_replicaEND   !index for replica to end at for exchange loop
-    integer, allocatable, dimension(:) :: wlc_nTRIALup !number of times this replica has attempted to swap with replica above
-    integer, allocatable, dimension(:) :: wlc_nTRIALdown !number of times this replica has attempted to swap with replica below
-    integer, allocatable, dimension(:) :: wlc_nSWAPup !number of times this replica has swapped with replica above
-    integer, allocatable, dimension(:) :: wlc_nSWAPdown !number of times this replica has swapped with replica below
-    integer, allocatable, dimension(:) :: wlc_nodeNUMBER !vector of replicas indices for nodes
     character(MAXFILENAMELEN) wlc_repSuffix    ! prefix for writing files
 
 
@@ -366,6 +353,10 @@ contains
             print*, "Asymmetric AlternatingChem and changing Chemical Identity is not avaiable."
             stop
         endif
+        if ((.not. WLC_P__EXPLICIT_BINDING) .and. WLC_P__INITCONDTYPE ==  "multiRing") then
+            print*, "multiRing initial condition not possible if explicit binding is off"
+            stop
+        endif
         if (WLC_P__RING) then
             if (WLC_P__NP .gt. 1) then
                 print*, "As of the writing of this error message"
@@ -379,9 +370,17 @@ contains
             endif
         endif
 
+        err = WLC_P__TWIST .and. WLC_P__LOCAL_TWIST
+        call stop_if_err(err, "You are trying to do both local and global twist, choose one")
+
+        err = WLC_P__FIELD_INT_ON .and. &
+            abs(WLC_P__DBIN*WLC_P__NBIN_X - WLC_P__LBOX_X)>eps
+        call stop_if_err(err, "DBIN*NBIN_X should be LBOX_X")
+
+
         err = WLC_P__EXPLICIT_BINDING .and. WLC_P__MOVEON_CHAIN_EXCHANGE == 1
         call stop_if_err(err, "Explicit binding not set up for exchange move")
-        
+
         err = WLC_P__NETWORK .and. .not. WLC_P__EXPLICIT_BINDING
         call stop_if_err(err, "Network requeires explicit binding")
 
@@ -449,13 +448,6 @@ contains
             print *, 'parallel tempering on twist, but twist off'
             stop
         endif
-        if (wlc_nLKs + 1.ne.wlc_numProcesses) then
-            print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            print *, 'number of threads not equal to number of replicas!'
-            print *, 'exiting...'
-            print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            stop
-        endif
   endif
 #endif
     end subroutine
@@ -483,11 +475,6 @@ contains
         else
             print*, "Elasticity Type ",WLC_P__ELASTICITY_TYPE," not recognized"
             stop
-        endif
-
-        !If parallel tempering is on, read the Lks
-        if (WLC_P__PT_TWIST) then
-            call get_LKs_from_file()
         endif
 
         call printDescription(wlc_p)
@@ -655,11 +642,6 @@ contains
             allocate(wlc_METH(WLC_P__NT)) !Underlying methalation profile
         endif
         !Allocate vector of writhe and elastic energies for replicas
-        if (WLC_P__PT_TWIST) then
-            allocate(wlc_Wrs(wlc_nLKs))
-            allocate(wlc_eelasREPLICAS(wlc_nLKs,4))
-
-        endif
         if (WLC_P__RING) then !TOdo this should be if ("knot")
             wlc_NCross = 0
             wlc_CrossSize = min(10000,max_chain_length())**2
@@ -670,38 +652,6 @@ contains
             ! In include
             allocate(wlc_Cross(wlc_CrossSize,6))
             allocate(wlc_CrossP(wlc_CrossSize,6))
-        endif
-        !If parallel tempering is on, initialize the nodeNumbers
-
-        if (WLC_P__PT_TWIST) then
-
-            !Allocate node numbers
-            allocate(wlc_nodeNUMBER(wlc_nLKs))
-            do i = 1,wlc_nLKs
-                wlc_nodeNUMBER(i) = i
-            enddo
-
-            !Initially, replica start and replica end are the first and second to last replicas for even
-            !nLKs and the first and second to last for odd nLKs
-            if (mod(wlc_nLKs,2).eq.0) then
-                wlc_replicaSTART = 1
-                wlc_replicaEND = wlc_nLKs - 1
-            else
-                wlc_replicaSTART = 1
-                wlc_replicaEND = wlc_nLKs - 2
-            endif
-
-            !Allocate the number of replica exchange trials and successes and initialize to zero
-            allocate(wlc_nSWAPup(wlc_nLKs))
-            allocate(wlc_nSWAPdown(wlc_nLKs))
-            allocate(wlc_nTRIALup(wlc_nLKs))
-            allocate(wlc_nTRIALdown(wlc_nLKs))
-
-            wlc_nSWAPup = 0
-            wlc_nSWAPdown = 0
-            wlc_nTRIALup = 0
-            wlc_nTRIALdown = 0
-
         endif
 
         if (WLC_P__COLLISIONDETECTIONTYPE /= 0) then
@@ -922,7 +872,7 @@ contains
         print*, " confinetype:",WLC_P__CONFINETYPE
         print*, " initCondType:",WLC_P__INITCONDTYPE
         print*, " ring:", WLC_P__RING
-        print*, " twist:", WLC_P__TWIST
+        print*, " global twist:", WLC_P__TWIST
         print*, " "
         print*, "---------------------------------------------"
 
@@ -1697,31 +1647,6 @@ contains
         endif
     end subroutine save_simulation_state
 
-    !Get Lks for parallel tempering from file
-    subroutine get_LKs_from_file()
-    implicit none
-    integer nLKs !number of linking numbers
-    integer IOstatus
-    integer TempLk
-    integer i
-    nLKs = 0
-    open (unit = 1, file = 'input/LKs')
-    do
-        read(unit = 1, fmt = *,iostat = IOstatus) TempLk
-        if (IOstatus /= 0) exit
-        nLKs = nLKs + 1
-    end do
-    close(unit = 1)
-
-    wlc_nLKs = nLKs
-    allocate(wlc_LKs(nLks))
-
-    open(unit = 1, file = 'input/LKs')
-    do i = 1, nLks
-        read(unit = 1,fmt = *) wlc_Lks(i)
-    enddo
-    close(unit = 1)
-    end subroutine get_LKs_from_file
 
     subroutine get_renormalized_chain_params(wlc_p)
     use MC_wlc, only: calc_elastic_constants

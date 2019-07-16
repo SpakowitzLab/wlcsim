@@ -2,6 +2,8 @@
 
 subroutine WRITHE(R,N,Wr)
   use params, only : dp, pi
+  use vector_utils, only : cross
+  use precision, only : eps
 
   implicit none
 
@@ -19,7 +21,7 @@ subroutine WRITHE(R,N,Wr)
   real(dp)  e2(3)                  ! Tangent of second segment
   real(dp)  cosB
   real(dp)  sin2B
-  real(dp)  e3(3)
+  real(dp)  unit_cross(3)
   real(dp)  OMEGA(N,N)             ! Matrix of solid angles
   real(dp)  a0
   real(dp)  a1
@@ -76,17 +78,15 @@ subroutine WRITHE(R,N,Wr)
 
        ! sin2B = 1.-(cosB**2.)
         sin2B = sin(B)**2.
-        e3(1) = e1(2)*e2(3)-e1(3)*e2(2)
-        e3(2) = e1(3)*e2(1)-e1(1)*e2(3)
-        e3(3) = e1(1)*e2(2)-e1(2)*e2(1)
+        unit_cross = cross(e1, e2)
 
-        if (abs(sin2B).lt.(10.**(-15.)))then
+        if (abs(sin2B).lt.(eps))then
            sin2b = 0.
         endif
 
         a1 = doT_PRODUCT(r12,e2*cosB-e1)/(sin2B)
         a2 = doT_PRODUCT(r12,e2-e1*cosB)/sin2B
-        a0 = doT_PRODUCT(r12,e3)/sin2B
+        a0 = doT_PRODUCT(r12, unit_cross)/sin2B
 
 
 

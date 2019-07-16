@@ -67,10 +67,9 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     real(dp) DRPAR
     real(dp) DRPERP(3)
 
-    real(dp) TA(3)
-    real(dp), parameter :: P(3) = [0.0_dp, 0.0_dp, 0.0_dp]
-    real(dp) alpha, mag
-    real(dp) ROT(3,4)
+    real(dp) TA ! Twist angle
+    real(dp) F(3) ! the other normal vector orthogonal to V
+    real(dp) FM1(3)
 
     DR = R-RM1
     DRPAR = dot_product(DR,UM1)
@@ -80,41 +79,15 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     E_SSWLCWT(2)=0.5_dp*EPAR*(DRPAR-GAM)**2
     E_SSWLCWT(3)=0.5_dp*EPERP*dot_product(DRPERP,DRPERP)
 
-    ! We find the rotation matrix which takes UM1 to U and apply it to
-    ! VM1 and then see how much VM1 differst from V.  The resulting angle
-    ! contributes to the twist energy.
-    TA = cross(UM1,U)
-    mag = norm2(TA)
-    if (mag > 10**-10) then
-        alpha = angle_between(UM1, U)
-        TA = TA/mag
-        if (isnan(alpha)) then
-            print*, "alpha = nan"
-            print*, "mag", mag
-            print*, "|U|", norm2(U)
-            print*, "|UM1|", norm2(UM1)
-        endif
-        call axisAngle(ROT, alpha, TA, P)
-        E_SSWLCWT(4) = 0.5_dp*ETWIST*angle_between(rotateU(ROT,VM1),V)**2
-    else
-        ! if UM1 ~ U then don't rotate (avoids Nan)
-        E_SSWLCWT(4) = 0.5_dp*ETWIST*angle_between(VM1,V)**2
-    endif
-    ! ETWIST = lt/l0
-    if (isnan(E_SSWLCWT(4))) then
-        print*, "Nan in twist"
-        if (mag > 10**-10) then
-            print*, "R VM1", rotateU(ROT,VM1)
-            print*, "V", V
-        else
-            print*, "VM1", VM1
-            print*, "V", V
-            print*, "mag", mag
-        endif
-    endif
-
-
-
+    ! The twist energy is (1/2) * Lt * (TA - tau * L0) where
+    ! Lt is the twist persistence length
+    ! Tw is the twist (radian)
+    ! tau is the baseline twist density
+    F = cross(V, U)
+    FM1 = cross(VM1, UM1)
+    TA = atan2(dot_product(VM1, F) - dot_product(FM1, V), &
+                dot_product(FM1, F) + dot_product(VM1, V))
+    E_SSWLCWT(4) = 0.5_dp * ETWIST * (TA - WLC_P__TWIST_DENSITY * WLC_P__L0) ** 2
 end function E_SSWLCWT
 
 function E_GAUSS(R,RM1,EPAR)
