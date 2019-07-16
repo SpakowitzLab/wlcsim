@@ -774,8 +774,7 @@ contains
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
-                if (WLC_P__NEIGHBOR_BINS .and.&
-                    ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
+                if ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
                     .or. WLC_P__CONFINETYPE == 'none')) then
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'sphere') then
