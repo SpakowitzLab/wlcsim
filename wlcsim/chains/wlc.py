@@ -8,39 +8,6 @@ from numba import jit
 
 from functools import partial
 
-def wlc_bob(N, L, lp, lt=0):
-    l0 = L/(N-1)
-    eps = l0/lp
-
-    r = np.zeros((N,3))
-    u = np.zeros((N,3))
-    u[:,2] = 1
-    n = np.zeros((N,3))
-    n[:,1] = 1
-    for j in range(1, N):
-        # first get an arbitrary basis n1, n2 to the cotangent plane to u[j-1]
-        n1 = np.array([0, 0, 1])
-        n1 = n1 - (n1@u[j-1])*u[j-1]
-        mag = np.linalg.norm(n1)
-        # if we accidentally chose vector parallel to u[j-1]
-        if np.isclose(mag, 0):
-            n1 = np.array([0, 1, 0])
-            n1 = n1 - (n1@u[j-1])*u[j-1]
-            mag = np.linalg.norm(n1)
-        n1 = n1/mag
-        n2 = np.cross(n1, u[j-1])
-        n2 = n2/np.linalg.norm(n2)
-
-        # now at a random angle in cotangent plane
-        theta = 2*np.pi*urand(1)
-        # WLC formula for the magnitude of u[j]@u[j-1]
-        z = (1/eps)*np.log(2*urand()*np.sinh(eps)+np.exp(-eps))
-        u[j] = np.sqrt(1-z*z)*(np.cos(theta)*n1 + np.sin(theta)*n2 + z*u[j-1])
-        u[j] = u[j]/np.linalg.norm(u[j])
-
-        r[j] = r[j-1] + l0*u[j]
-    return r, u, n
-
 def phi_indef_(phi, eps):
     """indefinite integral of sin(phi)exp(-phi**2/(2*sigma))"""
     return np.real(np.sqrt(np.pi*eps/2)/2*np.exp(-eps/2)*(
@@ -181,7 +148,83 @@ def wlc(N, L, lp):
 
     return r
 
-def dwlc(N, L, lp, lt):
+def wlc_init(N, L, lp, lt=0):
+    fortran_code = """
+subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
+        ! takes R(3,NB) with R(:,1) preset and makes a WLC given EPS
+    use mersenne_twister, only : random_number, random_stat
+    use params, only : dp, pi
+
+    implicit none
+
+    integer, intent(in) :: NB
+    real(dp), intent(in) :: EPS, l0
+    real(dp), intent(inout) :: R(3,NB), U(3,NB)
+    type(random_stat), intent(inout) :: rand_stat
+
+    integer J
+    real(dp) N1(3), N2(3), z, theta
+    real(dp) urand(3)
+
+    do J = 2,NB
+
+         call random_number(urand,rand_stat)
+         theta = urand(1)*2.0_dp*pi
+         z = (1.0_dp/EPS)*log(2.0_dp*sinh(EPS)*urand(2)+exp(-EPS))
+
+         N1 = (/ 0.0_dp, 0.0_dp, 1.0_dp /)
+         N1 = N1 - dot_product(N1, U(:,J-1))*U(:,J-1)
+         N1 = N1/norm2(N1)
+
+         N2 = cross(N1, U(:,J-1))
+         N2 = N2/norm2(N2)
+
+         U(:,J) = sqrt(1-z*z)*(cos(theta)*N1 + sin(theta)*N2 + z*U(:,J-1))
+         U(:,J) = U(:,J)/norm2(U(:,J))
+
+         if (WLC_P__LOCAL_TWIST) then
+             print*, "wlc chain initialization is not implimented for local twist"
+             stop
+         endif
+
+         R(:,J) = R(:,J-1) + l0*U(:,J)
+     enddo
+end subroutine wlc_init
+    """
+    l0 = L/(N-1)
+    eps = l0/lp
+
+    r = np.zeros((N,3))
+    u = np.zeros((N,3))
+    u[:,2] = 1
+    n = np.zeros((N,3))
+    n[:,1] = 1
+    for j in range(1, N):
+        # first get an arbitrary basis n1, n2 to the cotangent plane to u[j-1]
+        n1 = np.array([0, 0, 1])
+        n1 = n1 - (n1@u[j-1])*u[j-1]
+        mag = np.linalg.norm(n1)
+        # if we accidentally chose vector parallel to u[j-1]
+        if np.isclose(mag, 0):
+            n1 = np.array([0, 1, 0])
+            n1 = n1 - (n1@u[j-1])*u[j-1]
+            mag = np.linalg.norm(n1)
+        n1 = n1/mag
+        n2 = np.cross(n1, u[j-1])
+        n2 = n2/np.linalg.norm(n2)
+
+        # now at a random angle in cotangent plane
+        theta = 2*np.pi*urand(1)
+        # WLC formula for the magnitude of u[j]@u[j-1]
+        z = (1/eps)*np.log(2*urand()*np.sinh(eps)+np.exp(-eps))
+        u[j] = np.sqrt(1-z*z)*(np.cos(theta)*n1 + np.sin(theta)*n2 + z*u[j-1])
+        u[j] = u[j]/np.linalg.norm(u[j])
+
+        r[j] = r[j-1] + l0*u[j]
+    return r, u, n
+
+
+def effective_wormlike_chain_init(N, L, lp, lt):
     """Generate a wormlike chain with potentially less beads than is wise for
     direct sampling of WLC with 'quadratic' approximation used by wlc
     function, by "regridding" more finely then only saving the beads that were
