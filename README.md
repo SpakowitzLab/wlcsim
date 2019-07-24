@@ -5,7 +5,7 @@ The code is a joint effort of the members of the Spakowitz lab with particular c
 
 ## Downloading
 
-Clone from github repository SpakowitzLab/wlcsim or download using github’s download feature.  Make sure you clone and checkout the branch ``MS2019_NAR``
+Clone from github repository SpakowitzLab/wlcsim or download using github’s download feature.  Make sure you clone and checkout the branch ``MS2019_peripheral``
 
 ## Requirements
 
