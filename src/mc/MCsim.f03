@@ -19,7 +19,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter
+    , wlcsim_params_recenter, wlc_Lk0, wlc_LkMove, wlc_LkMoveP &
+    , wlc_TwMove, wlc_TwMoveP, wlc_WrMove, wlc_WrMoveP
     use energies
     use umbrella, only: umbrella_energy
 
@@ -27,7 +28,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     use mersenne_twister
     use binning, only: addBead, removeBead
     use updateRU, only: updateR
-    use polydispersity, only: length_of_chain, chain_ID
+    use polydispersity, only: length_of_chain, chain_ID, leftmost_from
+    use linkingNumber, only: getDelLk, calcDelTwWrLk
 
     implicit none
     interface
@@ -51,7 +53,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     integer dib               ! number of beads moved in a move
     logical forward           ! direction of reptation move
 
-    integer I,J
+    integer I,J, I_left
 
     integer MCTYPE                    ! Type of MC move
 
@@ -76,6 +78,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     logical success
     logical wlc_AlexanderP
 
+    real(dp) delTw
+    real(dp) delWr
+    real(dp) delLk
+
+!    real(dp) delLk      ! change of linking number in each move
 
 ! -------------------------------------
 !
@@ -137,7 +144,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
 	  wlc_AlexanderP = .FALSE.
 
-          if (WLC_P__RING) then
+          if (WLC_P__RING .and. WLC_P__TWIST) then
 	    if(wlc_AlexanderP) then !unsure if correct
               wlc_CrossP = wlc_Cross
               wlc_NCrossP = wlc_NCross
@@ -240,6 +247,25 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               call umbrella_energy()
           endif
 
+!        print*, 'IB1', IB1, 'IB2', IB2
+!          print*, 'R(IB1-1)', wlc_R(1, IB1 - 1), 'R(IB1)', wlc_R(1, IB1) 
+!          print*, 'RP(IB1-1)', wlc_RP(1, IB1 - 1), 'RP(IB1)', wlc_RP(1, IB1) 
+!          print*, 'R(IB2)', wlc_R(1, IB2), 'R(IB2 + 1)', wlc_R(1, IB2 + 1) 
+!          print*, 'RP(IB2)', wlc_RP(1, IB2), 'RP(IB2 + 1)', wlc_RP(1, IB2 + 1) 
+       
+          if (WLC_P__NO_SELF_CROSSING) then
+              call calcDelTwWrLk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
+              wlc_TwMoveP = wlc_TwMove + delTw
+              wlc_WrMoveP = wlc_WrMove + delWr
+              wlc_LkMoveP = wlc_LkMove + delLk
+              if (abs(wlc_LkMoveP - wlc_Lk0) > 0.5_dp) then
+!                  print*, 'wlc_LkMove when skip', wlc_LkMove
+!                  print*, 'skip move because linking nubmer changes'
+                  wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                  goto 10 ! skip move, return RP to nan
+              endif
+          endif
+
 !   Change the position if appropriate
           call apply_energy_isOn()
           call calc_all_dE_from_dx()
@@ -298,6 +324,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 wlc_NCross = wlc_NCrossP
                 wlc_Cross = wlc_CrossP
              endif
+             if (WLC_P__NO_SELF_CROSSING) then
+                wlc_LkMove = wlc_LkMoveP
+                wlc_TwMove = wlc_TwMoveP
+                wlc_WrMove = wlc_WrMoveP
+             endif
              wlc_SUCCESS(MCTYPE) = wlc_SUCCESS(MCTYPE) + 1
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
@@ -321,15 +352,35 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                   wlc_ABP(I) = INT_MIN
               endif
           enddo
-          do J = 1,wlc_nBend
-              I = wlc_bendPoints(J)
-              wlc_RP(:,I:I+1) = nan
-              wlc_UP(:,I:I+1) = nan
-              if (WLC_P__VARIABLE_CHEM_STATE) then
-                  wlc_ABP(I:I+1) = INT_MIN
-              endif
-              !wlc_bendPoints(J) = -1
-          enddo
+          
+          if (.not. WLC_P__RING) then
+             do J = 1,wlc_nBend
+                I = wlc_bendPoints(J)
+                wlc_RP(:,I:I+1) = nan
+                wlc_UP(:,I:I+1) = nan
+                if (WLC_P__VARIABLE_CHEM_STATE) then
+                    wlc_ABP(I:I+1) = INT_MIN
+                endif
+             enddo
+          else 
+             do J = 1,wlc_nBend
+                I = wlc_bendPoints(J)
+                if (I == length_of_chain(chain_ID(IT1))) then
+                    I_left=leftmost_from(IT1)
+                    wlc_RP(:, I) = nan
+                    wlc_RP(:, I_left) = nan
+                    wlc_UP(:, I) = nan
+                    wlc_UP(:, I_left) = nan
+                else
+                    wlc_RP(:,I:I+1) = nan
+                    wlc_UP(:,I:I+1) = nan
+                endif
+                if (WLC_P__VARIABLE_CHEM_STATE) then
+                    wlc_ABP(I:I+1) = INT_MIN
+                endif
+             enddo
+          endif
+
           if (.False.) then
               do I = 1,WLC_P__NT
                   if (.not. isnan(wlc_RP(1,I))) then

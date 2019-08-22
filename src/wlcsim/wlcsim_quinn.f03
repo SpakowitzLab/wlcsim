@@ -3,6 +3,7 @@
 subroutine wlcsim_quinn(save_ind, wlc_p)
 ! values from wlcsim_data
 use params, only: wlc_mc_ind, wlc_numProcesses, wlc_id
+use params, only: printLinkingNumber
 #if MPI_VERSION
     use mpi
 #endif
@@ -34,6 +35,9 @@ use params, only: wlc_mc_ind, wlc_numProcesses, wlc_id
     print*, 'Time point ',save_ind, ' out of', WLC_P__NUMSAVEPOINTS, 'Thread id', wlc_id
     call printEnergies()
     call printWindowStats(wlc_p)
+    if (WLC_P__NO_SELF_CROSSING) then
+        call printLinkingNumber()
+    endif
     !call wlcsim_params_printPhi(wlc_p)
 
 end subroutine wlcsim_quinn
@@ -319,6 +323,7 @@ subroutine onlyNode(wlc_p)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode
+
 subroutine schedule(wlc_p,system_has_been_changed)
 ! values from wlcsim_data
 use params, only: wlc_mc_ind, eps

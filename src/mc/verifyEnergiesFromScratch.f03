@@ -75,17 +75,18 @@ use params, only: wlcsim_params
         call MC_explicit_binding_from_scratch()
     endif
     if (WLC_P__RING) then
-        ! --- Initial Writhe
-        call WRITHE(wlc_R,WLC_P__NB,energyOf(global_twistLiner_)%x)
+        if (WLC_P__TWIST) then
+            ! --- Initial Writhe
+            call WRITHE(wlc_R,WLC_P__NB,energyOf(global_twistLiner_)%x)
 
-        !     Get initial value of Alexander polynomial and Cross matrix
-        CALL ALEXANDERP(wlc_R,WLC_P__NB,DELTA,wlc_Cross,wlc_CrossSize,wlc_NCross)
-        !     Begin Monte Carlo simulation
-
-        print*, "Inside CalculateEnergiesFromScratch"
-        print*, "Did I do the correct thing with Delta, NCross, Wr, ...?"
-        print*, "Add the correct checks to VerifyEnergiesFromScratch"
-        stop 1
+            !     Get initial value of Alexander polynomial and Cross matrix
+            CALL ALEXANDERP(wlc_R,WLC_P__NB,DELTA,wlc_Cross,wlc_CrossSize,wlc_NCross)
+            !     Begin Monte Carlo simulation
+            print*, "Inside CalculateEnergiesFromScratch"
+            print*, "Did I do the correct thing with Delta, NCross, Wr, ...?"
+            print*, "Add the correct checks to VerifyEnergiesFromScratch"
+!           stop 1
+        endif
     ENDif
 
     if(WLC_P__UMBRELLA) then
@@ -93,6 +94,10 @@ use params, only: wlcsim_params
     endif
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
+
+    if (WLC_P__NO_SELF_CROSSING) then
+        call link_twist_writhe_from_scratch()
+    endif
 
     call apply_energy_isOn()
     call calc_all_dE_from_dx()
@@ -114,7 +119,8 @@ end subroutine
 
 subroutine VerifyEnergiesFromScratch(wlc_p)
 ! values from wlcsim_data
-    use params, only : wlcsim_params,  epsapprox, ERROR_UNIT, wlc_mc_ind
+    use params, only : wlcsim_params,  epsapprox, ERROR_UNIT, wlc_mc_ind, &
+        wlc_Lk, wlc_Tw, wlc_Wr, wlc_LkScratch, wlc_TwScratch, wlc_WrScratch
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
@@ -141,4 +147,25 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
        energyOf(ii)%E = energyOf(ii)%dE
        energyOf(ii)%x = energyOf(ii)%dx
    enddo
+   
+   if (WLC_P__NO_SELF_CROSSING) then
+       if (abs(wlc_Lk - wlc_LkScratch) > epsapprox) then
+           write(ERROR_UNIT,*) "Warning. Integrated linking number:",&
+               wlc_Lk, "while absolute linking number:",&
+               wlc_LkScratch
+       endif
+       if (abs(wlc_Tw - wlc_TwScratch) > epsapprox) then
+           write(ERROR_UNIT,*) "Warning. Integrated twist:",&
+               wlc_Tw, "while absolute twist:",&
+               wlc_TwScratch
+       endif
+       if (abs(wlc_Wr - wlc_WrScratch) > epsapprox) then
+           write(ERROR_UNIT,*) "Warning. Integrated writhe:",&
+               wlc_Wr, "while absolute writhe:",&
+               wlc_WrScratch
+       endif
+       wlc_Lk = wlc_LkScratch
+       wlc_Tw = wlc_TwScratch
+       wlc_Wr = wlc_WrScratch
+   endif
 end subroutine

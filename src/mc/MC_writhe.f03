@@ -1,6 +1,6 @@
   !Calculate the writhe between segment that was moved and segment that was not moved using the method of Klenin (2000)
 
-subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
+subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,N,Wr)
   use params, only : dp, pi
   use precision, only : eps
   use vector_utils, only : cross
@@ -9,7 +9,7 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,IP,N,Wr)
   integer, intent(in) :: N                 ! Number of beads per polymer
   real(dp), intent(in) :: R(3,N),RP(3,N)  ! Position
   integer, intent(in) :: IB1,IB2,IT1,IT2   ! Bead indices for terminal points of segment moved
-  integer, intent(in) :: IP                ! Test polymer index
+  !integer, intent(in) :: IP                ! Test polymer index
   !Geometric variables
   real(dp)  r1(3)                  ! Position bead 1
   real(dp)  r2(3)                  ! Position bead 2

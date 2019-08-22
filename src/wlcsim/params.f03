@@ -189,7 +189,19 @@ module params
     integer, allocatable, dimension(:) :: wlc_basepairs
     integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
 
-
+    ! Linking number, Twist, and Writhe (only for one-chain simulation)
+    ! These values are updated in MCsim, checked against and update to their values
+    ! from scratch in verfyEnergiesFromScratch, and save to file at every save point.
+    real(dp) wlc_Lk         ! Linking number
+    real(dp) wlc_Tw         ! Twist
+    real(dp) wlc_Wr         ! Writhe
+    ! Initial linking number
+    real(dp) wlc_Lk0        
+    ! Lk, Tw, and Wr from scratch. Only for use in calculateEnergiesFromScratch and
+    ! compare against wlc_Lk, wlc_Tw, wlc_Wr.
+    real(dp) wlc_LkScratch  ! Linking nubmer from scratch
+    real(dp) wlc_TwScratch  ! Twist from scratch
+    real(dp) wlc_WrScratch  ! Writhe from scratch
 
 contains
 
@@ -486,6 +498,7 @@ contains
 
     subroutine initialize_wlcsim_data( wlc_p)
         use nucleosome, only: loadNucleosomePositions
+!        use savepointLinkingNumber, only: calcTwWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
 #if MPI_VERSION
@@ -774,7 +787,8 @@ contains
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
-                if ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
+                if (WLC_P__NEIGHBOR_BINS .and.&
+                    ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
                     .or. WLC_P__CONFINETYPE == 'none')) then
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'sphere') then
@@ -798,7 +812,6 @@ contains
         wlc_time = 0.0_dp
         wlc_time_ind = 0
         wlc_mc_ind = 0
-
     end subroutine initialize_wlcsim_data
 
     function pack_as_para(wlc_p) result(para)
@@ -1006,6 +1019,13 @@ contains
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             print*, "Change in energy of ",energyOf(ii)%name_str,"=",energyOf(ii)%dE
         enddo
+    end subroutine
+
+    subroutine printLinkingNumber()
+        implicit none
+        print*, 'Linking number: ', wlc_Lk
+        print*, 'Twist: ', wlc_Tw
+        print*, 'Writhe: ', wlc_Wr
     end subroutine
 
     subroutine calcTotalPolymerVolume(wlc_p,totalVpoly)
@@ -1403,6 +1423,28 @@ contains
             wlc_MCAMP(12),wlc_PHIT(12)
         close(outFileUnit)
     end subroutine
+
+    subroutine wlcsim_params_appendLkData(save_ind, filename)
+    ! Appends wlc_p linking number data (Lk, Tw, Wr) to the file
+        implicit none
+        integer, intent(in) :: save_ind
+        logical isfile
+        character(MAXFILENAMELEN), intent(in) :: fileName
+        character(MAXFILENAMELEN) fullName
+        fullName=  trim(fileName) // trim(wlc_repSuffix)
+        inquire(file = fullName, exist = isfile)
+        if (isfile) then
+            open (unit = outFileUnit, file = fullName, status ='OLD', POSITION = "append")
+        else
+            open (unit = outFileUnit, file = fullName, status = 'new')
+            write(outFileUnit,*) "ind| id|",&
+                        " - Lk -| - Tw -| - Wr -|"
+        endif
+        write(outFileUnit, "(2I4, 3f8.4)") save_ind, wlc_id,&
+            wlc_Lk, wlc_Tw, wlc_Wr
+        close(outFileUnit)
+    end subroutine
+
     subroutine wlcsim_params_writebinary(wlc_p,baseName)
     !    This function writes the contence of the structures wlc_p and
     !  to a binary file.  if you add more variables to  you need to
@@ -1644,8 +1686,12 @@ contains
             enddo
             close(outFileUnit)
         endif
-    end subroutine save_simulation_state
 
+        if (WLC_P__SAVE_LK) then
+            filename = trim(adjustL(outfile_base)) // 'lk'
+            call wlcsim_params_appendLkData(save_ind, filename)
+        endif
+    end subroutine save_simulation_state
 
     subroutine get_renormalized_chain_params(wlc_p)
     use MC_wlc, only: calc_elastic_constants

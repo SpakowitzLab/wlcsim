@@ -17,7 +17,7 @@ use params, only: wlc_V, wlc_R, wlc_U, wlc_VP, wlc_RP&
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: axisAngle, randomUnitVec, rotateU
-use polydispersity, only: get_IB, rightmost_from
+use polydispersity, only: get_IB, rightmost_from, leftmost_from
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -41,12 +41,6 @@ real(dp), parameter, dimension(3) ::  P1 = [0.0_dp, 0.0_dp, 0.0_dp]
 real(dp), intent(in) :: MCAMP ! Amplitude of random change
 integer irnd(1)
 
-!TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_RP = wlc_R
-    wlc_UP = wlc_U
-endif
-
 !     Perform rotate move (MCTYPE 4)
 !     a.k.a. rotate a single bead
 call random_index(WLC_P__NT,irnd,rand_stat)
@@ -64,11 +58,29 @@ if (IB1>1) then
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+elseif (WLC_P__RING) then
+    ! Add the bead at the end of chain (in the ring) to bendPoints
+    ! There is nothing to do for linear chain if IB1 == 1
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend) = rightmost_from(IT1)
+    I = rightmost_from(IT1)
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
 endif
 if (IT2<rightmost_from(IT2)) then
     wlc_nBend = wlc_nBend + 1
     wlc_bendPoints(wlc_nBend)=IT2
     I=IT2+1
+    wlc_RP(:,I)=wlc_R(:,I)
+    wlc_UP(:,I)=wlc_U(:,I)
+    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+elseif (WLC_P__RING) then
+    ! Add the bead at the beginning of the chain to RP, UP, VP
+    ! There is nothing to do for linear chain if IT2 is rightmost of the chain
+    wlc_nBend = wlc_nBend + 1
+    wlc_bendPoints(wlc_nBend)=IT2
+    I=leftmost_from(IT2)
     wlc_RP(:,I)=wlc_R(:,I)
     wlc_UP(:,I)=wlc_U(:,I)
     if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)

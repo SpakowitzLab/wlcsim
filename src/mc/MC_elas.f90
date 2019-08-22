@@ -47,7 +47,7 @@ do ii=1,wlc_nBend
     ! should be zero by definition if IB1 = =IB2.
 
     if (WLC_P__ELASTICITY_TYPE == "constant") then
-        if (wlc_p%SIMTYPE == 1.AND.(.not. is_left_end(IT2)).OR.(WLC_P__RING)) then
+        if (wlc_p%SIMTYPE == 1.AND.(.not. is_left_end(IT2))) then
             if (is_left_end(IT2)) then
                 IT2M1 = rightmost_from(IT2)
             else

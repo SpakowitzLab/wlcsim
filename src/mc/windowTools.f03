@@ -162,11 +162,11 @@ else
     call stop_if_err(1, "Warning: WLC_P__WINTYPE not recognized")
 endif
 
-DIB = IB2-IB1
 length = length_of_chain(IP)
 if (WLC_P__RING) then
+    if (IB2 > IB1 + length) IB2 = IB1 + length 
     if (IB2 > length) then
-        IB2 = DIB-(length-IB1)
+        IB2 = IB2 - length
     endif
     if (WLC_P__EXPLICIT_BINDING) then
         print*, "Ring polymer not set up to use explicit binding"
@@ -175,6 +175,11 @@ if (WLC_P__RING) then
     endif
     IT2 = get_I(IB2,IP)
     IT1 = get_I(IB1,IP)
+    if (IB1 <= IB2) then
+        DIB = IB2 - IB1
+    else
+        DIB = length - IB1 + IB2
+    endif
 else
     if (IB2 > length) then
         IB2 = length
@@ -193,11 +198,8 @@ else
         call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,maxWindow,success)
         if (success .eqv. .False.) return
     endif
+    DIB = IB2-IB1
 endif
-
-
-DIB = IB2-IB1
 end subroutine drawWindow
-
 
 end module windowTools
