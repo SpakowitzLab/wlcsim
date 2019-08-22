@@ -11,6 +11,7 @@ use params, only: wlc_METH, wlc_Cross, wlc_AB&
     , wlc_R, wlc_ind_in_list, dp
 use params, only: wlcsim_params
     use umbrella, only: umbrella_energy_from_scratch
+    use linkingNumber, only: link_twist_writhe_from_scratch
     use iso_fortran_env
     use energies
     implicit none
@@ -147,7 +148,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
        energyOf(ii)%E = energyOf(ii)%dE
        energyOf(ii)%x = energyOf(ii)%dx
    enddo
-   
+
    if (WLC_P__NO_SELF_CROSSING) then
        if (abs(wlc_Lk - wlc_LkScratch) > epsapprox) then
            write(ERROR_UNIT,*) "Warning. Integrated linking number:",&

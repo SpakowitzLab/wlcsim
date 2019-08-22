@@ -315,6 +315,10 @@ subroutine onlyNode(wlc_p)
             energyOf(ii)%E = energyOf(ii)%dE
             energyOf(ii)%x = energyOf(ii)%dx
         enddo
+        wlc_Lk = wlc_LkScratch
+        wlc_Tw = wlc_TwScratch
+        wlc_Wr = wlc_WrScratch
+        wlc_Lk0 = wlc_Lk
     else
         call VerifyEnergiesFromScratch(wlc_p)
     endif

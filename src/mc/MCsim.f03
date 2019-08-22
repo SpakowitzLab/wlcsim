@@ -19,8 +19,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_LkMove, wlc_LkMoveP &
-    , wlc_TwMove, wlc_TwMoveP, wlc_WrMove, wlc_WrMoveP
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr
     use energies
     use umbrella, only: umbrella_energy
 
@@ -29,7 +28,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     use binning, only: addBead, removeBead
     use updateRU, only: updateR
     use polydispersity, only: length_of_chain, chain_ID, leftmost_from
-    use linkingNumber, only: getDelLk, calcDelTwWrLk
+    use linkingNumber, only: getDelTw_Wr_Lk
 
     implicit none
     interface
@@ -78,11 +77,12 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     logical success
     logical wlc_AlexanderP
 
-    real(dp) delTw
-    real(dp) delWr
-    real(dp) delLk
-
-!    real(dp) delLk      ! change of linking number in each move
+    real(dp) delTw      ! change in twist
+    real(dp) delWr      ! change in writhe
+    real(dp) delLk      ! change in linking number
+    real(dp) TwP        ! twist of the proposed configuration
+    real(dp) WrP        ! writhe of the proposed configuration
+    real(dp) LkP        ! linking number of the proposed configuration
 
 ! -------------------------------------
 !
@@ -247,14 +247,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               call umbrella_energy()
           endif
 
-!        print*, 'IB1', IB1, 'IB2', IB2
-!          print*, 'R(IB1-1)', wlc_R(1, IB1 - 1), 'R(IB1)', wlc_R(1, IB1) 
-!          print*, 'RP(IB1-1)', wlc_RP(1, IB1 - 1), 'RP(IB1)', wlc_RP(1, IB1) 
-!          print*, 'R(IB2)', wlc_R(1, IB2), 'R(IB2 + 1)', wlc_R(1, IB2 + 1) 
-!          print*, 'RP(IB2)', wlc_RP(1, IB2), 'RP(IB2 + 1)', wlc_RP(1, IB2 + 1) 
-       
           if (WLC_P__NO_SELF_CROSSING) then
-              call calcDelTwWrLk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
+              call getDelTw_Wr_Lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
               wlc_TwMoveP = wlc_TwMove + delTw
               wlc_WrMoveP = wlc_WrMove + delWr
               wlc_LkMoveP = wlc_LkMove + delLk
@@ -352,7 +346,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                   wlc_ABP(I) = INT_MIN
               endif
           enddo
-          
+
           if (.not. WLC_P__RING) then
              do J = 1,wlc_nBend
                 I = wlc_bendPoints(J)
@@ -362,7 +356,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                     wlc_ABP(I:I+1) = INT_MIN
                 endif
              enddo
-          else 
+          else
              do J = 1,wlc_nBend
                 I = wlc_bendPoints(J)
                 if (I == length_of_chain(chain_ID(IT1))) then
