@@ -18,7 +18,10 @@ use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
 use mersenne_twister
 use params, only: dp
 use windowTools, only: drawWindow
-use polydispersity, only: is_right_end, is_left_end, first_bead_of_chain, last_bead_of_chain
+use polydispersity, only: is_right_end, is_left_end, first_bead_of_chain, last_bead_of_chain, length_of_chain
+use ringHelper, only: bendPointsLeftRing, bendPointsRightRing, &
+    pointsMovedLeftRing, pointsMovedRightRing
+
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -42,12 +45,6 @@ real(dp) DR(3)    ! Displacement for slide move
 integer indx
 logical duplicates
 
-!TOdo saving RP is not actually needed, even in these cases, but Brad's code assumes that we have RP.
-if (WLC_P__RING .OR. WLC_P__INTERP_BEAD_LENNARD_JONES) then
-    wlc_RP = wlc_R
-    wlc_UP = wlc_U
-endif
-
 !     Perform slide move (MCTYPE 2)
 call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
@@ -59,26 +56,45 @@ DR(3) = MCAMP*(urand(3)-0.5_dp)
 
 !  Which elastic segments change
 wlc_nBend = 0
-if (IB1>1) then
-    wlc_nBend = wlc_nBend + 1
-    wlc_bendPoints(wlc_nBend)=IT1-1
-    I=IT1-1
-    wlc_RP(:,I)=wlc_R(:,I)
-    wlc_UP(:,I)=wlc_U(:,I)
-    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-    wlc_nPointsMoved=wlc_nPointsMoved+1
-    wlc_pointsMoved(wlc_nPointsMoved)=I
+if (.not. WLC_P__RING) then                 ! polymer is not a ring
+    if (IB1>1) then
+        wlc_nBend = wlc_nBend + 1
+        wlc_bendPoints(wlc_nBend)=IT1-1
+        I=IT1-1
+        wlc_RP(:,I)=wlc_R(:,I)
+        wlc_UP(:,I)=wlc_U(:,I)
+        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        wlc_nPointsMoved=wlc_nPointsMoved+1
+        wlc_pointsMoved(wlc_nPointsMoved)=I
+    endif
+    if (IB2<length_of_chain(IP)) then
+        wlc_nBend = wlc_nBend + 1
+        wlc_bendPoints(wlc_nBend)=IT2
+        I=IT2+1
+        wlc_RP(:,I)=wlc_R(:,I)
+        wlc_UP(:,I)=wlc_U(:,I)
+        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
+        wlc_nPointsMoved=wlc_nPointsMoved+1
+        wlc_pointsMoved(wlc_nPointsMoved)=I
+    endif
+else                                        ! polymer is a ring
+    if (length_of_chain(IP) - DIB > 2) then
+        call bendPointsLeftRing(IT1)
+        call pointsMovedLeftRing(IT1)
+        call bendPointsRightRing(IT2)
+        call pointsMovedRightRing(IT2)
+    elseif (length_of_chain(IP) - DIB == 2) then
+        call bendPointsLeftRing(IT1)
+        call pointsMovedLeftRing(IT1)
+        call bendPointsRightRing(IT2)
+    elseif (length_of_chain(IP) - DIB == 1) then
+        call bendPointsLeftRing(IT1)
+    else
+        print*, 'DIB should not take this value', DIB
+        stop 1
+    endif
 endif
-if (.not. is_right_end(IT2)) then
-    wlc_nBend = wlc_nBend + 1
-    wlc_bendPoints(wlc_nBend)=IT2
-    I=IT2+1
-    wlc_RP(:,I)=wlc_R(:,I)
-    wlc_UP(:,I)=wlc_U(:,I)
-    if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-    wlc_nPointsMoved=wlc_nPointsMoved+1
-    wlc_pointsMoved(wlc_nPointsMoved)=I
-endif
+
 ! Move Explicity Bound points along with they are bound to
 if (WLC_P__EXPLICIT_BINDING) then
     do ii=IT1,IT2
@@ -201,3 +217,5 @@ if (otherEnd .ne. IT2+1 .and. (.not. is_left_end(otherEnd))) then
 endif
 
 end subroutine
+
+

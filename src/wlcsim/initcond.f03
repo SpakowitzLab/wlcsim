@@ -479,6 +479,7 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
         ! takes R(3,NB) with R(:,1) preset and makes a WLC given EPS
     use mersenne_twister, only : random_number, random_stat
     use params, only : dp, pi
+    use vector_utils, only: cross
 
     implicit none
 

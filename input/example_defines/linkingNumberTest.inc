@@ -4,7 +4,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__CODENAME ""
+#define WLC_P__CODENAME "quinn"
 ! VARIABLE COMMENT: ! which simulation code to run (from when we combined our code)
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -14,12 +14,12 @@
 ! DEFAULTS COMMENT: ! recommended
 ! TYPE: INTEGER
 
-#define WLC_P__RING .FALSE.
+#define WLC_P__RING .TRUE.
 ! VARIABLE COMMENT: ! whether the polymer is a ring
 ! DEFAULTS COMMENT: ! not a ring by default
 ! TYPE: LOGICAL
 
-#define WLC_P__LOCAL_TWIST .FALSE.
+#define WLC_P__LOCAL_TWIST .TRUE.
 ! VARIABLE COMMENT: ! whether to include twist energy (local)
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
@@ -44,7 +44,7 @@
 ! DEFAULTS COMMENT: ! If in doubt make it false
 ! TYPE: LOGICAL
 
-#define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
+#define WLC_P__INITCONDTYPE "ring"
 ! VARIABLE COMMENT: ! initial condition: "lineInYFromOrigin", "lineInY", "randomLineSlitInZBoundary", "randomLineCubeBoundary", "randomLineOutsideOfSphere", "randomLineSphereBoundary", "randomlyDistributeBeadsInSphere", "ring", "multiRing"
 ! DEFAULTS COMMENT: ! based on geometery of current problem
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -155,7 +155,8 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__ELASTICITY_TYPE "constant"
-! VARIABLE COMMENT: ! whether to allow differential elasticity along polymer, also allows for kinks: "constant", "nucleosome"
+! VARIABLE COMMENT: ! whether to allow differential elasticity along polymer,
+! also allows for kinks: "constant", "nucleosomes"
 ! DEFAULTS COMMENT: ! by default, 'constant' bead spacing
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
@@ -174,10 +175,9 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__NO_SELF_CROSSING .FALSE.
+#define WLC_P__NO_SELF_CROSSING .TRUE.
 ! VARIABLE COMMENT: ! whether to allow self-crossing of ring polymer 
-! by conserving the linking number
-! DEFAULTS COMMENT: ! allow self-crossing
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -216,9 +216,9 @@
 ! DEFAULTS COMMENT: ! Use old output format
 ! TYPE: LOGICAL
 
-#define WLC_P__SAVE_LK .FALSE.
-! VARIABLE COMMENT: ! Save linking number. Only for ring polymer.
-! DEFAULTS COMMENT: ! Does not save linking number 
+#define WLC_P__SAVE_LK .TRUE.
+! VARIABLE COMMENT: ! Save linking number. Only for ring polymer
+! DEFAULTS COMMENT: ! Does not save linking at each save point 
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -227,7 +227,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 201
+#define WLC_P__NB 90
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! 201 beads per polymer
 ! TYPE: INTEGER
@@ -309,8 +309,9 @@
 
 #define WLC_P__TWIST_DENSITY 0.0_DP
 ! VARIABLE COMMENT: ! baseline twist density 
-! DEFAULTS COMMENT: ! baseline twist density 0.0
+! DEFAULTS COMMENT: ! baseline twist density 0.05
 ! TYPE: REAL(DP)
+
 
 ! ----------------------------
 !
@@ -329,22 +330,22 @@
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
 
-#define WLC_P__L WLC_P__LENGTH_PER_BP*WLC_P__LL*(WLC_P__NB-1)
+#define WLC_P__L 900.0_DP
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! by default, constant linker lengths of LL assumed
 ! TYPE: REAL(DP)
 
-#define WLC_P__L0 (WLC_P__L/(WLC_P__NB-1.0_DP))
+#define WLC_P__L0 (WLC_P__L/(WLC_P__NB))
 ! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
 ! DEFAULTS COMMENT: ! derive from L and NB
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 50.0_DP
-! VARIABLE COMMENT: ! persistence length of bare DNA
+! VARIABLE COMMENT: ! persistence length 
 ! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
-#define WLC_P__LT 100.0_DP
+#define WLC_P__LT 50.0_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! approximent twist persistance length of DNA in nm
 ! TYPE: REAL(DP)
@@ -538,12 +539,12 @@
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
 
-#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 100
+#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1
 ! VARIABLE COMMENT: ! read teh variable name
 ! DEFAULTS COMMENT: ! make this large
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 200
+#define WLC_P__NUMSAVEPOINTS 100
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: ! 200 total save points, i.e. 2000 steps per save point
 ! TYPE: INTEGER
@@ -793,7 +794,7 @@
 ! DEFAULTS COMMENT: ! slide move
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_PIVOT_MOVE 1
+#define WLC_P__MOVEON_PIVOT_MOVE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! pivot move
 ! TYPE: INTEGER
@@ -803,12 +804,12 @@
 ! DEFAULTS COMMENT: ! rotate move
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_FULL_CHAIN_ROTATION 1
+#define WLC_P__MOVEON_FULL_CHAIN_ROTATION 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! full chain rotation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_FULL_CHAIN_SLIDE 1
+#define WLC_P__MOVEON_FULL_CHAIN_SLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! full chain slide
 ! TYPE: INTEGER
@@ -828,7 +829,7 @@
 ! DEFAULTS COMMENT: ! Chain exchange
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_REPTATION 1
+#define WLC_P__MOVEON_REPTATION 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! Reptation
 ! TYPE: INTEGER
@@ -965,17 +966,17 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINWINDOW_CRANK_SHAFT NAN
+#define WLC_P__MINWINDOW_CRANK_SHAFT 10
 ! VARIABLE COMMENT: ! Min Size of window for bead selection
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINWINDOW_SLIDE_MOVE NAN
+#define WLC_P__MINWINDOW_SLIDE_MOVE 10
 ! VARIABLE COMMENT: ! Min Size of window for bead selection
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINWINDOW_PIVOT_MOVE NAN
+#define WLC_P__MINWINDOW_PIVOT_MOVE 10
 ! VARIABLE COMMENT: ! Min Size of window for bead selection
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1025,7 +1026,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*wlc_p%L0
+#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1045,7 +1046,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*wlc_p%L0
+#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1075,7 +1076,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SPIDER 1.0_dp*wlc_p%L0
+#define WLC_P__MINAMP_SPIDER 1.0_dp*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1085,7 +1086,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*wlc_p%L0
+#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1135,22 +1136,22 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SPIDER 5.0_dp*wlc_p%L0
+#define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__WINTARGET_CRANK_SHAFT 8.0_DP
+#define WLC_P__WINTARGET_CRANK_SHAFT 30.0_DP
 ! VARIABLE COMMENT: ! target for ratio of window to anmplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__WINTARGET_SLIDE_MOVE 8.0_DP
+#define WLC_P__WINTARGET_SLIDE_MOVE 30.0_DP
 ! VARIABLE COMMENT: ! target for ratio of window to anmplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__WINTARGET_PIVOT_MOVE 8.0_DP
+#define WLC_P__WINTARGET_PIVOT_MOVE 40.0_DP
 ! VARIABLE COMMENT: ! target for ratio of window to anmplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1195,7 +1196,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__NADAPT_CRANK_SHAFT 1000
+#define WLC_P__NADAPT_CRANK_SHAFT 200
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
@@ -1298,5 +1299,5 @@
 #define WLC_P__NO_CROSSING_CUTOFF 0.5_DP
 ! VARIABLE COMMENT: ! deviation from initial linking number allowed when
 !   WLC_P__NO_SELF_CROSSING is true
-! DEFAULTS COMMENT: ! allow linking number to change by 0.5 for each move 
+! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)

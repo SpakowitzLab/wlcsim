@@ -32,6 +32,7 @@
                     IBP1 = IB + 1
                 ENDif
             elseif (J == length_of_chain(I)) then
+                IB = IB + 1
                 CYCLE
             else
                 IBP1 = IB + 1
@@ -59,7 +60,6 @@
             endif
             IB = IB + 1
          ENDdo
-         IB = IB + 1
       ENDdo
 
       ! Note Global twist is calculated elesweare, this only calculates local twist!
