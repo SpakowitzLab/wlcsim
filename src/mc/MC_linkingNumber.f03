@@ -23,7 +23,7 @@ use params, only: wlc_R, wlc_U, wlc_V, wlc_LkScratch, wlc_TwScratch,&
 implicit none
 call calcTw(wlc_U, wlc_V, wlc_TwScratch)
 call WRITHE(wlc_R, WLC_P__NB, wlc_WrScratch)
-Lk = Tw + Wr
+wlc_LkScratch = wlc_TwScratch + wlc_WrScratch
 end subroutine
 
 ! Calculate change in twist, writhe, and linking number
@@ -203,7 +203,7 @@ I1P1 = nextBead(I1)
 I2P1 = nextBead(I2)
 if (I1P1 == I2 .or. I2P1 == I1) then
     ! Since Omega(i, i) = Omega(i, i+1) = 0
-    delOmega = 0
+    delOmega = 0.0_dp
 else
     Omega = dWrithe_Klenin1b(wlc_R(:, I1), wlc_R(:, I1P1), &
         wlc_R(:, I2), wlc_R(:, I2P1))
@@ -279,7 +279,7 @@ sin2B = 1.0_dp - (cosB**2.0_dp)
 unit_cross = cross(e1, e2)
 
 if (abs(sin2B).lt.(eps))then
-    sin2b = 0.
+    sin2b = 0.0_dp
 endif
 
 a1 = doT_PRODUCT(r12,e2*cosB-e1)/sin2B
@@ -325,7 +325,6 @@ end function
 ! Calculate delTw with calculating total twist
 function getDelTwTest() result(delTw)
 use params, only: wlc_U, wlc_V, wlc_UP, wlc_VP
-use savepointLinkingNumber, only: calcTw
 implicit none
 real(dp) oldTw
 real(dp) newTw

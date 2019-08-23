@@ -300,7 +300,8 @@ end subroutine worker_node
 
 subroutine onlyNode(wlc_p)
 ! values from wlcsim_data
-    use params, only: wlcsim_params
+    use params, only: wlcsim_params, wlc_Lk, wlc_LkScratch, &
+        wlc_Tw, wlc_TwScratch, wlc_Wr, wlc_WrScratch, wlc_Lk0
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p

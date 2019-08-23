@@ -62,7 +62,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) LHC      ! Length of HC int
     real(dp) VHC      ! HC strength
 !    real(dp) phiTot  ! for testing
-    real(dp) wrp ! proposed writhe
+!    real(dp) wrp ! proposed writhe
 
     real(dp) ENERGY
 ! Things for random number generator
@@ -249,10 +249,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
           if (WLC_P__NO_SELF_CROSSING) then
               call getDelTw_Wr_Lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
-              wlc_TwMoveP = wlc_TwMove + delTw
-              wlc_WrMoveP = wlc_WrMove + delWr
-              wlc_LkMoveP = wlc_LkMove + delLk
-              if (abs(wlc_LkMoveP - wlc_Lk0) > 0.5_dp) then
+              TwP = wlc_Tw + delTw
+              WrP = wlc_Wr + delWr
+              LkP = wlc_Lk + delLk
+              if (abs(LkP - wlc_Lk0) > WLC_P__NO_CROSSING_CUTOFF) then
 !                  print*, 'wlc_LkMove when skip', wlc_LkMove
 !                  print*, 'skip move because linking nubmer changes'
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
@@ -319,9 +319,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 wlc_Cross = wlc_CrossP
              endif
              if (WLC_P__NO_SELF_CROSSING) then
-                wlc_LkMove = wlc_LkMoveP
-                wlc_TwMove = wlc_TwMoveP
-                wlc_WrMove = wlc_WrMoveP
+                wlc_Lk = LkP
+                wlc_Tw = TwP
+                wlc_Wr = WrP
              endif
              wlc_SUCCESS(MCTYPE) = wlc_SUCCESS(MCTYPE) + 1
           endif
