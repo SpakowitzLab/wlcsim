@@ -51,10 +51,6 @@ real(dp), intent(in) :: WindoW ! Size of window for bead selection
 ! Variables for change of binding state move
 real(dp) d1,d2  !for testing
 
-if (WLC_P__NO_SELF_CROSSING) then
-    wlc_RP = wlc_R
-endif
-
 !     Perform crank-shaft move (MCTYPE 1)
 call drawWindow(window,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)

@@ -18,7 +18,7 @@ use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeW
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params,  nan
-use vector_utils, only: randomUnitVec, random_perp
+use vector_utils, only: randomUnitVec, random_perp, cross
 use nucleosome, only: nucleosomeProp, multiParams
 use polydispersity, only: length_of_chain
 implicit none
@@ -479,6 +479,7 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
         ! takes R(3,NB) with R(:,1) preset and makes a WLC given EPS
     use mersenne_twister, only : random_number, random_stat
     use params, only : dp, pi
+    use vector_utils, only: cross
 
     implicit none
 
@@ -492,25 +493,19 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
     real(dp) urand(3)
 
     do J = 2,NB
+
          call random_number(urand,rand_stat)
          theta = urand(1)*2.0_dp*pi
          z = (1.0_dp/EPS)*log(2.0_dp*sinh(EPS)*urand(2)+exp(-EPS))
-         N1(1) = 0.0_dp
-         N1(2) = 0.0_dp
-         N1(3) = 1.0_dp
-         N1(1) = N1(1)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(1,J-1)
-         N1(2) = N1(2)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(2,J-1)
-         N1(3) = N1(3)-(N1(1)*U(1,J-1)+N1(2)*U(2,J-1)+N1(3)*U(3,J-1))*U(3,J-1)
+
+         N1 = (/ 0.0_dp, 0.0_dp, 1.0_dp /)
+         N1 = N1 - dot_product(N1, U(:,J-1))*U(:,J-1)
          N1 = N1/norm2(N1)
 
-         N2(1) = N1(2)*U(3,J-1)-N1(3)*U(2,J-1)
-         N2(2) = N1(3)*U(1,J-1)-N1(1)*U(3,J-1)
-         N2(3) = N1(1)*U(2,J-1)-N1(2)*U(1,J-1)
+         N2 = cross(N1, U(:,J-1))
          N2 = N2/norm2(N2)
 
-         U(1,J) = sqrt(1-z*z)*cos(theta)*N1(1)+sqrt(1-z*z)*sin(theta)*N2(1)+z*U(1,J-1)
-         U(2,J) = sqrt(1-z*z)*cos(theta)*N1(2)+sqrt(1-z*z)*sin(theta)*N2(2)+z*U(2,J-1)
-         U(3,J) = sqrt(1-z*z)*cos(theta)*N1(3)+sqrt(1-z*z)*sin(theta)*N2(3)+z*U(3,J-1)
+         U(:,J) = sqrt(1-z*z)*(cos(theta)*N1 + sin(theta)*N2 + z*U(:,J-1))
          U(:,J) = U(:,J)/norm2(U(:,J))
 
          if (WLC_P__LOCAL_TWIST) then
@@ -518,9 +513,7 @@ subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)
              stop
          endif
 
-         R(1,J) = R(1,J-1) + l0*U(1,J)
-         R(2,J) = R(2,J-1) + l0*U(2,J)
-         R(3,J) = R(3,J-1) + l0*U(3,J)
+         R(:,J) = R(:,J-1) + l0*U(:,J)
      enddo
 end subroutine wlc_init
 

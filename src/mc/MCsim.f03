@@ -62,7 +62,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) LHC      ! Length of HC int
     real(dp) VHC      ! HC strength
 !    real(dp) phiTot  ! for testing
-!    real(dp) wrp ! proposed writhe
 
     real(dp) ENERGY
 ! Things for random number generator
@@ -247,14 +246,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               call umbrella_energy()
           endif
 
+          ! When self-crossing is not allowed, linking number must be conserved.
           if (WLC_P__NO_SELF_CROSSING) then
               call getDelTw_Wr_Lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
               TwP = wlc_Tw + delTw
               WrP = wlc_Wr + delWr
               LkP = wlc_Lk + delLk
               if (abs(LkP - wlc_Lk0) > WLC_P__NO_CROSSING_CUTOFF) then
-!                  print*, 'wlc_LkMove when skip', wlc_LkMove
-!                  print*, 'skip move because linking nubmer changes'
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   goto 10 ! skip move, return RP to nan
               endif
