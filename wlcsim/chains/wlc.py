@@ -210,6 +210,7 @@ def dwlc_k(N, L, lp, n_proc=proc_max-1):
     return r
 
 def dwlc(N, L, lp):
+    pass
 
 def wlc_init(N, L, lp, lt=0):
     fortran_code = """
