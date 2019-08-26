@@ -7,15 +7,38 @@ from scipy.special import erfi
 from numba import jit
 
 from functools import partial
+import multiprocessing
+from multiprocessing import Pool
+
+proc_max = multiprocessing.cpu_count()
+
+def phi_cdf(phi, eps):
+    """The cumulative distribution of a given azimuthal angle :math:`phi` given
+    a distance between neighboring beads of :math:`\Epsilon = ds/l_p`."""
+    f0, fpi = phi_Z_0_1_(eps)
+    return (phi_indef_(phi, eps) - f0)/(fpi - f0)
 
 def phi_indef_(phi, eps):
-    """indefinite integral of sin(phi)exp(-phi**2/(2*sigma))"""
+    """proportional to the indefinite integral of sin(phi)exp(-eps*phi**2/2)"""
+    return np.real(
+            erfi((1 + 1j*eps*phi)/np.sqrt(2*eps))
+          + erfi((1 - 1j*eps*phi)/np.sqrt(2*eps))
+    )
+
+def phi_Z_0_1_(eps):
+    """return F(0), F(pi), so that (phi_indef_(theta)-F(0))/(F(pi)-F(0)) is a
+    CDF."""
+    return phi_indef_(0, eps), phi_indef_(np.pi, eps)
+
+def phi_indef_2_(phi, eps):
+    """alternate representation of the indefinite integral of
+    sin(phi)exp(-phi**2/(2*sigma)), different notation?"""
     return np.real(np.sqrt(np.pi*eps/2)/2*np.exp(-eps/2)*(
         - erfi((eps - 1j*phi)/np.sqrt(2*eps))
         - erfi((eps + 1j*phi)/np.sqrt(2*eps))
     ))
 
-def phi_z_(eps):
+def phi_z_2_(eps):
     """normalization factor. phi_indef_(pi)-phi_indef_(0)"""
     return np.real(np.sqrt(np.pi*eps/2)/2*np.exp(-eps/2)*(
         - erfi((eps - 1j*np.pi)/np.sqrt(2*eps))
@@ -23,9 +46,10 @@ def phi_z_(eps):
         - erfi((eps + 1j*np.pi)/np.sqrt(2*eps))
     ))
 
-def phi_cdf(phi, eps):
-    """The cumulative distribution of a given azimuthal angle :math:`phi` given
-    a distance between neighboring beads of :math:`\Epsilon = ds/l_p`."""
+def phi_cdf_2(phi, eps):
+    """alternate representation of The cumulative distribution of a given
+    azimuthal angle :math:`phi` given a distance between neighboring beads of
+    :math:`\Epsilon = ds/l_p`."""
     return (phi_indef_(phi, eps) - phi_indef_(0, eps))/phi_z_(eps)
 
 def phi_prob(phi, eps):
@@ -63,8 +87,50 @@ def cot_plane(u, unit=True, tol=1e-8):
     n2 = n2/np.linalg.norm(n2)
     return n1, n2
 
-def wlc(N, L, lp):
-    r"""Draw discrete wormlike chain steps.
+def Ry(theta):
+    r"""Rotation matrix about the z axis with angle theta.
+
+    Notes
+    -----
+    ..math::
+
+        \frac{1}{\sqrt{3}}
+        \begin{bmatrix}
+            np.cos(theta) & 0 & -np.sin(theta) \\
+                        0 & 1 &              0 \\
+            np.sin(theta) & 0 &  np.cos(theta)
+        \end{bmatrix}
+    """
+    return np.array([[np.cos(theta), 0, -np.sin(theta)],
+                     [            0, 1,              0],
+                     [np.sin(theta), 0,  np.cos(theta)]])
+
+
+def Rz(theta):
+    r"""Rotation matrix about the z axis with angle theta.
+
+    Notes
+    -----
+    ..math::
+
+        \frac{1}{\sqrt{3}}
+        \begin{bmatrix}
+            np.cos(theta) & -np.sin(theta) & 0 \\
+            np.sin(theta) &  np.cos(theta) & 0 \\
+                        0 &             0  & 1
+        \end{bmatrix}
+    """
+    return np.array([[np.cos(theta), -np.sin(theta), 0],
+                    [np.sin(theta),  np.cos(theta), 0],
+                    [            0,             0,  1]])
+
+def Fzero_(phi, eps, xi, f0, fpi):
+    return (phi_indef_(phi, eps) - f0)/(fpi - f0) - xi
+def inv_sample_(xi, eps, f0, fpi):
+    return scipy.optimize.toms748(Fzero_, 0, np.pi, k=2, args=(eps, xi, f0, fpi))
+
+def dwlc_k(N, L, lp, n_proc=proc_max-1):
+    r"""Draw discrete wormlike chain steps, piecewise constant curvature.
 
     The energy of the wormlike chain is proportional to the curvature of the
     chain squared. We make the assumption that the curvature is constant, and
@@ -120,33 +186,30 @@ def wlc(N, L, lp):
     phi less than phi/10 or so.
     """
     l0 = L/(N-1)
-    eps = l0/lp # ds
+    eps = lp/l0 # ds
 
     r = np.zeros((N,3))
-    r[1,2] = eps # initial in z-direction
+    Omega = np.identity(3) # n, b, u vectors, arranged in columns
+    r[1] = l0*Omega[:,2] # initial in z-direction
+
+    # pre-generate the random numbers for speed
+    thetas = 2*np.pi*urand(size=(N-2,))
+    xis = urand(size=(N-2,))
+    f0, fpi = phi_Z_0_1_(eps)
+    with Pool(n_proc) as p:
+        phis = p.map(partial(inv_sample_, eps=eps, f0=f0, fpi=fpi), xis)
+
     for j in range(2, N):
-        # first draw the direction of the next tangent vector w.r.t. the
-        # previous one
-        xi = urand()
-        fphi = lambda phi: phi_cdf(phi, eps=eps) - xi
-        # 0.1 rads is a reasonable starting value so that the initial
-        # derivative isn't zero
-        phi = scipy.optimize.toms748(fphi, 0, np.pi, k=2)
-        # this doesn't provably work always, sometimes leaves interval
-        # phi = scipy.optimize.newton(fphi, 0.1, fprime=partial(phi_prob, eps=eps),
-        #                             fprime2=partial(dphi_prob, eps=eps))
-        theta = 2*np.pi*urand()
+        # first rotate about tangent vector by theta, then "bend" by rotating
+        # about the new "normal" vector
+        Omega = Omega @ Rz(thetas[j-2]) @ Ry(phis[j-2])
 
-        # now map phi,theta to local coordinates of chain
-        u_prev = (r[j-1] - r[j-2])/eps
-        n1, n2 = cot_plane(u_prev)
-
-        u_next = n1*np.cos(theta)*np.sin(phi) \
-               + n2*np.sin(theta)*np.sin(phi) \
-               + u_prev*np.cos(phi)
-        r[j] = r[j-1] + eps*u_next
+        # third column of orientation matrix is new tangent vector
+        r[j] = r[j-1] + l0*Omega[:,2]
 
     return r
+
+def dwlc(N, L, lp):
 
 def wlc_init(N, L, lp, lt=0):
     fortran_code = """
