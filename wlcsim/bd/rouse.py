@@ -16,17 +16,18 @@ def rouse(N, b, L, t0, tf, D, x0=None, hmax=None, hmin=None):
 
     where :math:`\xi = k_BT/D`, :math:`k = 3k_BT/b^2`, :math:`b` is the Kuhn
     length of the polymer, :math:`D` is the self-diffusion coefficient of a
-    bead, and :math:`R(t)/\xi` is a centered, delta-correlation Gaussian process
-    with :math:`\langle R(t) R(t')/\xi^2 \rangle = 2DI\delta(t-t')`.
+    bead, and :math:`R(t)/\xi` is a delta-correlated stationary Gaussian
+    process with mean zero and :math:`\langle R(t) R(t')/\xi^2 \rangle =
+    2DI\delta(t-t')`.
 
     Notice that in practice, :math:`k/\xi = 3D/b^2`, so we do not need to
-    include mass units (i.e. there's no dependence on :math:`k_BT`.
+    include mass units (i.e. there's no dependence on :math:`k_BT`).
     """
     k_over_xi = 3*D/b**2
     def rouse_f(x, t):
         dx = np.diff(x, axis=0)
         zero = np.array([[0,0,0]])
-        return -k_over_xi*(np.concatenate([zero, dx]) + np.concatenate([dx, zero]))
+        return -k_over_xi*(np.concatenate([zero, dx]) + np.concatenate([dx, zero])) \
 
     if x0 is None:
         L0 = L/(N-1) # length per bead
@@ -35,7 +36,7 @@ def rouse(N, b, L, t0, tf, D, x0=None, hmax=None, hmin=None):
     if hmax is None:
         hmax = (tf-t0)/N
     if hmin is None:
-        hmin=1e-12
+        hmin=(tf - t0)/1e8
     t, X = rkfm(rouse_f, D, t0, tf, x0, tol=1e-6, hmax=hmax, hmin=hmin)
     return t, X
 

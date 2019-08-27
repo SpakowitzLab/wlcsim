@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 from .utils.utils import well_behaved_decorator, make_decorator_factory_args_optional
 from scipy import stats
+from matplotlib.widgets import Slider, Button, RadioButtons
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt
 
 
 def make_standard_axes(is_3D=False):
@@ -79,3 +82,73 @@ def locally_linear_fit(x, y, window_size=5, **kwargs):
         ax.plot(x, slope, **kwargs)
     return ax, slope
 
+class PolymerViewer(object):
+
+    def __init__(self, r=None):
+        # will keep track of which *index* in the time axis should be used to
+        # draw the current scene
+        self.t = 0
+        self.r = r
+        # define the actual axes layout
+        self.fig = plt.figure()
+        # area to plot polymers
+        self.ax3d = plt.axes([0.05, 0.15, 0.9, 0.8], facecolor='w', projection='3d')
+        # area to plot "slider" for selecting what time to plot
+        self.ax = plt.axes([0.1, 0.025, 0.8, 0.05], facecolor='lightgoldenrodyellow')
+        # # set up the QtGui panel and textbox
+        # self.root = self.fig.canvas.manager.window
+        # self.panel = QtWidgets.QWidget()
+        # self.hbox = QtWidgets.QHBoxLayout(self.panel)
+        # self.textbox = QtWidgets.QLineEdit(parent=self.panel)
+        # self.hbox.addWidget(self.textbox)
+        # self.panel.setLayout(self.hbox)
+        # self.dock = QtWidgets.QDockWidget("Simulation Directory", self.root)
+        # self.root.addDockWidget(Qt.BottomDockWidgetArea, self.dock)
+        # self.dock.setWidget(self.panel)
+        # slider to control what "time" is plotted, (0,1) is rescaled total
+        # simulation time units
+        self.slider_t = Slider(self.ax, 't', 0, 1, valinit=0)
+        # handler to check if the "time" slider has been moved
+        self.slider_t.on_changed(self.update_t)
+        plt.show()
+
+    @property
+    def r(self):
+        return self._r
+
+    @r.setter
+    def r(self, new_r):
+        self._r = new_r
+        self._num_time_points, self._num_beads, self._d = self._r.shape
+
+
+    # should never be called before a Sim has been loaded successfully
+    def update_drawing(self):
+        num_polymers = 1
+        if num_polymers != len(self.ax3d.lines):
+            self.ax3d.lines = []
+            for i in range(num_polymers):
+                self.ax3d.plot(self.r[self.t,:,0],
+                               self.r[self.t,:,1],
+                               self.r[self.t,:,2])
+        for i,line in enumerate(self.ax3d.lines):
+            x, y, z = (self.r[self.t,:,0], self.r[self.t,:,1],
+                       self.r[self.t,:,2])
+            line.set_data(x, y)
+            line.set_3d_properties(z)
+        self.fig.canvas.draw_idle()
+
+    def update_ax_limits(self):
+        self.ax3d.set_xlim((np.nanmin(self.r[:,:,0]), np.nanmax(self.r[:,:,0])))
+        self.ax3d.set_ylim((np.nanmin(self.r[:,:,1]), np.nanmax(self.r[:,:,1])))
+        self.ax3d.set_zlim((np.nanmin(self.r[:,:,2]), np.nanmax(self.r[:,:,2])))
+
+    def update_t(self, val):
+        if self.r is None:
+            return
+        # calculate value on slider
+        new_t = int(round(val*self._num_time_points))
+        # bound it to 0, num_time_points-1
+        new_t = max(0, min(self._num_time_points-1, new_t))
+        self.t = new_t
+        self.update_drawing()

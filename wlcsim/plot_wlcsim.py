@@ -16,7 +16,7 @@ from .data import Sim
 
 class SimulationViewer(object):
 
-    def __init__(self):
+    def __init__(self, x=None):
         # will keep track of which *index* in the time axis should be used to
         # draw the current scene
         self.t = 0

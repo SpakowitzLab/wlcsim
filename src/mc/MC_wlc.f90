@@ -136,7 +136,7 @@ subroutine calc_elastic_constants(DEL,LP,LT,EB,EPAR,GAM,XIR,EPERP,ETA,XIU,DT,SIG
     !  interperate the meaning of the end beads of the polymer.
 
 
-        ! std dev of interbead distribution of nearest possible GC, used to initialize sometimes
+    ! std dev of interbead distribution of nearest possible GC, used to initialize sometimes
     !wlc_p%SIGMA = sqrt(2.0_dp*WLC_P__LP*WLC_P__L/3.0_dp)/real(WLC_P__NB - 1)
     SIGMA = LP*sqrt(DEL*2.0_dp/3.0_dp)
 
