@@ -105,6 +105,7 @@ class PolymerViewer(object):
         # self.dock = QtWidgets.QDockWidget("Simulation Directory", self.root)
         # self.root.addDockWidget(Qt.BottomDockWidgetArea, self.dock)
         # self.dock.setWidget(self.panel)
+        self.update_ax_limits()
         # slider to control what "time" is plotted, (0,1) is rescaled total
         # simulation time units
         self.slider_t = Slider(self.ax, 't', 0, 1, valinit=0)
@@ -120,6 +121,8 @@ class PolymerViewer(object):
     def r(self, new_r):
         self._r = new_r
         self._num_time_points, self._num_beads, self._d = self._r.shape
+        if hasattr(self, 'ax3d'):
+            self.update_ax_limits()
 
 
     # should never be called before a Sim has been loaded successfully
