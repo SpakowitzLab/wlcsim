@@ -532,12 +532,12 @@ class HomologViewer(PolymerViewer):
         self.t = 0
         self.N = N
         self.loop_list = loop_list
-        self.r = r
         self.points = None
         # define the actual axes layout
         self.fig = plt.figure()
         # area to plot polymers
         self.ax3d = plt.axes([0.05, 0.15, 0.9, 0.8], facecolor='w', projection='3d')
+        self.r = r
         # area to plot "slider" for selecting what time to plot
         self.ax = plt.axes([0.1, 0.025, 0.8, 0.05], facecolor='lightgoldenrodyellow')
         self.update_ax_limits()
@@ -559,6 +559,8 @@ class HomologViewer(PolymerViewer):
         self._num_time_points, self._num_beads, self._d = self._r.shape
         if hasattr(self, 'ax3d'):
             self.update_ax_limits()
+            self.update_drawing()
+
 
 
     # should never be called before a Sim has been loaded successfully
