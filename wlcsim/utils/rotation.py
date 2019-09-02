@@ -1,3 +1,6 @@
+import numpy as np
+from numba import jit
+
 @jit(nopython=True)
 def cot_plane(u, unit=True, tol=1e-8):
     """Return an arbitrary basis to the cotangent plane given the tangent

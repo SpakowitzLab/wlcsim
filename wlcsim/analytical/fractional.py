@@ -3,9 +3,12 @@
 For the case alpha=1, these formulas should reduce to the analogous ones in
 :mod:`wlcsim.analytical.rouse`."""
 from .rouse import kp_over_kbt, rouse_mode, rouse_mid_msd
+from ..tabulation import frac_vel_corr
 
 from bruno_util.mittag_leffler import ml as mittag_leffler
 import numpy as np
+
+from pathlib import Path
 
 def frac_msd(t, alpha, D):
     """MSD of fractionally diffusing free particle.
@@ -226,29 +229,13 @@ def vcp(t, delta, beta):
     return ( np.power(np.abs(t + delta), beta)
            - np.power(np.abs(t), beta) )*np.power(delta, beta)
 
-# precomupted velocity cross-correlation for rouse polymer
-# from Lampo et al, was pre-computed on a grid...
-deltas_ = np.linspace(-3, 3, 25) # placeholders for corresponding values in logspace
-alphas_ = np.linspace(0.25, 1, 31) # steps of 0.025
-tOverDeltas_ = np.linspace(0, 5, 501) # steps of 0.01
-vvcf_table_ = np.reshape(np.loadtxt(Path(__file__).parent / Path('vvcf_table.csv'),
-        delimiter=','), (31, 25, 501))
-def calc_vel_corr_fixed_(tOverDelta, deltaOverTDeltaN, alpha):
-    # this performs interpolation in logspace for "delta"/deltaOverTDeltaN
-    deltaOverTDeltaN = np.log10(deltaOverTDeltaN)
-    return scipy.interpolate.interpn((alphas_, deltas_, tOverDeltas_),
-                                     vvcf_table_,
-                                     (alpha, deltaOverTDeltaN, tOverDelta))
-calc_vel_corr_fixed_.vvcf = None
-calc_vel_corr_fixed = np.vectorize(calc_vel_corr_fixed_)
-
 def vvc_unscaled_theory(t, delta, beta, A, tDeltaN):
     """velocity cross correlation of two points on rouse polymer."""
-    return 2*(vc(t*delta, delta, beta) - calc_vel_corr_fixed(t, delta/tDeltaN, 2*beta))
+    return 2*(vc(t*delta, delta, beta) - frac_vel_corr(t, delta/tDeltaN, 2*beta))
 
 def vvc_rescaled_theory(t, delta, beta, A, tDeltaN):
     """velocity cross correlation of two points on rouse polymer."""
-    return 2*A*np.power(delta, beta)*(vc(t*delta, delta, beta) - calc_vel_corr_fixed(t, delta/tDeltaN, 2*beta))
+    return 2*A*np.power(delta, beta)*(vc(t*delta, delta, beta) - frac_vel_corr(t, delta/tDeltaN, 2*beta))
 
 def vvc_normalized_theory(t, delta, beta, A, tDeltaN):
     return vvc_unscaled_theory(t, delta, beta, A, tDeltaN) \
