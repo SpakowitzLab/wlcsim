@@ -42,16 +42,17 @@ def rouse_mode_coef(p, b, N, kbT=1):
     return 3*np.pi**2*kbT/(N*b**2)*p**2
 
 @jit(nopython=True)
-def kp_over_kbt(p, b, N):
+def kp_over_kbt(p : float, b : float, N : float):
     """k_p/(k_B T) : "non-dimensionalized" k_p is all that's needed for most
     formulas, e.g. MSD."""
     return (3*np.pi*np.pi)/(N*b*b) * p*p
 
+@jit(nopython=True)
 def rouse_mid_msd(t, b, N, D, num_modes=1000):
     """
     modified from Weber Phys Rev E 2010, Eq. 24.
     """
-    rouse_corr = 0
+    rouse_corr = np.zeros_like(t)
     for p in range(1, num_modes+1):
         # k2p = rouse_mode_coef(2*p, b, N, kbT)
         # rouse_corr += 12*kbT/k2p*(1 - np.exp(-k2p*t/(N*xi)))
