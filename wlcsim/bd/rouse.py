@@ -52,7 +52,7 @@ def rouse(N, L, b, D, t, x0=None):
 
 @jit(nopython=True)
 def jit_rouse(N, L, b, D, t, t_save=None):
-    r""" faster version of wlcsim.bd.rouse.rouse using jit
+    r"""faster version of wlcsim.bd.rouse.rouse using jit
     #TODO: change to input units of "D" = 3*bhat*np.sqrt(Dhat)/np.sqrt(3),
     which is the "apparent" diffusion coefficient of the Rouse-part of the MSD.
 
@@ -138,9 +138,11 @@ def jit_rouse_confined(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     controlling its strength """
     rtol = 1e-5
     # derived parameters
-    k_over_xi = 3*D/b**2
     L0 = L/(N-1) # length per bead
-    Lb = L0/b # kuhn lengths per bead
+    bhat = np.sqrt(L0*b) # mean squared bond length of discrete gaussian chain
+    Nhat = L/b # number of Kuhn lengths in chain
+    Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
+    k_over_xi = 3*Dhat/bhat**2
     # initial position
     x0 = np.zeros((N, 3))
     # x0 = np.cumsum(x0, axis=0)
@@ -166,7 +168,7 @@ def jit_rouse_confined(N, L, b, D, Aex, rx, ry, rz, t, t_save):
         t0 = t[i-1]
         dW = np.random.randn(*x0.shape)
 # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
-        Fbrown = np.sqrt(2*D/h)*(dW - S[i])
+        Fbrown = np.sqrt(2*Dhat/h)*(dW - S[i])
         # estimate for slope at interval start
         f = np.zeros(x0.shape)
         j = 0
@@ -185,7 +187,7 @@ def jit_rouse_confined(N, L, b, D, Aex, rx, ry, rz, t, t_save):
                 f[j,n] += -k_over_xi*(x0[j,n] - x0[j-1,n])
                 f[j-1,n] += -k_over_xi*(x0[j-1,n] - x0[j,n])
         K1 = f + Fbrown
-        Fbrown = np.sqrt(2*D/h)*(dW + S[i])
+        Fbrown = np.sqrt(2*Dhat/h)*(dW + S[i])
         # estimate for slope at interval end
         x1 = x0 + h*K1
         f = np.zeros(x1.shape)
@@ -260,9 +262,11 @@ def jit_rouse_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     """Unfortunately, by "cleaning up" this function, we also make it 2x slower"""
     rtol = 1e-5
     # derived parameters
-    k_over_xi = 3*D/b**2
     L0 = L/(N-1) # length per bead
-    Lb = L0/b # kuhn lengths per bead
+    bhat = np.sqrt(L0*b) # mean squared bond length of discrete gaussian chain
+    Nhat = L/b # number of Kuhn lengths in chain
+    Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
+    k_over_xi = 3*Dhat/bhat**2
     # initial position
     x0 = _init_in_confinement(N, b*np.sqrt(Lb), rx, ry, rz)
     # pre-alloc output
@@ -284,10 +288,10 @@ def jit_rouse_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
         # -1 or 1, p=1/2
         S = 2*(np.random.rand() < 0.5) - 1
         # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
-        Fbrown = np.sqrt(2*D/h)*(dW - S)
+        Fbrown = np.sqrt(2*Dhat/h)*(dW - S)
         # estimate for slope at interval start
         K1 = f_conf(x0, Aex, rx, ry, rz) + f_elas(x0, k_over_xi) + Fbrown
-        Fbrown = np.sqrt(2*D/h)*(dW + S)
+        Fbrown = np.sqrt(2*Dhat/h)*(dW + S)
         x1 = x0 + h*K1
         # estimate for slope at interval end
         K2 = f_conf(x1, Aex, rx, ry, rz) + f_elas(x1, k_over_xi) + Fbrown
@@ -493,9 +497,11 @@ def jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
     """do rouse_homologs given specific homolog pairs"""
     rtol = 1e-5
     # derived parameters
-    k_over_xi = 3*D/b**2
     L0 = L/(N-1) # length per bead
-    Lb = L0/b # kuhn lengths per bead
+    bhat = np.sqrt(L0*b) # mean squared bond length of discrete gaussian chain
+    Nhat = L/b # number of Kuhn lengths in chain
+    Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
+    k_over_xi = 3*Dhat/bhat**2
     # initial position
     x0 = _init_homologs(N, N_tot, loop_list, b*np.sqrt(Lb), rx, ry, rz)
     # pre-alloc output
@@ -517,10 +523,10 @@ def jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
         # -1 or 1, p=1/2
         S = 2*(np.random.rand() < 0.5) - 1
         # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
-        Fbrown = np.sqrt(2*D/h)*(dW - S)
+        Fbrown = np.sqrt(2*Dhat/h)*(dW - S)
         # estimate for slope at interval start
         K1 = f_conf(x0, Aex, rx, ry, rz) + f_elas_homolog(x0, N, loop_list, k_over_xi) + Fbrown
-        Fbrown = np.sqrt(2*D/h)*(dW + S)
+        Fbrown = np.sqrt(2*Dhat/h)*(dW + S)
         x1 = x0 + h*K1
         # estimate for slope at interval end
         K2 = f_conf(x1, Aex, rx, ry, rz) + f_elas_homolog(x1, N, loop_list, k_over_xi) + Fbrown
@@ -577,8 +583,6 @@ class HomologViewer(PolymerViewer):
             self.update_ax_limits()
             self.update_drawing()
 
-
-
     # should never be called before a Sim has been loaded successfully
     def update_drawing(self):
         num_polymers = 2
@@ -614,223 +618,4 @@ class HomologViewer(PolymerViewer):
         new_t = max(0, min(self._num_time_points-1, new_t))
         self.t = new_t
         self.update_drawing()
-
-
-
-########
-# other integrators
-########
-def rk4_thermal_lena(f, D, t, x0):
-    """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D
-
-    x0 is x(t[0]).
-
-    :math:`f: R^n x R -> R^n`
-    """
-    t = np.array(t)
-    x0 = np.array(x0)
-    x = np.zeros(t.shape + x0.shape)
-    dts = np.diff(t)
-    x[0] = x0
-    dxdt = np.zeros((4,) + x0.shape) # one for each RK step
-    # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
-    # in order to make it easy to pull into a new functin later, we'll call
-    # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
-    for i in range(1, len(t)):
-        h = dts[i-1]
-        t0 = t[i-1]
-        x0 = x[i-1]
-        x_est = x0
-        Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
-        dxdt[0] = f(x0, t0) + Fbrown # slope at beginning of time step
-        x_est = x0 + dxdt[0]*(h/2) # first estimate at midpoint
-        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown # estimated slope at midpoint
-        x_est = x0 + dxdt[1]*(h/2) # second estimate at midpoint
-        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown # second estimated slope at midpoint
-        x_est = x0 + dxdt[2]*h # first estimate at next time point
-        dxdt[3] = f(x_est, t0 + h) + Fbrown # slope at end of time step
-        # final estimate is weighted average of slope estimates
-        x[i] = x0 + h*(dxdt[0] + 2*dxdt[1] + 2*dxdt[2] + dxdt[3])/6
-    return x
-
-def rk4_thermal_bruno(f, D, t, x0):
-    """WARNING: does not converge strongly (autocorrelation function seems
-    higher than should be for OU process...), as is...x'(t) = f(x(t), t) +
-    Xi(t), where Xi is thermal, diffusivity D
-
-    x0 is x(t[0]).
-
-    :math:`f: R^n x R -> R^n`
-    """
-    t = np.array(t)
-    x0 = np.array(x0)
-    x = np.zeros(t.shape + x0.shape)
-    dts = np.diff(t)
-    x[0] = x0
-    dxdt = np.zeros((4,) + x0.shape) # one for each RK step
-    Fbrown = np.sqrt(2*D / ((t[1] - t[0])/2))
-    # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
-    # in order to make it easy to pull into a new functin later, we'll call
-    # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
-    for i in range(1, len(t)):
-        h = dts[i-1]
-        t0 = t[i-1]
-        x0 = x[i-1]
-        x_est = x0
-        dxdt[0] = f(x0, t0) + Fbrown # slope at beginning of time step
-        # random force estimate at midpoint
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=x0.shape)
-        x_est = x0 + dxdt[0]*(h/2) # first estimate at midpoint
-        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown # estimated slope at midpoint
-        x_est = x0 + dxdt[1]*(h/2) # second estimate at midpoint
-        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown # second estimated slope at midpoint
-        x_est = x0 + dxdt[2]*h # first estimate at next time point
-        # random force estimate at endpoint (and next start point)
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=x0.shape)
-        dxdt[3] = f(x_est, t0 + h) + Fbrown # slope at end of time step
-        # final estimate is weighted average of slope estimates
-        x[i] = x0 + h*(dxdt[0] + 2*dxdt[1] + 2*dxdt[2] + dxdt[3])/6
-    return x
-
-def euler_maruyama(f, D, t, x0):
-    t = np.array(t)
-    x0 = np.array(x0)
-    x = np.zeros(t.shape + x0.shape)
-    dts = np.diff(t)
-    x[0] = x0
-    # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
-    # in order to make it easy to pull into a new functin later, we'll call
-    # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
-    for i in range(1, len(t)):
-        h = dts[i-1]
-        t0 = t[i-1]
-        x0 = x[i-1]
-        Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
-        x[i] = x0 + h*(Fbrown + f(x0, t0))
-    return x
-
-def srk1_roberts(f, D, t, x0):
-    r"""From wiki, from A. J. Roberts. Modify the improved Euler scheme to
-    integrate stochastic differential equations. [1], Oct 2012.
-
-    If we have an Ito SDE given by
-
-    .. math::
-
-        d\vec{X} = \vec{a}(t, \vec{X}) + \vec{b}(t, \vec{X}) dW
-
-    then
-
-    .. math::
-
-        \vec{K}_1 = h \vec{a}(t_k, \vec{X}_k) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_k, \vec{X}_k)
-        \vec{K}_2 = h \vec{a}(t_{k+1}, \vec{X}_k + \vec{K}_1) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_{k+1}, \vec{X}_k + \vec{K}_1)
-        \vec{X}_{k+1} = \vec{X}_k + \frac{1}{2}(\vec{K}_1 + \vec{K}_2)
-
-    where :math:`\Delta W_k = \sqrt{h} Z_k` for a normal random :math:`Z_k \sim
-    N(0,1)`, and :math:`S_k=\pm1`, with the sign chosen uniformly at random
-    each time."""
-    t = np.array(t)
-    x0 = np.array(x0)
-    x = np.zeros(t.shape + x0.shape)
-    dts = np.diff(t)
-    # -1 or 1, p=1/2
-    S = 2*(np.random.random_sample(size=t.shape) < 0.5) - 1
-    x[0] = x0
-    # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
-    # in order to make it easy to pull into a new functin later, we'll call
-    # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
-    for i in range(1, len(t)):
-        h = dts[i-1]
-        t0 = t[i-1]
-        x0 = x[i-1]
-        dW = np.random.normal(size=x0.shape)
-# D = sigma^2/2 ==> sigma = np.sqrt(2*D)
-        Fbrown = np.sqrt(2*D/h)*(dW - S[i])
-        # estimate for slope at interval start
-        K1 = f(x0, t0) + Fbrown
-        Fbrown = np.sqrt(2*D/h)*(dW + S[i])
-        # estimate for slope at interval end
-        K2 = f(x0+h*K1, t0+h) + Fbrown
-        x[i] = x0 + h * (K1 + K2)/2
-    return x
-
-# simple test case
-def ou(x0, t, k_over_xi, D, method=rk4_thermal_lena):
-    "simulate ornstein uhlenbeck process with theta=k_over_xi and sigma^2/2=D"
-    def f(x,t):
-        return -k_over_xi*x
-    return method(f, D=D, t=t, x0=x0)
-
-@jit(nopython=True)
-def _get_scalar_corr(X, t):
-    "fast correlation calculation for testing"
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(X.shape[1]):
-        for j in range(X.shape[0]):
-            for k in range(j, X.shape[0]):
-                corr[k-j] += X[k,i]*X[j,i]
-                count[k-j] += 1
-    return corr, count
-
-@jit
-def _get_vector_corr(X, t):
-    "fast correlation calculation for testing"
-    num_t, num_samples = X.shape
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(num_t):
-        for j in range(j, num_t):
-            for k in range(num_samples):
-                corr[j-i] += X[j,k]@X[i,k]
-                count[j-i] += 1
-    return corr, count
-
-@jit(nopython=True)
-def _get_bead_msd(X, k=None):
-    """center bead by default
-
-    for 1e4-long time arrays, this takes ~10-30s on my laptop"""
-    num_t, num_beads, d = X.shape
-    if k is None:
-        k = max(0, num_beads/2 - 1)
-    k = int(k)
-    ta_msd = np.zeros((num_t,))
-    count = np.zeros((num_t,))
-    for i in range(num_t):
-        for j in range(i, num_t):
-            ta_msd[j-i] += (X[j,k] - X[i,k])@(X[j,k] - X[i,k])
-            count[j-i] += 1
-    return ta_msd, count
-
-@jit(nopython=True)
-def _msd(x):
-    result = np.zeros_like(x)
-    for delta in range(1,len(x)):
-        for i in range(delta,len(x)):
-            result[delta] += (x[i] - x[i-delta])**2
-        result[delta] = result[delta] / (len(x) - delta)
-    return result
-
-# test different integrators below on simply OU process
-def test_ou_autocorr(method=srk1_roberts):
-    k = 2
-    xi = 4
-    kbT = 1
-    D = kbT/xi
-    k_over_xi = k/xi
-    x0 = scipy.stats.norm.rvs(scale=np.sqrt(D/k_over_xi), size=(10_000,))
-    t = np.linspace(0, 1e2, 1e3+1)
-    X = ou(x0, t, k_over_xi, D, method=method)
-    assert(np.abs(np.var(X) - D/k_over_xi)/(D/k_over_xi) < 0.1)
-    corr, count = _get_corr(X, t)
-    err = corr/count - (kbT/k)*np.exp(-k_over_xi*t)
-    plt.figure()
-    plt.plot(t, err)
-    plt.figure()
-    plt.hist(X[-100:].flatten(), bins=100, density=1)
-    x = np.linspace(-3, 3, 100)
-    plt.plot(x, scipy.stats.norm(scale=np.sqrt(D/k_over_xi)).pdf(x))
-    return X
 
