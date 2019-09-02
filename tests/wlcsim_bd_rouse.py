@@ -20,5 +20,9 @@ tmsd = np.logspace(-1, 2, 101)
 msd_rouse = wlcsim.analytical.rouse.rouse_mid_msd(tmsd, b, N, D)
 plt.plot(tmsd, msd_rouse, 'k', label='Full Rouse Theory')
 
+plt.yscale('log'); plt.xscale('log')
+plt.legend()
+plt.xlabel('time (s)')
+plt.ylabel('MSD (nm^2/s)')
 
-
+plt.title('Simulation matches analytical Rouse theory')

@@ -1,3 +1,6 @@
+tmp
+tmp/*
+wlcsim/tabulation/*
 data/*
 *.o
 trash/*

@@ -13,6 +13,14 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
 
+def recommended_dt(b, D):
+    r"""Recommended "dt" for use with rouse*jit family of functions.
+
+    Currently set to :math:`\frac{1}{10}\frac{b^2}{6D}`.
+
+    See the rouse_jit docstring for source of this time scale."""
+    return (1/10)*b*b/6/D
+
 def rouse(N, L, b, D, t, x0=None):
     r"""Simulate a Rouse polymer made of N beads free in solution.
 
@@ -45,6 +53,8 @@ def rouse(N, L, b, D, t, x0=None):
 @jit(nopython=True)
 def jit_rouse(N, L, b, D, t, t_save=None):
     r""" faster version of wlcsim.bd.rouse.rouse using jit
+    #TODO: change to input units of "D" = 3*bhat*np.sqrt(Dhat)/np.sqrt(3),
+    which is the "apparent" diffusion coefficient of the Rouse-part of the MSD.
 
     N=101,L=100,b=1,D=1 takes about 3.5min to run when
     t=np.linspace(0, 1e5, 1e7+1)
@@ -59,6 +69,10 @@ def jit_rouse(N, L, b, D, t, t_save=None):
     any more accurate, so we suggest setting :math:`\Delta t =
     \frac{1}{10}\frac{b^2}{6D}`.
 
+    the number of orders of magnitude of "rouse" scaling the simulation will
+    capture is exactly dictated by the ratio between this time scale and the
+    rouse relaxation time (so like ?N**2?)
+
     recall (doi & edwards, eq 4.25) that the first mode's relaxation time is
     :math:`\tau_1 = \frac{\xi N^2}{k \pi^2 }`.
     and the :math:`p`th mode is :math:`\tau_p = \tau_1/p^2` (this is the
@@ -66,11 +80,13 @@ def jit_rouse(N, L, b, D, t, t_save=None):
     """
     rtol = 1e-5
     # derived parameters
-    k_over_xi = 3*D/b**2
     L0 = L/(N-1) # length per bead
-    Lb = L0/b # kuhn lengths per bead
-    # initial position
-    x0 = b*np.sqrt(Lb)*np.random.randn(N, 3)
+    bhat = np.sqrt(L0*b) # mean squared bond length of discrete gaussian chain
+    Nhat = L/b # number of Kuhn lengths in chain
+    Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
+    k_over_xi = 3*Dhat/bhat**2
+    # initial position, sqrt(3) since generating per-coordinate
+    x0 = bhat/np.sqrt(3)*np.random.randn(N, 3)
     # x0 = np.cumsum(x0, axis=0)
     for i in range(1,N):
         x0[i] = x0[i-1] + x0[i]
@@ -91,8 +107,8 @@ def jit_rouse(N, L, b, D, t, t_save=None):
         h = dts[i-1]
         t0 = t[i-1]
         dW = np.random.randn(*x0.shape)
-# D = sigma^2/2 ==> sigma = np.sqrt(2*D)
-        Fbrown = np.sqrt(2*D/h)*(dW - S[i])
+        # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
+        Fbrown = np.sqrt(2*Dhat/h)*(dW - S[i])
         # estimate for slope at interval start
         f = np.zeros(x0.shape)
         for j in range(1,N):
@@ -100,7 +116,7 @@ def jit_rouse(N, L, b, D, t, t_save=None):
                 f[j,n] += -k_over_xi*(x0[j,n] - x0[j-1,n])
                 f[j-1,n] += -k_over_xi*(x0[j-1,n] - x0[j,n])
         K1 = f + Fbrown
-        Fbrown = np.sqrt(2*D/h)*(dW + S[i])
+        Fbrown = np.sqrt(2*Dhat/h)*(dW + S[i])
         # estimate for slope at interval end
         x1 = x0 + h*K1
         f = np.zeros(x0.shape)
@@ -778,7 +794,8 @@ def _get_bead_msd(X, k=None):
     for 1e4-long time arrays, this takes ~10-30s on my laptop"""
     num_t, num_beads, d = X.shape
     if k is None:
-        k = max(0, int(num_beads/2 - 1))
+        k = max(0, num_beads/2 - 1)
+    k = int(k)
     ta_msd = np.zeros((num_t,))
     count = np.zeros((num_t,))
     for i in range(num_t):

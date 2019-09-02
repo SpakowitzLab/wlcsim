@@ -131,9 +131,11 @@ def end2end_distance(r, lp, N, L):
         return (actual_r, G)
     # GC case
     else:
-        return (actual_r, end2end_distance_gauss(actual_r, lp=lp, N=N, L=L))
+        return (actual_r, end2end_distance_gauss(actual_r, b=2*lp, N=N, L=L))
 
-def end2end_distance_gauss(r, lp, N, L):
+def end2end_distance_gauss(r, b, N, L):
+    """ in each dimension... ? seems to be off by a factor of 3 from the
+    simulation...."""
     r2 = np.power(r, 2)
-    return 3.0*r2*sqrt(6/np.pi)*power(N/(2*lp*L), 1.5) \
-            *np.exp(-(3/2)*(N/(2*lp*L))*r2)
+    return 3.0*r2*np.sqrt(6/np.pi)*np.power(N/(b*L), 1.5) \
+            *np.exp(-(3/2)*(N/(b*L))*r2)
