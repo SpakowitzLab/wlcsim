@@ -45,7 +45,7 @@ def rouse_mode_coef(p, b, N, kbT=1):
 def kp_over_kbt(p, b, N):
     """k_p/(k_B T) : "non-dimensionalized" k_p is all that's needed for most
     formulas, e.g. MSD."""
-    return (3*pi*pi)/(N*b*b) * p*p
+    return (3*np.pi*np.pi)/(N*b*b) * p*p
 
 def rouse_mid_msd(t, b, N, D, num_modes=1000):
     """
