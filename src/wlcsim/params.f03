@@ -383,7 +383,7 @@ contains
         endif
 
         err = WLC_P__NO_SELF_CROSSING .and. WLC_P__NP > 1
-        call stop_if_err(err, "linking number calculation is implemented only for one chain."
+        call stop_if_err(err, "linking number calculation is implemented only for one chain.")
 
         err = WLC_P__TWIST .and. WLC_P__LOCAL_TWIST
         call stop_if_err(err, "You are trying to do both local and global twist, choose one")
