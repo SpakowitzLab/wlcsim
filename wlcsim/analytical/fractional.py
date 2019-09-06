@@ -54,6 +54,9 @@ def frac_discrete_cv_normalized(t, delta, alpha):
         + np.power(np.abs(t + delta), alpha)
         )/(2*np.power(delta, alpha))
 
+def terminal_relaxation_time(alpha, b, N, D):
+    return np.power(N*N*b*b/D, 1/alpha)
+
 def frac_rouse_mode_corr(p, t, alpha, b, N, D):
     """Weber Phys Rev E 2010, Eq. 21."""
     # equivalent to the following
@@ -240,3 +243,4 @@ def vvc_rescaled_theory(t, delta, beta, A, tDeltaN):
 def vvc_normalized_theory(t, delta, beta, A, tDeltaN):
     return vvc_unscaled_theory(t, delta, beta, A, tDeltaN) \
          / vvc_unscaled_theory(0, delta, beta, A, tDeltaN)
+
