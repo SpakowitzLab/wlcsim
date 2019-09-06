@@ -13,6 +13,8 @@ Bruno has not yet tested this explicitly.
 You can find Lena's algorithm (hold brownian force constant over an rk4 step)
 below. It is unlikely to be strongly convergent except if you subsample below
 the actual desired time resolution."""
+from numba import jit
+import numpy as np
 
 ########
 # other integrators
