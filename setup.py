@@ -26,5 +26,6 @@ if __name__ == "__main__":
                        "Topic :: Scientific/Engineering :: Vizualization",
                       ],
           packages=find_packages(include=["wlcsim", "wlcsim.*"]),
-          install_requires=["pandas>=0.18.1", "numpy>=1.11.1"],
+          install_requires=["scipy", "statsmodels", "matplotlib", "seaborn",
+                            "mpmath", "pandas", "numpy", "bruno_util"],
           )
