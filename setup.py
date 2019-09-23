@@ -26,6 +26,9 @@ if __name__ == "__main__":
                        "Topic :: Scientific/Engineering :: Vizualization",
                       ],
           packages=find_packages(include=["wlcsim", "wlcsim.*"]),
+          package_data={
+              'wlcsim.tabulation': ['*.csv'],
+          },
           install_requires=["scipy", "statsmodels", "matplotlib", "seaborn",
                             "mpmath", "pandas", "numpy", "bruno_util",
                             "PyQt5"],
