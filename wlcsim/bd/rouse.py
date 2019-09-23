@@ -66,7 +66,7 @@ length of about 1e6 megabase/base * 0.33 nm/base ~ 3e5 nm, and a Kuhn length of
 
 """
 from ..plot import PolymerViewer
-from bruno_util.runge_kutta import *
+from .runge_kutta import *
 
 from numba import jit
 import numpy as np
@@ -226,7 +226,12 @@ def rouse(N, L, b, D, t, x0=None):
     Notice that in practice, :math:`k/\xi = 3D/b^2`, so we do not need to
     include mass units (i.e. there's no dependence on :math:`k_BT`).
     """
-    k_over_xi = 3*D/b**2
+    # derived parameters
+    L0 = L/(N-1) # length per bead
+    bhat = np.sqrt(L0*b) # mean squared bond length of discrete gaussian chain
+    Nhat = L/b # number of Kuhn lengths in chain
+    Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
+    k_over_xi = 3*Dhat/bhat**2
     def rouse_f(x, t):
         dx = np.diff(x, axis=0)
         return -k_over_xi*(np.concatenate([zero, dx]) + np.concatenate([dx, zero]))
@@ -234,14 +239,12 @@ def rouse(N, L, b, D, t, x0=None):
         L0 = L/(N-1) # length per bead
         Lb = L0/b # kuhn lengths per bead
         x0 = b*np.sqrt(Lb)*np.cumsum(np.random.normal(size=(N,3)), axis=0)
-    X = rk4_thermal_lena(rouse_f, D, t, x0)
+    X = rk4_thermal_lena(rouse_f, Dhat, t, x0)
     return X
 
 @jit(nopython=True)
 def jit_rouse(N, L, b, D, t, t_save=None):
     r"""faster version of wlcsim.bd.rouse.rouse using jit
-    #TODO: change to input units of "D" to instead refer to D_app
-    which is the "apparent" diffusion coefficient of the Rouse-part of the MSD.
 
     N=101,L=100,b=1,D=1 takes about 3.5min to run when
     t=np.linspace(0, 1e5, 1e7+1)
@@ -334,9 +337,10 @@ def jit_rouse_confined(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     x0 = np.zeros((N, 3))
     # x0 = np.cumsum(x0, axis=0)
     for i in range(1,N):
-        x0[i] = x0[i-1] + b*np.sqrt(Lb)*np.random.randn(3)
+        # 1/sqrt(3) since generating per-coordinate
+        x0[i] = x0[i-1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i,0]**2/rx**2 + x0[i,1]**2/ry**2 + x0[i,2]**2/rz**2 > 1:
-            x0[i] = x0[i-1] + b*np.sqrt(Lb)*np.random.randn(3)
+            x0[i] = x0[i-1] + bhat/np.sqrt(3)*np.random.randn(3)
     if t_save is None:
         t_save = t
     x = np.zeros(t_save.shape + x0.shape)
@@ -401,7 +405,7 @@ def jit_rouse_confined(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     return x
 
 @jit(nopython=True)
-def _init_in_confinement(N, bLb, rx, ry, rz):
+def _init_in_confinement(N, bhat, rx, ry, rz):
     """ad-hoc method to get close to equilibrium before starting
 
     Parameters
@@ -415,9 +419,10 @@ def _init_in_confinement(N, bLb, rx, ry, rz):
     x0 = np.zeros((N, 3))
     # x0 = np.cumsum(x0, axis=0)
     for i in range(1,N):
-        x0[i] = x0[i-1] + bLb*np.random.randn(3)
+        # 1/sqrt(3) since generating per-coordinate
+        x0[i] = x0[i-1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i,0]**2/rx**2 + x0[i,1]**2/ry**2 + x0[i,2]**2/rz**2 > 1:
-            x0[i] = x0[i-1] + bLb*np.random.randn(3)
+            x0[i] = x0[i-1] + bhat/np.sqrt(3)*np.random.randn(3)
     return x0
 
 @jit(nopython=True)
@@ -460,7 +465,10 @@ def f_elas(x0, k_over_xi):
 
 @jit(nopython=True)
 def jit_rouse_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
-    """Unfortunately, by "cleaning up" this function, we also make it 2x slower"""
+    """Unfortunately, by "cleaning up" this function, we also make it 2x slower
+
+    #worthit
+    """
     rtol = 1e-5
     # derived parameters
     L0 = L/(N-1) # length per bead
@@ -469,7 +477,7 @@ def jit_rouse_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
     k_over_xi = 3*Dhat/bhat**2
     # initial position
-    x0 = _init_in_confinement(N, b*np.sqrt(Lb), rx, ry, rz)
+    x0 = _init_in_confinement(N, bhat, rx, ry, rz)
     # pre-alloc output
     if t_save is None:
         t_save = t
@@ -817,10 +825,10 @@ def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
     b : float
         Kuhn length of the chain (in same length units as L)
     D : float
-        "0th Rouse mode", or the diffusivity of the chain as a whole. This is
-        often difficult to measure directly, but see the documentation for the
-        function :func:`measured_D_to_rouse` for instructions on how to compute
-        this value given clean measurements of short-time regular diffusion or
+        The diffusivity of a Kuhn length of the chain. This can often difficult
+        to measure directly, but see the documentation for the function
+        :func:`measured_D_to_rouse` for instructions on how to compute this
+        value given clean measurements of short-time regular diffusion or
         Rouse-like MSD behavior
     Aex : float
         multiplicative prefactor controlling strength of confinment and
@@ -828,7 +836,7 @@ def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
     rx, ry, rz : float
         radius of confinement in x, y, z direction(s) respectively
     t : (M,) float, array_like
-        The BD integrator will step time from t[0] to t[1], ...,
+        The BD integrator will step time from t[0] to t[1] to t[2] to ...
     t_save : (m,) float, array_like
         `t_save`:math:`\subset``t` will be the time steps where the simulation
         output is saved. Default is `t_save = t`.
