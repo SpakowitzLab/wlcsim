@@ -27,5 +27,6 @@ if __name__ == "__main__":
                       ],
           packages=find_packages(include=["wlcsim", "wlcsim.*"]),
           install_requires=["scipy", "statsmodels", "matplotlib", "seaborn",
-                            "mpmath", "pandas", "numpy", "bruno_util"],
+                            "mpmath", "pandas", "numpy", "bruno_util",
+                            "PyQt5"],
           )
