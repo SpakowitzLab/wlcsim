@@ -1,9 +1,7 @@
 #include "../defines.inc"
-!--------------------------------------------------------------*
-
-      subroutine BDsim(R,U,TIME,TTOT,DT,BROWN, &
-           inTON,IDUM,PARA,SIMTYPE,COLLISION_TIME,COL_DIST, &
-           COL_TYPE)
+subroutine BDsim(R,U,TIME,TTOT,DT,BROWN, &
+    inTON,IDUM,PARA,SIMTYPE,COLLISION_TIME,COL_DIST, &
+    COL_TYPE)
 !
 !     External subroutine to perform a Brownian dynamics simulation.
 !
@@ -264,6 +262,4 @@
       ENDdo
 
       RETURN
-      END
-
-!---------------------------------------------------------------*
+END

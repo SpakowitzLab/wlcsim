@@ -1,4 +1,5 @@
 #include "../defines.inc"
+module MC_wlc
 !---------------------------------------------------------------*
 !
 !      Chain backbone potential between two beads
@@ -7,7 +8,6 @@
 ! E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
 ! E_GAUSS(R,RM1,EPAR)
 !---------------------------------------------------------------
-module MC_wlc
 use precision, only: dp
 implicit none
 contains
