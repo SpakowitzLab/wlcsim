@@ -1,3 +1,70 @@
+r"""Simulate Rouse polymers
+
+
+Notes
+-----
+
+There are various ways to parameterize Rouse polymers. In this module, we use
+the convention that `N` is the number of beads of a Rouse polymer (contrary to
+e.g. Doi & Edwards, where `N` is the number of Kuhn lengths in the polymer). We
+instead use `Nhat` for the number of Kuhn lengths in the polymer.
+
+.. warning:
+
+    This is different from the convention in :mod:`wlcsim.analytical.rouse`,
+    where :math:`N` is the number of Kuhn lengths in the polymer, to match the
+    usual conventions in e.g. Doi & Edwards.
+
+`D` is the "diffusivity of a Kuhn length", i.e. `kbT/xi`, where `xi` is the
+dynamic viscosity of the medium in question, as typically found in the Langevin
+equation for a Rouse polymer
+
+    .. math::
+
+        \xi \frac{d}{dt} \vec{r}(n, t) = k \frac{d^2}{dn^2} \vec{r}(n, t) + f^{(B)}
+
+This means that to simulate a Rouse polymer diffusing in a medium with
+viscosity `xi`, the diffusion coefficient of each bead should be set to `Dhat =
+D (N/Nhat)`. Since :math:`\xi` is in units of "viscosity per Kuhn length" and
+`(N/Nhat)` is in units of "number of beads over number of Kuhn lengths", this
+can be thought of as changing units from "viscosity per Kuhn length" to
+"viscosity per bead".
+
+Some books use `b` for the mean (squared) bond length between beads in the
+discrete gaussian chain. We instead use `b` to be the real Kuhn length of the
+polymer, so that the mean squared bond length `bhat**2` is instead given by
+`L0*b`, where `L0` is L0 = L/(N-1) is the amount of polymer "length"
+represented by the space between two beads.
+
+The units chosen here make the most sense if you don't actually consider the
+polymer to be a "real" Rouse polymer, but instead an e.g. semiflexible chain
+with a real "length" whose long distance statistics are being captured by the
+simulation.
+
+To compare these results to the :mod:`rouse.analytical.rouse` module, use
+
+>>> plt.plot(t_save, sim_msd)
+>>> plt.plot(t_save, wlcsim.analytical.rouse.rouse_mid_msd(t_save, b, Nhat, D, num_modes=int(N/2)))
+>>> plt.plot(t_save, 6*Dhat*t_save)
+>>> plt.plot(t_save, 6*(Dhat/N)*t_save) # or 6*(D/Nhat)*t_save
+>>> # constant prefactor determined empirically...
+>>> # otherwise, ~6*Dhat*np.sqrt(t_R * t_save)/N, where t_R is the terminal
+>>> # relaxation time of the polymer, t_R = b**2 * N**2 / Dhat
+>>> plt.plot(t_save, 1.9544100*bhat*np.sqrt(t_save/Dhat))
+
+where cutting off the number of modes corresponds to ensuring that the rouse
+behavior only continues down to the length scale of a single "bead", thus
+matching the simulation at arbitrarily short time scales. (Notice that we abide
+by the warning above. Our `Nhat` is :mod:`wlcsim.analytical.rouse`'s `N`).
+
+Example
+-------
+
+For example, if you want to simulate a megabase of DNA, which has a real linear
+length of about 1e6 megabase/base * 0.33 nm/base ~ 3e5 nm, and a Kuhn length of
+1e2 nm, then
+
+"""
 from ..plot import PolymerViewer
 from bruno_util.runge_kutta import *
 
@@ -20,6 +87,126 @@ def recommended_dt(b, D):
 
     See the rouse_jit docstring for source of this time scale."""
     return (1/10)*b*b/6/D
+
+def measured_D_to_rouse(Dapp, d, N, bhat=None, regime='rouse'):
+    r"""Get the full-polymer diffusion coefficient from the "apparent" D
+
+    In general, a discrete Rouse polymer's MSD will have three regimes. On time
+    scales long enough that the whole polymer diffuses as a large effective
+    particle, the MSD is of the form :math:`6 D/\hat{N} t`, where, as is true
+    throughout this module, :math:`D` is the diffusivity of a Kuhn length, and
+    :math:`\hat{N}` is the number of Kuhn lengths in the polymer.
+
+    This is true down to the full chain's relaxation time (the relaxation time
+    of the 0th Rouse mode, also known as the "Rouse time") :math:`t_R = N^2 b^2
+    / D`. For times shorter than this, the MSD will scale as :math:`t^{1/2}`.
+    Imposing continuity of the MSD, this means that the MSD will behave as
+    :math:`\kappa_0 D/\hat{N} (t_R t)^{1/2}`, where :math:`\kappa_0` is a
+    constant that I'm too lazy to compute using :math:`\lim_{t\to 0}` of the
+    analytical Rouse MSD result, so I just determine it empirically. We rewrite
+    this MSD as :math:`\kappa b D^{-1/2} t^{1/2}`, and find by comparing to the
+    analytical Rouse theory that :math:`\kappa = 1.9544100(4)`.
+
+    Eventually (at extremely short times), most "real" polymers will eventually
+    revert to a MSD that scales as :math:`t^1`. This cross-over time/length
+    scale defines a "number of segments" :math:`\tilde{N}`, where the
+    diffusivity of a segment of length :math:`\tilde{L} = L/(\tilde{N} - 1)`
+    matches the time it takes stress to propagate a distance :math:`\tilde{L}`
+    along the polymer. Said in other words, for polymer lengths smaller than
+    :math:`\tilde{L}`, the diffusivity of the segment outruns the stress
+    communication time between two neighboring segments.
+
+    The diffusivity at these extremely short times will look like :math:`6 D
+    (\tilde{N} / \hat{N}) t`. In order to simulate this behavior exactly, one
+    can simply use a polymer with :math:`\tilde{N}` beads, then all three
+    length scales of the MSD behavior will match.
+
+    This three-regime MSD behavior can be very easily visualized in log-log
+    space, where it is simply the continuous function defined by the following
+    three lines. From shortest to longest time scales, :math:`\log{t}
+    + \log{6D(\tilde{N}/\hat{N})}`, :math:`(1/2)\log{t} + \log{\kappa b
+    D^{1/2}}`, and :math:`\log{t} + \log{6D\hat{N}}`. The lines
+    (in log-log space), have slopes 1, 1/2, and 1, respectively, and their
+    "offsets" (y-intercept terms with the log removed) are typically referred
+    to as :math:`D_\text{app}`.
+
+    The simulations in this module use the diffusivity of a single Kuhn length
+    as input (i.e. plain old :math:`D` is expected as input) but typically,
+    measurements of diffusing polymers are done below the Rouse time, and for
+    long enough polymers (like a mammalian chromosome), it may be difficult to
+    impossible to measure unconfined diffusion at time scales beyond the Rouse
+    time. This means you often can't just look at the diffusivity of the whole
+    polymer and multiply by :math:`\hat{N}` to get the diffusivity of a Kuhn
+    length. And since there's not really a principled way in general to guess
+    :math:`\tilde{N}`, you usually can't use the short-time behavior to get
+    :math:`D` either, even supposing you manage to measure short enough times
+    to see the cross-over back to :math:`t^1` scaling. This means that usually
+    the only way one can extract :math:`D` is by measuring
+    :math:`D_\text{app}`, since we can use the fact that
+    :math:`D_\text{app} = \kappa b D^{1/2}` (the :math:`\kappa` value
+    quoted above only works for 3-d motion. I haven't bothered to check if it
+    scales linearly with the number of dimensions or like :math:`\sqrt{d}` for
+    :math:`d`-dimensional motion, but this shouldn't be too hard if you are
+    interested).
+
+    In short, this function gives you :math:`D` given :math:`D_\text{app}`.
+
+    Parameters
+    ----------
+    D_app : float
+        The measured :math:`D_\text{app} based on the y-intercept of the MSD in
+        log-log space. This can be computed as `np.exp(scipy.stats.linregress(
+        np.log(t), np.log(msd))[1])`, assuming that `t` is purely in the regime
+        where the MSD scales like :math:`t^{1/2}`.
+    Nhat : int
+        number of beads in the polymer
+    d : int
+        number of dimensions of the diffusion (e.g. 3 in 3-d space)
+
+    Returns
+    -------
+    D_rouse : float
+        the diffusivity of a Kuhn length of the polymer
+
+    Notes
+    -----
+    What follows is an alternate way of "thinking" about the three regimes of
+    the MSD, from a simulation-centric perspective, that I typed up back when I
+    first wrote this function, but has been obsoleted by the description at the
+    start of this docstring.
+
+    In general, a discrete Rouse polymer's MSD will have three regimes. On time
+    scales short enough that chain connectivity is not relevant, the MSD is of
+    the form :math:`6 \hat{D} t`.
+
+    As soon as chain connectivity begins to affect the dynamics, the form of
+    the MSD will change to :math:`\kappa \hat{b} \hat{D}^{1/2} t^{1/2}`, where
+    we have determined the constant :math:`\kappa` empirically (using our exact
+    analytical theory) to be approximately 1.9544100(4). Note that (up to a
+    constant factor), this is just :math:`6 \hat{D} (t_R t)^{1/2}`, where
+    :math:`t_R` is the relaxation time (aka Rouse time) of the polymer, given
+    by :math:`\hat{b}^2 \tilde{N}^2 / \hat{D}`.
+
+    This is because the Rouse behavior only continues up to the relaxation time
+    :math:`t = t_R`, where the MSD transitions into the form :math:`6
+    \frac{\hat{D}}{\tilde{N}} t`. If you ask what "line" with slope 1/2 in log-log
+    space intersects :math:`6 \frac{\hat{D}}{\tilde{N}} t` at :math:`t = t_R`, you get
+    the above form for the sub-Rouse time MSD.
+
+    Here, :math:`\tilde{N}` is distinguished from :math:`N` only as a
+    formality. For a simulation of a discrete Rouse polymer with a fixed number
+    of beads, :math:`N = \tilde{N}` is exactly the number of beads. For a
+    "real" polymer, it is simply a numerical parameter that describes how long
+    the Rouse behavior lasts (in the limiit of short times). For a "true" Rouse
+    polymer (the fractal object) N is infinity and there is no time scale on
+    which the MSD transitions back into :math:`t^1` behavior. But, for any real
+    polymer, this will "almost always" eventually happen.
+    """
+    if d != 3:
+        raise ValueError("We've only calculated kappa for d=3")
+    kappa = 1.9544100
+    return (Dapp/(kappa*b))**2
+
 
 def rouse(N, L, b, D, t, x0=None):
     r"""Simulate a Rouse polymer made of N beads free in solution.
