@@ -434,6 +434,20 @@ def f_conf(x0, Aex, rx, ry, rz):
     return f
 
 @jit(nopython=True)
+def f_tether(x0, Aex, rx, ry, rz):
+    """compute soft (cubic) force towards an elliptical confinement from the
+    inside. to tether to a surface, use f_conf + f_tether"""
+    N, _ = x0.shape
+    f = np.zeros(x0.shape)
+    for j in range(N):
+        conf = x0[j,0]**2/rx**2 + x0[j,1]**2/ry**2 + x0[j,2]**2/rz**2
+        if conf < 1:
+            conf_u = np.array([-x0[j,0]/rx**2, -x0[j,1]/ry**2, -x0[j,2]/rz**2])
+            conf_u = conf_u/np.linalg.norm(conf_u)
+            f[j] += Aex*conf_u*np.power(np.sqrt(conf) - 1, 3) # Steph: np.power(np.sqrt(conf) - 1, 3)
+    return f
+
+@jit(nopython=True)
 def f_elas(x0, k_over_xi):
     """compute spring forces on single, linear rouse polymer"""
     N, _ = x0.shape
@@ -489,15 +503,16 @@ def jit_rouse_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
             save_i += 1
     return x
 
-def _homolog_points_to_loops_list(N, homolog_points):
-    """Create loops list for jit_rouse_linked.
+def homolog_points_to_loops_list(N, homolog_points):
+    r"""Create loops list for jit_rouse_linked.
 
     Parameters
     ----------
     N : int
         number of beads in each polymer if they were unbound
     homolog_points : (L,) array_like
-        list of loci indices (beads) that are homologous paired.
+        list of loci indices :math:`{l_i}_1^L, l_i\in[1,N]` (beads) that are
+        homologously paired.
 
     Returns
     -------
@@ -513,9 +528,78 @@ def _homolog_points_to_loops_list(N, homolog_points):
 
     >>> k1l, k1r, k2l, k2r = loop_list[i]
 
-    k1l, k1r denote the connected beads, so the array contains a "loop"
-    representing the beads of the second chain from k1l+1 to k1r-1
-    at array locations [k2l, k2r]. k1l==-1 and k1r==N denote the free ends.
+    where "k[i][l,r]" refers to the bead demarcating the [l]eft or [r]ight end
+    of a given "homologous loop" on each of the polymers polymer
+    :math:`i\in[1,2]`.
+
+    Namely, the connectivity structure of our polymer "network" is that for
+    each `k1l, k1r, k2l, k2r in loop_list`, the beads `k1l` thru `k1r` are
+    linked sequentially (as are `k2l` thru `k2r`), but the beads `k1[l,r]` are
+    linked to the beads `k2[l,r]`, respectively. This network structure can
+    represent arbitrary "homologously linked" polymers, i.e. those of the form
+
+    .. code-block:: text
+
+        --  ---  -------  --  -
+          \/   \/       \/  \/
+          /\   /\       /\  /\
+        --  ---  -------  --  -
+
+    Notice in the example below that `loop_list[1:,1]` and `loop_list[:-1,0]`
+    are both the same as `homolog_list`.
+
+    Example
+    -------
+    Here's an example for a typical case. With 101 beads per polymer (so 100
+    inter-bead segments), and one tenth of the beads bound to each other, we
+    might get the following Poisson-space homolog points:
+
+    .. ipython::
+
+        In [1]: N = 101; FP = 0.1
+
+        In [2]: homolog_points = np.where(np.random.rand(int(N)) < FP)[0]
+
+        In [3]: homolog_points
+        Out[3]: array([ 5, 18, 27, 59, 68, 82, 90, 94])
+
+    These eight homologous junctions would lead to a simulation array length of
+    `2*N - len(homolog_points) = 202 - 8 = 194`. So `N_tot` will be 194, and
+    the `loop_list` will look like
+
+    .. ipython::
+
+        In [4]: N_tot, loop_list = rouse.homolog_points_to_loops_list(N, homolog_points)
+
+        In [5]: loop_list
+        Out[5]:
+        array([[ -1,   5, 101, 105],
+               [  5,  18, 106, 117],
+               [ 18,  27, 118, 125],
+               [ 27,  59, 126, 156],
+               [ 59,  68, 157, 164],
+               [ 68,  82, 165, 177],
+               [ 82,  90, 178, 184],
+               [ 90,  94, 185, 187],
+               [ 94, 101, 188, 193]])
+
+    This can be read as follows. The first four beads of each polymer are
+    "free", so first row is saying that beads 0 thru 4 correspond to unlinked
+    beads in polymer 1. bead 5 is the linked bead (has half the diffusivity).
+    since the polymer is of length 101, if there were no connections, the first
+    polymer would extend from bead 0 to bead 100, and the second from bead 101
+    to bead 201. but since bead "5" is linked to (what would be) bead 106, that
+    bead is omitted from the second polymer, and beads 101-105 are the "free
+    end" of the second polymer.
+
+    The second row corresponds to the first actual "loop". The two tethering
+    points are beads 5 and 18 of the first polymer. What would have been beads
+    106 and 119 (that's beads 5 and 18 of the second polymer) are omitted from
+    the list of simulated beads. So bead 106 is linked to bead 5 and bead 117
+    is linked to bead 18, and beads 106-117 are linked sequentially.
+
+    Similarly, beads 18 and 118 (and 27 and 125) are linked, with beads 118-125
+    being linked sequentially.
     """
     homolog_points = np.sort(np.array(homolog_points))
     num_points = len(homolog_points)
@@ -541,7 +625,7 @@ def f_elas_homolog(x0, N, loop_list, k_over_xi):
     """compute spring forces on two linear rouse polymers hooked together
     (homologously) at beads specified by loop_list. While each polymer is of length
     N beads, the beads that are hooked together move together identically, so
-    you have x0.shape[0] == 2*N - len(loop_list)"""
+    you have `x0.shape[0] == 2*N - len(loop_list)`"""
     f = np.zeros(x0.shape)
     num_loops, _ = loop_list.shape
     # first get forces on "first" polymer
@@ -630,6 +714,7 @@ def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
     return x0
 
 def split_homologs_X(X, N, loop_list):
+    """Make the (Nt,Ntot,3) output of rouse_homologs to (2,Nt,N,3)."""
     N_t, N_tot, _ = X.shape
     X1 = X[:,:N,:].copy()
     X2 = np.zeros_like(X1)
@@ -651,6 +736,7 @@ def split_homologs_X(X, N, loop_list):
     return X1, X2
 
 def split_homolog_x(x0, N, loop_list):
+    """Make an (N_tot,3) array from rouse_homologs into (2,N,3)."""
     N_tot, _ = x0.shape
     x1 = x0[:N,:].copy()
     x2 = np.zeros((N,3))
@@ -671,17 +757,119 @@ def split_homolog_x(x0, N, loop_list):
         curr_i0 += num_beads
     return x1, x2
 
-def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None):
-    """2 polymers + allow some fraction to be homolog paired"""
-    homolog_points = np.where(np.random.rand(int(N)) < FP)[0]
-    N_tot, loop_list = _homolog_points_to_loops_list(N, homolog_points)
+def homo_sim_loc(i, N, loop_list):
+    """Return actual indices for bead "i" of the second polymer in the
+    trucated simulation array.
+
+    Parameters
+    ----------
+    i : (M,) int, array_like
+        beads index is requested for
+    N : int
+        actual number of beads in each polymer
+    loop_list : (~N*FP, 4) int
+        connectivity of the homologous polymers being simulated
+
+    Returns
+    -------
+    iloc : (M,) Optional<int>, array_like
+        index in simulation array (or None if the bead is a paired bead)
+        for each bead in `i`.
+    """
+    iloc = np.array(i).copy()
+    homolog_points = loop_list[1:,0]
+    is_homolog = np.isin(iloc, homolog_points)
+    if np.any(is_homolog):
+        iloc = iloc.astype(object)
+        iloc[is_homolog] = None
+    for ii in np.where(~is_homolog)[0]:
+        iloc[ii] = N + i[ii] - np.sum(homolog_points < i[ii])
+    return iloc
+
+def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
+                   tether_list=None):
+    """BD simulation of two homologous yeast chromosomes in meiosis
+
+    An arbitrary elliptical-shaped confinement can be chosen, and in order to
+    simulate synaptonemal formation in prophase, some fraction `FP` of the
+    "homologous" beads of the polymer can be "rigidly tethered" to each other.
+    The simulation treats these pairs as being one bead (with half the diffusion
+    coefficient). The elastic force can then be communicated between the two
+    polymers via the connecting loci.
+
+    Depending on what part of prophase is being simulated, either (or both) of
+    the telomeres or centromeres can be tethered to the confinement by
+    including them in `tether_list`. Currently the confinement force and the
+    tethering force are both cubic w.r.t. the distance from the confining
+    ellipse with the same strength (`Aex`), and have the form described in
+    :func:`f_conf` (and :func:`f_tether`).
+
+
+    Parameters
+    ----------
+    N : int
+        Number of beads to use in the discretized Rouse chain
+    FP : float
+        `FP`:math:`\in[0,1] is fraction of beads in the chain (out of `N`) that
+        will be tethered to each other
+    L : float
+        Length of the chain (in desired length units)
+    b : float
+        Kuhn length of the chain (in same length units as L)
+    D : float
+        "0th Rouse mode", or the diffusivity of the chain as a whole. This is
+        often difficult to measure directly, but see the documentation for the
+        function :func:`measured_D_to_rouse` for instructions on how to compute
+        this value given clean measurements of short-time regular diffusion or
+        Rouse-like MSD behavior
+    Aex : float
+        multiplicative prefactor controlling strength of confinment and
+        tethering forces
+    rx, ry, rz : float
+        radius of confinement in x, y, z direction(s) respectively
+    t : (M,) float, array_like
+        The BD integrator will step time from t[0] to t[1], ...,
+    t_save : (m,) float, array_like
+        `t_save`:math:`\subset``t` will be the time steps where the simulation
+        output is saved. Default is `t_save = t`.
+    tether_list : int, array_like
+        list of bead indices that will be tethered to the confinement surface,
+        for now, both polymers must be tethered at the same beads (but this
+        would not be hard to change).
+
+    Returns
+    -------
+    tether_list : List<int>
+        Indices (into compressed `Ntot` output) that were tethered to the
+        confinement surface
+    loop_list : (~N*FP, 4) int
+        Output of homolog_points_to_loops_list used to specify which points are
+        tethered
+    X : (len(t_save), Ntot, 3)
+        output of BD simulation at each time in t_save. The number of output
+        beads Ntot <= 2*N excludes the beads on the second polymer whose
+        positions are determined by the fact that they are tethered to the
+        first polymer. Use :func:`split_homologs_X` to reshape this output into
+        shape `(2, len(t_save), N, 3)`.
+    """
     if t_save is None:
         t_save = t
-    return loop_list, jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
+
+    homolog_points = np.where(np.random.rand(int(N)) < FP)[0]
+    N_tot, loop_list = homolog_points_to_loops_list(N, homolog_points)
+
+    # homolog points aren't in the simulation array for the second polymer
+    tethered_p2 = set(tether_list) - set(loop_list[1:,0])
+    # calculate their actual positions in the simulation array
+    tether_list = list(tether_list) + list(sim_loc(tethered_p2, N, loop_list))
+    tether_list = np.sort(np.array(tether_list))
+
+    x = _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
+    return tether_list, loop_list, x
 
 @jit(nopython=True)
-def jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save):
-    """do rouse_homologs given specific homolog pairs"""
+def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save):
+    """"Inner loop" of rouse_homologs."""
     rtol = 1e-5
     # derived parameters
     L0 = L/(N-1) # length per bead
@@ -700,6 +888,8 @@ def jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
     if 0 == t_save[save_i]:
         x[0] = x0
         save_i += 1
+    # extract from loop_list for repeated use in loop
+    homolog_points = loop_list[1:,0]
     # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
     # in order to make it easy to pull into a new functin later, we'll call
     # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
@@ -711,12 +901,18 @@ def jit_rouse_homologs(N, N_tot, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
         S = 2*(np.random.rand() < 0.5) - 1
         # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
         Fbrown = np.sqrt(2*Dhat/h)*(dW - S)
+        # tethered beads have half the diffusivity
+        Fbrown[homolog_points] = Fbrown[homolog_points]/2
         # estimate for slope at interval start
         K1 = f_conf(x0, Aex, rx, ry, rz) + f_elas_homolog(x0, N, loop_list, k_over_xi) + Fbrown
+        K1[tether_list] += f_tether(x0[tether_list], Aex, rx, ry, rz)
         Fbrown = np.sqrt(2*Dhat/h)*(dW + S)
+        # tethered beads have half the diffusivity
+        Fbrown[homolog_points] = Fbrown[homolog_points]/2
         x1 = x0 + h*K1
         # estimate for slope at interval end
         K2 = f_conf(x1, Aex, rx, ry, rz) + f_elas_homolog(x1, N, loop_list, k_over_xi) + Fbrown
+        K2[tether_list] += f_tether(x1[tether_list], Aex, rx, ry, rz)
         # average the slope estimates
         x0 = x0 + h * (K1 + K2)/2
         if np.abs(t[i] - t_save[save_i]) < rtol*np.abs(t_save[save_i]):
