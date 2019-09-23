@@ -3,5 +3,6 @@ black
 pytest
 sphinx
 sphinx-rtd-theme
+ipython
 -e git+https://github.com/VACUMM/sphinx-fortran.git#egg=sphinx-fortran
 
