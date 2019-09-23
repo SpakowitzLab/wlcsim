@@ -41,8 +41,8 @@ def get_config():
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440"
-    cfg.tag_prefix = "'wlcsim-'"
-    cfg.parentdir_prefix = "'wlcsim-'"
+    cfg.tag_prefix = "wlcsim-"
+    cfg.parentdir_prefix = "wlcsim-"
     cfg.versionfile_source = "wlcsim/_version.py"
     cfg.verbose = False
     return cfg
