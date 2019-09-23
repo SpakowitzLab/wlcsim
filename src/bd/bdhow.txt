@@ -1,0 +1,45 @@
+start with R, U
+
+must terminate with new R, U
+when TIME reaches TTOT
+
+1. set RS = R, FRAND/FELAS/FPONP/T"" = 0 ! all added blindly together at end
+2. do while TIME < TTOT
+    RKLOOP
+    time += dt
+    dt = dt0; magr, magu = new vals(dt) ! in case FORCE_PONP changed dt
+    set RS = R
+
+RKLOOP:
+" must terminate with R containing the new values "
+RK = 1
+do while (rk <= 4)
+    RKSTEP_
+    rk = rk+1
+enddo
+
+RKSTEP_:
+if RK == 1 and BROWN == 1:
+    FRAND/TRAND = rnorm() !TODO, vectorize
+    FELAS, TELAS = FORCE_ELAS(R,U) ! TODO make it not also set U for WLC case
+    if INTON:
+        FORCE_PONP ! can also temporarily change time step to be smaller
+        if (dt has changed i.e. swdt==1)
+            MAGR, MAGU = new vals(new dt)
+            R, U = RS, US
+            restart RKLOOP
+    DRDT(:,:,RK) = (FRAND+FELAS+FPONP)/xir
+    DUDT(:,:,RK) = (TRAND+TELAS+TPONP)/xir
+    if simtype == WLC
+        CONCALC(R, DRDT)
+    RKSTEP(RS, R, US, U, DRDT, DUDT)
+
+RKSTEP:
+    actual RKSTEP
+
+
+
+
+
+
+

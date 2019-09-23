@@ -1,15 +1,14 @@
 #include "../defines.inc"
+
+subroutine MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,super)
 !--------------------------------------------------------------*
 !
-!           Makes Monti Carlo Moves
+!           Makes Monti Carlo reptation move
 !
 !    Quinn separated out this file on 8/9/17
 !
 !---------------------------------------------------------------
 
-! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
-! please move other variables in as you see fit
-subroutine MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,super)
 ! values from wlcsim_data
 use params, only: wlc_VP, wlc_ABP, wlc_V, wlc_AB, wlc_R&
     , wlc_RP, wlc_U, wlc_UP, wlc_nPointsMoved, wlc_pointsMoved

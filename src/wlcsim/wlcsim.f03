@@ -30,8 +30,7 @@ program main
     character(MAXFILENAMELEN)    :: outfile
     integer                      :: err
 
-    ! Simulation state
-    type(wlcsim_params) :: wlc_p
+    type(wlcsim_params) :: wlc_p ! Simulation state
 
     call cli%init(progname = 'wlcsim.exe', &
                   description = 'WLCSIM: A Mesoscopic Polymer Simulator')

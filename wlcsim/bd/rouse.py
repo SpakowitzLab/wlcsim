@@ -562,34 +562,29 @@ def homolog_points_to_loops_list(N, homolog_points):
     inter-bead segments), and one tenth of the beads bound to each other, we
     might get the following Poisson-space homolog points:
 
-    .. ipython::
+    >>> N = 101; FP = 0.1
 
-        In [1]: N = 101; FP = 0.1
+    >>> homolog_points = np.where(np.random.rand(int(N)) < FP)[0]
 
-        In [2]: homolog_points = np.where(np.random.rand(int(N)) < FP)[0]
-
-        In [3]: homolog_points
-        Out[3]: array([ 5, 18, 27, 59, 68, 82, 90, 94])
+    >>> homolog_points
+    array([ 5, 18, 27, 59, 68, 82, 90, 94])
 
     These eight homologous junctions would lead to a simulation array length of
     `2*N - len(homolog_points) = 202 - 8 = 194`. So `N_tot` will be 194, and
     the `loop_list` will look like
 
-    .. ipython::
+    >>> N_tot, loop_list = rouse.homolog_points_to_loops_list(N, homolog_points)
 
-        In [4]: N_tot, loop_list = rouse.homolog_points_to_loops_list(N, homolog_points)
-
-        In [5]: loop_list
-        Out[5]:
-        array([[ -1,   5, 101, 105],
-               [  5,  18, 106, 117],
-               [ 18,  27, 118, 125],
-               [ 27,  59, 126, 156],
-               [ 59,  68, 157, 164],
-               [ 68,  82, 165, 177],
-               [ 82,  90, 178, 184],
-               [ 90,  94, 185, 187],
-               [ 94, 101, 188, 193]])
+    >>> loop_list
+    array([[ -1,   5, 101, 105],
+            [  5,  18, 106, 117],
+            [ 18,  27, 118, 125],
+            [ 27,  59, 126, 156],
+            [ 59,  68, 157, 164],
+            [ 68,  82, 165, 177],
+            [ 82,  90, 178, 184],
+            [ 90,  94, 185, 187],
+            [ 94, 101, 188, 193]])
 
     This can be read as follows. The first four beads of each polymer are
     "free", so first row is saying that beads 0 thru 4 correspond to unlinked

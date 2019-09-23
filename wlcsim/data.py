@@ -151,8 +151,7 @@ class Sim:
 
     args:
         input_file : str - relative or absolute location of input file
-        file_suffix : str - custom suffix on saved filenames, e.g.
-                corresponding to the particular replica that should be loaded
+        file_suffix : str - custom suffix on saved filenames, e.g.  corresponding to the particular replica that should be loaded
     """
 
     def __init__(self, sim_path, input_file=None, file_suffix=None,
