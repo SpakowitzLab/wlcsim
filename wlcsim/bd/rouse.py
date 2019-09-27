@@ -625,29 +625,60 @@ def homolog_points_to_loops_list(N, homolog_points):
 
 @jit(nopython=True)
 def f_elas_homolog(x0, N, loop_list, k_over_xi):
-    """compute spring forces on two linear rouse polymers hooked together
+    r"""compute spring forces on two linear rouse polymers hooked together
     (homologously) at beads specified by loop_list. While each polymer is of length
     N beads, the beads that are hooked together move together identically, so
-    you have `x0.shape[0] == 2*N - len(loop_list)`"""
+    you have `x0.shape[0] == 2*N - len(loop_list)`
+
+    We assume that, as per the documentation in
+    :func:`homolog_points_to_loops_list`, a polymer of the shape
+
+    .. code-block:: text
+
+        ++   ^^^   '''''''   ""   =
+          \ /   \ /       \ /  \ /
+           .     .         .    .
+          / \   / \       / \  / \
+        --   ---   -------   --   -
+
+    will be laid out in memory like
+
+    .. code-block:: text
+
+        --.---.-------.--.-++^^^'''''''""=
+
+    If we call the lower polymer "polymer 1", and all the beads on the top row
+    "polymer 2", then it makes sense to first compute the spring forces between
+    adjacent beads in polymer 1 as if there was no "polymer 2". Then, we can
+    compute all the forces between beads in "polymer 2" and the "." beads.
+    Finally, for each "loop" (represented as symbols of different types above)
+    in polymer 2, we can compute the usual linear forces along the polymer.
+
+    """
     f = np.zeros(x0.shape)
     num_loops, _ = loop_list.shape
-    # first get forces on "first" polymer
+    # first get forces linearly along "first" polymer
     for j in range(1,N):
-        for n in range(3):
-            f[j,n] += -k_over_xi*(x0[j,n] - x0[j-1,n])
-            f[j-1,n] += -k_over_xi*(x0[j-1,n] - x0[j,n])
+        f[j] += -k_over_xi*(x0[j] - x0[j-1])
+        f[j-1] += -k_over_xi*(x0[j-1] - x0[j])
+    # in what follows, "loop" means the stretches between homologous
+    # connections, including from the homologous connection to the end of the
+    # polymer
     for i in range(num_loops):
         # k1l, k1r denote the connected beads, so the array contains a "loop"
         # representing the beads of the second chain from k1l+1 to k1r-1
         # at array locations [k2l, k2r].
         k1l, k1r, k2l, k2r = loop_list[i]
-        # k1l == -1 is flag for "end" loop
-        if k1l >= 0:
+        # k1l == -1 is flag for "end" loop (free end)
+        # k2l > k2r => no beads in "second chain"
+        if k1l >= 0 and k2l <= k2r:
+            f[k1l] += -k_over_xi*(x0[k1l] - x0[k2l])
             f[k2l] += -k_over_xi*(x0[k2l] - x0[k1l])
-        # k1r == N is flat for "end" loop
-        if k1r < N:
+        # k1r == N is flag for "end" loop (free end)
+        if k1r < N and k2l <= k2r:
+            f[k1r] += -k_over_xi*(x0[k1r] - x0[k2r])
             f[k2r] += -k_over_xi*(x0[k2r] - x0[k1r])
-        N_loop = k1r - k1l + 1
+        N_loop = k2r - k2l + 1
         # analagous to loop above, since end-bead forces already done
         for k in range(1,N_loop):
             j = k2l+k
