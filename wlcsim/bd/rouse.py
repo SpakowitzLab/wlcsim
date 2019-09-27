@@ -50,7 +50,7 @@ To compare these results to the :mod:`rouse.analytical.rouse` module, use
 >>> # constant prefactor determined empirically...
 >>> # otherwise, ~6*Dhat*np.sqrt(t_R * t_save)/N, where t_R is the terminal
 >>> # relaxation time of the polymer, t_R = b**2 * N**2 / Dhat
->>> plt.plot(t_save, 1.9544100*bhat*np.sqrt(t_save/Dhat))
+>>> plt.plot(t_save, 1.9544100*b*np.sqrt(D)*np.sqrt(t_save))
 
 where cutting off the number of modes corresponds to ensuring that the rouse
 behavior only continues down to the length scale of a single "bead", thus
@@ -236,9 +236,7 @@ def rouse(N, L, b, D, t, x0=None):
         dx = np.diff(x, axis=0)
         return -k_over_xi*(np.concatenate([zero, dx]) + np.concatenate([dx, zero]))
     if x0 is None:
-        L0 = L/(N-1) # length per bead
-        Lb = L0/b # kuhn lengths per bead
-        x0 = b*np.sqrt(Lb)*np.cumsum(np.random.normal(size=(N,3)), axis=0)
+        x0 = bhat/np.sqrt(3)*np.cumsum(np.random.normal(size=(N,3)), axis=0)
     X = rk4_thermal_lena(rouse_f, Dhat, t, x0)
     return X
 
@@ -410,7 +408,7 @@ def _init_in_confinement(N, bhat, rx, ry, rz):
 
     Parameters
     ----------
-    bLb : float
+    bhat : float
         b*np.sqrt(Lb), the std dev of the distance between beads
     rx, ry, rz : float
         principle axes of confinement ellipse
@@ -687,12 +685,12 @@ def f_elas_homolog(x0, N, loop_list, k_over_xi):
     return f
 
 @jit(nopython=True)
-def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
+def _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz):
     """VERY ad-hoc, probably not that near equilibrium, or even strictly in the
     confinement"""
     # first initialize the first chain
     x0 = np.zeros((N_tot,3))
-    x0[:N,:] = _init_in_confinement(N, bLb, rx, ry, rz)
+    x0[:N,:] = _init_in_confinement(N, bhat, rx, ry, rz)
     # now initialize the loops
     num_loops, _ = loop_list.shape
     for j in range(1,num_loops-1):
@@ -704,9 +702,9 @@ def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
         for i in range(num_beads):
             i1 = k2l + i - 1 if i > 0 else k1l
             i2 = k2l + i
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
             while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-                x0[i2] = x0[i1] + bLb*np.random.randn(3)
+                x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         # then subtract off the correct amount from each step to make the
         # brownian bridge. This guy is no longer guaranteed to be in the
         # confinement....but prevents being catastrophically far outside
@@ -726,25 +724,25 @@ def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
         # x0[k2l:k2r+1] = x0[k2l:k2r+1] + x0[k1l][None,:]
     # finally, initialize the free ends
     if num_loops == 1:
-        x0[N:,:] = _init_in_confinement(N, bLb, rx, ry, rz)
+        x0[N:,:] = _init_in_confinement(N, bhat, rx, ry, rz)
     # "left" free end must be built backwards from first connection point
     k1l, k1r, k2l, k2r = loop_list[0]
     num_beads = k1r - k1l - 1 # or k2r - k2l + 1
     for i in range(num_beads):
         i1 = k2r - i + 1 if i > 0 else k1r
         i2 = k2r - i
-        x0[i2] = x0[i1] + bLb*np.random.randn(3)
+        x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
     # right free end can be built as normal with no bridge stuff
     k1l, k1r, k2l, k2r = loop_list[-1]
     num_beads = k1r - k1l - 1 # or k2r - k2l + 1
     for i in range(num_beads):
         i1 = k2l + i - 1 if i > 0 else k1l
         i2 = k2l + i
-        x0[i2] = x0[i1] + bLb*np.random.randn(3)
+        x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
     return x0
 
 def split_homologs_X(X, N, loop_list):
@@ -912,7 +910,7 @@ def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, 
     Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
     k_over_xi = 3*Dhat/bhat**2
     # initial position
-    x0 = _init_homologs(N, N_tot, loop_list, b*np.sqrt(Lb), rx, ry, rz)
+    x0 = _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz)
     # pre-alloc output
     if t_save is None:
         t_save = t
