@@ -184,17 +184,15 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
     real(dp), parameter :: discretization = L_in_bp/WLC_P__NB
     real(dp), parameter :: num_linkers = floor( (L_in_bp+WLC_P__LL) / (147 + WLC_P__LL) )
-    integer num_scale 
-    integer :: iter
+    integer num_scale, iter, i
 
     ! In the future you can set up code here to choose nucleosome spacing
     
     if (WLC_P__INCLUDE_NUC_TRANS) then
         wlc_nucleosomeWrap(1) = 147
-        wlc_nucleosomeWrap(2) = 0
-        wlc_nucleosomeWrap(3) = 0
-        wlc_nucleosomeWrap(4) = 0
-        wlc_nucleosomeWrap(5) = 0
+        do i = 2,WLC_P__NT
+            wlc_nucleosomeWrap(i) = 1
+        enddo
         wlc_basepairs = discretization
         ! if (WLC_P__NT /= WLC_P__NB) then
         !     print*, "oops havent set up for multipolymer sims yet"

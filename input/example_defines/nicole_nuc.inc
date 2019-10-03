@@ -676,12 +676,12 @@
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
 
-# define WLC_P__ENSEMBLE_BIND .FALSE.
+#define WLC_P__ENSEMBLE_BIND .FALSE.
 ! VARIABLE COMMENT: ! set but not parrallel temered
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-# define WLC_P__ENSEMBLE_METH .FALSE.
+#define WLC_P__ENSEMBLE_METH .FALSE.
 ! VARIABLE COMMENT: ! set but not parrallel temered
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
