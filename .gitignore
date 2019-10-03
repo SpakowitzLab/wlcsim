@@ -11,6 +11,7 @@ tags
 .*.sw*
 .DS_Store
 *.mod
+vizualization2/*
 vizualization/xyz/*
 vizualization/pdb/*
 vizualization/pdb0/*
@@ -26,6 +27,7 @@ doc/_build
 *.toc
 *.out
 *.aux
+*.pdb
 input/params
 input/*loops*txt
 stdout.txt

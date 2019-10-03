@@ -25,7 +25,7 @@
 ! DEFAULTS COMMENT: ! not a ring by default
 ! TYPE: LOGICAL
 
-#define WLC_P__LOCAL_TWIST .FALSE.
+#define WLC_P__LOCAL_TWIST .TRUE.
 ! VARIABLE COMMENT: ! whether to include twist energy (local)
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
@@ -49,7 +49,7 @@
 ! DEFAULTS COMMENT: ! If in doubt make it false
 ! TYPE: LOGICAL
 
-#define WLC_P__INITCONDTYPE 'lineInY'
+#define WLC_P__INITCONDTYPE 'nucleosome'
 ! VARIABLE COMMENT: ! initial condition type
 ! DEFAULTS COMMENT: ! because it is easy
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -109,7 +109,7 @@
 ! DEFAULTS COMMENT: ! no interactions by default
 ! TYPE: LOGICAL
 
-#define WLC_P__FIELDINTERACTIONTYPE 'none'
+#define WLC_P__FIELDINTERACTIONTYPE 'chromatin'
 ! VARIABLE COMMENT: ! Choose the Hamiltonian you would like
 ! DEFAULTS COMMENT: ! See MC_Hamiltonian
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -159,7 +159,7 @@
 ! DEFAULTS COMMENT: ! not included so it doesnt matter
 ! TYPE: LOGICAL
 
-#define WLC_P__ELASTICITY_TYPE "constant"
+#define WLC_P__ELASTICITY_TYPE "nucleosomes"
 ! VARIABLE COMMENT: ! which simulation code to run
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -200,7 +200,7 @@
 ! DEFAULTS COMMENT: ! don't save orientation vectors (saves disk space)
 ! TYPE: LOGICAL
 
-#define WLC_P__SAVEU .True.
+#define WLC_P__SAVEU .FALSE.
 ! VARIABLE COMMENT: ! save U vectors to file
 ! DEFAULTS COMMENT: ! don't save orientation vectors (makes restart of ssWLC possible)
 ! TYPE: LOGICAL
@@ -231,7 +231,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 5
+#define WLC_P__NB 300
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -323,12 +323,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 56.67_dp
+#define WLC_P__L 1040.0_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 38_DP
+#define WLC_P__LL 63.12_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
@@ -676,12 +676,12 @@
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
 
-#define WLC_P__ENSEMBLE_BIND .FALSE.
+# define WLC_P__ENSEMBLE_BIND .FALSE.
 ! VARIABLE COMMENT: ! set but not parrallel temered
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__ENSEMBLE_METH .FALSE.
+# define WLC_P__ENSEMBLE_METH .FALSE.
 ! VARIABLE COMMENT: ! set but not parrallel temered
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -797,7 +797,7 @@
 ! DEFAULTS COMMENT: ! slide move
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_PIVOT_MOVE 0
+#define WLC_P__MOVEON_PIVOT_MOVE 1
 ! VARIABLE COMMENT: ! pivot move
 ! DEFAULTS COMMENT: ! need to be able to move end of chain
 ! TYPE: INTEGER
@@ -832,7 +832,7 @@
 ! DEFAULTS COMMENT: ! DNA too long / single chr
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_REPTATION 1
+#define WLC_P__MOVEON_REPTATION 0
 ! VARIABLE COMMENT: ! Reptation
 ! DEFAULTS COMMENT: ! Chain too long to bother
 ! TYPE: INTEGER
