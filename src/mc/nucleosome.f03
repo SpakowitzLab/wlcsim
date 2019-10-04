@@ -181,10 +181,12 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
-    real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
-    real(dp), parameter :: discretization = L_in_bp/WLC_P__NB
-    real(dp), parameter :: num_linkers = floor( (L_in_bp+WLC_P__LL) / (147 + WLC_P__LL) )
-    integer num_scale, iter, i
+    !real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
+    real(dp), parameter :: discretization = WLC_P__LL/(WLC_P__NB-1) ! disc on linker for TEST
+    ! NEED TO CHANGE THE ABOVE CODE FOR REAL SIMULATIONS  
+    !real(dp), parameter :: num_linkers = floor( (L_in_bp+WLC_P__LL) / (147 + WLC_P__LL) )
+    !integer num_scale, iter, i
+    integer i
 
     ! In the future you can set up code here to choose nucleosome spacing
     
