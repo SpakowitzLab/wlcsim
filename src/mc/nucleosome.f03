@@ -181,45 +181,41 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
-    !real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
-    real(dp), parameter :: discretization = WLC_P__LL/(WLC_P__NB-1) ! disc on linker for TEST
-    ! NEED TO CHANGE THE ABOVE CODE FOR REAL SIMULATIONS  
-    !real(dp), parameter :: num_linkers = floor( (L_in_bp+WLC_P__LL) / (147 + WLC_P__LL) )
-    !integer num_scale, iter, i
-    integer i
+    real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
+    !real(dp), parameter :: discretization = WLC_P__LL/(WLC_P__NB-1) ! disc on linker for TEST
+    ! NEED TO CHANGE THE ABOVE CODE FOR REAL SIMULATIONS 
+    real(dp), parameter :: nNucs = nint((L_in_bp + WLC_P__LL)/(147+WLC_P__LL))
+    real(dp), parameter :: discretization = WLC_P__LL/((WLC_P__NB-nNucs)/(nNucs-1))
+    integer :: num_link_beads = nint(WLC_P__LL/discretization)
+    integer iter
+    !integer i
 
     ! In the future you can set up code here to choose nucleosome spacing
     
     if (WLC_P__INCLUDE_NUC_TRANS) then
-        wlc_nucleosomeWrap(1) = 147
-        do i = 2,WLC_P__NT
-            wlc_nucleosomeWrap(i) = 1
+        !wlc_nucleosomeWrap(1) = 147
+        !do i = 2,WLC_P__NT
+        !    wlc_nucleosomeWrap(i) = 1
+        !enddo
+        !wlc_basepairs = discretization
+        if (WLC_P__NT /= WLC_P__NB) then
+            print*, "oops havent set up for multipolymer sims yet"
+            stop
+        endif
+        if (num_link_beads < 1) then
+            print*, "lower discretization length or change linker/fragment length pairing"
+            stop
+        endif
+        iter = 1
+        do while (iter <= WLC_P__NT)
+            wlc_nucleosomeWrap(iter) = 147
+            iter = iter + 1
+            if (iter + num_link_beads <= WLC_P__NT) then 
+                wlc_nucleosomeWrap(iter:iter+num_link_beads) = 1
+                iter = iter + num_link_beads
+            endif
         enddo
         wlc_basepairs = discretization
-        ! if (WLC_P__NT /= WLC_P__NB) then
-        !     print*, "oops havent set up for multipolymer sims yet"
-        !     stop
-        ! endif
-        ! num_scale = 1
-        ! do while ((num_scale + 2)*discretization <= WLC_P__LL)
-        !     num_scale = num_scale + 1
-        ! enddo
-        ! num_scale = num_scale - 1
-        ! if (num_scale < 1) then
-        !     print*, "lower discretization length or change linker/fragment length pairing"
-        !     stop
-        ! endif
-        ! iter = 1
-        ! do while (iter <= WLC_P__NT)
-        !     wlc_nucleosomeWrap(iter) = 147
-        !     wlc_basepairs(iter) = discretization
-        !     iter = iter + 1
-        !     if (iter + num_scale <= WLC_P__NT) then 
-        !         wlc_nucleosomeWrap(iter:iter+num_scale) = 0
-        !         wlc_basepairs(iter:iter+num_scale) = discretization
-        !         iter = iter + num_scale
-        !     endif
-        ! enddo
     else
         wlc_nucleosomeWrap = 147
         wlc_basepairs = WLC_P__LL
