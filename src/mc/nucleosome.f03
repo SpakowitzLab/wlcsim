@@ -196,10 +196,10 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
         !discretization = WLC_P__LL/((WLC_P__NB-nNucs)/(nNucs-1)) ! for nucs on both ends
         discretization = WLC_P__LL/((WLC_P__NB-nNucs)/nNucs) ! for nuc on one end
-        num_link_beads = WLC_P__LL/discretization 
-        discretization = floor(discretization)
-        off_discretization = WLC_P__LL-discretization*num_link_beads
-        do while (off_discretization < 2 .AND. num_link_beads > 0)
+        num_link_beads = WLC_P__LL/discretization
+        off_discretization = WLC_P__LL-floor(discretization)*num_link_beads
+        do while ( modulo(discretization,1.0) /= 0 .OR. (off_discretization < 2 .AND. num_link_beads > 0))
+            discretization = floor(discretization)
             num_link_beads = num_link_beads - 1
             off_discretization = WLC_P__LL-discretization*num_link_beads
         enddo
@@ -215,14 +215,14 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
             stop
         endif
         iter = 1
-        do while (iter <= WLC_P__NT)
+        do while (iter < WLC_P__NT)
             wlc_nucleosomeWrap(iter) = 147
             wlc_basepairs(iter) = off_discretization
+            iter = iter + 1
             if (iter + num_link_beads <= WLC_P__NT) then 
-                iter = iter + 1
-                wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
-                wlc_basepairs(iter:iter+num_link_beads-1) = discretization
-                iter = iter + num_link_beads
+                wlc_nucleosomeWrap(iter:iter+num_link_beads) = 1
+                wlc_basepairs(iter:iter+num_link_beads) = discretization
+                iter = iter + num_link_beads 
             endif
         enddo
     else
