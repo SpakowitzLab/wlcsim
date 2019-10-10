@@ -182,25 +182,33 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
     real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
-    !real(dp), parameter :: discretization = WLC_P__LL/(WLC_P__NB-1) ! disc on linker for TEST
-    ! NEED TO CHANGE THE ABOVE CODE FOR REAL SIMULATIONS 
-    real(dp), parameter :: nNucs = nint((L_in_bp + WLC_P__LL)/(147+WLC_P__LL))
-    real(dp), parameter :: discretization = WLC_P__LL/((WLC_P__NB-nNucs)/(nNucs-1))
-    integer :: num_link_beads = nint(WLC_P__LL/discretization)
-    integer iter
-    !integer i
+    !real(dp), parameter :: nNucs = floor((L_in_bp+WLC_P__LL)/(147+WLC_P__LL)) ! for nucs on both ends
+    real(dp), parameter :: nNucs = nint(L_in_bp/(147+WLC_P__LL)) ! for nuc on one end
+    real(dp) discretization, num_link_beads
+    integer iter, off_discretization
 
     ! In the future you can set up code here to choose nucleosome spacing
     
     if (WLC_P__INCLUDE_NUC_TRANS) then
-        !wlc_nucleosomeWrap(1) = 147
-        !do i = 2,WLC_P__NT
-        !    wlc_nucleosomeWrap(i) = 1
-        !enddo
-        !wlc_basepairs = discretization
         if (WLC_P__NT /= WLC_P__NB) then
             print*, "oops havent set up for multipolymer sims yet"
             stop
+        endif
+        !discretization = WLC_P__LL/((WLC_P__NB-nNucs)/(nNucs-1)) ! for nucs on both ends
+        discretization = WLC_P__LL/((WLC_P__NB-nNucs)/nNucs) ! for nuc on one end
+        num_link_beads = WLC_P__LL/discretization 
+        discretization = floor(discretization)
+        off_discretization = WLC_P__LL-discretization*num_link_beads
+        do while (off_discretization < 2 .AND. num_link_beads > 0)
+            num_link_beads = num_link_beads - 1
+            off_discretization = WLC_P__LL-discretization*num_link_beads
+        enddo
+        if (off_discretization > 2*discretization) then
+            print*, "offset discretization is twice the size of the actual discretization &
+                    &(not sure if this is actually an issue but jic)"
+            stop
+        else if (off_discretization == 0) then
+            off_discretization = discretization
         endif
         if (num_link_beads < 1) then
             print*, "lower discretization length or change linker/fragment length pairing"
@@ -209,13 +217,14 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         iter = 1
         do while (iter <= WLC_P__NT)
             wlc_nucleosomeWrap(iter) = 147
-            iter = iter + 1
+            wlc_basepairs(iter) = off_discretization
             if (iter + num_link_beads <= WLC_P__NT) then 
-                wlc_nucleosomeWrap(iter:iter+num_link_beads) = 1
+                iter = iter + 1
+                wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
+                wlc_basepairs(iter:iter+num_link_beads-1) = discretization
                 iter = iter + num_link_beads
             endif
         enddo
-        wlc_basepairs = discretization
     else
         wlc_nucleosomeWrap = 147
         wlc_basepairs = WLC_P__LL
