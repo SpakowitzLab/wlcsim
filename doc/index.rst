@@ -16,7 +16,8 @@ Contents:
    :maxdepth: 2
 
    wlcsimpy
-   wlcsimf 
+   wlcsimf
+   homolog.ipynb
 
 
 Indices and tables
