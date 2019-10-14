@@ -162,28 +162,29 @@ def ou(x0, t, k_over_xi, D, method=rk4_thermal_lena):
     return method(f, D=D, t=t, x0=x0)
 
 @jit(nopython=True)
-def _get_scalar_corr(X, t):
+def _get_scalar_corr(X):
     "fast correlation calculation for testing"
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(X.shape[1]):
-        for j in range(X.shape[0]):
-            for k in range(j, X.shape[0]):
-                corr[k-j] += X[k,i]*X[j,i]
-                count[k-j] += 1
+    num_samples, num_t = X.shape
+    corr = np.zeros((num_t,))
+    count = np.zeros((num_t,))
+    for i in range(num_samples):
+        for j in range(num_t):
+            for k in range(j, num_t):
+                corr[k-j] = corr[k-j] + X[i,k]*X[i,j]
+                count[k-j] = count[k-j] + 1
     return corr, count
 
-@jit
-def _get_vector_corr(X, t):
+@jit(nopython=True)
+def _get_vector_corr(X):
     "fast correlation calculation for testing"
-    num_t, num_samples = X.shape
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(num_t):
-        for j in range(j, num_t):
-            for k in range(num_samples):
-                corr[j-i] += X[j,k]@X[i,k]
-                count[j-i] += 1
+    num_samples, num_t, d = X.shape
+    corr = np.zeros((num_t,))
+    count = np.zeros((num_t,))
+    for i in range(num_samples):
+        for j in range(num_t):
+            for k in range(j, num_t):
+                corr[k-j] = corr[k-j] + X[i,k]@X[i,j]
+                count[k-j] = count[k-j] + 1
     return corr, count
 
 @jit(nopython=True)
@@ -213,6 +214,8 @@ def _msd(x):
     return result
 
 # test different integrators below on simply OU process
+import scipy.stats
+import matplotlib.pyplot as plt
 def test_ou_autocorr(method=srk1_roberts):
     k = 2
     xi = 4
@@ -223,7 +226,7 @@ def test_ou_autocorr(method=srk1_roberts):
     t = np.linspace(0, 1e2, 1e3+1)
     X = ou(x0, t, k_over_xi, D, method=method)
     assert(np.abs(np.var(X) - D/k_over_xi)/(D/k_over_xi) < 0.1)
-    corr, count = _get_corr(X, t)
+    corr, count = _get_scalar_corr(X.T)
     err = corr/count - (kbT/k)*np.exp(-k_over_xi*t)
     plt.figure()
     plt.plot(t, err)

@@ -1,5 +1,7 @@
 import numpy as np
 
+from functools import reduce
+
 
 def center_by_mass(x, particle_axis=0):
     """Subtract center of mass (unweighted) from a collection of vectors
@@ -15,4 +17,5 @@ def center_by_mass(x, particle_axis=0):
                   for i in range(len(shape))]
     centers_of_mass = np.tile(centers_of_mass, tile_shape)
     return x - centers_of_mass
+
 

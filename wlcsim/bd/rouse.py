@@ -80,13 +80,17 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
 
-def recommended_dt(b, D):
+def recommended_dt(N, L, b, D):
     r"""Recommended "dt" for use with rouse*jit family of functions.
 
     Currently set to :math:`\frac{1}{10}\frac{b^2}{6D}`.
 
-    See the rouse_jit docstring for source of this time scale."""
-    return (1/10)*b*b/6/D
+    See the :func:`jit_rouse` docstring for source of this time scale."""
+    Nhat = L/b
+    L0 = L/(N-1)
+    Dhat = D*N/Nhat
+    bhat = np.sqrt(L0*b)
+    return (1/10)*bhat**2/(6*Dhat)
 
 def measured_D_to_rouse(Dapp, d, N, bhat=None, regime='rouse'):
     r"""Get the full-polymer diffusion coefficient from the "apparent" D
@@ -251,11 +255,11 @@ def jit_rouse(N, L, b, D, t, t_save=None):
     our srk1 scheme is accurate as long as :math:`\Delta t` is less than the
     transition time where the MSD goes from high k behavior (t^1) to rouse
     behavior (t^(1/2)).  This is exactly the time required to diffuse a Kuhn
-    length, so we just need :math:`\Delta t < \frac{b^2}{6D}` in 3D. the
-    "crossover" from fast-k to rouse-like behavior takes about one order of
-    magnitude in time, but adding more than that doesn't seem to make the MSD
-    any more accurate, so we suggest setting :math:`\Delta t =
-    \frac{1}{10}\frac{b^2}{6D}`.
+    length, so we just need :math:`\Delta t < \frac{\hat{b}^2}{6\hat{D}}` in
+    3D. the "crossover" from fast-k to rouse-like behavior takes about one
+    order of magnitude in time, but adding more than that doesn't seem to make
+    the MSD any more accurate, so we suggest setting :math:`\Delta t` to one
+    tenth of the bound above.
 
     the number of orders of magnitude of "rouse" scaling the simulation will
     capture is exactly dictated by the ratio between this time scale and the
@@ -607,7 +611,7 @@ def homolog_points_to_loops_list(N, homolog_points):
     num_loops = num_points + 1 # includes two end non-"loops" (aka free ends)
     loop_list = np.zeros((num_loops, 4))
     if num_loops == 1:
-        return np.array([[-1,N,N,2*N-1]])
+        return 2*int(N), np.array([[-1,N,N,2*N-1]]).astype(int)
     # keep track of length of "x0"
     curr_n = N
     # there's at least one connection point, thanks to num_loops==1 check above
@@ -725,6 +729,7 @@ def _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz):
     # finally, initialize the free ends
     if num_loops == 1:
         x0[N:,:] = _init_in_confinement(N, bhat, rx, ry, rz)
+        return x0
     # "left" free end must be built backwards from first connection point
     k1l, k1r, k2l, k2r = loop_list[0]
     num_beads = k1r - k1l - 1 # or k2r - k2l + 1
@@ -896,12 +901,25 @@ def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
     tether_list = list(tether_list) + list(sim_loc(tethered_p2, N, loop_list))
     tether_list = np.sort(np.array(tether_list))
 
-    x = _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
+    x = _jit_rouse_homologs(int(N), int(N_tot), tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
     return tether_list, loop_list, x
 
 @jit(nopython=True)
-def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save):
-    """"Inner loop" of rouse_homologs."""
+def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry,
+                        rz, t, t_save, x0=None):
+    """"Inner loop" of rouse_homologs.
+
+    Some typing stuff: needs N, N_tot as int, needs tether_list/loop_list as
+    dtype == int64, and uses loop_list.shape[0] to get num_loops. This is in
+    particular important for empty list cases, where you need to do stuff like
+
+    >>> x = rouse._jit_rouse_homologs(int(N), int(2*N),
+    >>>         np.array([]).astype(int),
+    >>>         np.array([[]]).T.astype(int),
+    >>>         L, b, D, Aex, R, R, R, t, t_save)
+
+    """
+    N = int(N); N_tot = int(N_tot)
     rtol = 1e-5
     # derived parameters
     L0 = L/(N-1) # length per bead
@@ -910,7 +928,8 @@ def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, 
     Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
     k_over_xi = 3*Dhat/bhat**2
     # initial position
-    x0 = _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz)
+    if x0 is None:
+        x0 = _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz)
     # pre-alloc output
     if t_save is None:
         t_save = t
@@ -933,13 +952,13 @@ def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, 
         S = 2*(np.random.rand() < 0.5) - 1
         # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
         Fbrown = np.sqrt(2*Dhat/h)*(dW - S)
-        # tethered beads have half the diffusivity
+        # "homolog paired" beads have half the diffusivity
         Fbrown[homolog_points] = Fbrown[homolog_points]/2
         # estimate for slope at interval start
         K1 = f_conf(x0, Aex, rx, ry, rz) + f_elas_homolog(x0, N, loop_list, k_over_xi) + Fbrown
         K1[tether_list] += f_tether(x0[tether_list], Aex, rx, ry, rz)
         Fbrown = np.sqrt(2*Dhat/h)*(dW + S)
-        # tethered beads have half the diffusivity
+        # "homolog paired" beads have half the diffusivity
         Fbrown[homolog_points] = Fbrown[homolog_points]/2
         x1 = x0 + h*K1
         # estimate for slope at interval end
