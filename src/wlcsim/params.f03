@@ -1193,22 +1193,22 @@ contains
         endif
         ! NP edit, center nucleosome beads
         temp_wlc_R = wlc_R
-        if (WLC_P__NP == 1) then
-            print*, "printing offset NP"
-            do I = 1, length_of_chain(1)-1
-                if (wlc_nucleosomeWrap(i) == 147) then
-                    temp_wlc_R(1,I) = (temp_wlc_R(1,I) + temp_wlc_R(1,I+1))/2
-                    temp_wlc_R(2,I) = (temp_wlc_R(2,I) + temp_wlc_R(2,I+1))/2
-                    temp_wlc_R(3,I) = (temp_wlc_R(3,I) + temp_wlc_R(3,I+1))/2
-                endif
-            enddo
-            I = length_of_chain(1)
-            ! now need to extend phantom last linker to center last nucleosome
-            call nucleosomeProp(wlc_U(:,I-1), wlc_V(:,I-1), wlc_R(:,I-1), wlc_basepairs(I), wlc_nucleosomeWrap(I), Uout, Vout, Rout)
-            temp_wlc_R(1,I) = (temp_wlc_R(1,I) + Rout(1))/2
-            temp_wlc_R(2,I) = (temp_wlc_R(2,I) + Rout(2))/2
-            temp_wlc_R(3,I) = (temp_wlc_R(3,I) + Rout(3))/2
-        endif
+        ! if (WLC_P__NP == 1) then
+        !     print*, "printing offset NP"
+        !     do I = 1, length_of_chain(1)-1
+        !         if (wlc_nucleosomeWrap(i) == 147) then
+        !             temp_wlc_R(1,I) = (temp_wlc_R(1,I) + temp_wlc_R(1,I+1))/2
+        !             temp_wlc_R(2,I) = (temp_wlc_R(2,I) + temp_wlc_R(2,I+1))/2
+        !             temp_wlc_R(3,I) = (temp_wlc_R(3,I) + temp_wlc_R(3,I+1))/2
+        !         endif
+        !     enddo
+        !     I = length_of_chain(1)
+        !     ! now need to extend phantom last linker to center last nucleosome
+        !     call nucleosomeProp(wlc_U(:,I-1), wlc_V(:,I-1), wlc_R(:,I-1), wlc_basepairs(I), wlc_nucleosomeWrap(I), Uout, Vout, Rout)
+        !     temp_wlc_R(1,I) = (temp_wlc_R(1,I) + Rout(1))/2
+        !     temp_wlc_R(2,I) = (temp_wlc_R(2,I) + Rout(2))/2
+        !     temp_wlc_R(3,I) = (temp_wlc_R(3,I) + Rout(3))/2
+        ! endif
         ! NP end edit
         IB = 1
         if (repeatingBC) then
