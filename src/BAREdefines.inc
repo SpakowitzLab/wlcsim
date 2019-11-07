@@ -164,7 +164,7 @@
 ! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
-#define WLC_P__INCLUDE_NUC_TRANS .TRUE.
+#define WLC_P__INCLUDE_NUC_TRANS .FALSE.
 ! VARIABLE COMMENT: ! Whether to include the translation across the nucleosome
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -231,7 +231,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 300
+#define WLC_P__NB 220
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -323,7 +323,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 1040.0_dp
+#define WLC_P__L 618.75_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
@@ -537,12 +537,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 4000
+#define WLC_P__STEPSPEREXCHANGE 500
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
 
-#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 10
+#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1
 ! VARIABLE COMMENT: ! read teh variable name
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
