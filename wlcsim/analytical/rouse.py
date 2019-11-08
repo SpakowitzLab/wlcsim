@@ -12,7 +12,7 @@ from bruno_util.mittag_leffler import ml as mittag_leffler
 
 import numpy as np
 import scipy
-from scipy.special import gamma
+from scipy.special import gamma, erf
 from scipy.signal import savgol_filter, savgol_coeffs
 from numba import jit
 import mpmath
@@ -185,3 +185,14 @@ def test_rouse_msd_line_approx():
     plt.yscale('log')
     plt.xscale('log')
 
+def gaussian_G(r, N, b):
+    """Green's function of a Gaussian chain at N Kuhn lengths of separation,
+    given a Kuhn length of b"""
+    r2 = np.power(r, 2)
+    return np.power(3/(2*np.pi*b*b*N), 3/2)*np.exp(-(3/2)*r2/(N*b*b))
+
+def gaussian_Ploop(a, N, b):
+    """Looping probability for two loci on a Gaussian chain N kuhn lengths
+    apart, when the Kuhn length is b, and the capture radius is a"""
+    Nb2 = N*b*b
+    return erf(a*np.sqrt(3/2/Nb2)) - a*np.sqrt(6/np.pi/Nb2)/np.exp(3*a*a/2/Nb2)
