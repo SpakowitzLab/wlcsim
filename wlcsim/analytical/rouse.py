@@ -8,11 +8,13 @@ and they use the same variable name for two different things.
 In one, N is the number of Kuhn lengths, and in the other, N is the number of
 beads, each of which can represent an arbitrary number of Kuhn lengths.
 """
+from ..utils.math import spherical_jn_zeros
 from bruno_util.mittag_leffler import ml as mittag_leffler
 
 import numpy as np
 import scipy
-from scipy.special import gamma, erf
+import scipy.special
+import spycial
 from scipy.signal import savgol_filter, savgol_coeffs
 from numba import jit
 import mpmath
@@ -185,14 +187,72 @@ def test_rouse_msd_line_approx():
     plt.yscale('log')
     plt.xscale('log')
 
+@jit(nopython=True)
 def gaussian_G(r, N, b):
     """Green's function of a Gaussian chain at N Kuhn lengths of separation,
     given a Kuhn length of b"""
     r2 = np.power(r, 2)
     return np.power(3/(2*np.pi*b*b*N), 3/2)*np.exp(-(3/2)*r2/(N*b*b))
 
+@jit(nopython=True)
 def gaussian_Ploop(a, N, b):
     """Looping probability for two loci on a Gaussian chain N kuhn lengths
     apart, when the Kuhn length is b, and the capture radius is a"""
     Nb2 = N*b*b
-    return erf(a*np.sqrt(3/2/Nb2)) - a*np.sqrt(6/np.pi/Nb2)/np.exp(3*a*a/2/Nb2)
+    return spycial.erf(a*np.sqrt(3/2/Nb2)) - a*np.sqrt(6/np.pi/Nb2)/np.exp(3*a*a/2/Nb2)
+
+@jit(nopython=True)
+def _cart_to_sph(x, y, z):
+    r = np.sqrt(x*x + y*y + z*z)
+    if r == 0.0:
+        return 0.0, 0.0, 0.0
+    phi = np.arctan2(y, x)
+    theta = np.arccos(z/r)
+    return r, phi, theta
+
+def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
+    # first precompute the zeros of the spherical bessel functions, since our
+    # routine to do so is pretty slow
+    if n_max <= l_max:
+        raise ValueError("Need n_max > l_max to get enough BesselJ zeros")
+    if confined_G.zl_n is None or n_max > confined_G.zl_n.shape[1] \
+            or l_max > confined_G.zl_n.shape[0]:
+        confined_G.zl_n = spherical_jn_zeros(l_max, n_max)
+    # some aliases
+    spherical_jn = scipy.special.spherical_jn
+    Ylm = scipy.special.sph_harm
+    zl_n = confined_G.zl_n[:l_max+1,:n_max]
+    # convert to spherical coordinates
+    r = np.array(r)
+    if r.ndim == 1:
+        x, y, z = r
+        xp, yp, zp = rp
+    # elif r.ndim == 2:
+    #     x = r[:,0]
+    #     y = r[:,1]
+    #     z = r[:,2]
+    #     xp = rp[:,0]
+    #     yp = rp[:,1]
+    #     zp = rp[:,2]
+    else:
+        raise ValueError("Don't understand your R vectors")
+    r, phi, theta = _cart_to_sph(x, y, z)
+    rp, phip, thetap = _cart_to_sph(xp, yp, zp)
+    # compute terms based on indexing (ij in meshgrid to match zl_n)
+    l, n = np.meshgrid(np.arange(l_max+1), np.arange(n_max), indexing='ij')
+    ln_term = 2*np.exp(-b**2/6 * (zl_n/a)**2 * N)
+    ln_term = ln_term/(a**3 * spherical_jn(l+1, zl_n)**2)
+    ln_term = ln_term*spherical_jn(l, zl_n/a*r)*spherical_jn(l, zl_n/a*rp)
+    # l,m terms
+    m = np.arange(-l_max, l_max+1)
+    l, m = np.meshgrid(np.arange(l_max+1), np.arange(-l_max, l_max+1))
+    lm_term = Ylm(m, l, phi, theta)*Ylm(m, l, phip, thetap)
+    lm_mask = np.abs(m) <= l
+    lm_term[~lm_mask] = 0
+    # now broadcast and sum
+    G = np.sum(ln_term[None,:,:] * lm_term[:,:,None])
+    return G
+confined_G.zl_n = None
+
+
+

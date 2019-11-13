@@ -7,9 +7,11 @@ from ..analytical.rouse import gaussian_Ploop
 
 UNLOOP = 0
 PAIRED = 1
-JUNCTION = 2
+JUNC_LEFT_END = 2
+JUNC_RIGHT_END = 4
+JUNC_BOTH = 6
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def Ploop_given_paired(n, starts, ends, b, dN, a):
     r"""Get looping probability for a "homologously paired" pair of Rouse
     chains.
@@ -56,7 +58,8 @@ def Ploop_given_paired(n, starts, ends, b, dN, a):
         ei = ends[i]
         # the current "loop" is the whole polymer
         if si == -1 and ei == n:
-            raise NotImplementedError("there should be at least one paired site")
+            #TODO: use conf gaus green's function to get actual "free" ploop
+            pass # assume floor ploop will be set outside of here
         # the current "loop" is the free tails at the start of the polymer
         if si == -1:
             ploop[:ei] = gaussian_Ploop(a, 2*dN*(ei - np.arange(ei)), b)
@@ -74,7 +77,7 @@ def Ploop_given_paired(n, starts, ends, b, dN, a):
         ploop[si+1:ei] = gaussian_Ploop(a, Nb2_hat, 1)
     return ploop
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def get_terminatable_loops(state):
     """Take a state array and get the ends of the loops that have yet to
     terminate, so that we can count how many termination reactions are possible
@@ -82,56 +85,52 @@ def get_terminatable_loops(state):
     starts = []
     ends = []
     num_beads = len(state)
-    # track whether the bead we're at is in the interior of a "loop", i.e. not
-    # paired, i.e. whether state[i] == 0
-    in_loop = state[0] == UNLOOP
-    # track most recent junction, since an unjunctioned pair site can still
-    # loop with it
-    prev_junc = -1
-    # special flag for if the end of the polymer is not looped, treat as though
-    # an imaginary "-1" bead is paired. otherwise ensure we start with one more
-    # starts than ends
-    starts.append(-1 if in_loop else 0)
     # keep track of if we're at loci that have been "zippered" into the
     # synaptonemal complex yet (i.e. those that rest between related "junction"
-    # sites (in a string that matches the regex "20*2"))
-    in_junction = state[0] == JUNCTION
+    # sites (in a string that matches the regex "[26]0*[46]"))
+    in_junction = state[0] == JUNC_LEFT_END
+    if not in_junction:
+        # check if the end of the polymer is "free" or in a loop/junction
+        in_loop = state[0] == UNLOOP
+        # special flag for if the end of the polymer is not looped, treat as though
+        # an imaginary "-1" bead is paired. otherwise ensure we start with one more
+        # starts than ends
+        starts.append(-1 if in_loop else 0) # else PAIRED
     for i, si in enumerate(state):
         if i == 0:
             continue
-        if not in_junction and si == PAIRED:
+        elif not in_junction and si == PAIRED:
             ends.append(i)
             starts.append(i) # now N_ends = N_starts - 1
-        if not in_junction and si == JUNCTION:
+        elif not in_junction and si == JUNC_LEFT_END:
             ends.append(i) # now N_ends == N_starts
-            prev_junc = i
             in_junction = True
+        elif not in_junction and (si == JUNC_BOTH or si == JUNC_RIGHT_END):
+            raise ValueError("How did we end up hitting right end of junction first?")
         elif not in_junction and si == UNLOOP:
             continue
         elif in_junction and si == PAIRED:
-            starts.append(prev_junc)
-            ends.append(i)
+            raise ValueError("No loops should form in between junction points.")
+        elif in_junction and si == JUNC_LEFT_END:
+            raise ValueError("How did we hit left end of junction from inside junction?")
+        elif in_junction and si == JUNC_BOTH:
+            continue
+        elif in_junction and si == JUNC_RIGHT_END:
             starts.append(i) # now N_ends = N_starts - 1
             in_junction = False
-        elif in_junction and si == JUNCTION:
-            prev_junc = i
-            continue
         elif in_junction and si == UNLOOP:
             continue
-    if si == PAIRED:
+    if si == PAIRED or si == JUNC_RIGHT_END:
         starts.pop() # unecessarily added a "starts"
-    elif in_junction and si == UNLOOP:
-        # the end can still loop with the prev junction site
-        starts.append(prev_junc)
-        # special flag for if the other end of the polymer is not looped, treat
-        # as though an imaginary "N+1"th bead is paired
-        ends.append(num_beads)
     elif not in_junction and si == UNLOOP:
         ends.append(num_beads)
-    elif not in_junction and si == JUNCTION:
-        pass
-    elif in_junction and si == JUNCTION:
-        pass
+    elif in_junction and si == UNLOOP:
+        raise ValueError("What is the junction with if the end bead is UNLOOP?")
+    # other impossibilities
+    # checked above: (not in_junction and si == JUNC_RIGHT_END) or (in_junction
+    # and si == PAIRED)
+    elif si == JUNC_LEFT_END or si == JUNC_BOTH:
+        raise ValueError("Rightmost bead cannot be left end of junction.")
     return np.array(starts), np.array(ends)
 
 def test_get_terminatable_loops():
@@ -148,7 +147,7 @@ def test_get_terminatable_loops():
 
 # @jit(nopython=True)
 def chromatid_gillespie(init_paired, b, N, k_h, k_u, a,
-                        tend=np.inf, target_completion=1, k_t=None, R=None,
+                        tend=np.inf, target_completion=1, k_t=None, R=np.inf,
                         save_times=None):
     """Do Gillespie sim of homolog pairing process.
 
@@ -190,18 +189,21 @@ def chromatid_gillespie(init_paired, b, N, k_h, k_u, a,
     paired, and 2 means the locus has been sequestered into the synaptonemal
     complex
     """
-    if R is not None or not np.any(init_paired):
-        raise NotImplementedError("Initial pairing state must be specified.")
     state = np.array(init_paired).astype(int)
     if k_t is None:
         k_t = k_h
     if a <= 0 or tend < 0 or k_h < 0 or k_t < 0 or N <= 0 or b <= 0 \
-       or np.any(state < 0) or np.any(state > 2):
+       or R <= 0 or np.any(state < 0) or np.any(state > 2):
         raise ValueError("One of the inputs makes no sense.")
+    if np.isinf(R) and k_u > 0:
+        raise ValueError("You probably don't want unbinding reactions if " \
+                         "there's no way for a totally unpaired polymer to " \
+                         "find a loop (aka R=np.inf")
     if save_times is None:
         save_times = [0, np.inf]
     num_beads = len(state)
     dN = N/(num_beads-1)
+    min_ploop = a**3 / R**3 # fraction of volume occupied by interaction sphere
     t = 0
     save_i = 0
     save_states = []
@@ -210,36 +212,46 @@ def chromatid_gillespie(init_paired, b, N, k_h, k_u, a,
     # boundaries of those loops
     term_starts, term_ends = get_terminatable_loops(state)
     while t < tend and len(term_starts) > 0:
-        while t > save_times[save_i]:
+        while t >= save_times[save_i]:
             save_states.append(state.copy())
             save_i += 1
-        # the synaptonemal junction formation is also a looping process, simply
-        # of two loci on exactly opposite ends of the "loop", which is the same
-        # as being on a linear polymer with half that separation
-        rates_per_term = k_t*gaussian_Ploop(a, dN*(term_ends - term_starts)/2, b)
-        # deal with special "end" cases, corresponding to free ends looping
-        rates_per_term[term_starts == -1] = k_t*gaussian_Ploop(a, term_ends[term_starts == -1], b)
-        rates_per_term[term_ends == num_beads] = k_t*gaussian_Ploop(a, term_starts[term_ends == num_beads], b)
+        if len(term_ends) > 1:
+            # the synaptonemal junction formation is also a looping process, simply
+            # of two loci on exactly opposite ends of the "loop", which is the same
+            # as being on a linear polymer with half that separation
+            ploop = gaussian_Ploop(a, dN*(term_ends - term_starts)/2, b)
+            rates_per_term = k_t*np.maximum(min_ploop, ploop)
+            # deal with special "end" cases, corresponding to free ends looping
+            left_ploop = gaussian_Ploop(a, (num_beads-1) - term_ends[term_starts == -1], b)
+            rates_per_term[term_starts == -1] = k_t*np.maximum(min_ploop, left_ploop)
+            right_ploop = gaussian_Ploop(a, term_starts[term_ends == num_beads], b)
+            rates_per_term[term_ends == num_beads] = k_t*np.maximum(min_ploop, right_ploop)
+        else: # special case of full polymer unlooped
+            ploop = gaussian_Ploop(a, dN*num_beads, b)
+            rates_per_term = k_t*np.maximum(min_ploop, ploop)
+        # make array to index into for gillespie reaction "choice"
         term_cumulat = np.cumsum(rates_per_term)
         term_tot = term_cumulat[-1]
         # the other two reactions are simple looping and unlooping
         # only non-terminated pairs can unloop
-        rates_per_site = (state==1).astype(float)*k_u
+        rates_per_site = k_u*(state==1).astype(float)
         # get looping-weighted reaction rates for all loci that can loop
         rates_per_site += k_h*(state==0)*Ploop_given_paired(num_beads, term_starts, term_ends, b, dN, a)
         site_cumulat = np.cumsum(rates_per_site)
         site_tot = site_cumulat[-1]
         # first select which reaction to do
         if np.random.rand() < term_tot / (term_tot + site_tot):
+            # choose which of the loops will close
             ti = np.searchsorted(term_cumulat, term_tot*np.random.rand())
-            dt = np.random.exponential(scale=1/term_tot)
             # a termination reaction marks from locus to the next looped site
             # as "done", but make sure to not write out of bounds for two
             # special cases
             si = max(term_starts[ti], 0)
-            ei = min(term_ends[ti]+1, num_beads)
-            state[si:ei] = 2
+            state[si] = (state[si] & ~PAIRED) | JUNC_LEFT_END
+            ei = min(term_ends[ti], num_beads-1)
+            state[ei] = (state[ei] & ~PAIRED) | JUNC_RIGHT_END
         else:
+            # choose which of the sites will react
             reacted_site = np.searchsorted(site_cumulat, site_tot*np.random.rand())
             # a looping reaction just switches the state of that locus
             state[reacted_site] = 1 - state[reacted_site]
