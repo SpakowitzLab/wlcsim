@@ -213,8 +213,8 @@ def _cart_to_sph(x, y, z):
 def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
     # first precompute the zeros of the spherical bessel functions, since our
     # routine to do so is pretty slow
-    if n_max <= l_max:
-        raise ValueError("Need n_max > l_max to get enough BesselJ zeros")
+    if l_max >= 86: # for l >= 86, |m| >= 85 returns NaN from sph_harm
+        raise ValueError("l_max > 85 causes NaN's from scipy.special.sph_harm")
     if confined_G.zl_n is None or n_max > confined_G.zl_n.shape[1] \
             or l_max > confined_G.zl_n.shape[0]:
         confined_G.zl_n = spherical_jn_zeros(l_max, n_max)
