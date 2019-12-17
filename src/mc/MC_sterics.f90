@@ -25,7 +25,7 @@ integer, intent(in) :: MCTYPE            ! MC move type
 logical, intent(in) :: forward           ! direction of reptation move
 logical, intent(out) :: collide ! collision variable
 logical :: collisionVal
-real(dp), parameter :: radius = 0.0!5.2 ! nm 
+real(dp), parameter :: radius = 5.2 ! nm 
 logical :: isNucleosome ! whether or not the moved bead is a nucleosome
 logical :: isP1DNA ! whether or not the moved bead +1 is DNA
 logical :: isM1DNA ! whether or not the moved bead -1 is DNA
@@ -167,22 +167,22 @@ do ii = left,right
                 endif
             else ! line-line collision
                 if (isP1DNA .AND. (jj /= WLC_P__NT)) then 
-                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (ii+1 /= jj) .AND. (jj+1 /= ii)) then
+                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (ii+1 < jj) .AND. (jj+1 < ii)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj), wlc_R(:,jj+1))
                     endif
                 endif
                 if (isP1DNA .AND. (jj /= 1)) then
-                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii+1 /= jj-1)) then
+                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii+1 < jj-1)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj-1), wlc_R(:,jj))
                     endif
                 endif
                 if (isM1DNA .AND. (jj /= WLC_P__NT)) then
-                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (jj+1 /= ii-1)) then
+                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (jj+1 < ii-1)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj), wlc_R(:,jj+1))
                     endif
                 endif
                 if (isM1DNA .AND. (jj /= 1)) then
-                    if ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii /= jj-1) .AND. (jj /= ii-1)) then
+                    if ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii < jj-1) .AND. (jj < ii-1)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
                     endif
                 endif

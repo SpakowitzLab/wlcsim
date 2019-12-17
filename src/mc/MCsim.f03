@@ -128,7 +128,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-              !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
+              call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               call MC_sterics(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               if (collide) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1

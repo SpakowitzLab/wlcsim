@@ -31,7 +31,7 @@ MODULE LineLineIntersection
 
         ! check for overlap of points
         if (ALL(ABS(A1-B1) <= tol) .OR. ALL(ABS(A1-B2) <= tol) .OR. ALL(ABS(A2-B1) <= tol) .OR. ALL(ABS(A2-B2) <= tol)) then
-            print*, "collision, point overlap"
+            !print*, "collision, point overlap"
             LineLineIntersectionCalculation = .TRUE.
             return
         endif
@@ -47,7 +47,7 @@ MODULE LineLineIntersection
             ! take just the first component
             if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
               .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
-                print*, "collision, parallel overlap"
+                !print*, "collision, parallel overlap"
                 LineLineIntersectionCalculation = .TRUE.
                 return
             else
@@ -67,7 +67,7 @@ MODULE LineLineIntersection
         pB = B1 + muB * (B2-B1)
         ! check if dist <= tol
         if ((sqrt(dot_product(pA-pB, pA-pB)) <= dist)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1)) then 
-            print*, "collision, intersect"
+            !print*, "collision, intersect"
             LineLineIntersectionCalculation = .TRUE.
             return 
         endif
@@ -401,11 +401,11 @@ MODULE SphereLineIntersection
         um = (-b - sqrt(discr))/(2*a)
         if ((um > 1 .AND. up < 0) .OR. (um < 0 .AND. up > 1)) then 
             SphereLineIntersectionCalculation = .TRUE.
-            print*, "line in sphere"
+            !print*, "line in sphere"
             return
         else if ((um >= 0 .AND. um <= 1) .OR. (up >= 0 .AND. up <= 1)) then 
             SphereLineIntersectionCalculation = .TRUE.
-            print*, "one or more intersections"
+            !print*, "one or more intersections"
             return
         endif
         return 
@@ -584,7 +584,7 @@ MODULE SphereSphereIntersection
         ! see if radii overalp
         if ( sqrt(dot_product(A1-B1, A1-B1)) - (ra+rb) < dist ) then
             SphereSphereIntersectionCalculation = .TRUE.
-            print*, "sphere collision"
+            !print*, "sphere collision"
             return
         endif
         return 
