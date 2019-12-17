@@ -455,13 +455,15 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
     wlc_V(2,1) = 0.0_dp
     wlc_V(3,1) = 0.0_dp
 
-    do IB=2,WLC_P__NT
+    ! NP EDIT : initialization is at odds with how energy is calculated 
+    ! (i.e i-1 rotation to i vs i rotation to i+1, intuitvely the same physics but not the same results)
+    do IB=1,WLC_P__NT-1
         ! Rotation (and translation) due to nucleosome
-        call nucleosomeProp(U(:,IB-1), wlc_V(:,IB-1), R(:,IB-1), &
+        call nucleosomeProp(U(:,IB), wlc_V(:,IB), R(:,IB), &
                             wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
-                            U(:,IB), wlc_V(:,IB), R(:,IB))
+                            U(:,IB+1), wlc_V(:,IB+1), R(:,IB+1))
         ! Translation due to zero-enery linker
-        R(:,IB) = R(:,IB) + U(:,IB)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB-1)
+        R(:,IB+1) = R(:,IB+1) + U(:,IB+1)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB)
     enddo
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)

@@ -119,7 +119,7 @@
 ! DEFAULTS COMMENT: ! Not in periodic BC
 ! TYPE: LOGICAL
 
-#define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .FALSE.
+#define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .TRUE.
 ! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time
 ! DEFAULTS COMMENT: ! We care about collisions
 ! TYPE: LOGICAL
@@ -231,7 +231,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 82
+#define WLC_P__NB 100
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -323,7 +323,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 618.75_dp
+#define WLC_P__L 648.45_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
@@ -537,7 +537,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 500
+#define WLC_P__STEPSPEREXCHANGE 1
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
