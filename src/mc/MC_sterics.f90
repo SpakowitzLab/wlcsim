@@ -82,15 +82,15 @@ do ii = left,right
     if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome
         isNucleosome = .TRUE.
         ! find end of nucleosome to then find actual midpoint
-        !call nucleosomeProp(wlc_UP(:,ii), wlc_VP(:,ii), wlc_RP(:,ii), &
-        !            wlc_basepairs(ii),wlc_nucleosomeWrap(ii), &
-        !            tempU, tempV, tempR)
-        !sphere1 = (wlc_RP(:,ii) + tempR+tempU*WLC_P__LENGTH_PER_BP*wlc_basepairs(ii)) / 2.0
-        if (ii /= WLC_P__NT) then 
-            sphere1 = (wlc_RP(:,ii) + wlc_RP(:,ii+1)) / 2.0
-        else
-            sphere1 = wlc_RP(:,ii)
-        endif
+        call nucleosomeProp(wlc_UP(:,ii), wlc_VP(:,ii), wlc_RP(:,ii), &
+                    wlc_basepairs(ii),wlc_nucleosomeWrap(ii), &
+                    tempU, tempV, tempR)
+        sphere1 = (wlc_RP(:,ii) + tempR) / 2.0
+        !if (ii /= WLC_P__NT) then 
+        !    sphere1 = (wlc_RP(:,ii) + wlc_RP(:,ii+1)) / 2.0
+        !else
+        !    sphere1 = wlc_RP(:,ii)
+        !endif
     else
         isNucleosome = .FALSE.
     endif
@@ -125,15 +125,15 @@ do ii = left,right
             ! check identity of all other beads in chain 
             if (isNucleosome .AND. wlc_nucleosomeWrap(jj) /= 1) then ! sphere-sphere collision
                 ! find end of nucleosome to then find actual midpoint
-                !call nucleosomeProp(wlc_U(:,jj), wlc_V(:,jj), wlc_R(:,jj), &
-                !            wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
-                !            tempU, tempV, tempR)
-                !sphere2 = (wlc_R(:,jj) + tempR+tempU*WLC_P__LENGTH_PER_BP*wlc_basepairs(jj)) / 2.0
-                if (jj /= WLC_P__NT ) then 
-                    sphere2 = (wlc_RP(:,jj) + wlc_RP(:,jj+1)) / 2.0
-                else
-                    sphere2 = wlc_RP(:,jj)
-                endif
+                call nucleosomeProp(wlc_U(:,jj), wlc_V(:,jj), wlc_R(:,jj), &
+                            wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
+                            tempU, tempV, tempR)
+                sphere2 = (wlc_R(:,jj) + tempR) / 2.0
+                !if (jj /= WLC_P__NT ) then 
+                !    sphere2 = (wlc_RP(:,jj) + wlc_RP(:,jj+1)) / 2.0
+                !else
+                !    sphere2 = wlc_RP(:,jj)
+                !endif
                 collisionVal = SphereSphereIntersectionCalculation(sphere1, radius, sphere2, radius)
             ! moved bead nuc + DNA
             else if (isNucleosome .AND. wlc_nucleosomeWrap(jj) == 1) then ! sphere-line collision
@@ -150,15 +150,15 @@ do ii = left,right
             ! moved bead DNA + nuc
             else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(jj) /= 1) ) then ! sphere-line collision
                 ! find end of nucleosome to then find actual midpoint
-                !call nucleosomeProp(wlc_U(:,jj), wlc_V(:,jj), wlc_R(:,jj), &
-                !            wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
-                !            tempU, tempV, tempR)
-                !sphere2 = (wlc_R(:,jj) + tempR+tempU*WLC_P__LENGTH_PER_BP*wlc_basepairs(jj)) / 2.0
-                if (jj /= WLC_P__NT ) then 
-                    sphere2 = (wlc_RP(:,jj) + wlc_RP(:,jj+1)) / 2.0
-                else
-                    sphere2 = wlc_RP(:,jj)
-                endif
+                call nucleosomeProp(wlc_U(:,jj), wlc_V(:,jj), wlc_R(:,jj), &
+                            wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
+                            tempU, tempV, tempR)
+                sphere2 = (wlc_R(:,jj) + tempR) / 2.0
+                !if (jj /= WLC_P__NT ) then 
+                !    sphere2 = (wlc_RP(:,jj) + wlc_RP(:,jj+1)) / 2.0
+                !else
+                !    sphere2 = wlc_RP(:,jj)
+                !endif
                 if (isP1DNA .AND. (ii /= jj-1) .AND. (ii /= jj-2)) then 
                     collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), sphere2, radius)
                 endif
