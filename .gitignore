@@ -42,5 +42,4 @@ input/_temp*
 input/polyLengths
 input/field_l2
 noStericsData/*
-stericsLongData/*
 stericsData/*
