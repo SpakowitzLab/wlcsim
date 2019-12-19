@@ -131,8 +131,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               call MC_sterics(collide,IB1,IB2,IT1,IT2,MCTYPE,forward) ! use new sterics checker instead of quinns
               if (collide) then
-                  wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-                  goto 10 ! skip move, return RP to nan
+                  !wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                  !goto 10 ! skip move, return RP to nan
+                  energyOf(self_)%dx = 10e3 ! call it self for now
               endif
           endif
 

@@ -537,12 +537,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 10000
+#define WLC_P__STEPSPEREXCHANGE 30000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
 
-#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 10
+#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1
 ! VARIABLE COMMENT: ! read teh variable name
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
