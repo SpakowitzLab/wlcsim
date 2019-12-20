@@ -30,7 +30,9 @@ logical :: isNucleosome ! whether or not the moved bead is a nucleosome
 logical :: isP1DNA ! whether or not the moved bead +1 is DNA
 logical :: isM1DNA ! whether or not the moved bead -1 is DNA
 real(dp), dimension(3) :: tempU, tempV, tempR, sphere1, sphere2
-integer left, right, ii, jj
+integer left, right, ii, jj, exclude
+
+! figure out exclusion discretization scheme!!!! similar to elenas?
 
 collide = .FALSE.
 
@@ -128,12 +130,12 @@ do ii = left,right
             ! moved bead nuc + DNA
             else if (isNucleosome .AND. wlc_nucleosomeWrap(jj) == 1) then ! sphere-line collision
                 if (jj < WLC_P__NT) then 
-                    if (wlc_nucleosomeWrap(jj+1) == 1 .AND. (jj+1 /= ii)) then 
+                    if (wlc_nucleosomeWrap(jj+1) == 1 .AND. (jj+1 /= ii) .AND. (jj+2 /= ii)) then 
                         collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj), wlc_R(:,jj+1), sphere1, radius)
                     endif
                 endif
                 if (jj > 2) then 
-                    if (wlc_nucleosomeWrap(jj-1) == 1 .AND. (jj-1 /= ii)) then 
+                    if (wlc_nucleosomeWrap(jj-1) == 1 .AND. (jj-1 /= ii) .AND. (jj-2 /= ii)) then 
                         collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj-1), wlc_R(:,jj), sphere1, radius)
                     endif
                 endif
@@ -144,10 +146,10 @@ do ii = left,right
                             wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
                             tempU, tempV, tempR)
                 sphere2 = (wlc_R(:,jj) + tempR) / 2.0
-                if (isP1DNA .AND. (ii+1 /= jj)) then 
+                if (isP1DNA .AND. (ii+1 /= jj) .AND. (ii+2 /= jj)) then 
                     collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), sphere2, radius)
                 endif
-                if (isM1DNA .AND. (ii-1 /= jj)) then 
+                if (isM1DNA .AND. (ii-1 /= jj) .AND. (ii-2 /= jj)) then 
                     collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), sphere2, radius)
                 endif
             else ! line-line collision
