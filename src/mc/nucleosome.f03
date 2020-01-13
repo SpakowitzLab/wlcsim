@@ -196,11 +196,11 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
         ! figure out main discretization scheme
         discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-        call discretization_scheme(discretization, discretization, num_link_beads, &
+        call discretizationScheme(discretization, discretization, num_link_beads, &
                 off_discretization)
         ! figure out overhang discretization scheme
         discretization_overhang = WLC_P__LL/ ((WLC_P__NB - ((num_link_beads-1)*(nNucs-1) + nNucs)) / 2)
-        call discretization_scheme(discretization_overhang, discretization_overhang, num_link_beads_overhang, &
+        call discretizationScheme(discretization_overhang, discretization_overhang, num_link_beads_overhang, &
                off_discretization_overhang)
         ! print for sanity check
         print*, discretization, num_link_beads, off_discretization
@@ -239,7 +239,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
 end subroutine
 
-subroutine discretization_scheme(discretizationIN, discretization, num_link_beads, off_discretization)
+subroutine discretizationScheme(discretizationIN, discretization, num_link_beads, off_discretization)
     implicit none
     real(dp), intent(in) :: discretizationIN
     real(dp), intent(out) :: discretization
@@ -276,6 +276,6 @@ subroutine discretization_scheme(discretizationIN, discretization, num_link_bead
             print*, "lower discretization length or change linker/fragment length pairing"
             stop
         endif
-end subroutine discretization_scheme
+end subroutine discretizationScheme
 
 end module nucleosome

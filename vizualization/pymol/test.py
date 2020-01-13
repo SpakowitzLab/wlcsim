@@ -13,6 +13,7 @@ topo = 'linear'
 #define index range for coordinate files
 file_inds = range(1,111)
 os.system('rm -r %s/*' %output_folder)
+os.makedirs(output_folder)
 for ind in file_inds:
     #load file
     r = np.loadtxt('%s/r%sv0' %(input_folder,ind))

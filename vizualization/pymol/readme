@@ -1,0 +1,7 @@
+hi devany
+
+sorry this is gross but to visualize in pymol:
+
+first run the main.py script (normally on the command line to convert the XYZ coordinates into pdb format)
+
+then run the movie.py script in pymol (run movie.py) command line to see all the snapshots

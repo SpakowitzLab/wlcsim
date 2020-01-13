@@ -27,7 +27,6 @@ logical, intent(out) :: collide ! collision variable
 logical :: collisionVal
 real(dp), parameter :: radius = 5.2 ! nm 
 logical :: isNucleosome ! whether or not the moved bead is a nucleosome
-logical :: isP1DNA ! whether or not the moved bead +1 is DNA
 logical :: isM1DNA ! whether or not the moved bead -1 is DNA
 real(dp), dimension(3) :: tempU, tempV, tempR, sphere1, sphere2
 integer left, right, ii, jj, exclude
@@ -92,17 +91,6 @@ do ii = left,right
         isNucleosome = .FALSE.
     endif
 
-    ! determine idenity of neighboring beads (+1)
-    if (ii+1 <= WLC_P__NT) then ! on chain
-        if (wlc_nucleosomeWrap(ii+1) == 1) then ! P1 is DNA
-            isP1DNA = .TRUE.
-        else ! P1 is nucloeosme
-            isP1DNA = .FALSE.
-        endif
-    else
-        isP1DNA = .FALSE.
-    endif
-
     ! determine idenity of neighboring beads (-1)
     if (ii-1 >= 1) then ! on chain
         if (wlc_nucleosomeWrap(ii-1) == 1) then ! M1 is DNA
@@ -129,16 +117,18 @@ do ii = left,right
                 collisionVal = SphereSphereIntersectionCalculation(sphere1, radius, sphere2, radius)
             ! moved bead nuc + DNA
             else if (isNucleosome .AND. wlc_nucleosomeWrap(jj) == 1) then ! sphere-line collision
-                if (jj < WLC_P__NT) then 
-                    if (wlc_nucleosomeWrap(jj+1) == 1 .AND. (jj+1 /= ii) .AND. (jj+2 /= ii)) then 
-                        collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj), wlc_R(:,jj+1), sphere1, radius)
+                if ((jj+1 /= ii) .AND. (jj+2 /= ii) .AND. (jj-1 /= ii) .AND. (jj-2 /= ii)) then ! 2 nearest 5bp segs cleared from nucleosome
+                    if (jj < WLC_P__NT) then 
+                        if (wlc_nucleosomeWrap(jj+1) == 1) then 
+                            collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj), wlc_R(:,jj+1), sphere1, radius)
+                        endif
                     endif
-                endif
-                if (jj > 2) then 
-                    if (wlc_nucleosomeWrap(jj-1) == 1 .AND. (jj-1 /= ii) .AND. (jj-2 /= ii)) then 
-                        collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj-1), wlc_R(:,jj), sphere1, radius)
+                    if (jj > 2) then 
+                        if (wlc_nucleosomeWrap(jj-1) == 1) then 
+                            collisionVal = SphereLineIntersectionCalculation(wlc_R(:,jj-1), wlc_R(:,jj), sphere1, radius)
+                        endif
                     endif
-                endif
+                endif 
             ! moved bead DNA + nuc
             else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(jj) /= 1) ) then ! sphere-line collision
                 ! find end of nucleosome to then find actual midpoint
@@ -146,31 +136,53 @@ do ii = left,right
                             wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
                             tempU, tempV, tempR)
                 sphere2 = (wlc_R(:,jj) + tempR) / 2.0
-                if (isP1DNA .AND. (ii+1 /= jj) .AND. (ii+2 /= jj)) then 
-                    collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), sphere2, radius)
-                endif
-                if (isM1DNA .AND. (ii-1 /= jj) .AND. (ii-2 /= jj)) then 
-                    collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), sphere2, radius)
+                if ((ii+1 /= jj) .AND. (ii+2 /= jj) .AND. (ii-1 /= jj) .AND. (ii-2 /= jj)) then ! 2 nearest 5bp segs cleared from nucleosome
+                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
+                    if (ii < WLC_P__NT) then 
+                        collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), sphere2, radius)
+                    endif
+                    if (ii > 1) then 
+                        if (isM1DNA ) then 
+                            collisionVal = SphereLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), sphere2, radius)
+                        else ! M1 DNA is start of nucleosome, find actual end (linker exit site) to complete line segment
+                            call nucleosomeProp(wlc_U(:,ii-1), wlc_V(:,ii-1), wlc_R(:,ii-1), &
+                                wlc_basepairs(ii-1),wlc_nucleosomeWrap(ii-1), &
+                                tempU, tempV, tempR)
+                            collisionVal = SphereLineIntersectionCalculation(tempR, wlc_RP(:,ii), sphere2, radius)
+                        endif
+                    endif
                 endif
             else ! line-line collision
-                if (isP1DNA .AND. (jj /= WLC_P__NT)) then 
-                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (ii+1 < jj) .AND. (jj+1 < ii)) then
+                if (jj /= WLC_P__NT) then ! check jj + 1
+                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
+                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. ((ii+1 < jj) .OR. (jj+1 < ii)) .AND. (ii < WLC_P__NT)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj), wlc_R(:,jj+1))
                     endif
+                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. ((jj+1 < ii-1) .OR. (ii < jj)) .AND. (ii > 1)) then
+                        if (isM1DNA) then 
+                            collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj), wlc_R(:,jj+1))
+                        else ! M1 DNA is start of nucleosome, find actual end (linker exit site) to complete line segment
+                            call nucleosomeProp(wlc_U(:,ii-1), wlc_V(:,ii-1), wlc_R(:,ii-1), &
+                                wlc_basepairs(ii-1),wlc_nucleosomeWrap(ii-1), &
+                                tempU, tempV, tempR)
+                            collisionVal = LineLineIntersectionCalculation(tempR, wlc_RP(:,ii), wlc_R(:,jj), wlc_R(:,jj+1))
+                        endif
+                    endif
                 endif
-                if (isP1DNA .AND. (jj /= 1)) then
-                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii+1 < jj-1)) then
+                if (jj /= 1) then ! check jj - 1
+                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
+                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. ((ii+1 < jj-1) .OR. (jj < ii)) .AND. (ii < WLC_P__NT)) then
                         collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj-1), wlc_R(:,jj))
                     endif
-                endif
-                if (isM1DNA .AND. (jj /= WLC_P__NT)) then
-                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. (jj+1 < ii-1)) then
-                        collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj), wlc_R(:,jj+1))
-                    endif
-                endif
-                if (isM1DNA .AND. (jj /= 1)) then
-                    if ((wlc_nucleosomeWrap(jj-1) == 1) .AND. (ii < jj-1) .AND. (jj < ii-1)) then
-                        collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
+                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. ((ii < jj-1) .OR. (jj < ii-1)) .AND. (ii > 1)) then
+                        if (isM1DNA) then 
+                            collisionVal = LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
+                        else ! M1 DNA is start of nucleosome, find actual end (linker exit site) to complete line segment
+                            call nucleosomeProp(wlc_U(:,ii-1), wlc_V(:,ii-1), wlc_R(:,ii-1), &
+                                wlc_basepairs(ii-1),wlc_nucleosomeWrap(ii-1), &
+                                tempU, tempV, tempR)
+                            collisionVal = LineLineIntersectionCalculation(tempR, wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
+                        endif
                     endif
                 endif
             endif
