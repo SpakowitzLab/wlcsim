@@ -17,8 +17,8 @@ MODULE LineLineIntersection
         real(dp), intent(in), dimension(3) :: A2
         real(dp), intent(in), dimension(3) :: B1
         real(dp), intent(in), dimension(3) :: B2
-        real(dp), parameter ::  tol = 1.0e-5 ! tolerance for cooccupancy (should be small to disallow overlap)
-        real(dp), parameter :: dist = 1.0e-3 ! tolerance for collision (pseudo thickness of line)
+        real(dp), parameter ::  tol = 1.0e-3 ! tolerance for cooccupancy (should be small to disallow overlap)
+        real(dp), parameter :: dist = 1.0e-5 ! tolerance for collision (pseudo thickness of line)
         real(dp), dimension(3) :: pA ! closest point on A to B
         real(dp), dimension(3) :: pB ! closest point on B to A
         real(dp) dotA1B1B2B1, dotB2B1A2A1, dotA1B1A2A1, dotB2B1B2B1, dotA2A1A2A1
@@ -50,7 +50,7 @@ MODULE LineLineIntersection
                 ! take just the first component
                 if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
                   .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
-                    !print*, "collision, parallel overlap"
+                    print*, "collision, parallel overlap"
                     LineLineIntersectionCalculation = .TRUE.
                     return ! quit early
                 else
@@ -74,7 +74,12 @@ MODULE LineLineIntersection
         pB = B1 + muB * (B2-B1)
         ! check if dist <= tol
         if ((sqrt(dot_product(pA-pB, pA-pB)) <= dist)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1)) then 
-            !print*, "collision, intersect"
+            print*, "collision, intersect"
+            print*, sqrt(dot_product(pA-pB, pA-pB)), muA, muB
+            print*, A1
+            print*, A2
+            print*, B1
+            print*, B2
             LineLineIntersectionCalculation = .TRUE.
             return 
         endif
