@@ -373,10 +373,10 @@ MODULE LineLineIntersection
 
     SUBROUTINE LineLineIntersectionTestIntersectProjectionCollide
         implicit none
-        real, dimension(3) :: A1 = (/0,0,0/)
-        real, dimension(3) :: A2 = (/0,0,5/)
-        real, dimension(3) :: B1 = (/-1,0,2/)
-        real, dimension(3) :: B2 = (/1,0,2/)
+        real(dp), dimension(3) :: A1 = (/0,0,0/)
+        real(dp), dimension(3) :: A2 = (/0,0,5/)
+        real(dp), dimension(3) :: B1 = (/-1,0,2/)
+        real(dp), dimension(3) :: B2 = (/1,0,2/)
         logical :: val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
@@ -389,10 +389,10 @@ MODULE LineLineIntersection
 
     SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollide
         implicit none
-        real, dimension(3) :: A1 = (/-1,0,5/)
-        real, dimension(3) :: A2 = (/1,0,5/)
-        real, dimension(3) :: B1 = (/-1,0,2/)
-        real, dimension(3) :: B2 = (/1,0,2/)
+        real(dp), dimension(3) :: A1 = (/-1,0,5/)
+        real(dp), dimension(3) :: A2 = (/1,0,5/)
+        real(dp), dimension(3) :: B1 = (/-1,0,2/)
+        real(dp), dimension(3) :: B2 = (/1,0,2/)
         logical :: val
         
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
