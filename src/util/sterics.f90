@@ -44,13 +44,20 @@ MODULE LineLineIntersection
             tA2 = (A2-A1)/vecA
             tB1 = (B1-A1)/vecA
             tB2 = (B2-A1)/vecA
-            ! take just the first component
-            if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
-              .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
-                !print*, "collision, parallel overlap"
-                LineLineIntersectionCalculation = .TRUE.
-                return
+            ! ensure all the components are the same
+            if ( tA2(1)==tA2(2) .AND. tA2(2)==tA2(3) .AND. tB1(1)==tB1(2) .AND. tB1(2)==tB1(3) &
+              .AND. tB2(1)==tB2(2) .AND. tB2(2)==tB2(3) ) then
+                ! take just the first component
+                if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
+                  .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
+                    !print*, "collision, parallel overlap"
+                    LineLineIntersectionCalculation = .TRUE.
+                    return ! quit early
+                else
+                    return ! quit early
+                endif
             else
+                !print*, "no collision, parallel but not overlap"
                 return ! quit early
             endif
         endif
@@ -363,6 +370,38 @@ MODULE LineLineIntersection
         endif
 
     END SUBROUTINE LineLineIntersectionTestIntersectMiddle
+
+    SUBROUTINE LineLineIntersectionTestIntersectProjectionCollide
+        implicit none
+        real, dimension(3) :: A1 = (/0,0,0/)
+        real, dimension(3) :: A2 = (/0,0,5/)
+        real, dimension(3) :: B1 = (/-1,0,2/)
+        real, dimension(3) :: B2 = (/1,0,2/)
+        logical :: val
+
+        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
+        if (val .NEQV. .TRUE.) then
+            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionCollide"
+            stop
+        endif
+
+    END SUBROUTINE LineLineIntersectionTestIntersectProjectionCollide
+
+    SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollide
+        implicit none
+        real, dimension(3) :: A1 = (/-1,0,5/)
+        real, dimension(3) :: A2 = (/1,0,5/)
+        real, dimension(3) :: B1 = (/-1,0,2/)
+        real, dimension(3) :: B2 = (/1,0,2/)
+        logical :: val
+        
+        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
+        if (val .NEQV. .FALSE.) then
+            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollide"
+            stop
+        endif
+
+    END SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollide
 
 END MODULE LineLineIntersection
 
