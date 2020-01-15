@@ -72,7 +72,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
-    logical collide
+    integer collisions
     logical success
     logical wlc_AlexanderP
 
@@ -129,11 +129,12 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
               !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
-              call MC_sterics(collide,IB1,IB2,IT1,IT2,MCTYPE,forward) ! use new sterics checker instead of quinns
-              if (collide) then
+              call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward) ! use new sterics checker instead of quinns
+              if (collisions>0) then
                   !wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   !goto 10 ! skip move, return RP to nan
-                  energyOf(self_)%dx = 5e2 ! call it self for now
+                  !print*, 3*collisions 
+                  energyOf(self_)%dx = 3*collisions ! call it self for now
               endif
           endif
 
