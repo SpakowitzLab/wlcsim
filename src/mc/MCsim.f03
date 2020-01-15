@@ -133,8 +133,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               if (collisions>0) then
                   !wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   !goto 10 ! skip move, return RP to nan
-                  !print*, 3*collisions 
-                  energyOf(self_)%dx = 3*collisions ! call it self for now
+                  !print*, 'collisions:', collisions 
+                  energyOf(sterics_)%dx = 3*collisions 
               endif
           endif
 

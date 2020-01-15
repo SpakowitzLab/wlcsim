@@ -21,7 +21,6 @@ use params, only: wlcsim_params
     integer Delta !transh
     real(dp) EELAS(4) ! Elastic force
 
-
     call set_all_dEnergy_to_zero()
 
     !----------------------------
@@ -138,7 +137,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
    call CalculateEnergiesFromScratch(wlc_p)
 
    do ii = 1,NUMBER_OF_ENERGY_TYPES
-       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox) then
+       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox .AND. ii/=21) then !ignore sterics for now
            write(ERROR_UNIT,*) "Warning. Integerated ",&
                energyOf(ii)%name_str," energy:", &
                energyOf(ii)%E," while absolute ",&

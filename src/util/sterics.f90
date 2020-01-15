@@ -18,7 +18,6 @@ MODULE LineLineIntersection
         real(dp), intent(in), dimension(3) :: B1
         real(dp), intent(in), dimension(3) :: B2
         real(dp), parameter ::  tol = 1.0e-8! tolerance for cooccupancy (should be small to disallow overlap)
-        real(dp), parameter :: dist = 1.0e-5 ! tolerance for collision (pseudo thickness of line)
         real(dp), dimension(3) :: pA ! closest point on A to B
         real(dp), dimension(3) :: pB ! closest point on B to A
         real(dp) dotA1B1B2B1, dotB2B1A2A1, dotA1B1A2A1, dotB2B1B2B1, dotA2A1A2A1
@@ -31,7 +30,7 @@ MODULE LineLineIntersection
 
         ! check for overlap of points
         if (ALL(ABS(A1-B1) <= tol) .OR. ALL(ABS(A1-B2) <= tol) .OR. ALL(ABS(A2-B1) <= tol) .OR. ALL(ABS(A2-B2) <= tol)) then
-            !print*, "collision, point overlap"
+            print*, "collision, point overlap"
             LineLineIntersectionCalculation = 1
             return
         endif
@@ -51,6 +50,10 @@ MODULE LineLineIntersection
                 if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
                   .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
                     !print*, "collision, parallel overlap"
+                    !print*, A1(1), ',',A1(2), ',',A1(3)
+                    !print*, A2(1), ',',A2(2), ',',A2(3)
+                    !print*, B1(1),',', B1(2), ',',B1(3)
+                    !print*, B2(1), ',',B2(2), ',',B2(3)
                     LineLineIntersectionCalculation = 1
                     return ! quit early, coincident lines
                 else
@@ -73,9 +76,14 @@ MODULE LineLineIntersection
         pA = A1 + muA * (A2-A1)
         pB = B1 + muB * (B2-B1)
         ! check if dist <= tol
-        if ((sqrt(dot_product(pA-pB, pA-pB)) <= dist)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1) &
-          .AND. .NOT. (abs(-1 - muA*muB) <= dist)) then ! check for -1 and 1 pairs  
-            !print*, "collision, intersect"
+        if ((sqrt(dot_product(pA-pB, pA-pB)) <= tol)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1) &
+          .AND. .NOT. (abs(-1 - muA*muB) <= tol)) then ! check for -1 and 1 pairs  
+            print*, "collision, intersect"
+            !print*, muA, muB, sqrt(dot_product(pA-pB, pA-pB)), abs(-1 - muA*muB)
+            !print*, A1(1), ',',A1(2),',', A1(3)
+            !print*, A2(1), ',',A2(2), ',',A2(3)
+            !print*, B1(1),',', B1(2),',', B1(3)
+            !print*, B2(1), ',',B2(2), ',',B2(3)
             LineLineIntersectionCalculation = 1
             return 
         endif
@@ -124,10 +132,18 @@ MODULE SphereLineIntersection
         if ((um > 1 .AND. up < 0) .OR. (um < 0 .AND. up > 1)) then 
             SphereLineIntersectionCalculation = 1
             !print*, "line in sphere"
+            !print*, um, up
+            !print*, A1(1), ',',A1(2), ',',A1(3)
+            !print*, A2(1), ',',A2(2), ',',A2(3)
+            !print*, B1(1),',', B1(2), ',',B1(3), ',',r
             return
         else if ((um >= 0 .AND. um <= 1) .OR. (up >= 0 .AND. up <= 1)) then 
             SphereLineIntersectionCalculation = 1
             !print*, "one or more line-sphere intersections"
+            !print*, um, up
+            !print*, A1(1), ',', A1(2), ',', A1(3)
+            !print*, A2(1), ',', A2(2), ',', A2(3)
+            !print*, B1(1), ',', B1(2), ',', B1(3), ',', r
             return
         endif
         return 
@@ -164,6 +180,8 @@ MODULE SphereSphereIntersection
         if ( sqrt(dot_product(A1-B1, A1-B1)) - (ra+rb) < dist ) then
             SphereSphereIntersectionCalculation = 1
             !print*, "sphere collision"
+            !print*, A1(1), ',', A1(2), ',', A1(3), ',', ra
+            !print*, B1(1), ',', B1(2), ',', B1(3), ',', rb
             return
         endif
         return 

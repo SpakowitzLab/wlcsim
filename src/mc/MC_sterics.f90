@@ -28,7 +28,7 @@ real(dp), parameter :: radius = 5.2 ! nm
 logical :: isNucleosome ! whether or not the moved bead is a nucleosome
 logical :: isM1DNA ! whether or not the moved bead -1 is DNA
 real(dp), dimension(3) :: tempU, tempV, tempR, sphere1, sphere2
-integer left, right, ii, jj, exclude
+integer left, right, ii, jj
 
 ! figure out exclusion discretization scheme!!!! similar to elenas?
 !collide = .FALSE.
@@ -117,17 +117,11 @@ do ii = left,right
                   SphereSphereIntersectionCalculation(sphere1, radius, sphere2, radius)
             ! moved bead nuc + DNA
             else if (isNucleosome .AND. wlc_nucleosomeWrap(jj) == 1) then ! sphere-line collision
-                if ((jj+1 /= ii) .AND. (jj+2 /= ii) .AND. (jj-1 /= ii) .AND. (jj-2 /= ii)) then ! 2 nearest 5bp segs cleared from nucleosome
+                if ((jj+1 /= ii) .AND. (jj+2 /= ii) .AND. (jj-1 /= ii)) then ! 2 nearest 5bp segs cleared from nucleosome
                     if (jj < WLC_P__NT) then 
                         if (wlc_nucleosomeWrap(jj+1) == 1) then 
                             collisions = collisions + &
                               SphereLineIntersectionCalculation(wlc_R(:,jj), wlc_R(:,jj+1), sphere1, radius)
-                        endif
-                    endif
-                    if (jj > 2) then 
-                        if (wlc_nucleosomeWrap(jj-1) == 1) then 
-                            collisions = collisions + &
-                              SphereLineIntersectionCalculation(wlc_R(:,jj-1), wlc_R(:,jj), sphere1, radius)
                         endif
                     endif
                 endif 
@@ -144,7 +138,7 @@ do ii = left,right
                         collisions = collisions + &
                           SphereLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), sphere2, radius)
                     endif
-                    if (ii > 1) then 
+                    if (ii > 1 .AND. ii == left) then ! only the first moved bead is allowed to check backwards
                         if (isM1DNA ) then 
                             collisions = collisions + &
                               SphereLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), sphere2, radius)
@@ -158,13 +152,14 @@ do ii = left,right
                     endif
                 endif
             else ! line-line collision
-                if (jj /= WLC_P__NT) then ! check jj + 1
+                if (jj /= WLC_P__NT) then ! check jj + 1 throughout whole chain
                     ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
                     if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. ((ii+1 < jj) .OR. (jj+1 < ii)) .AND. (ii < WLC_P__NT)) then
                         collisions = collisions + &
                           LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj), wlc_R(:,jj+1))
                     endif
-                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. ((jj+1 < ii-1) .OR. (ii < jj)) .AND. (ii > 1)) then
+                    ! only the first moved bead is allowed to check backwards in addition to making sure the logic of line segments
+                    if ((wlc_nucleosomeWrap(jj+1) == 1) .AND. ((jj+1 < ii-1) .OR. (ii < jj)) .AND. (ii > 1) .AND. ii == left) then 
                         if (isM1DNA) then 
                             collisions = collisions + &
                               LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj), wlc_R(:,jj+1))
@@ -177,30 +172,7 @@ do ii = left,right
                         endif
                     endif
                 endif
-                if (jj /= 1) then ! check jj - 1
-                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
-                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. ((ii+1 < jj-1) .OR. (jj < ii)) .AND. (ii < WLC_P__NT)) then
-                        collisions = collisions + &
-                          LineLineIntersectionCalculation(wlc_RP(:,ii), wlc_RP(:,ii+1), wlc_R(:,jj-1), wlc_R(:,jj))
-                    endif
-                    if  ((wlc_nucleosomeWrap(jj-1) == 1) .AND. ((ii < jj-1) .OR. (jj < ii-1)) .AND. (ii > 1)) then
-                        if (isM1DNA) then 
-                            collisions = collisions + &
-                              LineLineIntersectionCalculation(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
-                        else ! M1 DNA is start of nucleosome, find actual end (linker exit site) to complete line segment
-                            call nucleosomeProp(wlc_U(:,ii-1), wlc_V(:,ii-1), wlc_R(:,ii-1), &
-                                wlc_basepairs(ii-1),wlc_nucleosomeWrap(ii-1), &
-                                tempU, tempV, tempR)
-                            collisions = collisions + &
-                              LineLineIntersectionCalculation(tempR, wlc_RP(:,ii), wlc_R(:,jj-1), wlc_R(:,jj))
-                        endif
-                    endif
-                endif
             endif
-            !if (collisions) then 
-            !    collide = .TRUE.
-            !    return ! exit and report collision
-            !endif
         endif
     enddo
 enddo
