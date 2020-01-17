@@ -537,7 +537,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 1000
+#define WLC_P__STEPSPEREXCHANGE 10000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -671,7 +671,7 @@
 !
 ! --------------------------
 
-#define WLC_P__PTON .FALSE.
+#define WLC_P__PTON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
@@ -728,6 +728,11 @@
 
 #define WLC_P__PT_A2B .FALSE.
 ! VARIABLE COMMENT: ! parallel temper two body interaction
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_STERICS .TRUE.
+! VARIABLE COMMENT: ! parallel temper steric collision penalty
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 

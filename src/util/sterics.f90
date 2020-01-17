@@ -17,7 +17,8 @@ MODULE LineLineIntersection
         real(dp), intent(in), dimension(3) :: A2
         real(dp), intent(in), dimension(3) :: B1
         real(dp), intent(in), dimension(3) :: B2
-        real(dp), parameter ::  tol = 1.0e-8! tolerance for cooccupancy (should be small to disallow overlap)
+        real(dp), parameter ::  tol = 1.0*10**-(precision(A1))! tolerance for cooccupancy (should be small to disallow overlap)
+        real(dp), parameter ::  neighbor = 1.0e-3! tolerance for nearest collision, set decently high
         real(dp), dimension(3) :: pA ! closest point on A to B
         real(dp), dimension(3) :: pB ! closest point on B to A
         real(dp) dotA1B1B2B1, dotB2B1A2A1, dotA1B1A2A1, dotB2B1B2B1, dotA2A1A2A1
@@ -76,15 +77,17 @@ MODULE LineLineIntersection
         pA = A1 + muA * (A2-A1)
         pB = B1 + muB * (B2-B1)
         ! check if dist <= tol
-        if ((sqrt(dot_product(pA-pB, pA-pB)) <= tol)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1) &
-          .AND. .NOT. (abs(-1 - muA*muB) <= tol)) then ! check for -1 and 1 pairs  
+        if ((sqrt(dot_product(pA-pB, pA-pB)) <= tol)  .AND. (abs(muA) < 1) .AND. (abs(muB) < 1) &
+          .AND. .NOT. (abs(-1 - muA*muB) <= neighbor)) then ! check for -1 and 1 pairs  
             print*, "collision, intersect"
-            !print*, muA, muB, sqrt(dot_product(pA-pB, pA-pB)), abs(-1 - muA*muB)
-            !print*, A1(1), ',',A1(2),',', A1(3)
-            !print*, A2(1), ',',A2(2), ',',A2(3)
-            !print*, B1(1),',', B1(2),',', B1(3)
-            !print*, B2(1), ',',B2(2), ',',B2(3)
+            print*, muA, muB, sqrt(dot_product(pA-pB, pA-pB)), abs(-1 - muA*muB)
+            print*, A1(1), ',',A1(2),',', A1(3)
+            print*, A2(1), ',',A2(2), ',',A2(3)
+            print*, B1(1),',', B1(2),',', B1(3)
+            print*, B2(1), ',',B2(2), ',',B2(3)
             LineLineIntersectionCalculation = 1
+            !print*, "stopping for now bc this should not happen"
+            !stop
             return 
         endif
         return 
