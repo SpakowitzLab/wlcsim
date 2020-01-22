@@ -120,8 +120,8 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .TRUE.
-! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time
-! DEFAULTS COMMENT: ! We care about collisions
+! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time (NOT CYLINDERS BUT LINES AND SPHERES)
+! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
 #define WLC_P__NEIGHBOR_BINS .FALSE.
@@ -166,6 +166,11 @@
 
 #define WLC_P__INCLUDE_NUC_TRANS .TRUE.
 ! VARIABLE COMMENT: ! Whether to include the translation across the nucleosome
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__INCLUDE_DISCRETIZE_LINKER .TRUE.
+! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
@@ -671,7 +676,7 @@
 !
 ! --------------------------
 
-#define WLC_P__PTON .TRUE.
+#define WLC_P__PTON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
@@ -731,7 +736,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_STERICS .TRUE.
+#define WLC_P__PT_STERICS .FALSE.
 ! VARIABLE COMMENT: ! parallel temper steric collision penalty
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL

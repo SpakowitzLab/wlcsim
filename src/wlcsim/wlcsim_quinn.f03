@@ -103,6 +103,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     do rep = 1,nPTReplicas
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             cofMtrx(rep,ii) = cof_path_by_energy_type(ii,s_vals(rep))
+            print*, cof_path_by_energy_type(ii,s_vals(rep))
         enddo
     enddo
 

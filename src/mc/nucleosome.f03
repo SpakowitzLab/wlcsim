@@ -178,6 +178,25 @@ end subroutine setup_nucleosome_constants
 
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use precision, only: nan
+    ! sterics testing !
+    use LineLineIntersection, only: LineLineIntersectionTestOverlapA1B1, LineLineIntersectionTestOverlapA1B2, &
+      LineLineIntersectionTestOverlapA2B1, LineLineIntersectionTestOverlapA2B2, LineLineIntersectionTestSameLine, &
+      LineLineIntersectionTestParallelOverlapA1B1, LineLineIntersectionTestParallelOverlapA1B2, &
+      LineLineIntersectionTestParallelOverlapA2B1, LineLineIntersectionTestParallelOverlapA2B2, &
+      LineLineIntersectionTestParallelA1B1, LineLineIntersectionTestParallelA1B2, LineLineIntersectionTestParallelA2B1, &
+      LineLineIntersectionTestParallelA2B2, LineLineIntersectionTestIntersectA1, LineLineIntersectionTestIntersectA2, &
+      LineLineIntersectionTestIntersectB1, LineLineIntersectionTestIntersectB2, LineLineIntersectionTestIntersectMiddle, &
+      LineLineIntersectionTestIntersectProjectionCollideZ, LineLineIntersectionTestIntersectProjectionNoCollideZ, &
+      LineLineIntersectionTestIntersectProjectionCollideY, LineLineIntersectionTestIntersectProjectionNoCollideY, &
+      LineLineIntersectionTestIntersectProjectionCollideX, LineLineIntersectionTestIntersectProjectionNoCollideX, &
+      LineLineIntersectionTestIntersectProjection
+    use SphereLineIntersection, only: SphereLineIntersectionTestLineInside, SphereLineIntersectionTestLineInsideEdgeA1, &
+      SphereLineIntersectionTestLineInsideEdgeA2, SphereLineIntersectionTestLineTangent, &
+      SphereLineIntersectionTestLineOutsideA1, SphereLineIntersectionTestLineOutsideA2, &
+      SphereLineIntersectionTestLineOutsideBoth, SphereLineIntersectionTestLineCloseA1, &
+      SphereLineIntersectionTestLineCloseA2
+    use SphereSphereIntersection, only: SphereSphereIntersectionTestAinB, SphereSphereIntersectionTestBinA, &
+      SphereSphereIntersectionTestTangent, SphereSphereIntersectionTestOverlap, SphereSphereIntersectionTestNoOverlap
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
@@ -190,45 +209,93 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     ! In the future you can set up code here to choose nucleosome spacing
     print*, nNucs, WLC_P__NB, WLC_P__LL
     if (WLC_P__INCLUDE_NUC_TRANS) then
-        if (WLC_P__NT /= WLC_P__NB) then
-            print*, "oops havent set up for multipolymer sims yet"
-            stop
-        endif
-        ! figure out main discretization scheme
-        discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-        call discretizationScheme(discretization, discretization, num_link_beads, &
-                off_discretization)
-        ! figure out overhang discretization scheme
-        discretization_overhang = WLC_P__LL/ ((WLC_P__NB - ((num_link_beads-1)*(nNucs-1) + nNucs)) / 2)
-        call discretizationScheme(discretization_overhang, discretization_overhang, num_link_beads_overhang, &
-               off_discretization_overhang)
-        ! print for sanity check
-        print*, discretization, num_link_beads, off_discretization
-        print*, discretization_overhang, num_link_beads_overhang, off_discretization_overhang
-        ! set first overhang
-        iter = 1
-        wlc_basepairs(iter) = off_discretization_overhang
-        wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
-        iter = iter + 1
-        wlc_basepairs(iter:iter+num_link_beads_overhang-2) = discretization_overhang  
-        ! set middle beads
-        iter = iter + num_link_beads_overhang - 1
-        do while (iter <= WLC_P__NT-num_link_beads_overhang)
-            wlc_nucleosomeWrap(iter) = 147
-            wlc_basepairs(iter) = off_discretization
-            iter = iter + 1
-            if (iter + num_link_beads - 2 <= WLC_P__NT - num_link_beads) then
-                wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
-                wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
-                iter = iter + num_link_beads - 1
+        if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
+            if (WLC_P__NT /= WLC_P__NB) then
+                print*, "oops havent set up for multipolymer sims yet"
+                stop
             endif
-        enddo
-        ! set last overhang
-        wlc_basepairs(iter-1) = off_discretization_overhang
-        wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
-        wlc_basepairs(iter:iter+num_link_beads_overhang-1) = discretization_overhang
-        ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
-        wlc_basepairs(WLC_P__NT) = 0
+            ! figure out main discretization scheme
+            discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
+            call discretizationScheme(discretization, discretization, num_link_beads, &
+                    off_discretization)
+            ! figure out overhang discretization scheme
+            discretization_overhang = WLC_P__LL/ ((WLC_P__NB - ((num_link_beads-1)*(nNucs-1) + nNucs)) / 2)
+            call discretizationScheme(discretization_overhang, discretization_overhang, num_link_beads_overhang, &
+                off_discretization_overhang)
+            ! print for sanity check
+            print*, discretization, num_link_beads, off_discretization
+            print*, discretization_overhang, num_link_beads_overhang, off_discretization_overhang
+            ! set first overhang
+            iter = 1
+            wlc_basepairs(iter) = off_discretization_overhang
+            wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
+            iter = iter + 1
+            wlc_basepairs(iter:iter+num_link_beads_overhang-2) = discretization_overhang  
+            ! set middle beads
+            iter = iter + num_link_beads_overhang - 1
+            do while (iter <= WLC_P__NT-num_link_beads_overhang)
+                wlc_nucleosomeWrap(iter) = 147
+                wlc_basepairs(iter) = off_discretization
+                iter = iter + 1
+                if (iter + num_link_beads - 2 <= WLC_P__NT - num_link_beads) then
+                    wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
+                    wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
+                    iter = iter + num_link_beads - 1
+                endif
+            enddo
+            ! set last overhang
+            wlc_basepairs(iter-1) = off_discretization_overhang
+            wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
+            wlc_basepairs(iter:iter+num_link_beads_overhang-1) = discretization_overhang
+            ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
+            wlc_basepairs(WLC_P__NT) = 0
+
+            ! testing sterics here !
+            if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
+                call LineLineIntersectionTestOverlapA1B1()
+                call LineLineIntersectionTestOverlapA1B2()
+                call LineLineIntersectionTestOverlapA2B1()
+                call LineLineIntersectionTestOverlapA2B2()
+                call LineLineIntersectionTestSameLine()
+                call LineLineIntersectionTestParallelOverlapA1B1()
+                call LineLineIntersectionTestParallelOverlapA1B2()
+                call LineLineIntersectionTestParallelOverlapA2B1()
+                call LineLineIntersectionTestParallelOverlapA2B2()
+                call LineLineIntersectionTestParallelA1B1()
+                call LineLineIntersectionTestParallelA1B2()
+                call LineLineIntersectionTestParallelA2B1()
+                call LineLineIntersectionTestParallelA2B2()
+                call LineLineIntersectionTestIntersectA1()
+                call LineLineIntersectionTestIntersectA2()
+                call LineLineIntersectionTestIntersectB1()
+                call LineLineIntersectionTestIntersectB2()
+                call LineLineIntersectionTestIntersectMiddle()
+                call LineLineIntersectionTestIntersectProjectionCollideZ()
+                call LineLineIntersectionTestIntersectProjectionNoCollideZ()
+                call LineLineIntersectionTestIntersectProjectionCollideY()
+                call LineLineIntersectionTestIntersectProjectionNoCollideY()
+                call LineLineIntersectionTestIntersectProjectionCollideX()
+                call LineLineIntersectionTestIntersectProjectionNoCollideX()
+                call LineLineIntersectionTestIntersectProjection()
+                print*, "SUCCESS: successful completion of all 25 line-line collision unit tests"
+                call SphereLineIntersectionTestLineInside()
+                call SphereLineIntersectionTestLineInsideEdgeA1()
+                call SphereLineIntersectionTestLineInsideEdgeA2()
+                call SphereLineIntersectionTestLineTangent()
+                call SphereLineIntersectionTestLineOutsideA1()
+                call SphereLineIntersectionTestLineOutsideA2()
+                call SphereLineIntersectionTestLineOutsideBoth()
+                call SphereLineIntersectionTestLineCloseA1()
+                call SphereLineIntersectionTestLineCloseA2()
+                print*, "SUCCESS: successful completion of all 9 sphere-line collision unit tests"
+                call SphereSphereIntersectionTestAinB()
+                call SphereSphereIntersectionTestBinA()
+                call SphereSphereIntersectionTestTangent()
+                call SphereSphereIntersectionTestOverlap()
+                call SphereSphereIntersectionTestNoOverlap()
+                print*, "SUCCESS: successful completion of all 5 sphere-sphere collision unit tests"
+            endif
+        endif
     else
         wlc_nucleosomeWrap = 147
         wlc_basepairs = WLC_P__LL

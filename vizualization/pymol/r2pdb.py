@@ -21,7 +21,8 @@ import numpy as np
 #topology - topology of chain. "circular" or "linear"
 #######################################################################
 
-def mkpdb(r, connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
+
+def mkpdb(r, linkerBead, connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
     N = len(r[:,0]) #number of beads
 
     #Define default values if None given for atom specifiers
@@ -36,7 +37,12 @@ def mkpdb(r, connect = None,Atom = None, serial = None,b = None, occup = None, c
     if chain is None:
         chain = ['A' for i in range(N)]
     if res is None:
-        res = ['SSN' for i in range(N)]
+        res = []
+        for i in range(N):
+            if ((i % (linkerBead+1) and linkerBead > 0) or ((i == 0 or i == N-1) and N>10) ):
+                res.append('DNA')
+            else:
+                res.append('NUC') # SSN
     if element is None:
         element = ['C' for i in range(N)]
 
@@ -57,11 +63,11 @@ def mkpdb(r, connect = None,Atom = None, serial = None,b = None, occup = None, c
         line += ('%s' %res[i]).rjust(3)
         line += ' 1'
         line += ' '*8
-        line += ('%.3f' % r[i,0]).rjust(8)
-        line += ('%.3f' % r[i,1]).rjust(8)
-        line += ('%.3f' % r[i,2]).rjust(8)
-        line += ('%.3f' % occup[i]).rjust(6)
-        line += ('%.3f' % b[i]).rjust(6)
+        line += ('%.1f' % r[i,0]).rjust(8)
+        line += ('%.1f' % r[i,1]).rjust(8)
+        line += ('%.1f' % r[i,2]).rjust(8)
+        line += ('%.1f' % occup[i]).rjust(6)
+        line += ('%.1f' % b[i]).rjust(6)
         line += element[i].rjust(12) 
         lines.append(line)
     

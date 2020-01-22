@@ -105,7 +105,7 @@ do ii = left,right
     ! THIS IS BAD IF CHAIN IS BIG!!!! Then would need to transition to Quinn's code to 
     ! findNeighbors and only check distance of close beads (good for our size chain rn)
     do jj = 1, WLC_P__NT 
-        if ( (jj /= ii) ) then !.AND. (jj /= ii-1) .AND. (jj /= ii+1) .AND. (jj /= ii-2) .AND. (jj /= ii+2)) then ! ignore self and neigboring beads
+        if ( (jj /= ii) ) then ! ignore self bead
             ! check identity of all other beads in chain 
             if (isNucleosome .AND. wlc_nucleosomeWrap(jj) /= 1) then ! sphere-sphere collision
                 ! find end of nucleosome to then find actual midpoint

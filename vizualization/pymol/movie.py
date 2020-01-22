@@ -1,6 +1,8 @@
 from pymol import cmd
 
-for idx in range(1,110): cmd.load("pdb/test/snap%03d.pdb"%idx,"mov")
+numFrames = 110
+
+for idx in range(0,numFrames): cmd.load("pdb/snap%03d.pdb"%idx,"mov")
 cmd.intra_fit("mov")
-cmd.mset("1 -%d" % 110)
+cmd.mset("1 -%d" % numFrames)
 cmd.mplay()
