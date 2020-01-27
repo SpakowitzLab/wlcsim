@@ -22,7 +22,7 @@ import numpy as np
 #######################################################################
 
 
-def mkpdb(r, linkerBead, connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
+def mkpdb(r, discFile=True, connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
     N = len(r[:,0]) #number of beads
 
     #Define default values if None given for atom specifiers
@@ -38,11 +38,16 @@ def mkpdb(r, linkerBead, connect = None,Atom = None, serial = None,b = None, occ
         chain = ['A' for i in range(N)]
     if res is None:
         res = []
-        for i in range(N):
-            if ((i % (linkerBead+1) and linkerBead > 0) or ((i == 0 or i == N-1) and N>10) ):
-                res.append('DNA')
-            else:
-                res.append('NUC') # SSN
+        if (discFile):
+            disc = np.loadtxt('../../data/discretization')
+            wrap = disc[0]; bps = disc[1]
+            for i in range(N):
+                if (wrap[i] > 1):
+                    res.append('NUC')
+                else:
+                    res.append('DNA')
+        else:
+            res = ['DNA' for i in range(N)]
     if element is None:
         element = ['C' for i in range(N)]
 

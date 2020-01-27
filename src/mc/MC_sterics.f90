@@ -5,6 +5,7 @@
 !
 !     Determine if moved beads intersect old beads.
 !     Written by Nicole Pagane, Dec 2019
+!     Derived from Quinn's cylinder collision code
 !     Sphere (nucleosomes) and line (DNA) geometries used
 !--------------------------------------------------------------
 subroutine MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward)
