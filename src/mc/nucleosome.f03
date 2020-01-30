@@ -205,9 +205,6 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     real(dp) discretization, num_link_beads
     real(dp) discretization_overhang, num_link_beads_overhang
     integer iter, off_discretization, off_discretization_overhang
-    integer, parameter :: outFileUnit = 99
-    LOGICAL isfile
-    character(100) :: filename = 'data/discretization'
 
     ! In the future you can set up code here to choose nucleosome spacing
     print*, nNucs, WLC_P__NB, WLC_P__LL
@@ -303,17 +300,6 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         wlc_nucleosomeWrap = 147
         wlc_basepairs = WLC_P__LL
     endif
-
-    ! save discretization state
-    inquire(file = filename, exist = isfile)
-    if (isfile) then
-        open (unit = outFileUnit, file = filename, status ='OLD', POSITION = "append")
-    else
-        open (unit = outFileUnit, file = filename, status = 'NEW')
-    endif
-        write(outFileUnit,*) wlc_nucleosomeWrap
-        write(outFileUnit,*) wlc_basepairs
-    close(outFileUnit)
 
 end subroutine
 

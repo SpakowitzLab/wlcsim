@@ -1258,6 +1258,21 @@ contains
         close(outFileUnit)
     end subroutine
 
+    subroutine wlcsim_params_saveDISC(fileName,stat)
+    ! Saves U to ASCII file for analisys
+        !use nucleosome, only: wlc_nucleosomeWrap, wlc_basepairs
+        implicit none
+        integer I,J,IB  ! counters
+        character(MAXFILENAMELEN), intent(in) :: fileName
+        character(MAXFILENAMELEN) fullName
+        character(len = *), intent(in) :: stat
+        fullName=  trim(fileName) // trim(wlc_repSuffix)
+        open (unit = outFileUnit, file = fullName, status = stat)
+        write(outFileUnit,*) wlc_nucleosomeWrap
+        write(outFileUnit,*) wlc_basepairs
+        close(outFileUnit)
+    end subroutine
+
     subroutine wlcsim_params_saveU(fileName,stat)
     ! Saves U to ASCII file for analisys
         use polydispersity, only: length_of_chain
@@ -1675,6 +1690,12 @@ contains
                 filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
             endif
             call wlcsim_params_saveR(filename,.false.)
+        endif
+
+        if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then
+            write(filename,num2strFormatString) save_ind
+            filename = trim(adjustL(outfile_base)) // 'd' // trim(adjustL(filename))
+            call wlcsim_params_saveDISC(filename,stat)
         endif
 
         if (WLC_P__SAVEU) then

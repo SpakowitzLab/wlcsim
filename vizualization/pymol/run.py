@@ -8,10 +8,9 @@ import os
 input_folder = '../../data'
 output_folder = 'pdb/'
 timePts = 110
+channel='0'
 
-# gather discretization data and translation/rotation matrix data
-disc = np.loadtxt('%s/discretization' %(input_folder))
-wrap = disc[0]; bps = disc[1]
+# gather translation/rotation matrix data
 angle = 2*np.pi/10.5
 nucleosomeTRAN = np.loadtxt('../../input/nucleosomeT') 
 nucleosomeROT = np.loadtxt('../../input/nucleosomeR') 
@@ -25,10 +24,13 @@ topo = 'linear'
 file_inds = range(0,timePts)
 os.system('rm -r %s/*' %output_folder)
 for ind in file_inds:
-    #load file
-    r = np.loadtxt('%s/r%sv0' %(input_folder,ind))
-    u = np.loadtxt('%s/u%sv0' %(input_folder,ind))
-    # find centers
+    #load file r and u data
+    r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel))
+    u = np.loadtxt('%s/u%sv%s' %(input_folder,ind,channel))
+    # load discretization data
+    disc = np.loadtxt('%s/d%sv%s' %(input_folder,ind,channel))
+    wrap = disc[0]; bps = disc[1]
+    # find centers for nucleosomes
     nNuc = np.sum(wrap>1)
     for i in range(len(r)):
         if (wrap[i] > 1):
