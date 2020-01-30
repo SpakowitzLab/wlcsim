@@ -236,7 +236,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 105
+#define WLC_P__NB 118
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -328,12 +328,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 753.72_dp
+#define WLC_P__L 775.17_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 40.0_DP
+#define WLC_P__LL 45.0_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
@@ -542,7 +542,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 100
+#define WLC_P__STEPSPEREXCHANGE 1000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -786,7 +786,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: LOGICAL
 
-#define WLC_P__INITIAL_MAX_S 3.0_DP
+#define WLC_P__INITIAL_MAX_S 1.0_DP
 ! VARIABLE COMMENT: ! The upper end of the initial values you which to PT
 ! DEFAULTS COMMENT:
 ! TYPE: REAL(DP)

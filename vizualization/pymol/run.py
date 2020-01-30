@@ -30,20 +30,14 @@ for ind in file_inds:
     u = np.loadtxt('%s/u%sv0' %(input_folder,ind))
     # find centers
     nNuc = np.sum(wrap>1)
-    centers = np.zeros(int(nNuc)*3).reshape([int(nNuc), 3])
-    nIter = 0
     for i in range(len(r)):
         if (wrap[i] > 1):
             uin = np.asarray(u[i,0:3]); vin = np.asarray(u[i,3:6]); cross = np.cross(uin, vin)
             mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
             tranMat = np.asarray(nucleosomeTRAN[int(147-wrap[i])])
             rtemp = r[i,:] + np.matmul(mat, tranMat)
-            centers[nIter,:] = (rtemp + r[i,:]) / 2.0
-            r[i,:] = centers[nIter,:] # reset nuc position
-            nIter += 1
+            r[i,:] = (rtemp + r[i,:]) / 2.0 # reset nuc position
     #get pdb lines
     dna = r2pdb.mkpdb(r, topology = topo)
-    nuc = r2pdb.mkpdb(centers, topology=topo)
     #save pdb file
-    r2pdb.save_pdb('%s/dna%0.3d.pdb' %(output_folder,ind),dna)
-    r2pdb.save_pdb('%s/nuc%0.3d.pdb' %(output_folder,ind),nuc)
+    r2pdb.save_pdb('%s/snap%0.3d.pdb' %(output_folder,ind),dna)
