@@ -22,7 +22,7 @@ import numpy as np
 #######################################################################
 
 
-def mkpdb(r, wrap=None, connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
+def mkpdb(r, wrap=[], connect = None,Atom = None, serial = None,b = None, occup = None, chain = None, res = None, element = None,topology = 'linear'):
     N = len(r[:,0]) #number of beads
 
     #Define default values if None given for atom specifiers
@@ -38,7 +38,7 @@ def mkpdb(r, wrap=None, connect = None,Atom = None, serial = None,b = None, occu
         chain = ['A' for i in range(N)]
     if res is None:
         res = []
-        if (wrap != None):
+        if (len(wrap)):
             for i in range(N):
                 if (wrap[i] > 1):
                     res.append('NUC')

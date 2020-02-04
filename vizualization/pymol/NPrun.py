@@ -4,11 +4,19 @@ import numpy as np
 import sys
 import r2pdb
 import os
+import sys
 
+if ('nicolepagane' not in os.getcwd()):
+    print('hi, sorry nicole is lazy and this is configured to run on her computer, for chromatin simulations, and for the code version after date jan ~28. if you want to run on your machine, you will need to change/comment out a few things in this script and movie.py.\nx0x0 np')
+
+if (len(sys.argv) <= 1):
+    timePts = 110
+    channel='0'
+else:
+    timePts = int(sys.argv[1])
+    channel= sys.argv[2]
 input_folder = '../../data'
 output_folder = 'pdb/'
-timePts = 110
-channel='0'
 
 # gather translation/rotation matrix data
 angle = 2*np.pi/10.5
@@ -40,6 +48,10 @@ for ind in file_inds:
             rtemp = r[i,:] + np.matmul(mat, tranMat)
             r[i,:] = (rtemp + r[i,:]) / 2.0 # reset nuc position
     #get pdb lines
-    dna = r2pdb.mkpdb(r, topology = topo)
+    #dna = r2pdb.mkpdb(r, topology = topo)
+    dna = r2pdb.mkpdb(r, wrap, topology = topo)
     #save pdb file
     r2pdb.save_pdb('%s/snap%0.3d.pdb' %(output_folder,ind),dna)
+
+# run pymol
+os.system("/Applications/PyMOL.app/Contents/MacOS/MacPyMOL -r movie.py -- " + str(timePts))

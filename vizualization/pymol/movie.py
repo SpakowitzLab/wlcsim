@@ -1,6 +1,9 @@
 from pymol import cmd
+from sys import argv
 
-numFrames = 110
+# this script is run automatically by NPrun.py and will need to be changed for someone else's use
+
+numFrames = int(argv[1])
 
 for idx in range(0,numFrames): cmd.load("pdb/snap%03d.pdb"%idx,"snap")
 cmd.intra_fit("snap")
