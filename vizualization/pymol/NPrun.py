@@ -10,11 +10,17 @@ if ('nicolepagane' not in os.getcwd()):
     print('hi, sorry nicole is lazy and this is configured to run on her computer, for chromatin simulations, and for the code version after date jan ~28. if you want to run on your machine, you will need to change/comment out a few things in this script and movie.py.\nx0x0 np')
 
 if (len(sys.argv) <= 1):
-    timePts = 110
+    timePts = 110+1
     channel='0'
 else:
-    timePts = int(sys.argv[1])
-    channel= sys.argv[2]
+    timePts = int(sys.argv[1])+1
+    channel = sys.argv[2]
+    if (channel == 'PT'):
+        nodes = np.loadtxt('../../data/nodeNumber')
+        nodes = np.vstack((np.linspace(0, np.shape(nodes)[1]-1, np.shape(nodes)[1]), nodes))
+        channel = np.asarray(nodes[:,-1], 'int')
+    else:
+        channel = [channel]*timePts
 input_folder = '../../data'
 output_folder = 'pdb/'
 
@@ -33,10 +39,10 @@ file_inds = range(0,timePts)
 os.system('rm -r %s/*' %output_folder)
 for ind in file_inds:
     #load file r and u data
-    r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel))
-    u = np.loadtxt('%s/u%sv%s' %(input_folder,ind,channel))
+    r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel[ind]))
+    u = np.loadtxt('%s/u%sv%s' %(input_folder,ind,channel[ind]))
     # load discretization data
-    disc = np.loadtxt('%s/d%sv%s' %(input_folder,ind,channel))
+    disc = np.loadtxt('%s/d%sv%s' %(input_folder,ind,channel[ind]))
     wrap = disc[0]; bps = disc[1]
     # find centers for nucleosomes
     nNuc = np.sum(wrap>1)

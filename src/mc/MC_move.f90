@@ -53,6 +53,8 @@ case(11)
 call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
 call MC_spider(wlc_MCAMP,rand_stat,success)
+case(13)
+call MC_nucleosomeSlide(IT1,IT2,rand_stat,success)
 end select
 RETURN
 END

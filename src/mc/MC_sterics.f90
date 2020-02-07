@@ -72,6 +72,9 @@ elseif (MCTYPE == 10 .or. MCTYPE == 11) then ! reptation or super rep.
         left = IT1
     endif
     right = left
+elseif (MCTYPE == 13) then ! nucleosome slide
+    left = IT1
+    right = IT2
 else
     print*, "collision not set up for this movetype ", MCTYPE
     stop

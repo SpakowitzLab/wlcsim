@@ -201,12 +201,12 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
     real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
-    integer, parameter :: nNucs = nint((L_in_bp-WLC_P__LL)/(147+WLC_P__LL)) ! overhang LL 
+    integer, parameter :: nNucs = nint((L_in_bp-WLC_P__LL)/(147+WLC_P__LL)) ! assuming all octasomes
     real(dp) discretization, num_link_beads
     real(dp) discretization_overhang, num_link_beads_overhang
     integer iter, off_discretization, off_discretization_overhang
 
-    ! In the future you can set up code here to choose nucleosome spacing
+    ! choose nucleosome spacing
     print*, nNucs, WLC_P__NB, WLC_P__LL
     if (WLC_P__INCLUDE_NUC_TRANS) then
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 

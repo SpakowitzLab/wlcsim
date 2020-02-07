@@ -542,7 +542,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 1000
+#define WLC_P__STEPSPEREXCHANGE 50
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -552,7 +552,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 110
+#define WLC_P__NUMSAVEPOINTS 50
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
@@ -661,6 +661,11 @@
 #define WLC_P__MOVESPERSTEP_SPIDER 3
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 15
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default ?>
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.25_dp
@@ -857,6 +862,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -920,6 +929,10 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__PDESIRE_SPIDER 0.25_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+
+#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 
@@ -1264,6 +1277,11 @@
 ! TYPE: INTEGER
 
 #define WLC_P__NADAPT_SPIDER 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
