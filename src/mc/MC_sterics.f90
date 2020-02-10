@@ -15,7 +15,7 @@ use SphereLineIntersection, only: SphereLineIntersectionCalculation
 use SphereSphereIntersection, only: SphereSphereIntersectionCalculation
 use params, only: dp, wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_VP, wlc_V, &
     wlc_basepairs, wlc_nucleosomeWrap
-    use nucleosome, only: nucleosomeProp
+use nucleosome, only: nucleosomeProp
 
 implicit none
 integer, intent(in) :: IB1               ! Test bead position 1

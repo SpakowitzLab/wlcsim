@@ -542,7 +542,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 50
+#define WLC_P__STEPSPEREXCHANGE 1000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -552,7 +552,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 50
+#define WLC_P__NUMSAVEPOINTS 110
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
@@ -663,7 +663,7 @@
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 15
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 1
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! nucleosome slide <default ?>
 ! TYPE: INTEGER

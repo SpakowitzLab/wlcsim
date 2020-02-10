@@ -19,7 +19,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap
     use energies
     use umbrella, only: umbrella_energy
 
@@ -163,6 +163,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             ENDif
           ENDif
 
+! if slide on then
+if (.TRUE. .AND. MCTYPE==13 .AND. success) then ! make this into slide global variable
+    !print*, 'mc', wlc_basepairs
+    call MC_eelas(wlc_p)
+endif
 
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
