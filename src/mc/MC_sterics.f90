@@ -121,7 +121,9 @@ do ii = left,right
                   SphereSphereIntersectionCalculation(sphere1, radius, sphere2, radius)
             ! moved bead nuc + DNA
             else if (isNucleosome .AND. wlc_nucleosomeWrap(jj) == 1) then ! sphere-line collision
-                if ((jj+1 /= ii) .AND. (jj+2 /= ii) .AND. (jj-1 /= ii)) then ! 2 nearest 5bp segs cleared from nucleosome
+                ! ignore 10bp nearest nuc
+                if ( (jj < ii .AND. sum(wlc_basepairs(jj:ii-1)) >= 10) .OR. &
+                    (jj >= ii .AND. sum(wlc_basepairs(ii:jj)) >= 10) ) then 
                     if (jj < WLC_P__NT) then 
                         if (wlc_nucleosomeWrap(jj+1) == 1) then 
                             collisions = collisions + &
@@ -136,7 +138,9 @@ do ii = left,right
                             wlc_basepairs(jj),wlc_nucleosomeWrap(jj), &
                             tempU, tempV, tempR)
                 sphere2 = (wlc_R(:,jj) + tempR) / 2.0
-                if ((ii+1 /= jj) .AND. (ii+2 /= jj) .AND. (ii-1 /= jj) .AND. (ii-2 /= jj)) then ! 2 nearest 5bp segs cleared from nucleosome
+                ! ignore 10bp nearest nuc
+                if ( (ii < jj .AND. sum(wlc_basepairs(ii:jj-1)) >= 10) .OR. &
+                     (ii >= jj .AND. sum(wlc_basepairs(jj:ii)) >= 10) ) then 
                     ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
                     if (ii < WLC_P__NT) then 
                         collisions = collisions + &

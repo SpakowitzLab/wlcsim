@@ -112,7 +112,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               goto 10 ! skip move, return RP to nan
           endif
           call MC_move(IB1,IB2,IT1,IT2,IT3,IT4,&
-                       MCTYPE,forward,wlc_rand_stat,dib,success)
+                       MCTYPE,forward,wlc_rand_stat,dib,success, 1.0*ISTEP/WLC_P__STEPSPEREXCHANGE)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
               goto 10 ! skip move, return RP to nan
@@ -164,10 +164,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           ENDif
 
 ! if slide on then
-if (.TRUE. .AND. MCTYPE==13 .AND. success) then ! make this into slide global variable
-    !print*, 'mc', wlc_basepairs
-    call MC_eelas(wlc_p)
-endif
+        if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1 .AND. MCTYPE==13 .AND. success) then ! make this into slide global variable
+            call MC_eelas(wlc_p)
+        endif
 
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then

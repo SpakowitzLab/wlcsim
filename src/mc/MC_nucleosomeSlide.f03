@@ -29,7 +29,7 @@ logical, intent(out) ::success
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 real(dp) urand(1) ! single random number
-real(dp) :: window = 1 ! move 1 bps 
+real(dp) :: window = 0.5 ! reject half of moves outright 
 integer DR    ! Displacement for slide move (integer BPs)
 integer I ! test bead
 real(dp), dimension(3) :: tempLoc ! temporary cartesian location
@@ -38,6 +38,8 @@ integer prevNuc(1), nextNuc(1)
 integer, parameter :: nNucs = nint((WLC_P__L/WLC_P__LENGTH_PER_BP-WLC_P__LL)/(147+WLC_P__LL)) ! assuming all octasomes
 integer nucArray(nNucs)
 integer loc(1), newloc(1)
+
+success = .false.
 
 ! find nucs
 loc = 1
@@ -71,7 +73,6 @@ else
 endif
 
 ! shorten distance between beads
-success = .false.
 outer: do II = 1, I-(prevNuc(1)+1) ! explore the previous linker space
     inner: do JJ = 1, (nextNuc(1)-1)-I ! explore the next linker space
         if ((wlc_basepairs(I-II) + DR > 1) .AND. (wlc_basepairs(I-II) + DR < 2*(sum(wlc_basepairs)/WLC_P__NB)) .AND. &
@@ -95,8 +96,8 @@ if (success) then
         IT2 = I+JJ+1
     endif
     do KK = IT1, IT2
-       !wlc_RP(:,KK) = wlc_R(:,KK) + wlc_U(:,KK)*WLC_P__LENGTH_PER_BP*DR
-       wlc_RP(:,KK) = wlc_R(:,KK)
+       wlc_RP(:,KK) = wlc_R(:,KK) + wlc_U(:,KK)*WLC_P__LENGTH_PER_BP*DR
+       !wlc_RP(:,KK) = wlc_R(:,KK)
        wlc_UP(:,KK) = wlc_U(:,KK)
        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,KK)
     enddo
