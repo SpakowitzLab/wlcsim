@@ -50,12 +50,12 @@ MODULE LineLineIntersection
                 ! take just the first component
                 if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
                   .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
-                    !print*, "collision, parallel overlap"
+                    print*, "collision, parallel overlap"
                     !print*, A1(1), ',',A1(2), ',',A1(3)
                     !print*, A2(1), ',',A2(2), ',',A2(3)
                     !print*, B1(1),',', B1(2), ',',B1(3)
                     !print*, B2(1), ',',B2(2), ',',B2(3)
-                    LineLineIntersectionCalculation = 1
+                    LineLineIntersectionCalculation = 10
                     return ! quit early, coincident lines
                 else
                     return ! quit early, non-coincident lines
@@ -85,7 +85,7 @@ MODULE LineLineIntersection
             print*, A2(1), ',',A2(2), ',',A2(3)
             print*, B1(1),',', B1(2),',', B1(3)
             print*, B2(1), ',',B2(2), ',',B2(3)
-            LineLineIntersectionCalculation = 1
+            LineLineIntersectionCalculation = 3
             !print*, "stopping for now bc this should not happen"
             !stop
             return 
@@ -248,7 +248,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestParallelA1B1"
             stop
         endif
@@ -264,7 +264,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestParallelA1B2"
             stop
         endif
@@ -280,7 +280,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestParallelA2B1"
             stop
         endif
@@ -296,7 +296,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestParallelA2B2"
             stop
         endif
@@ -409,7 +409,7 @@ MODULE LineLineIntersection
         integer val
         
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideZ"
             stop
         endif
@@ -441,7 +441,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideY"
             stop
         endif
@@ -473,7 +473,7 @@ MODULE LineLineIntersection
         integer val
         
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideX"
             stop
         endif
@@ -489,7 +489,7 @@ MODULE LineLineIntersection
         integer val
 
         val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestIntersectProjection"
             stop
         endif
@@ -533,7 +533,7 @@ MODULE SphereLineIntersection
         up = (-b + sqrt(discr))/(2*a)
         um = (-b - sqrt(discr))/(2*a)
         if ((um > 1 .AND. up < 0) .OR. (um < 0 .AND. up > 1)) then 
-            SphereLineIntersectionCalculation = 1
+            SphereLineIntersectionCalculation = 4
             !print*, "line in sphere"
             !print*, um, up
             !print*, A1(1), ',',A1(2), ',',A1(3)
@@ -541,7 +541,7 @@ MODULE SphereLineIntersection
             !print*, B1(1),',', B1(2), ',',B1(3), ',',r
             return
         else if ((um >= 0 .AND. um <= 1) .OR. (up >= 0 .AND. up <= 1)) then 
-            SphereLineIntersectionCalculation = 1
+            SphereLineIntersectionCalculation = 2
             !print*, "one or more line-sphere intersections"
             !print*, um, up
             !print*, A1(1), ',', A1(2), ',', A1(3)
@@ -676,7 +676,7 @@ MODULE SphereLineIntersection
         integer val
 
         val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestLineCloseA1"
             stop
         endif
@@ -692,7 +692,7 @@ MODULE SphereLineIntersection
         integer val
 
         val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestLineOutsideA2"
             stop
         endif
@@ -724,7 +724,7 @@ MODULE SphereSphereIntersection
 
         ! see if radii overalp
         if ( sqrt(dot_product(A1-B1, A1-B1)) - (ra+rb) < dist ) then
-            SphereSphereIntersectionCalculation = 1
+            SphereSphereIntersectionCalculation = 30
             !print*, "sphere collision"
             !print*, A1(1), ',', A1(2), ',', A1(3), ',', ra
             !print*, B1(1), ',', B1(2), ',', B1(3), ',', rb
@@ -808,7 +808,7 @@ MODULE SphereSphereIntersection
         integer val
    
         val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val == 1) then
+        if (val /= 0) then
             print*, "FAILURE: failed LineLineIntersectionTestNoOverlap"
             stop
         endif

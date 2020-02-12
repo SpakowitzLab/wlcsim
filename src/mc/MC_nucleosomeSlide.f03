@@ -86,7 +86,6 @@ outer: do II = 1, I-(prevNuc(1)+1) ! explore the previous linker space
 enddo outer
 
 if (success) then
-    !print*, 'move', wlc_basepairs
     ! adjust positions of beads between adjusted length beads
     if (DR > 0) then 
         IT1 = I-II+1
