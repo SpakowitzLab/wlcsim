@@ -142,9 +142,24 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__APPLY_2body_potential .FALSE.
+! VARIABLE COMMENT: ! Pairwise interaction potential
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
 #define WLC_P__EXPLICIT_BINDING .FALSE.
 ! VARIABLE COMMENT: ! Include specific interactions between specified beads
 ! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__NETWORK .FALSE.
+! VARIABLE COMMENT: ! Pin pairs of beads together (to inforce the nextwork)
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__NO_LEF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! no explicit binding (Loop Extrusion Factors) pairs can cross eachother, e.g. 1-to-10 and 5-15
+! DEFAULTS COMMENT: ! not included so it doesnt matter
 ! TYPE: LOGICAL
 
 #define WLC_P__ELASTICITY_TYPE "constant"
@@ -158,8 +173,19 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__CHI_L2_ABLE .FALSE.
+! VARIABLE COMMENT: ! Quadraple interactions, Whether the l=2 component is ever calcualted
+! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__UMBRELLA .FALSE.
 ! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
 ! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__NO_SELF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! whether to allow self-crossing of ring polymer 
+! by conserving the linking number
+! DEFAULTS COMMENT: ! allow self-crossing
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -198,6 +224,11 @@
 ! DEFAULTS COMMENT: ! Use old output format
 ! TYPE: LOGICAL
 
+#define WLC_P__SAVE_LK .FALSE.
+! VARIABLE COMMENT: ! Save linking number. Only for ring polymer.
+! DEFAULTS COMMENT: ! Does not save linking number 
+! TYPE: LOGICAL
+
 ! ----------------------------
 !
 !   Number / Chemical identity variables
@@ -228,6 +259,11 @@
 ! VARIABLE COMMENT: ! Total Number of beads
 ! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
 ! TYPE: INTEGER
+
+#define WLC_P__LINKING_NUMBER 0
+! VARIABLE COMMENT: ! Linking number for global twist energy calculation
+! DEFAULTS COMMENT: ! Simple loop
+! TYPE: REAL(DP)
 
 #define WLC_P__POLY_DISP_TYPE "None"
 ! VARIABLE COMMENT: ! Whether to include chains of different lengths
@@ -279,11 +315,27 @@
 ! DEFAULTS COMMENT: ! 0 for off
 ! TYPE: INTEGER
 
+#define WLC_P__TWIST_DENSITY 0.0_DP
+! VARIABLE COMMENT: ! baseline twist density 
+! DEFAULTS COMMENT: ! baseline twist density 0.0
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Length variables
 !
 ! ---------------------------
+
+#define WLC_P__LENGTH_PER_BP 0.33
+! VARIABLE COMMENT: ! length along dna for one bace pair
+! DEFAULTS COMMENT: ! in nm
+! TYPE: REAL(DP)
+
+
+#define WLC_P__LL 38_DP
+! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
+! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+! TYPE: REAL(DP)
 
 #define WLC_P__L 836.237_DP
 ! VARIABLE COMMENT: ! length of each polymer in simulation ****IMPORTNT***
@@ -303,11 +355,6 @@
 #define WLC_P__LT 1.524_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
-! TYPE: REAL(DP)
-
-#define WLC_P__LENGTH_PER_BP 0.33
-! VARIABLE COMMENT: ! length along dna for one bace pair
-! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.02200_DP
@@ -467,6 +514,27 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: REAL(DP)
 
+#define WLC_P__Amplitude2beadPotential 0.0_DP
+! VARIABLE COMMENT: ! Amplitude of two body potential
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
+! VARIABLE COMMENT: ! Number of neighbors on either side to exclude in pairwise interaction
+! DEFAULTS COMMENT: !
+! TYPE: INTERGER
+
+#define WLC_P__MAX_RXN_COORD 1.0_DP
+! VARIABLE COMMENT: ! Max of umbrella sampled reaction coordinate
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__MIN_RXN_COORD 0.0_DP
+! VARIABLE COMMENT: ! Min of umbrella sampled reaction coordinate
+! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+
 ! ----------------------------
 !
 !   Time / steps variables
@@ -511,6 +579,21 @@
 #define WLC_P__N_CHI_L2_ON 1000000
 ! VARIABLE COMMENT: ! when to turn CHI energy on
 ! DEFAULTS COMMENT: ! turn on chi energy immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_EXTERNAL_ON 0
+! VARIABLE COMMENT: ! when to turn external potential
+! DEFAULTS COMMENT: ! turn on immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_FIELD_ON 0
+! VARIABLE COMMENT: ! when to turn applied field
+! DEFAULTS COMMENT: ! turn on immediately
+! TYPE: INTEGER
+
+#define WLC_P__N_UMBRELLA_ON 10
+! VARIABLE COMMENT: ! when to turn applied field
+! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
 #define WLC_P__NINITMCSTEPS 4000
@@ -645,6 +728,11 @@
 #define WLC_P__PT_AEF .FALSE.
 ! VARIABLE COMMENT: ! parallel temper over external applied field
 ! DEFAULTS COMMENT: ! don't parallel temper h by default
+! TYPE: LOGICAL
+
+#define WLC_P__PT_A2B .FALSE.
+! VARIABLE COMMENT: ! parallel temper two body interaction
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000
@@ -1213,4 +1301,10 @@
 #define WLC_P__PROBABILITY_PRECALC_SPIDER 1.0_DP
 ! VARIABLE COMMENT: ! probability that we use precalculated spider
 ! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__NO_CROSSING_CUTOFF 0.5_DP
+! VARIABLE COMMENT: ! deviation from initial linking number allowed when
+!   WLC_P__NO_SELF_CROSSING is true
+! DEFAULTS COMMENT: ! allow linking number to change by 0.5 for each move 
 ! TYPE: REAL(DP)
