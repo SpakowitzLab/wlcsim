@@ -103,9 +103,9 @@ use params, only: wlc_mc_ind, wlc_rand_stat
     do rep = 1,nPTReplicas
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             cofMtrx(rep,ii) = cof_path_by_energy_type(ii,s_vals(rep))
-            print*, cof_path_by_energy_type(ii,s_vals(rep))
         enddo
     enddo
+    print*, cofMtrx(:,21)
 
     N_average = 0
 
@@ -233,8 +233,8 @@ function cof_path_by_energy_type(energy_type, s) result(cof)
         elseif (energy_type == mu_ ) then
             cof = s-2.5_dp ! set for Quinn's chromatin problem
         elseif (energy_type == sterics_ ) then
-            ! set for nicole's chromatin sterics problem
-            cof = energyOf(energy_type)%cof*((0.2 + s)/(WLC_P__INITIAL_MAX_S+0.2)) ! start at 0.5 sterics
+            ! set for nicole's chromatin sterics problem (keep default for now)
+            cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
         else
             ! Parallel temper from 0 to default value
             cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S

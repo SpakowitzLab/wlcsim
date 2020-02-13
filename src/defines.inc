@@ -542,12 +542,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 1000
+#define WLC_P__STEPSPEREXCHANGE 500
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
 
-#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1
+#define WLC_P__NREPLICAEXCHANGEPERSAVEPOINT 1000
 ! VARIABLE COMMENT: ! read teh variable name
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
@@ -681,7 +681,7 @@
 !
 ! --------------------------
 
-#define WLC_P__PTON .FALSE.
+#define WLC_P__PTON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
@@ -741,7 +741,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_STERICS .FALSE.
+#define WLC_P__PT_STERICS .TRUE.
 ! VARIABLE COMMENT: ! parallel temper steric collision penalty
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -791,7 +791,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: LOGICAL
 
-#define WLC_P__INITIAL_MAX_S 1.0_DP
+#define WLC_P__INITIAL_MAX_S 3.0_DP
 ! VARIABLE COMMENT: ! The upper end of the initial values you which to PT
 ! DEFAULTS COMMENT:
 ! TYPE: REAL(DP)

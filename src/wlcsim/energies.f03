@@ -113,7 +113,7 @@ contains
         energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L
         ! We split global twist into a Wr**2 term and a Wr term
         ! (2*pi*(LK-Wr))**2*LT/(2L) = 2*pi**2*LT*Wr**2/L + 4*pi**2*LK*LT*WR/L
-        energyOf(sterics_)%cof = 1.0_dp
+        energyOf(sterics_)%cof = 3.0_dp
 
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%isOn = .TRUE.
