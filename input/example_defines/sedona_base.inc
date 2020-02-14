@@ -474,8 +474,8 @@
 ! DEFAULTS COMMENT: ! Poly-solvent Chi, unknown, set <0 so output looks OK
 ! TYPE: REAL(DP)
 
-#define WLC_P__MU -1.0_DP ****IMPORTNT***
-! VARIABLE COMMENT: ! HP1 chemical potential
+#define WLC_P__MU -1.0_DP
+! VARIABLE COMMENT: ! HP1 chemical potential ****IMPORTNT***
 ! DEFAULTS COMMENT: ! overridden by PT
 ! TYPE: REAL(DP)
 
@@ -541,7 +541,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 6000000
+#define WLC_P__STEPSPEREXCHANGE 60000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering.  Was 6000000 ****IMPORTNT***
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -710,7 +710,7 @@
 ! DEFAULTS COMMENT: ! don't parallel temper kap by default
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_MU .FALSE.
+#define WLC_P__PT_MU .TRUE.
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper mu by default
 ! TYPE: LOGICAL
@@ -846,7 +846,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_SPIDER 1
+#define WLC_P__MOVEON_SPIDER 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
@@ -918,8 +918,8 @@
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXWINDOW_CRANK_SHAFT DBLE(MIN(150,WLC_P__NB))
-! VARIABLE COMMENT: ! Max Size of window for bead selection
+#define WLC_P__MAXWINDOW_CRANK_SHAFT DBLE(MIN(350,WLC_P__NB))
+! VARIABLE COMMENT: ! Max Size of window for bead selection ****IMPORTNT***
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
