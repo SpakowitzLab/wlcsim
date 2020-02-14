@@ -10,9 +10,7 @@
 !--------------------------------------------------------------
 subroutine MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward)
 ! values from wlcsim_data
-use LineLineIntersection, only: LineLineIntersectionCalculation
-use SphereLineIntersection, only: SphereLineIntersectionCalculation
-use SphereSphereIntersection, only: SphereSphereIntersectionCalculation
+use GJKAlgorithm, only: GJK, constructHexagonPrism
 use params, only: dp, wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_VP, wlc_V, &
     wlc_basepairs, wlc_nucleosomeWrap
 use nucleosome, only: nucleosomeProp

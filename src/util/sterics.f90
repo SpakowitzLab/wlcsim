@@ -1,818 +1,541 @@
-! npagane | risca lab | dec 2019 | sterics calculation file
-
-! define line-line intersection module that contains calculation and test
-! inspired from http://paulbourke.net/geometry/pointlineplane/
-MODULE LineLineIntersection
-    use precision, only: dp
-    implicit none
-    contains
-
-    ! calculation
-    FUNCTION LineLineIntersectionCalculation(A1,A2,B1,B2)
-        implicit none
-        ! A1 is the point: (ax1, ay1, az1)
-        ! A2 is the point: (ax2, ay2, az2)
-        ! A1->A2 makes the line segment A (likewise for B)
-        real(dp), intent(in), dimension(3) :: A1
-        real(dp), intent(in), dimension(3) :: A2
-        real(dp), intent(in), dimension(3) :: B1
-        real(dp), intent(in), dimension(3) :: B2
-        real(dp), parameter ::  tol = 1.0e-8! tolerance for cooccupancy (should be small to disallow overlap)
-        real(dp), parameter ::  neighbor = 1.0e-3 ! tolerance for nearest collision, set decently high
-        real(dp), dimension(3) :: pA ! closest point on A to B
-        real(dp), dimension(3) :: pB ! closest point on B to A
-        real(dp) dotA1B1B2B1, dotB2B1A2A1, dotA1B1A2A1, dotB2B1B2B1, dotA2A1A2A1
-        real(dp) muA, muB
-        real(dp), dimension(3) :: vecA, vecB, tA2, tB1, tB2
-        integer LineLineIntersectionCalculation
-
-        ! default value set to 0
-        LineLineIntersectionCalculation = 0
-
-        ! check for overlap of points
-        if (ALL(ABS(A1-B1) <= tol) .OR. ALL(ABS(A1-B2) <= tol) .OR. ALL(ABS(A2-B1) <= tol) .OR. ALL(ABS(A2-B2) <= tol)) then
-            !print*, "collision, point overlap"
-            LineLineIntersectionCalculation = 1
-            return
-        endif
-
-        ! check if lines are parallel
-        vecA = (A2-A1)/NORM2(A2-A1)
-        vecB = (B2-B1)/NORM2(B2-B1)
-        if ( ALL(ABS(vecA) - ABS(vecB) <= tol) ) then
-            ! try to find overlap
-            tA2 = (A2-A1)/vecA
-            tB1 = (B1-A1)/vecA
-            tB2 = (B2-A1)/vecA
-            ! ensure all the components are the same
-            if ( tA2(1)==tA2(2) .AND. tA2(2)==tA2(3) .AND. tB1(1)==tB1(2) .AND. tB1(2)==tB1(3) &
-              .AND. tB2(1)==tB2(2) .AND. tB2(2)==tB2(3) ) then
-                ! take just the first component
-                if (( (tA2(1)*tB1(1) > 0) .OR. (tA2(1)*tB2(1) > 0) ) &
-                  .AND. ( (abs(tA2(1)) >= abs(tB1(1))) .OR. (abs(tA2(1)) >= abs(tB2(1))) )) then
-                    print*, "collision, parallel overlap"
-                    !print*, A1(1), ',',A1(2), ',',A1(3)
-                    !print*, A2(1), ',',A2(2), ',',A2(3)
-                    !print*, B1(1),',', B1(2), ',',B1(3)
-                    !print*, B2(1), ',',B2(2), ',',B2(3)
-                    LineLineIntersectionCalculation = 1
-                    return ! quit early, coincident lines
-                else
-                    return ! quit early, non-coincident lines
-                endif
-            else
-                !print*, "no collision, parallel but not overlap"
-                return ! quit early, parallel and separated lines
-            endif
-        endif
-
-        ! find shortest line between A and B
-        dotA1B1B2B1 = dot_product(A1-B1, B2-B1)
-        dotB2B1A2A1 = dot_product(B2-B1, A2-A1)
-        dotA1B1A2A1 = dot_product(A1-B1, A2-A1)
-        dotB2B1B2B1 = dot_product(B2-B1, B2-B1)
-        dotA2A1A2A1 = dot_product(A2-A1, A2-A1)
-        muA = (dotA1B1B2B1*dotB2B1A2A1 - dotA1B1A2A1*dotB2B1B2B1) / (dotA2A1A2A1*dotB2B1B2B1 - dotB2B1A2A1*dotB2B1A2A1)
-        muB = (dotA1B1B2B1 + mua*dotB2B1A2A1) / dotB2B1B2B1
-        pA = A1 + muA * (A2-A1)
-        pB = B1 + muB * (B2-B1)
-        ! check if dist == 0
-        if ((sqrt(dot_product(pA-pB, pA-pB)) == 0)  .AND. (abs(muA) <= 1) .AND. (abs(muB) <= 1) &
-          .AND. (abs(-1 - muA*muB) > neighbor)) then ! check for -1 and 1 pairs  
-            print*, "collision, intersect"
-            print*, muA, muB, sqrt(dot_product(pA-pB, pA-pB)), abs(-1 - muA*muB)
-            print*, A1(1), ',',A1(2),',', A1(3)
-            print*, A2(1), ',',A2(2), ',',A2(3)
-            print*, B1(1),',', B1(2),',', B1(3)
-            print*, B2(1), ',',B2(2), ',',B2(3)
-            LineLineIntersectionCalculation = 1
-            !print*, "stopping for now bc this should not happen"
-            !stop
-            return 
-        endif
-        return 
-
-    END FUNCTION LineLineIntersectionCalculation
-
-    ! testing routines !
-    SUBROUTINE LineLineIntersectionTestOverlapA1B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/) 
-        real(dp), dimension(3) :: A2 = (/1,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp), dimension(3) :: B2 = (/-1,-1,-1/)
-        integer val 
-        
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then 
-            print*, "FAILURE: failed LineLineIntersectionTestOverlapA1B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestOverlapA1B1
-  
-    SUBROUTINE LineLineIntersectionTestOverlapA1B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-11,-11,-11/)
-        real(dp), dimension(3) :: A2 = (/-10,-10,-10/)
-        real(dp), dimension(3) :: B1 = (/1,1,1/)
-        real(dp), dimension(3) :: B2 = (/-10,-10,-10/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then 
-            print*, "FAILURE: failed LineLineIntersectionTestOverlapA1B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestOverlapA1B2
-
-    SUBROUTINE LineLineIntersectionTestOverlapA2B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1,0,0/)
-        real(dp), dimension(3) :: A2 = (/0,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp), dimension(3) :: B2 = (/0,1,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestOverlapA2B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestOverlapA2B1
-
-    SUBROUTINE LineLineIntersectionTestOverlapA2B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1,0,0/)
-        real(dp), dimension(3) :: A2 = (/0.0001,0.00002,0.00004/)
-        real(dp), dimension(3) :: B1 = (/0,0,1/)
-        real(dp), dimension(3) :: B2 = (/0.0001,0.00002,0.00004/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestOverlapA2B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestOverlapA2B2
-
-    SUBROUTINE LineLineIntersectionTestSameLine
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1,1,1/)
-        real(dp), dimension(3) :: A2 = (/0,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp), dimension(3) :: B2 = (/1,1,1/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestSameLine"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestSameLine
-
-    SUBROUTINE LineLineIntersectionTestParallelOverlapA1B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/2,2,2/)
-        real(dp), dimension(3) :: A2 = (/0,0,0/)
-        real(dp), dimension(3) :: B1 = (/1,1,1/)
-        real(dp), dimension(3) :: B2 = (/3,3,3/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelOverlapA1B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelOverlapA1B1
-
-    SUBROUTINE LineLineIntersectionTestParallelOverlapA1B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/2,2,2/)
-        real(dp), dimension(3) :: A2 = (/-100,-100,-100/)
-        real(dp), dimension(3) :: B1 = (/100,100,100/)
-        real(dp), dimension(3) :: B2 = (/1.5,1.5,1.5/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelOverlapA1B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelOverlapA1B2
-
-    SUBROUTINE LineLineIntersectionTestParallelOverlapA2B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/-100,-100,-100/)
-        real(dp), dimension(3) :: B1 = (/-99,-99,-99/)
-        real(dp), dimension(3) :: B2 = (/-1001,-1001,-1001/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelOverlapA2B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelOverlapA2B1
-
-    SUBROUTINE LineLineIntersectionTestParallelOverlapA2B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/1,1,1/)
-        real(dp), dimension(3) :: B1 = (/2,2,2/)
-        real(dp), dimension(3) :: B2 = (/0.999, 0.999, 0.999/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelOverlapA2B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelOverlapA2B2
-
-    SUBROUTINE LineLineIntersectionTestParallelA1B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/2,2,2/)
-        real(dp), dimension(3) :: A2 = (/0,0,0/)
-        real(dp), dimension(3) :: B1 = (/2.1,2.1,2.1/)
-        real(dp), dimension(3) :: B2 = (/3,3,3/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelA1B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelA1B1
-
-    SUBROUTINE LineLineIntersectionTestParallelA1B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1,1,1/)
-        real(dp), dimension(3) :: A2 = (/-100,-100,-100/)
-        real(dp), dimension(3) :: B1 = (/100,100,100/)
-        real(dp), dimension(3) :: B2 = (/1.5,1.5,1.5/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelA1B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelA1B2
-
-    SUBROUTINE LineLineIntersectionTestParallelA2B1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/-100,-100,-100/)
-        real(dp), dimension(3) :: B1 = (/-100.0001,-100.0001,-100.0001/)
-        real(dp), dimension(3) :: B2 = (/-1001,-1001,-1001/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelA2B1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelA2B1
-
-    SUBROUTINE LineLineIntersectionTestParallelA2B2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/0.999, 0.999, 0.999/)
-        real(dp), dimension(3) :: B1 = (/2,2,2/)
-        real(dp), dimension(3) :: B2 = (/1.001,1.001,1.001/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestParallelA2B2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestParallelA2B2
-
-    SUBROUTINE LineLineIntersectionTestIntersectA1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/1,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,-1,0/)
-        real(dp), dimension(3) :: B2 = (/0,1,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectA1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectA1
-
-    SUBROUTINE LineLineIntersectionTestIntersectA2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/0,0,100/)
-        real(dp), dimension(3) :: B1 = (/-200,0,100/)
-        real(dp), dimension(3) :: B2 = (/200,0,100/)
-        integer val
-
-        print*, 'here'
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectA2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectA2
-
-    SUBROUTINE LineLineIntersectionTestIntersectB1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,0,1/)
-        real(dp), dimension(3) :: A2 = (/1,0,1/)
-        real(dp), dimension(3) :: B1 = (/0,0,1/)
-        real(dp), dimension(3) :: B2 = (/0,0,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectB1"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectB1
-
-    SUBROUTINE LineLineIntersectionTestIntersectB2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,-1,0/)
-        real(dp), dimension(3) :: A2 = (/0,1,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp), dimension(3) :: B2 = (/0,1,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectB2"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectB2
-
-    SUBROUTINE LineLineIntersectionTestIntersectMiddle
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,-2,0/)
-        real(dp), dimension(3) :: A2 = (/0,2,0/)
-        real(dp), dimension(3) :: B1 = (/-2,0,0/)
-        real(dp), dimension(3) :: B2 = (/2,0,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectMiddle"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectMiddle
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideZ
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/0,0,5/)
-        real(dp), dimension(3) :: B1 = (/-1,0,2/)
-        real(dp), dimension(3) :: B2 = (/1,0,2/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionCollideZ"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideZ
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideZ
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,0,5/)
-        real(dp), dimension(3) :: A2 = (/1,0,5/)
-        real(dp), dimension(3) :: B1 = (/-1,0,2/)
-        real(dp), dimension(3) :: B2 = (/1,0,2/)
-        integer val
-        
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideZ"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideZ
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideY
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/0,5,0/)
-        real(dp), dimension(3) :: B1 = (/-1,2,0/)
-        real(dp), dimension(3) :: B2 = (/1,2,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionCollideY"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideY
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideY
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,5,0/)
-        real(dp), dimension(3) :: A2 = (/1,5,0/)
-        real(dp), dimension(3) :: B1 = (/-1,2,0/)
-        real(dp), dimension(3) :: B2 = (/1,2,0/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideY"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideY
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideX
-        implicit none
-        real(dp), dimension(3) :: A1 = (/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/5,0,0/)
-        real(dp), dimension(3) :: B1 = (/2,0,-1/)
-        real(dp), dimension(3) :: B2 = (/2,0,1/)
-        integer val
-        
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionCollideX"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionCollideX
-        
-    SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideX
-        implicit none
-        real(dp), dimension(3) :: A1 = (/5,0,-1/)
-        real(dp), dimension(3) :: A2 = (/5,0,1/)
-        real(dp), dimension(3) :: B1 = (/2,0,-1/)
-        real(dp), dimension(3) :: B2 = (/2,0,1/)
-        integer val
-        
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjectionNoCollideX"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjectionNoCollideX
-
-    SUBROUTINE LineLineIntersectionTestIntersectProjection
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-8.8910375546638831E-002 ,  0.45626156257315231      ,   6.6668324441179081/)!(/0,0,0/)
-        real(dp), dimension(3) :: A2 = (/5.5511151231257827E-017 ,  -4.4408920985006262E-016 ,   8.2500003278255480/)!(/5,5,0))
-        real(dp), dimension(3) :: B1 = (/8.5784016210477236E-018 ,  -6.3001451707972334E-017 ,   9.9000003933906555/)!(/0,2,2/)
-        real(dp), dimension(3) :: B2 = (/9.0729117231340004E-019 ,  -7.8930676690238801E-017 ,   11.550000458955765 /)!(/2,0,1/)
-        integer val
-
-        val = LineLineIntersectionCalculation(A1,A2,B1,B2)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestIntersectProjection"
-            stop
-        endif
-
-    END SUBROUTINE LineLineIntersectionTestIntersectProjection
-
-END MODULE LineLineIntersection
-
-
-! define sphere-line intersection module that contains calculation and test
-! inspired from http://paulbourke.net/geometry/circlesphere/
-MODULE SphereLineIntersection
-    use precision, only: dp
-    implicit none
-    contains
-
-    ! calculation
-    FUNCTION SphereLineIntersectionCalculation(A1,A2,B1,r)
-        implicit none
-        ! A1 is the point: (ax1, ay1, az1)
-        ! A2 is the point: (ax2, ay2, az2)
-        ! B1 is the center of the sphere (x,y,z) of radius r
-        real(dp), intent(in), dimension(3) :: A1
-        real(dp), intent(in), dimension(3) :: A2
-        real(dp), intent(in), dimension(3) :: B1
-        real(dp), intent(in) :: r
-        real(dp) :: a, b, c, discr, um, up ! quadratic variables
-        integer SphereLineIntersectionCalculation
-
-        ! default value (i.e. no intersection)
-        SphereLineIntersectionCalculation = 0
-
-        ! calculate discriminant
-        a = dot_product(A2-A1, A2-A1)
-        b = 2*dot_product(A2-A1, A1-B1)
-        c = dot_product(B1, B1) + dot_product(A1, A1) - 2*dot_product(B1, A1) - r*r
-        discr = b*b - 4*a*c
-        if ( discr < 0 ) then 
-            return
-        endif
-        up = (-b + sqrt(discr))/(2*a)
-        um = (-b - sqrt(discr))/(2*a)
-        if ((um > 1 .AND. up < 0) .OR. (um < 0 .AND. up > 1)) then 
-            SphereLineIntersectionCalculation = 2
-            !print*, "line in sphere"
-            !print*, um, up
-            !print*, A1(1), ',',A1(2), ',',A1(3)
-            !print*, A2(1), ',',A2(2), ',',A2(3)
-            !print*, B1(1),',', B1(2), ',',B1(3), ',',r
-            return
-        else if ((um >= 0 .AND. um <= 1) .OR. (up >= 0 .AND. up <= 1)) then 
-            SphereLineIntersectionCalculation = 1
-            !print*, "one or more line-sphere intersections"
-            !print*, um, up
-            !print*, A1(1), ',', A1(2), ',', A1(3)
-            !print*, A2(1), ',', A2(2), ',', A2(3)
-            !print*, B1(1), ',', B1(2), ',', B1(3), ',', r
-            return
-        endif
-        return 
-
-    END FUNCTION SphereLineIntersectionCalculation
-
-    ! testing routines !
-    SUBROUTINE SphereLineIntersectionTestLineInside
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,0,0/)
-        real(dp), dimension(3) :: A2 = (/-2,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 20.0
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineInside"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineInside
-
-    SUBROUTINE SphereLineIntersectionTestLineInsideEdgeA1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-2,0,0/)
-        real(dp), dimension(3) :: A2 = (/-1,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 2
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineInsideEdgeA1"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineInsideEdgeA1
-
-    SUBROUTINE SphereLineIntersectionTestLineInsideEdgeA2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,0,0/)
-        real(dp), dimension(3) :: A2 = (/-2,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 2
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineInsideEdgeA2"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineInsideEdgeA2
-
-    SUBROUTINE SphereLineIntersectionTestLineTangent
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-1,0,0/)
-        real(dp), dimension(3) :: A2 = (/1,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 1
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineTangent"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineTangent
-
-    SUBROUTINE SphereLineIntersectionTestLineOutsideA1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1,0,0/)
-        real(dp), dimension(3) :: A2 = (/2,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 1
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineOutsideA1"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineOutsideA1
-
-    SUBROUTINE SphereLineIntersectionTestLineOutsideA2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/4,0,0/)
-        real(dp), dimension(3) :: A2 = (/3,0,0/)
-        real(dp), dimension(3) :: B1 = (/1,0,0/)
-        real(dp) :: r = 2
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineOutsideA2"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineOutsideA2
-
-    SUBROUTINE SphereLineIntersectionTestLineOutsideBoth
-        implicit none
-        real(dp), dimension(3) :: A1 = (/5,0,0/)
-        real(dp), dimension(3) :: A2 = (/-5,0,0/)
-        real(dp), dimension(3) :: B1 = (/0,0,0/)
-        real(dp) :: r = 1
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineOutsideBoth"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineOutsideBoth
-
-
-    SUBROUTINE SphereLineIntersectionTestLineCloseA1
-        implicit none
-        real(dp), dimension(3) :: A1 = (/12,0,0/)
-        real(dp), dimension(3) :: A2 = (/11.001,0.0,0.0/)
-        real(dp), dimension(3) :: B1 = (/10,10,10/)
-        real(dp) :: r = 1
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineCloseA1"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineCloseA1
-
-    SUBROUTINE SphereLineIntersectionTestLineCloseA2
-        implicit none
-        real(dp), dimension(3) :: A1 = (/-55,0,0/)
-        real(dp), dimension(3) :: A2 = (/-50.003,0.0,0.0/)
-        real(dp), dimension(3) :: B1 = (/-10,-10,-10/)
-        real(dp) :: r = 40
-        integer val
-
-        val = SphereLineIntersectionCalculation(A1, A2, B1, r)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestLineOutsideA2"
-            stop
-        endif
-
-    END SUBROUTINE SphereLineIntersectionTestLineCloseA2
-
-END MODULE SphereLineIntersection
+! npagane | risca lab | feb 2020 | fortran implementation of gjk algorithm 
+! adapted from MATLAB code https://github.com/mws262/MATLAB-GJK-Collision-Detection/blob/master/GJK.m
 
 ! define sphere-sphere intersection module that contains calculation and test
-MODULE SphereSphereIntersection
-    use precision, only: dp
+MODULE GJKAlgorithm
     implicit none
     contains
 
     ! calculation
-    FUNCTION SphereSphereIntersectionCalculation(A1,ra,B1,rb)
+    FUNCTION GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
         implicit none
-        ! A1 is the center of the sphere (x,y,z) of radius ra
-        ! B1 is the center of the sphere (x,y,z) of radius rb
-        real(dp), intent(in), dimension(3) :: A1
-        real(dp), intent(in) :: ra
-        real(dp), intent(in), dimension(3) :: B1
-        real(dp), intent(in) :: rb
-        real(dp), parameter :: dist = 1.0e-5 ! tolerance for collision (should be small)
-        integer SphereSphereIntersectionCalculation
+        integer, intent(in) :: nVerts
+        integer, parameter :: iteration = 6
+        real(dp), intent(in) :: s1x(nVerts), s1y(nVerts), s1z(nVerts), s2x(nVerts), s2y(nVerts), s2z(nVerts)
+        real(dp), dimension(3) :: a, b, c, d, aout, bout, cout, dout
+        real(dp), dimension(3), parameter :: v = (/0.8, 0.5, 1.0/)
+        integer GJK
 
         ! default value (i.e. no intersection)
-        SphereSphereIntersectionCalculation = 0
+        GJK = 0
 
-        ! see if radii overalp
-        if ( sqrt(dot_product(A1-B1, A1-B1)) - (ra+rb) < dist ) then
-            SphereSphereIntersectionCalculation = 100
-            !print*, "sphere collision"
-            !print*, A1(1), ',', A1(2), ',', A1(3), ',', ra
-            !print*, B1(1), ',', B1(2), ',', B1(3), ',', rb
-            return
+        ! check for shape overlap
+        if ( sum(s2x-s1x) + sum(s2y-s1y) + sum(s2z-s1z) == 0 ) then 
+           GJK = iteration
+           return
         endif
-        return 
 
-    END FUNCTION SphereSphereIntersectionCalculation
+        ! line segment
+        call pickLine(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, v, a, b)
 
-    ! testing routines !
-    SUBROUTINE SphereSphereIntersectionTestAinB
+        ! triangle
+        call pickTriangle(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, a, b, &
+                            aout, bout, cout, GJK, iteration)
+        a = aout
+        b = bout
+        c = cout
+
+        ! tetrahedron
+        if (GJK > 0) then 
+            call pickTetrahedron(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, a, b, c, &
+                              aout, bout, cout, dout, GJK, iteration)
+        endif
+
+    END FUNCTION GJK
+
+    ! pickLine
+    SUBROUTINE pickLine(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, v, a, b)
         implicit none
-        real(dp), dimension(3) :: A1 = (/1.0,0.0,0.0/)
-        real(dp) :: ra = 2
-        real(dp), dimension(3) :: B1 = (/0.0,0.0,0.0/)
-        real(dp) :: rb = 20.0
-        integer val
-    
-        val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestAinB"
+        integer, intent(in) :: nVerts
+        real(dp), intent(in) :: s1x(nVerts), s1y(nVerts), s1z(nVerts), s2x(nVerts), s2y(nVerts), s2z(nVerts)
+        real(dp), dimension(3), intent(in) :: v 
+        real(dp), dimension(3), intent(out) :: a, b
+        
+        ! make first line of simplex
+        a = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+        b = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, -1*v)
+
+    END SUBROUTINE pickLine
+
+    SUBROUTINE pickTriangle(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, a, b, &
+                            aout, bout, cout, flag, iteration)
+        implicit none
+        integer, intent(in) :: nVerts
+        integer, intent(in) :: iteration
+        real(dp), dimension(3), intent(in) :: a, b
+        real(dp), intent(in) :: s1x(nVerts), s1y(nVerts), s1z(nVerts), s2x(nVerts), s2y(nVerts), s2z(nVerts)
+        integer, intent(out) :: flag ! success
+        real(dp), dimension(3), intent(out) :: aout, bout, cout
+        real(dp), dimension(3) :: ab, ao, ac, abc, abp, acp, v
+        integer i
+
+        ! default value (i.e. no success)
+        flag = 0
+        aout = a
+        bout = b
+
+        ! first try
+        ab = bout - aout
+        ao = -1*aout
+        v = cross(cross(ab, ao), ab) ! v is perp to ab and pointing towards origin
+        cout = bout
+        bout = aout
+        aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+
+        ! iterate until convergence
+        do i = 1,iteration
+            ! check if found
+            ab = bout - aout
+            ao = -1*aout
+            ac = cout - aout
+            ! find normal to face
+            abc = cross(ab, ac)
+            ! perp to ab and ac away from triangle
+            abp = cross(ab, abc)
+            acp = cross(abc, ac)
+            ! check if triangle contains origin
+            if (dot_product(abp, ao) > 0 ) then 
+                cout = bout 
+                bout = aout
+                v = abp
+            else if (dot_product(acp, ao) > 0 ) then 
+                bout = aout 
+                v = acp
+            else 
+                flag = 1
+                exit
+            endif
+            aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+        enddo
+
+    END SUBROUTINE pickTriangle
+
+    SUBROUTINE pickTetrahedron(s1x, s1y, s1z, s2x, s2y, s2z, nVerts, a, b, c, &
+                              aout, bout, cout, dout, flag, iteration)
+        implicit none
+        integer, intent(in) :: nVerts
+        integer, intent(in) :: iteration
+        real(dp), dimension(3), intent(in) :: a, b, c
+        real(dp), intent(in) :: s1x(nVerts), s1y(nVerts), s1z(nVerts), s2x(nVerts), s2y(nVerts), s2z(nVerts)
+        integer, intent(out) :: flag ! success
+        real(dp), dimension(3), intent(out) :: aout, bout, cout, dout
+        real(dp), dimension(3) :: ab, ao, ac, ad, abc, acd, adb, v
+        real(dp) dot
+        integer i
+
+        ! default value (i.e. no success)
+        flag = 0
+        aout = a
+        bout = b
+        cout = c
+
+        ! first try
+        ab = bout - aout
+        ac = cout - aout
+        abc = cross(ab,ac)
+        ao = -1*aout
+
+        ! check if simplex is above or below origin
+        dot = dot_product(abc, ao)
+        if (dot > 0) then 
+            dout = cout
+            cout = bout
+            bout = aout
+            v = abc
+            aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+        else
+            dout = bout
+            bout = aout
+            v = -1*abc
+            aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+        endif
+
+        ! iterate until convergence
+        do i = 1, iteration
+            ab = bout - aout
+            ao = -1*aout
+            ac = cout - aout
+            ad = dout - aout
+            abc = cross(ab, ac)
+            if (dot_product(abc, ao) <= 0) then
+                acd = cross(ac, ad)
+                if (dot_product(acd, ao) > 0) then 
+                    bout = cout
+                    cout = dout
+                    ab = ac
+                    ac = ad
+                    abc = acd
+                else if (dot_product(acd, ao) < 0) then 
+                    adb = cross(ad, ab)
+                    if (dot_product(adb, ao) > 0) then 
+                        cout = bout
+                        bout = dout
+                        ac = ab
+                        ab = ad
+                        abc = adb
+                    else
+                        flag = i
+                        exit
+                    endif
+                endif
+            endif
+            ! try again
+            if (dot_product(abc, ao) > 0) then
+                dout = cout
+                cout = bout
+                bout = aout
+                v = abc
+                aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+            else
+                dout = bout
+                bout = aout
+                v = -1*abc
+                aout = support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+            endif
+        enddo
+
+    END SUBROUTINE pickTetrahedron
+
+    FUNCTION getExtremaPoint(sx, sy, sz, nVerts, v)
+        implicit none
+        integer, intent(in) :: nVerts
+        real(dp), intent(in) :: sx(nVerts), sy(nVerts), sz(nVerts)
+        real(dp), dimension(3), intent(in) :: v
+        real(dp), dimension(3) :: getExtremaPoint
+        real(dp) :: mag(nVerts)
+        integer maxInd(1)
+
+        ! find the furthest data point in v direction in shape s
+        mag = sx*v(1) + sy*v(2) + sz*v(3)
+        maxInd = maxloc(mag)
+        getExtremaPoint = (/sx(maxInd(1)), sy(maxInd(1)), sz(maxInd(1))/)
+
+    END FUNCTION getExtremaPoint
+
+    FUNCTION support(s2x, s2y, s2z, s1x, s1y, s1z, nVerts, v)
+        implicit none
+        integer, intent(in) :: nVerts
+        real(dp), intent(in) :: s1x(nVerts), s1y(nVerts), s1z(nVerts), s2x(nVerts), s2y(nVerts), s2z(nVerts)
+        real(dp), dimension(3), intent(in) :: v
+        real(dp), dimension(3) :: point1, point2, support
+
+        ! support function for minkowski difference
+        point1 = getExtremaPoint(s1x, s1y, s1z, nVerts, v)
+        point2 = getExtremaPoint(s2x, s2y, s2z, nVerts, -1*v)
+        support =  point1-point2
+
+    END FUNCTION support
+
+    FUNCTION cross(a, b)
+        real(dp), dimension(3) :: cross
+        real(dp), dimension(3), intent(in) :: a, b
+
+        cross(1) = a(2) * b(3) - a(3) * b(2)
+        cross(2) = a(3) * b(1) - a(1) * b(3)
+        cross(3) = a(1) * b(2) - a(2) * b(1)
+
+    END FUNCTION cross
+
+    FUNCTION constructPolygonPrism(cen, u, v, r, h, s, wrap)
+        implicit none
+        real(dp), dimension(3), intent(in) :: cen ! center position
+        real(dp), dimension(3), intent(in) :: u ! u angle
+        real(dp), dimension(3), intent(in) :: v ! v angle
+        real(dp), intent(in) :: r, h ! radius and height of shape
+        integer, intent(in) :: s ! num sides of polygon
+        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), dimension(s) :: constructPolygonPrism
+        real(dp), dimension(s) :: t, x, y, z
+        integer i
+        real(dp), dimension(3,3) :: mtrx
+        real(dp) space, incr
+
+        ! construct rotation matrix
+        mtrx(:,1) = v
+        mtrx(:,2) = cross(u,v)
+        mtrx(:,3) = u
+
+        ! create parametric t
+        space = 1.0/(2*s)
+        incr = 1.0/(s)
+        do i = 1, s
+            t(i) = space
+            space = space + incr
+        enddo
+        x = r*sin(t) + MATMUL(mtrx, cen)(3)
+        y = r*sin(t) + MATMUL(mtrx, cen)(2)
+        z(1:nint(s/2)) = cen(3) - h/2*MATMUL(mtrx, cen)(1)
+        z(nint(s/2):) = cen(3) + h/2*MATMUL(mtrx, cen)(1)
+        ! if nucleosome
+        if (wrap /= 1) then
+
+        else
+            print*, 'figure out'
+        endif
+
+    END FUNCTION
+
+    SUBROUTINE sameShapeTest()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1x = (/ 4.76313972,  0. , -4.76313972, -4.76313972,  0. ,4.76313972, & 
+                                      4.76313972,  0. , -4.76313972, -4.76313972,  0. ,4.76313972/)
+        real(dp), dimension(12) :: s1y = (/2.75  ,  5.5,  2.75 , -2.75, -5.5,-2.75, &
+                                      2.75  ,  5.5,  2.75 , -2.75, -5.5,-2.75/)
+        real(dp), dimension(12) :: s1z = (/0.,0.,0.,0.,0.,0.,-3.,-3.,-3.,-3.,-3.,-3./)
+        real(dp), dimension(12) :: s2x = (/ 4.76313972,  0. , -4.76313972, -4.76313972,  0. ,4.76313972, &
+                                      4.76313972,  0. , -4.76313972, -4.76313972,  0. ,4.76313972/)
+        real(dp), dimension(12) :: s2y = (/2.75  ,  5.5,  2.75 , -2.75, -5.5,-2.75, &            
+                                      2.75  ,  5.5,  2.75 , -2.75, -5.5,-2.75/)
+        real(dp), dimension(12) :: s2z = (/0.,0.,0.,0.,0.,0.,-3.,-3.,-3.,-3.,-3.,-3./)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: sameShapeTest"
+            !stop
+        endif
+
+    END SUBROUTINE sameShapeTest
+
+    SUBROUTINE noIntersectX()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1x = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2x = (/ 4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000, &
+                                      4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000/)
+        real(dp), dimension(12) :: s2y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res > 0 ) then
+            print*, "failed test: noIntersectX"
             stop
         endif
-   
-    END SUBROUTINE SphereSphereIntersectionTestAinB
 
-    SUBROUTINE SphereSphereIntersectionTestBinA
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1.0,0.0,0.0/)
-        real(dp) :: ra = 20
-        real(dp), dimension(3) :: B1 = (/0.0,0.0,0.0/)
-        real(dp) :: rb = 2
-        integer val
-    
-        val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestBinA"
-            stop
-        endif
-   
-    END SUBROUTINE SphereSphereIntersectionTestBinA
+    END SUBROUTINE noIntersectX
 
-    SUBROUTINE SphereSphereIntersectionTestTangent
+    SUBROUTINE intersectX()
         implicit none
-        real(dp), dimension(3) :: A1 = (/1.0,0.0,0.0/)
-        real(dp) :: ra = 1
-        real(dp), dimension(3) :: B1 = (/3.0,0.0,0.0/)
-        real(dp) :: rb = 1
-        integer val
-    
-        val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestTangent"
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1x = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2x = (/ .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000, &
+                                      .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000/)
+        real(dp), dimension(12) :: s2y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: intersectX"
             stop
         endif
 
-    END SUBROUTINE SphereSphereIntersectionTestTangent
+    END SUBROUTINE intersectX
 
-    SUBROUTINE SphereSphereIntersectionTestOverlap
+    SUBROUTINE tangentX()
         implicit none
-        real(dp), dimension(3) :: A1 = (/1.0,0.0,0.0/)
-        real(dp) :: ra = 1
-        real(dp), dimension(3) :: B1 = (/3.0,0.0,0.0/)
-        real(dp) :: rb = 1
-        integer val
-    
-        val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val == 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestOverlap"
-            stop 
-        endif
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1x = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2x = (/ 1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000, &
+                                      1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000/)
+        real(dp), dimension(12) :: s2y = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
 
-    END SUBROUTINE SphereSphereIntersectionTestOverlap
-
-    SUBROUTINE SphereSphereIntersectionTestNoOverlap
-        implicit none
-        real(dp), dimension(3) :: A1 = (/1.0,0.0,0.0/)
-        real(dp) :: ra = 1
-        real(dp), dimension(3) :: B1 = (/3.0,0.0,0.0/)
-        real(dp) :: rb = 0.99
-        integer val
-   
-        val = SphereSphereIntersectionCalculation(A1, ra, B1, rb)
-        if (val /= 0) then
-            print*, "FAILURE: failed LineLineIntersectionTestNoOverlap"
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: tangentX"
             stop
         endif
 
-    END SUBROUTINE SphereSphereIntersectionTestNoOverlap
+    END SUBROUTINE tangentX
 
-END MODULE SphereSphereIntersection
+    SUBROUTINE noIntersectY()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1y = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2y = (/ 4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000, &
+                                      4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res > 0 ) then
+            print*, "failed test: noIntersectY"
+            stop
+        endif
+
+    END SUBROUTINE noIntersectY
+
+    SUBROUTINE intersectY()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1y = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2y = (/ .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000, &
+                                      .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+ 
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: intersectY"
+            stop
+        endif
+
+    END SUBROUTINE intersectY
+ 
+    SUBROUTINE tangentY()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1y = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2y = (/ 1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000, &
+                                      1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2z = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: tangentY"
+            stop
+        endif
+
+    END SUBROUTINE tangentY
+
+    SUBROUTINE noIntersectZ()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1z = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2z = (/ 4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000, &
+                                      4.5000,    4.0000,    4.5000,    5.5000,    6.0000,    5.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res > 0 ) then
+            print*, "failed test: noIntersectZ"
+            stop
+        endif
+
+    END SUBROUTINE noIntersectZ
+
+    SUBROUTINE intersectZ()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1z = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2z = (/ .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000, &
+                                      .5000,    0.000,    .5000,    1.5000,    2.0000,    1.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: intersectZ"
+            stop
+        endif
+
+    END SUBROUTINE intersectZ
+
+    SUBROUTINE tangentZ()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12) :: s1z = (/-0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000, &
+                                      -0.5000,   -1.0000,   -0.5000,    0.5000,    1.0000,    0.5000/)
+        real(dp), dimension(12) :: s1x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                     -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s1y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        real(dp), dimension(12) :: s2z = (/ 1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000, &
+                                      1.5000,    1.000,    1.5000,    2.5000,    3.0000,    2.5000/)
+        real(dp), dimension(12) :: s2x = (/-0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660, &
+                                      -0.8660,         0.,    0.8660,    0.8660,         0.,   -0.8660/)
+        real(dp), dimension(12) :: s2y = (/0., 0., 0., 0., 0., 0., 5.5, 5.5, 5.5, 5.5, 5.5, 5.5/)
+        integer res
+
+        res = GJK(s1x, s1y, s1z, s2x, s2y, s2z, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: tangentZ"
+            stop
+        endif
+
+    END SUBROUTINE tangentZ
+
+
+END MODULE
+
+! test module
+PROGRAM GJKTest 
+    use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, &
+                            noIntersectY, intersectY, tangentY, &
+                            noIntersectZ, intersectZ, tangentZ
+    implicit none
+
+    call sameShapeTest()
+    call noIntersectX()
+    call intersectX()
+    call tangentX()
+    call noIntersectY()
+    call intersectY()
+    call tangentY()
+    call noIntersectZ()
+    call intersectZ()
+    call tangentZ()
+
+    print*, "SUCCESS: successful completion of all GJK collision unit tests"
+
+END PROGRAM
