@@ -1,10 +1,10 @@
 #! /bin/bash
-## Number of nodes
-# SBATCH -N 1
-## Number of cores
-# SBATCH -n 2
+#SBATCH -N 1
+#SBATCH -n 16
+#SBATCH -p risc
 
 echo This is job $SLURM_JOB_ID
+echo has $SLURM_NTASKS cores
 
 # conda env
 source activate wlcsim
@@ -15,15 +15,15 @@ rm wlcsim.exe
 
 make
 
-mkdir allData
+#mkdir allData
 
-for iter in {1..50..1}
-  do
-      mpirun --prefix /usr/mpi/gcc/openmpi-1.10.3a1/ wlcsim.exe 
-      newfile="data$iter"
-      mv data $newfile
-      mv $newfile allData
-      echo "done with iteration $iter out of 50"
-      mkdir data
-  done
+#for iter in {1..50..1}
+#  do
+mpirun --prefix /usr/mpi/gcc/openmpi-1.10.3a1/ wlcsim.exe 
+#      newfile="data$iter"
+#      mv data $newfile
+#      mv $newfile allData
+#      echo "done with iteration $iter out of 50"
+#      mkdir data
+#  done
 

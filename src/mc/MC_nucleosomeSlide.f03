@@ -44,7 +44,7 @@ success = .false.
 ! find nucs
 loc = 1
 do KK = 1, nNucs
-    newloc = findloc(wlc_nucleosomeWrap(loc(1):),147)
+    newloc = -1!findloc(wlc_nucleosomeWrap(loc(1):),147)
     nucArray(KK) = loc(1)+newloc(1)-1
     loc=loc+newloc
 enddo
@@ -61,11 +61,11 @@ if (DR == 0) then
 endif
 
 ! find neighboring nuclesomes
-prevNuc = findloc(nucArray, I) - 1
+prevNuc = -1!findloc(nucArray, I) - 1
 if (prevNuc(1) > 0) then
     prevNuc = nucArray(prevNuc(1))
 endif
-nextNuc = findloc(nucArray, I) + 1
+nextNuc = -1!findloc(nucArray, I) + 1
 if (nextNuc(1) < nNucs+1) then 
     nextNuc = nucArray(nextNuc(1))
 else
