@@ -179,24 +179,9 @@ end subroutine setup_nucleosome_constants
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use precision, only: nan
     ! sterics testing !
-    use LineLineIntersection, only: LineLineIntersectionTestOverlapA1B1, LineLineIntersectionTestOverlapA1B2, &
-      LineLineIntersectionTestOverlapA2B1, LineLineIntersectionTestOverlapA2B2, LineLineIntersectionTestSameLine, &
-      LineLineIntersectionTestParallelOverlapA1B1, LineLineIntersectionTestParallelOverlapA1B2, &
-      LineLineIntersectionTestParallelOverlapA2B1, LineLineIntersectionTestParallelOverlapA2B2, &
-      LineLineIntersectionTestParallelA1B1, LineLineIntersectionTestParallelA1B2, LineLineIntersectionTestParallelA2B1, &
-      LineLineIntersectionTestParallelA2B2, LineLineIntersectionTestIntersectA1, LineLineIntersectionTestIntersectA2, &
-      LineLineIntersectionTestIntersectB1, LineLineIntersectionTestIntersectB2, LineLineIntersectionTestIntersectMiddle, &
-      LineLineIntersectionTestIntersectProjectionCollideZ, LineLineIntersectionTestIntersectProjectionNoCollideZ, &
-      LineLineIntersectionTestIntersectProjectionCollideY, LineLineIntersectionTestIntersectProjectionNoCollideY, &
-      LineLineIntersectionTestIntersectProjectionCollideX, LineLineIntersectionTestIntersectProjectionNoCollideX, &
-      LineLineIntersectionTestIntersectProjection
-    use SphereLineIntersection, only: SphereLineIntersectionTestLineInside, SphereLineIntersectionTestLineInsideEdgeA1, &
-      SphereLineIntersectionTestLineInsideEdgeA2, SphereLineIntersectionTestLineTangent, &
-      SphereLineIntersectionTestLineOutsideA1, SphereLineIntersectionTestLineOutsideA2, &
-      SphereLineIntersectionTestLineOutsideBoth, SphereLineIntersectionTestLineCloseA1, &
-      SphereLineIntersectionTestLineCloseA2
-    use SphereSphereIntersection, only: SphereSphereIntersectionTestAinB, SphereSphereIntersectionTestBinA, &
-      SphereSphereIntersectionTestTangent, SphereSphereIntersectionTestOverlap, SphereSphereIntersectionTestNoOverlap
+    use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, &
+                            noIntersectY, intersectY, tangentY, &
+                            noIntersectZ, intersectZ, tangentZ
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
@@ -252,48 +237,18 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
             ! testing sterics here !
             if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-                call LineLineIntersectionTestOverlapA1B1()
-                call LineLineIntersectionTestOverlapA1B2()
-                call LineLineIntersectionTestOverlapA2B1()
-                call LineLineIntersectionTestOverlapA2B2()
-                call LineLineIntersectionTestSameLine()
-                call LineLineIntersectionTestParallelOverlapA1B1()
-                call LineLineIntersectionTestParallelOverlapA1B2()
-                call LineLineIntersectionTestParallelOverlapA2B1()
-                call LineLineIntersectionTestParallelOverlapA2B2()
-                call LineLineIntersectionTestParallelA1B1()
-                call LineLineIntersectionTestParallelA1B2()
-                call LineLineIntersectionTestParallelA2B1()
-                call LineLineIntersectionTestParallelA2B2()
-                call LineLineIntersectionTestIntersectA1()
-                call LineLineIntersectionTestIntersectA2()
-                call LineLineIntersectionTestIntersectB1()
-                call LineLineIntersectionTestIntersectB2()
-                call LineLineIntersectionTestIntersectMiddle()
-                call LineLineIntersectionTestIntersectProjectionCollideZ()
-                call LineLineIntersectionTestIntersectProjectionNoCollideZ()
-                call LineLineIntersectionTestIntersectProjectionCollideY()
-                call LineLineIntersectionTestIntersectProjectionNoCollideY()
-                call LineLineIntersectionTestIntersectProjectionCollideX()
-                call LineLineIntersectionTestIntersectProjectionNoCollideX()
-                call LineLineIntersectionTestIntersectProjection()
-                print*, "SUCCESS: successful completion of all 25 line-line collision unit tests"
-                call SphereLineIntersectionTestLineInside()
-                call SphereLineIntersectionTestLineInsideEdgeA1()
-                call SphereLineIntersectionTestLineInsideEdgeA2()
-                call SphereLineIntersectionTestLineTangent()
-                call SphereLineIntersectionTestLineOutsideA1()
-                call SphereLineIntersectionTestLineOutsideA2()
-                call SphereLineIntersectionTestLineOutsideBoth()
-                call SphereLineIntersectionTestLineCloseA1()
-                call SphereLineIntersectionTestLineCloseA2()
-                print*, "SUCCESS: successful completion of all 9 sphere-line collision unit tests"
-                call SphereSphereIntersectionTestAinB()
-                call SphereSphereIntersectionTestBinA()
-                call SphereSphereIntersectionTestTangent()
-                call SphereSphereIntersectionTestOverlap()
-                call SphereSphereIntersectionTestNoOverlap()
-                print*, "SUCCESS: successful completion of all 5 sphere-sphere collision unit tests"
+                call sameShapeTest()
+                call noIntersectX()
+                call intersectX()
+                call tangentX()
+                call noIntersectY()
+                call intersectY()
+                call tangentY()
+                call noIntersectZ()
+                call intersectZ()
+                call tangentZ()
+
+                print*, "SUCCESS: successful completion of all GJK collision unit tests"
             endif
         endif
     else
