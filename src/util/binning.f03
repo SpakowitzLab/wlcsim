@@ -38,7 +38,7 @@ module binning
     ! The following are optimization constants.
     ! Their optimal values will, in general, depend on the application
     Integer, Parameter :: maxBeadsPerBin = 32
-    Integer, Parameter :: subdivisionRatio = 4
+    Integer, Parameter :: subdivisionRatio = 2
     Integer, Parameter :: nBeadsToTrigerBinMerge = 5
 
     type binType

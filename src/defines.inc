@@ -114,7 +114,7 @@
 ! DEFAULTS COMMENT: ! See MC_Hamiltonian
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
-#define WLC_P__RECENTER_ON .False.
+#define WLC_P__RECENTER_ON .FALSE.
 ! VARIABLE COMMENT: ! Wheter to move drifted chains back in periodic BC
 ! DEFAULTS COMMENT: ! Not in periodic BC
 ! TYPE: LOGICAL
@@ -542,7 +542,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 1
+#define WLC_P__STEPSPEREXCHANGE 100
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -552,7 +552,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 1
+#define WLC_P__NUMSAVEPOINTS 100
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
@@ -681,7 +681,7 @@
 !
 ! --------------------------
 
-#define WLC_P__PTON .TRUE.
+#define WLC_P__PTON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to parallel temper
 ! DEFAULTS COMMENT: ! use parallel if applicable
 ! TYPE: LOGICAL
@@ -1221,22 +1221,22 @@
 ! DEFAULTS COMMENT: ! no window
 ! TYPE: REAL(DP)
 
-#define WLC_P__NADAPT_CRANK_SHAFT 1000
+#define WLC_P__NADAPT_CRANK_SHAFT 500
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_SLIDE_MOVE 1000
+#define WLC_P__NADAPT_SLIDE_MOVE 500
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_PIVOT_MOVE 1000
+#define WLC_P__NADAPT_PIVOT_MOVE 500
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_ROTATE_MOVE 1000
+#define WLC_P__NADAPT_ROTATE_MOVE 500
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER

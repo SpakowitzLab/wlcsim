@@ -22,6 +22,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap
     use energies
     use umbrella, only: umbrella_energy
+    use binning
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
@@ -72,7 +73,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
-    integer collisions
+    integer :: collisions
     logical success
     logical wlc_AlexanderP
 
@@ -82,6 +83,34 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) TwP        ! twist of the proposed configuration
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
+
+    !trying quinns binning
+    type(binType) bin
+    real(dp) R(3,WLC_P__NT) ! all bead locations
+    ! Get neighbors within radius of coordinate
+    real(dp) distances(1000) ! Returned distances
+    real(dp) :: radius = 5.5
+    integer neighbors(1000) ! ID of neighboring beads
+    integer nn ! number of neighbors
+    !  Set up binning object
+    real(dp), dimension(3) :: setBinSize != [1000.0, 1000.0, 1000.0] ! size of bin
+    real(dp), dimension(3) :: setMinXYZ != [-500.0,-500.0,-500.0]  ! location of corner of bin
+    integer, dimension(3) :: setBinShape != [10,10,10]   ! Specify first level of binning
+    integer left, right
+
+
+    ! consrtuct bin
+    setBinSize = [1000.0, 1000.0, 1000.0] ! size of bin
+    setMinXYZ = [-500.0,-500.0,-500.0]  ! location of corner of bin
+    setBinShape = [10,10,10]   ! Specify first level of binning
+    call constructBin(bin,setBinShape,setMinXYZ,setBinSize)
+    ! add all beads
+    do i = 1, WLC_P__NT
+        call addBead(bin,wlc_R,WLC_P__NT,i)
+    enddo
+
+    ! collisions
+    collisions = 0
 
 ! -------------------------------------
 !
@@ -129,10 +158,79 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
               !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
-              call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward) ! use new sterics checker instead of quinns
-              if (collisions>0) then
-                  energyOf(sterics_)%dx = energyOf(21)%cof*collisions 
-              endif
+              ! beginning of quinn fractal search
+            if (MCTYPE == 4 .or. MCTYPE == 7 .or. MCTYPE == 8 .or. MCTYPE == 9) then
+                left = -1
+                right = -1 !return ! no collision
+            elseif (MCTYPE == 1 .or. MCTYPE == 3 ) then ! Crank-shaft or pivot
+                if (IT1 == IT2) then
+                    left= -1
+                    right = -1 ! return ! Bead only rotated; no collision
+                endif
+                left = IT1
+                right = IT2-1
+            elseif (MCTYPE == 2) then ! Slide
+                if (IB1 == 1) then
+                    left = IT1
+                else
+                    left = IT1 - 1
+                    !wlc_RP(:,IT1-1) = wlc_R(:,IT1-1) ! need to extend RP
+                endif
+                if (IB2 == WLC_P__NB) then
+                    right = IT2 - 1
+                else
+                    right = IT2
+                    !wlc_RP(:,IT2+1) = wlc_R(:,IT2+1) ! need to extend RP
+                endif
+            elseif (MCTYPE == 5 .or. MCTYPE == 6) then ! Full chain move
+                left = IT1
+                right = IT2-1
+            elseif (MCTYPE == 10 .or. MCTYPE == 11) then ! reptation or super rep.
+                if (forward) then
+                    left = IT2-1
+                else
+                    left = IT1
+                endif
+                right = left
+            elseif (MCTYPE == 13) then ! nucleosome slide
+                left = IT1
+                right = IT2
+            else
+                print*, "collision not set up for this movetype ", MCTYPE
+                stop
+            endif
+
+            if (left /= -1 ) then 
+                R = wlc_R
+                ! reset all moved beads
+                do i = left, right
+                    R(:,i) = wlc_RP(:,i)
+                    call removeBead(bin,wlc_R(:,i),i)
+                    call addBead(bin,R,WLC_P__NT,i)
+                enddo
+                ! check for collisions
+                nn = 0
+                do i = left, right
+                    call removeBead(bin,R(:,i),i)
+                    call findNeighbors(bin,wlc_RP(:,i),radius,R,WLC_P__NT,1000,neighbors,distances,nn)
+                    !print*, 'start'
+                    !print*, nn, i
+                    !print*, neighbors(1:nn)
+                    !print*, distances(1:nn)
+                    call addBead(bin,R,WLC_P__NT,i)
+                enddo
+                ! add back beads
+                do i = left, right
+                    call removeBead(bin,R(:,i),i)
+                    call addBead(bin,wlc_R,WLC_P__NT,i)
+                enddo
+                call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn)) ! use new sterics checker instead of quinns
+                !print*, collisions, left, right
+                ! end of quinn fractal search 
+                if (collisions>0) then
+                    energyOf(sterics_)%dx = energyOf(21)%cof*collisions 
+                endif
+            endif
           endif
 
           call check_RP_for_NAN(success,MCTYPE)

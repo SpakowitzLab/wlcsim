@@ -25,6 +25,7 @@ input_folder = '../../data'
 output_folder = 'pdb/'
 
 # gather translation/rotation matrix data
+center = np.asarray([4.492472962875028, -2.223066978638025, 0.3943949777108554])
 angle = 2*np.pi/10.5
 nucleosomeTRAN = np.loadtxt('../../input/nucleosomeT') 
 nucleosomeROT = np.loadtxt('../../input/nucleosomeR') 
