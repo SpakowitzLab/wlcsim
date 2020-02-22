@@ -85,7 +85,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) LkP        ! linking number of the proposed configuration
 
     !trying quinns binning
-    type(binType) bin
+    type(binType) bin, binOld
     real(dp) R(3,WLC_P__NT) ! all bead locations
     ! Get neighbors within radius of coordinate
     real(dp) distances(1000) ! Returned distances
@@ -202,6 +202,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
             if (left /= -1 ) then 
                 R = wlc_R
+                binOld = bin
                 ! reset all moved beads
                 do i = left, right
                     R(:,i) = wlc_RP(:,i)
@@ -219,11 +220,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                     !print*, distances(1:nn)
                     call addBead(bin,R,WLC_P__NT,i)
                 enddo
-                ! add back beads
-                do i = left, right
-                    call removeBead(bin,R(:,i),i)
-                    call addBead(bin,wlc_R,WLC_P__NT,i)
-                enddo
+                !print*, nn
                 call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn)) ! use new sterics checker instead of quinns
                 !print*, collisions, left, right
                 ! end of quinn fractal search 
@@ -424,6 +421,16 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 wlc_Wr = WrP
              endif
              wlc_SUCCESS(MCTYPE) = wlc_SUCCESS(MCTYPE) + 1
+          else
+
+            ! NP add back beads since move was not accepted
+            if (left /= -1 ) then
+                do i = left, right
+                    call removeBead(bin,R(:,i),i)
+                    call addBead(bin,wlc_R,WLC_P__NT,i)
+                enddo
+                bin = binOld
+            endif
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
 

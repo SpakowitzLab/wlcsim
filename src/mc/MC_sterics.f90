@@ -23,7 +23,7 @@ integer, intent(in) :: IB2               ! Test bead position 2
 integer, intent(in) :: IT2               ! Index of test bead 2
 integer, intent(in) :: MCTYPE            ! MC move type
 logical, intent(in) :: forward           ! direction of reptation move
-integer, intent(inout) :: collisions
+integer, intent(out) :: collisions
 integer, intent(in) :: left, right 
 integer, intent(in) :: nn ! number of neighbors
 real(dp), intent(in) :: distances(nn) ! Returned distances
@@ -125,7 +125,7 @@ integer ii, jj, i
 ! figure out exclusion discretization scheme!!!! similar to elenas?
 !collide = .FALSE.
 
-!collisions = 0
+collisions = 0
 
 ! check collisions for ALL moved beads
 do ii = left,right

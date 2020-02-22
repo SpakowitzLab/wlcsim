@@ -61,4 +61,5 @@ for ind in file_inds:
     r2pdb.save_pdb('%s/snap%0.3d.pdb' %(output_folder,ind),dna)
 
 # run pymol
-os.system("/Applications/PyMOL.app/Contents/MacOS/MacPyMOL -r movie.py -- " + str(timePts))
+os.system("~/Applications/pymol/pymol -r movie.py -- " + str(timePts))
+#os.system("/Applications/PyMOL.app/Contents/MacOS/MacPyMOL -r movie.py -- " + str(timePts))
