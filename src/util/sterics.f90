@@ -246,12 +246,12 @@ MODULE GJKAlgorithm
         real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
         integer, intent(in) :: s ! num sides of desired polygon
         real(dp) :: r, h ! radius and height of desired shape
-        integer i, sign
+        integer i
         real(dp), dimension(3,3) :: mtrx, rot
         real(dp) space, spaceInit, incr, offset1, offset2
         real(dp), dimension(3) :: pos, center, vec
         real(dp), dimension(s,3) :: constructPolygonPrism
-        real(dp) :: angle = 90.0
+        real(dp) :: angle = 2.0*pi/10.5
 
         incr = 2*pi/(s/2)
 
@@ -260,60 +260,60 @@ MODULE GJKAlgorithm
         mtrx(:,2) = cross(u,v)
         mtrx(:,3) = u
 
-        ! construct general rotation matrix
-        rot(:,1) = [cos(angle), -sin(angle), 0.0_dp]
-        rot(:,2) = [sin(angle), cos(angle), 0.0_dp]
-        rot(:,3) = [0.0_dp, 0.0_dp, 1.0_dp]
-
         ! determine if nucleosome or not
         if (wrap /= 1) then 
-            center = [4.492472962875028, -2.223066978638025, 0.3943949777108554]
+            center = [4.8455, -2.4445, 0.6694]
             pos = pos1
             h = 5.5 ! nm height
             r = 5.2 ! nm radius
             spaceInit = 0
             offset1 = -h/2
             offset2 = h/2
-            sign = -1
-            !print*, 'start'
-            !print*, pos1
-            !print*, u, v
-            !print*, pos2
+            ! create parametric t for first face
+            space = spaceInit
+            do i = 1, (s/2)
+                ! rotate into material frame
+                vec = [r*cos(space), offset1, r*sin(space)]
+                ! construct polygon
+                constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
+                space = space + incr
+            enddo
+            ! create parametric t for second face
+            space = spaceInit
+            do i = (s/2)+1, s
+                ! rotate into material frame
+                vec = [r*cos(space), offset2, r*sin(space)]
+                ! construct polygon
+                constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
+                space = space + incr
+            enddo
         else ! dna 
-            center = (/0.,0.,0./)
+            center = 0.0_dp
             pos = (pos2 + pos1) / 2.0
             h = sqrt(dot_product(pos2 - pos1, pos2-pos1)) ! nm height
             r = 1.0 ! nm radius 
             spaceInit = 2*pi/s
             offset1 = -h/2
             offset2 = h/2
-            sign = 1
+            ! create parametric t for first face
+            space = spaceInit
+            do i = 1, (s/2)
+                ! rotate into material frame
+                vec = [r*sin(space), r*cos(space), offset1]
+                ! construct polygon
+                constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
+                space = space + incr
+            enddo
+            ! create parametric t for second face
+            space = spaceInit
+            do i = (s/2)+1, s
+                ! rotate into material frame
+                vec = [r*sin(space), r*cos(space), offset2]
+                ! construct polygon
+                constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
+                space = space + incr
+            enddo
         endif 
-
-        ! create parametric t for first face
-        space = spaceInit
-        do i = 1, (s/2)
-            ! rotate into material frame
-            vec = [r*sin(space), r*cos(space), offset1]
-            ! construct polygon
-            constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
-            space = space + incr
-        enddo
-
-        ! create parametric t for second face
-        space = spaceInit
-        do i = (s/2)+1, s
-            ! rotate into material frame
-            vec = [r*sin(space), r*cos(space), offset2]
-            ! construct polygon
-            constructPolygonPrism(i,:) = pos + MATMUL(mtrx, center+vec)
-            space = space + incr
-        enddo
-
-        !print*, constructPolygonPrism(:,1)
-        !print*, constructPolygonPrism(:,2)
-        !print*, constructPolygonPrism(:,3)
-        !print*, ' '
 
     END FUNCTION constructPolygonPrism
 

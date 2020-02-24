@@ -181,56 +181,54 @@ do ii = left,right
     ! THIS IS BAD IF CHAIN IS BIG!!!! Then would need to transition to Quinn's code to 
     ! findNeighbors and only check distance of close beads (good for our size chain rn)
     do jj = 1, nn
-        if ( (neighbors(jj) < left .OR. neighbors(jj) > right) ) then ! ignore self beads
-            if (neighbors(jj) < WLC_P__NT) then 
-                poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
-                    wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
-            endif
-            ! check identity of all other beads in chain 
-            if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) /= 1) then ! sphere-sphere collision
-                ! check for collision
-                collisions = collisions + 20*GJK(poly1Plus, poly2Plus, s)
-            ! moved bead nuc + DNA
-            else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1) then ! sphere-line collision
-                ! ignore 10bp nearest nuc
-                if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) >= 10) .OR. &
-                    (neighbors(jj) >= ii .AND. sum(wlc_basepairs(ii:neighbors(jj))) >= 10) ) then 
-                    if (neighbors(jj) < WLC_P__NT) then 
-                        if (wlc_nucleosomeWrap(neighbors(jj)+1) == 1) then
-                            ! check for collision
-                            collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-                        endif
-                    endif
-                endif 
-            ! moved bead DNA + nuc
-            else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) ) then ! sphere-line collision
-                ! ignore 10bp nearest nuc
-                if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) >= 10) .OR. &
-                     (ii >= neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii)) >= 10) ) then 
-                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
-                    if (ii < WLC_P__NT) then 
+        if (neighbors(jj) < WLC_P__NT) then 
+            poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
+        endif
+        ! check identity of all other beads in chain 
+        if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) /= 1) then ! sphere-sphere collision
+            ! check for collision
+            collisions = collisions + 20*GJK(poly1Plus, poly2Plus, s)
+        ! moved bead nuc + DNA
+        else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1) then ! sphere-line collision
+            ! ignore 10bp nearest nuc
+            if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) >= 10) .OR. &
+                (neighbors(jj) >= ii .AND. sum(wlc_basepairs(ii:neighbors(jj))) >= 10) ) then 
+                if (neighbors(jj) < WLC_P__NT) then 
+                    if (wlc_nucleosomeWrap(neighbors(jj)+1) == 1) then
                         ! check for collision
                         collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-                    endif
-                    if (ii > 1 .AND. ii == left) then ! only the first moved bead is allowed to check backwards
-                        ! check for collision
-                        collisions = collisions + GJK(poly1Minus, poly2Plus, s)
                     endif
                 endif
-            else ! line-line collision
-                if (neighbors(jj) /= WLC_P__NT) then ! check neighbors(jj) + 1 throughout whole chain
-                    ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
-                    if ((wlc_nucleosomeWrap(neighbors(jj)+1) == 1) .AND. ((ii+1 < neighbors(jj)) &
-                        .OR. (neighbors(jj)+1 < ii)) .AND. (ii < WLC_P__NT)) then
-                        ! check for collision
-                        collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-                    endif
-                    ! only the first moved bead is allowed to check backwards in addition to making sure the logic of line segments
-                    if ((wlc_nucleosomeWrap(neighbors(jj)+1) == 1) .AND. ((neighbors(jj)+1 < ii-1) &
-                        .OR. (ii < neighbors(jj))) .AND. (ii > 1) .AND. ii == left) then 
-                        ! check for collision
-                        collisions = collisions + GJK(poly1Minus, poly2Plus, s)
-                    endif
+            endif 
+        ! moved bead DNA + nuc
+        else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) ) then ! sphere-line collision
+            ! ignore 10bp nearest nuc
+            if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) >= 10) .OR. &
+                    (ii >= neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii)) >= 10) ) then 
+                ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
+                if (ii < WLC_P__NT) then 
+                    ! check for collision
+                    collisions = collisions + GJK(poly1Plus, poly2Plus, s)
+                endif
+                if (ii > 1 .AND. ii == left) then ! only the first moved bead is allowed to check backwards
+                    ! check for collision
+                    collisions = collisions + GJK(poly1Minus, poly2Plus, s)
+                endif
+            endif
+        else ! line-line collision
+            if (neighbors(jj) /= WLC_P__NT) then ! check neighbors(jj) + 1 throughout whole chain
+                ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
+                if ((wlc_nucleosomeWrap(neighbors(jj)+1) == 1) .AND. ((ii+1 < neighbors(jj)) &
+                    .OR. (neighbors(jj)+1 < ii)) .AND. (ii < WLC_P__NT)) then
+                    ! check for collision
+                    collisions = collisions + GJK(poly1Plus, poly2Plus, s)
+                endif
+                ! only the first moved bead is allowed to check backwards in addition to making sure the logic of line segments
+                if ((wlc_nucleosomeWrap(neighbors(jj)+1) == 1) .AND. ((neighbors(jj)+1 < ii-1) &
+                    .OR. (ii < neighbors(jj))) .AND. (ii > 1) .AND. ii == left) then 
+                    ! check for collision
+                    collisions = collisions + GJK(poly1Minus, poly2Plus, s)
                 endif
             endif
         endif
