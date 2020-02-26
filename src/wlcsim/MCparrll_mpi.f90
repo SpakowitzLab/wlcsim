@@ -146,7 +146,7 @@ use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
         ! update cof
         energyOf(ii)%cof = cof(ii)
         ! Verify that the old E=cof*x
-        if (abs(energyOf(ii)%E-energyOf(ii)%x*cof_old(ii)).gt.100*epsApprox) then
+        if (abs(energyOf(ii)%E-energyOf(ii)%x*cof_old(ii)).gt.epsApprox) then
             print*, "Error in replicaExchange of ", energyOf(ii)%name_str, " before"
             print*, "E=",energyOf(ii)%E," != x*CofOld",energyOf(ii)%x*cof_old(ii)
             stop 1
@@ -154,7 +154,7 @@ use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
         ! Update energy useing x and change in cof
         energyOf(ii)%E=energyOf(ii)%E+energyOf(ii)%x*(energyOf(ii)%cof-cof_old(ii))
         ! Verify that the new E=cof*x
-        if (abs(energyOf(ii)%E-energyOf(ii)%cof*energyOf(ii)%x).gt.100*epsApprox) then
+        if (abs(energyOf(ii)%E-energyOf(ii)%cof*energyOf(ii)%x).gt.epsApprox) then
             print*, "Error in replicaExchange of ", energyOf(ii)%name_str, " after"
             print*, "E=",energyOf(ii)%E," but  cof*x)=",energyOf(ii)%cof*energyOf(ii)%x
             print*, "cof",energyOf(ii)%cof,"- cof_old",cof_old(ii),"=",energyOf(ii)%cof-cof_old(ii)

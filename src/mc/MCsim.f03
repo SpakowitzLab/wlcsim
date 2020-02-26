@@ -203,14 +203,19 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
             if (left /= -1 ) then 
                 R = wlc_R
-                ! check for collisions
+                ! check for neighbors
                 nn = 0
                 do i = left, right
                     call removeBead(bin,wlc_R(:,i),i)
                     call findNeighbors(bin,wlc_RP(:,i),radius,wlc_R,WLC_P__NT,1000,neighbors,distances,nn)
                 enddo
-                call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn)) ! use new sterics checker instead of quinns
-                ! end of quinn fractal search 
+                ! check for collisions
+                call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn))
+                ! add back beads here in case move is rejected
+                do i = left, right
+                    call addBead(bin,wlc_R,WLC_P__NT,i)
+                enddo
+                ! ascribe collision penalty
                 if (collisions>0) then
                     energyOf(sterics_)%dx = energyOf(21)%cof*collisions 
                 endif
@@ -412,17 +417,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
              if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .AND. (left /= -1 ) ) then
                 ! reset all moved beads
                 do i = left, right
+                    call removeBead(bin,R(:,i),i)
                     R(:,i) = wlc_RP(:,i)
                     call addBead(bin,R,WLC_P__NT,i)
                 enddo
              endif
-          else
-            ! NP add back beads since move was not accepted
-            if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .AND. (left /= -1 ) ) then
-                do i = left, right
-                    call addBead(bin,wlc_R,WLC_P__NT,i)
-                enddo
-            endif
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
 
