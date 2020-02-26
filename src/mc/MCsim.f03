@@ -19,14 +19,14 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap, &
+    wlc_bin, wlc_R_period
+    use binning, only: addBead, removeBead, findNeighbors
     use energies
     use umbrella, only: umbrella_energy
-    use binning
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
-    use binning, only: addBead, removeBead
     use updateRU, only: updateR
     use polydispersity, only: length_of_chain, chain_ID, leftmost_from
     use linkingNumber, only: getDelTw_Wr_Lk
@@ -84,30 +84,15 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
 
-    !trying quinns binning
-    type(binType) bin
+    !set up for binning
     real(dp) R(3,WLC_P__NT) ! all bead locations
     ! Get neighbors within radius of coordinate
     real(dp) distances(1000) ! Returned distances
     real(dp) :: radius = 5.5
     integer neighbors(1000) ! ID of neighboring beads
     integer nn ! number of neighbors
-    !  Set up binning object
-    real(dp), dimension(3) :: setBinSize != [1000.0, 1000.0, 1000.0] ! size of bin
-    real(dp), dimension(3) :: setMinXYZ != [-500.0,-500.0,-500.0]  ! location of corner of bin
-    integer, dimension(3) :: setBinShape != [10,10,10]   ! Specify first level of binning
+    real(dp) tempLoc(3) ! temporary location of moved bead
     integer left, right
-
-
-    ! consrtuct bin
-    setBinSize = [1000.0, 1000.0, 1000.0] ! size of bin
-    setMinXYZ = [-500.0,-500.0,-500.0]  ! location of corner of bin
-    setBinShape = [10,10,10]   ! Specify first level of binning
-    call constructBin(bin,setBinShape,setMinXYZ,setBinSize)
-    ! add all beads
-    do i = 1, WLC_P__NT
-        call addBead(bin,wlc_R,WLC_P__NT,i)
-    enddo
 
     ! collisions
     collisions = 0
@@ -202,18 +187,20 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             endif
 
             if (left /= -1 ) then 
-                R = wlc_R
                 ! check for neighbors
                 nn = 0
                 do i = left, right
-                    call removeBead(bin,wlc_R(:,i),i)
-                    call findNeighbors(bin,wlc_RP(:,i),radius,wlc_R,WLC_P__NT,1000,neighbors,distances,nn)
+                    call removeBead(wlc_bin,wlc_R_period(:,i),i)
+                    tempLoc(1)=modulo(wlc_R(1,i),WLC_P__LBOX_X)
+                    tempLoc(2)=modulo(wlc_R(2,i),WLC_P__LBOX_Y)
+                    tempLoc(3)=modulo(wlc_R(3,i),WLC_P__LBOX_Z)
+                    call findNeighbors(wlc_bin,tempLoc,radius,wlc_R_period,WLC_P__NT,1000,neighbors,distances,nn)
                 enddo
                 ! check for collisions
                 call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn))
                 ! add back beads here in case move is rejected
                 do i = left, right
-                    call addBead(bin,wlc_R,WLC_P__NT,i)
+                    call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
                 enddo
                 ! ascribe collision penalty
                 if (collisions>0) then
@@ -413,15 +400,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 wlc_Wr = WrP
              endif
              wlc_SUCCESS(MCTYPE) = wlc_SUCCESS(MCTYPE) + 1
-             ! NP add moved beads since move was accepted
-             if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .AND. (left /= -1 ) ) then
-                ! reset all moved beads
-                do i = left, right
-                    call removeBead(bin,R(:,i),i)
-                    R(:,i) = wlc_RP(:,i)
-                    call addBead(bin,R,WLC_P__NT,i)
-                enddo
-             endif
           endif
           wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
 

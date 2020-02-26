@@ -361,7 +361,7 @@ contains
         logical err
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')&
-            .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
+            .and. (WLC_P__CONFINETYPE .ne. 'sphere' ) .and. (WLC_P__CONFINETYPE .ne. 'none' )) then
             print*, "The code is untested for Neighbor bins and other confinetypes"
             print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
             print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"

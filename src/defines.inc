@@ -124,7 +124,7 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
-#define WLC_P__NEIGHBOR_BINS .FALSE.
+#define WLC_P__NEIGHBOR_BINS .TRUE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
 ! TYPE: LOGICAL
@@ -393,7 +393,7 @@
 ! DEFAULTS COMMENT: ! same
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX_X 64.0_dp
+#define WLC_P__LBOX_X 1000.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -542,7 +542,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 100
+#define WLC_P__STEPSPEREXCHANGE 500
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
