@@ -348,14 +348,14 @@
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
 ! TYPE: REAL(DP)
 
-#define WLC_P__L0 (WLC_P__L/(WLC_P__NB))
-! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
-! DEFAULTS COMMENT: ! derive from L and NB
-! TYPE: REAL(DP)
-
 #define WLC_P__LENGTH_PER_BP 0.33
 ! VARIABLE COMMENT: ! length along dna for one bace pair
 ! DEFAULTS COMMENT: ! in nm
+! TYPE: REAL(DP)
+
+#define WLC_P__L0 5.0_DP*WLC_P__LENGTH_PER_BP
+! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
+! DEFAULTS COMMENT: ! derive from L and NB (NP KEEP (WLC_P__L/(WLC_P__NB)) IF DNA, SET AVERAGE DISC IF CHROMATIN)
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.02200_DP
