@@ -60,6 +60,7 @@ MODULE GJKAlgorithm
 
     SUBROUTINE pickTriangle(s1, s2, nVerts, a, b, &
                             aout, bout, cout, flag, iteration)
+        use vector_utils, only: cross
         implicit none
         integer, intent(in) :: nVerts
         integer, intent(in) :: iteration
@@ -113,6 +114,7 @@ MODULE GJKAlgorithm
 
     SUBROUTINE pickTetrahedron(s1, s2, nVerts, a, b, c, &
                               aout, bout, cout, dout, flag, iteration)
+        use vector_utils, only: cross
         implicit none
         integer, intent(in) :: nVerts
         integer, intent(in) :: iteration
@@ -227,17 +229,8 @@ MODULE GJKAlgorithm
 
     END FUNCTION support
 
-    FUNCTION cross(a, b)
-        real(dp), dimension(3) :: cross
-        real(dp), dimension(3), intent(in) :: a, b
-
-        cross(1) = a(2) * b(3) - a(3) * b(2)
-        cross(2) = a(3) * b(1) - a(1) * b(3)
-        cross(3) = a(1) * b(2) - a(2) * b(1)
-
-    END FUNCTION cross
-
     FUNCTION constructPolygonPrism(pos1, pos2, wrap, u, v, s)
+        use vector_utils, only: cross
         implicit none
         real(dp), dimension(3), intent(in) :: pos1 ! first bead position
         real(dp), dimension(3), intent(in) :: pos2 ! second bead position

@@ -41,7 +41,7 @@
                 if (WLC_P__LOCAL_TWIST) then
                     energy_change =  E_SSWLCWT( wlc_R(:,IBP1), wlc_R(:,IB),&
                                            wlc_U(:,IBP1), wlc_U(:,IB),&
-                                           wlc_V(:,IBP1), wlc_V(:,IB),&
+                                           wlc_V(:,IBP1), wlc_V(:,IB),wlc_basepairs(IB),&
                                            wlc_p%EB, wlc_p%EPAR, wlc_p%EPERP,wlc_p%ETA, wlc_p%GAM, wlc_p%ETWIST)
                     EELAS = EELAS + energy_change
                 else

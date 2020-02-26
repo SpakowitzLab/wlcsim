@@ -51,7 +51,7 @@ function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
     E_SSWLC(4)=0.0_dp
 end function E_SSWLC
 
-function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
+function E_SSWLCWT(R,RM1,U,UM1,V,VM1,L0,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     use vector_utils, only: cross, axisAngle, rotateU, angle_between
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
@@ -60,6 +60,7 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     real(dp), intent(in), dimension(3) :: U ! U of bead i
     real(dp), intent(in), dimension(3) :: VM1 ! V of bead i-1
     real(dp), intent(in), dimension(3) :: V ! V of bead i
+    integer, intent(in) :: L0 ! discreization between bead i and i - 1
     real(dp), intent(in) :: EB, EPAR, EPERP, ETA, GAM, ETWIST ! SSWLC constants
     real(dp), dimension(4) :: E_SSWLCWT
     real(dp) GI(3)
@@ -87,7 +88,7 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     FM1 = cross(VM1, UM1)
     TA = atan2(dot_product(VM1, F) - dot_product(FM1, V), &
                 dot_product(FM1, F) + dot_product(VM1, V))
-    E_SSWLCWT(4) = 0.5_dp * ETWIST * (TA - WLC_P__TWIST_DENSITY * WLC_P__L0) ** 2
+    E_SSWLCWT(4) = 0.5_dp * ETWIST * (TA - WLC_P__TWIST_DENSITY * L0*WLC_P__LENGTH_PER_BP) ** 2 ! NP i dont like WLC_P__L0
 end function E_SSWLCWT
 
 function E_GAUSS(R,RM1,EPAR)

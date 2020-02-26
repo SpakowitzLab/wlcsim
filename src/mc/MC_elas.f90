@@ -64,11 +64,11 @@ do ii=1,wlc_nBend
             if (WLC_P__LOCAL_TWIST) then
                 energy_change = energy_change + E_SSWLCWT(wlc_RP(:,IT2P1),wlc_RP(:,IT2),&
                                                   wlc_UP(:,IT2P1),wlc_UP(:,IT2),&
-                                                  wlc_VP(:,IT2P1),wlc_VP(:,IT2),&
+                                                  wlc_VP(:,IT2P1),wlc_VP(:,IT2),wlc_basepairs(IT2),&
                                                   wlc_p%EB,wlc_p%EPAR,wlc_p%EPERP,wlc_p%ETA,wlc_p%GAM, wlc_p%ETWIST)
                 energy_change = energy_change - E_SSWLCWT(wlc_R(:,IT2P1), wlc_R(:,IT2),&
                                                   wlc_U(:,IT2P1), wlc_U(:,IT2),&
-                                                  wlc_V(:,IT2P1), wlc_V(:,IT2),&
+                                                  wlc_V(:,IT2P1), wlc_V(:,IT2),wlc_basepairs(IT2),&
                                                   wlc_p%EB,wlc_p%EPAR,wlc_p%EPERP,wlc_p%ETA,wlc_p%GAM, wlc_p%ETWIST)
             else
                 energy_change = energy_change + E_SSWLC(wlc_RP(:,IT2P1),wlc_RP(:,IT2),&

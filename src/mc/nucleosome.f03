@@ -90,7 +90,7 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
 
     call nucleosomeProp(U,V,R,linkBP,wrapBP,Utemp,Vtemp,Rtemp)
 
-    nucleosome_energy =  E_SSWLCWT(RP1,Rtemp,UP1,Utemp,VP1,Vtemp, &
+    nucleosome_energy =  E_SSWLCWT(RP1,Rtemp,UP1,Utemp,VP1,Vtemp,linkBP, &
                    multiParams(1,linkBP),&   ! EB
                    multiParams(2,linkBP),&   ! EPAR
                    multiParams(3,linkBP),&   ! EPERP
@@ -98,6 +98,59 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
                    multiParams(4,linkBP),&   ! GAM
                    multiParams(9,linkBP))   ! etwist
 end function nucleosome_energy
+
+!  ------------------------------------------------------
+!
+! internucleosomal energy (i.e. faces attracted via harmonic
+! oscillator), need spring constant and preferred distance
+!
+!  ------------------------------------------------------
+! function internucleosomal_energy(RI,RJ,UI,UJ,VI,VJ,tauIJ,tauJI)
+!     use MC_wlc, only: E_SSWLCWT
+!     use vector_utils, only: cross
+!     real(dp), intent(in), dimension(3) :: RI ! R of nuc i
+!     real(dp), intent(in), dimension(3) :: RJ! R of nuc j
+!     real(dp), intent(in), dimension(3) :: UI ! U of nuc i
+!     real(dp), intent(in), dimension(3) :: UJ ! U of nuc j
+!     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
+!     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
+!     real(dp), intent(in) :: tauIJ ! 0 E distance of nuc i bottom and j top
+!     real(dp), intent(in) :: tauJI ! 0 E distance of nuc i bottom and j top
+!     integer i, j
+!     real(dp), parameter :: h = 5.5 ! nm height
+!     real(dp) hI, hJ
+!     real(dp), dimension(3,3) :: mtrxI, mtrxJ
+!     real(dp), dimension(3) :: faceI, faceJ
+!     real(dp), parameter :: Einter = 1
+!     real(dp) internucleosomal_energy(1)
+
+!     ! construct matrices
+!     mtrxI(:,1) = VI
+!     mtrxI(:,2) = cross(UI,VI)
+!     mtrxI(:,3) = UI
+
+!     mtrxJ(:,1) = VJ
+!     mtrxJ(:,2) = cross(UJ,VJ)
+!     mtrxJ(:,3) = UJ
+
+!     hI = -h/2
+!     hJ = -h/2
+!     ! attract top and bottom faces combinatorially
+!     do i = 1,2
+!         do j = 1,2
+!             faceI = RI + MATMUL(mtrxI, (/0.0_dp, hI, 0.0_dp/))
+!             faceJ = RJ + MATMUL(mtrxJ, (/0.0_dp, hI, 0.0_dp/))
+!             ! attraction energy
+!             internucleosomal_energy = internucleosomal_energy + &
+!                 0.5_dp * Einter * (norm2(faceI-faceJ)-tau) ** 2
+!             hJ = hJ + h
+!         enddo
+!         hI = hI + h
+!         hJ = -h/2
+!     enddo
+
+! end function internucleosomal_energy
+
 
 
 ! ---------------------------------------------------------------------
