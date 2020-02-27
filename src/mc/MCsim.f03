@@ -141,6 +141,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               endif
           endif
 
+
+! sterics check here !
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
               !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               ! beginning of quinn fractal search
@@ -208,7 +210,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 endif
             endif
           endif
-
+    
           call check_RP_for_NAN(success,MCTYPE)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1

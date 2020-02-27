@@ -19,7 +19,7 @@ use params, only: wlcsim_params
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: wlc_p
     integer Delta !transh
-    real(dp) EELAS(4) ! Elastic force
+    real(dp) EELAS(5) ! Elastic force
 
     call set_all_dEnergy_to_zero()
 
@@ -40,6 +40,7 @@ use params, only: wlcsim_params
     energyOf(stretch_)%dx = EELAS(2)
     energyOf(shear_)%dx = EELAS(3)
     energyOf(twist_)%dx = EELAS(4)
+    energyOf(internucleosome_)%dx = EELAS(5)
 
     ! ---- External Field Energy ---
     if(WLC_P__APPLY_EXTERNAL_FIELD) then

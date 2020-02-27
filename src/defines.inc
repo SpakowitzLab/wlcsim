@@ -317,7 +317,7 @@
 ! TYPE: INTEGER
 
 #define WLC_P__TWIST_DENSITY 0.0_DP
-! VARIABLE COMMENT: ! baseline twist density 
+! VARIABLE COMMENT: ! baseline twist density  
 ! DEFAULTS COMMENT: ! baseline twist density 0.05
 ! TYPE: REAL(DP)
 
@@ -535,6 +535,10 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
+#define WLC_P__INTERNUCLEOSOME 1.0_DP
+! VARIABLE COMMENT: ! spring constant for internucleosomal attraction
+! DEFAULTS COMMENT: ! will eventually have to data fit over this parameter
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -742,6 +746,11 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_STERICS .TRUE.
+! VARIABLE COMMENT: ! parallel temper steric collision penalty
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_INTERNUCLEOSOME .FALSE.
 ! VARIABLE COMMENT: ! parallel temper steric collision penalty
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
