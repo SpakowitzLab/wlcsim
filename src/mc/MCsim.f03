@@ -73,7 +73,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
-    integer :: collisions
+    integer :: collisions = 0
     logical success
     logical wlc_AlexanderP
 
@@ -91,11 +91,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) :: radius = 5.5
     integer neighbors(1000) ! ID of neighboring beads
     integer nn ! number of neighbors
-    real(dp) tempLoc(3) ! temporary location of moved bead
+    real(dp) tempLoc(3) ! temporary location of moved beads
     integer left, right
 
-    ! collisions
-    collisions = 0
 
 ! -------------------------------------
 !
@@ -189,25 +187,35 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             endif
 
             if (left /= -1 ) then 
-                ! check for neighbors
-                nn = 0
+                R = wlc_R_period
+                collisions = 0
+                ! replace old beads with new moved beads
                 do i = left, right
                     call removeBead(wlc_bin,wlc_R_period(:,i),i)
-                    tempLoc(1)=modulo(wlc_R(1,i),WLC_P__LBOX_X)
-                    tempLoc(2)=modulo(wlc_R(2,i),WLC_P__LBOX_Y)
-                    tempLoc(3)=modulo(wlc_R(3,i),WLC_P__LBOX_Z)
-                    call findNeighbors(wlc_bin,tempLoc,radius,wlc_R_period,WLC_P__NT,1000,neighbors,distances,nn)
+                    tempLoc(1)=modulo(wlc_RP(1,i),WLC_P__LBOX_X)
+                    tempLoc(2)=modulo(wlc_RP(2,i),WLC_P__LBOX_Y)
+                    tempLoc(3)=modulo(wlc_RP(3,i),WLC_P__LBOX_Z)
+                    R(:,i) = tempLoc
+                    call addBead(wlc_bin,R,WLC_P__NT,i)
                 enddo
-                ! check for collisions
-                call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward,left,right,nn,neighbors(1:nn),distances(1:nn))
-                ! add back beads here in case move is rejected
+                ! check for neighbors 
                 do i = left, right
-                    call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
+                    nn = 0
+                    call removeBead(wlc_bin,R(:,i),i)
+                    call findNeighbors(wlc_bin,R(:,i),radius,R,WLC_P__NT,1000,neighbors,distances,nn)
+                    call addBead(wlc_bin,R,WLC_P__NT,i)
+                    ! check for collisions
+                    if (nn > 0) then
+                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn))
+                    endif
                 enddo
                 ! ascribe collision penalty
-                if (collisions>0) then
-                    energyOf(sterics_)%dx = energyOf(21)%cof*collisions 
-                endif
+                energyOf(sterics_)%dx = energyOf(sterics_)%cof*collisions
+                ! add back beads here in case move is rejected
+                do i = left, right
+                    call removeBead(wlc_bin,R(:,i),i)
+                    call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
+                enddo
             endif
           endif
     
