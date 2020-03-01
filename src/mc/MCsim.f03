@@ -20,7 +20,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
     , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap, &
-    wlc_bin, wlc_R_period
+    wlc_bin
     use binning, only: addBead, removeBead, findNeighbors
     use energies
     use umbrella, only: umbrella_energy
@@ -187,15 +187,12 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             endif
 
             if (left /= -1 ) then 
-                R = wlc_R_period
+                R = wlc_R
                 collisions = 0
                 ! replace old beads with new moved beads
                 do i = left, right
-                    call removeBead(wlc_bin,wlc_R_period(:,i),i)
-                    tempLoc(1)=modulo(wlc_RP(1,i),WLC_P__LBOX_X)
-                    tempLoc(2)=modulo(wlc_RP(2,i),WLC_P__LBOX_Y)
-                    tempLoc(3)=modulo(wlc_RP(3,i),WLC_P__LBOX_Z)
-                    R(:,i) = tempLoc
+                    call removeBead(wlc_bin,wlc_R(:,i),i)
+                    R(:,i) = wlc_RP(:,i)
                     call addBead(wlc_bin,R,WLC_P__NT,i)
                 enddo
                 ! check for neighbors 
@@ -214,7 +211,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 ! add back beads here in case move is rejected
                 do i = left, right
                     call removeBead(wlc_bin,R(:,i),i)
-                    call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
+                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
                 enddo
             endif
           endif

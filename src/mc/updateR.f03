@@ -19,6 +19,8 @@ if (WLC_P__NEIGHBOR_BINS) then
         call removeBead(wlc_bin,wlc_R_period(:,I),I)
     elseif (WLC_P__CONFINETYPE == 'sphere') then
         call removeBead(wlc_bin,wlc_R(:,I),I)
+    elseif (WLC_P__CONFINETYPE == 'cube') then
+        call removeBead(wlc_bin,wlc_R(:,I),I)
     else
         print*, "Not an option yet.  See MCsim."
         stop 1
@@ -36,6 +38,8 @@ if (WLC_P__NEIGHBOR_BINS) then
         wlc_R_period(3,I)=modulo(wlc_R(3,I),WLC_P__LBOX_Z)
         call addBead(wlc_bin,wlc_R_period,WLC_P__NT,I)
     elseif (WLC_P__CONFINETYPE == 'sphere') then
+        call addBead(wlc_bin,wlc_R,WLC_P__NT,I)
+    elseif (WLC_P__CONFINETYPE == 'cube') then
         call addBead(wlc_bin,wlc_R,WLC_P__NT,I)
     else
         print*, "Not an option yet.  See MCsim."

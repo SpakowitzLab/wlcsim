@@ -35,7 +35,7 @@
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
 
-#define WLC_P__CONFINETYPE 'none'
+#define WLC_P__CONFINETYPE 'cube'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! spherical nucleus
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -393,7 +393,7 @@
 ! DEFAULTS COMMENT: ! same
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX_X 1000.0_dp
+#define WLC_P__LBOX_X 10000.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)

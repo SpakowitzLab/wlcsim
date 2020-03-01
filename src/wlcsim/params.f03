@@ -361,7 +361,7 @@ contains
         logical err
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')&
-            .and. (WLC_P__CONFINETYPE .ne. 'sphere' ) .and. (WLC_P__CONFINETYPE .ne. 'none' )) then
+            .and. (WLC_P__CONFINETYPE .ne. 'sphere' ) .and. (WLC_P__CONFINETYPE .ne. 'cube' )) then
             print*, "The code is untested for Neighbor bins and other confinetypes"
             print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
             print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"
@@ -804,6 +804,8 @@ contains
                     .or. WLC_P__CONFINETYPE == 'none') then
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'sphere') then
+                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
+                elseif (WLC_P__CONFINETYPE == 'cube') then
                     call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
                 else
                     print*, "Not an option yet.  See params."
