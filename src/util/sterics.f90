@@ -11,7 +11,7 @@ MODULE GJKAlgorithm
     FUNCTION GJK(s1, s2, nVerts)
         implicit none
         integer, intent(in) :: nVerts
-        integer, parameter :: iteration = 6
+        integer, parameter :: iteration = 6 ! dont know optimal number
         real(dp), dimension(nVerts, 3), intent(in) :: s1, s2
         real(dp), dimension(3) :: a, b, c, d, aout, bout, cout, dout
         real(dp), dimension(3), parameter :: v = (/0.8, 0.5, 1.0/)
@@ -22,7 +22,7 @@ MODULE GJKAlgorithm
 
         ! check for shape overlap
         if ( sum(s2(:,1)-s1(:,1)) + sum(s2(:,2)-s1(:,2)) + sum(s2(:,3)-s1(:,3)) == 0 ) then 
-           GJK = iteration
+           GJK = 1!iteration
            return
         endif
 
@@ -177,7 +177,7 @@ MODULE GJKAlgorithm
                         ab = ad
                         abc = adb
                     else
-                        flag = i
+                        flag = 1!i
                         exit
                     endif
                 endif

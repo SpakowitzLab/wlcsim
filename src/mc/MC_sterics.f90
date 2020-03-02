@@ -53,7 +53,7 @@ if (ii-1 >= 1) then ! on chain
     else ! M1 is nucloeosme
         isM1DNA = .FALSE.
         ! construct polygon for i-1 (end of nuc) to i bead
-        if ( ii > left) then 
+        if ( ii > left ) then 
             call nucleosomeProp(wlc_UP(:,ii-1), wlc_VP(:,ii-1), wlc_RP(:,ii-1), &
                     wlc_basepairs(ii-1),wlc_nucleosomeWrap(ii-1), &
                     tempU, tempV, tempR)
@@ -79,17 +79,27 @@ else if (ii < WLC_P__NT) then
                 wlc_UP(:,ii), wlc_VP(:,ii), s)
 endif
 
+
 ! iterate through all possible interactions 
-! THIS IS BAD IF CHAIN IS BIG!!!! Then would need to transition to Quinn's code to 
-! findNeighbors and only check distance of close beads (good for our size chain rn)
 do jj = 1, nn
     if (neighbors(jj) < WLC_P__NT) then 
-        poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
-            wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
+        if (jj+1 < left .OR. jj > right) then 
+            poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
+        else if (jj+1 == left) then 
+            poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_RP(:,neighbors(jj)+1), &
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
+        else if (jj >= left .AND. jj < right .AND. jj+1 > right) then 
+            poly2Plus = constructPolygonPrism(wlc_RP(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), wlc_VP(:,neighbors(jj)), s)
+        else ! both in RP
+            poly2Plus = constructPolygonPrism(wlc_RP(:,neighbors(jj)), wlc_RP(:,neighbors(jj)+1), &
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), wlc_VP(:,neighbors(jj)), s)
+        endif
         ! check identity of all other beads in chain 
         if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) /= 1 .AND. ii < WLC_P__NT ) then ! sphere-sphere collision
             ! check for collision
-            collisions = collisions + 20*GJK(poly1Plus, poly2Plus, s)
+            collisions = collisions + 30*GJK(poly1Plus, poly2Plus, s)
         ! moved bead nuc + DNA
         else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. ii < WLC_P__NT ) then ! sphere-line collision
             ! ignore 10bp nearest nuc

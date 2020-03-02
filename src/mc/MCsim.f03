@@ -188,14 +188,14 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
             if (left /= -1 ) then 
                 R = wlc_R
-                collisions = 0
                 ! replace old beads with new moved beads
                 do i = left, right
                     call removeBead(wlc_bin,wlc_R(:,i),i)
                     R(:,i) = wlc_RP(:,i)
                     call addBead(wlc_bin,R,WLC_P__NT,i)
                 enddo
-                ! check for neighbors 
+                collisions = 0
+                ! check for neighbors on new beads
                 do i = left, right
                     nn = 0
                     call removeBead(wlc_bin,R(:,i),i)
