@@ -91,7 +91,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) :: radius = 5.5
     integer neighbors(1000) ! ID of neighboring beads
     integer nn ! number of neighbors
-    real(dp) tempLoc(3) ! temporary location of moved beads
     integer left, right
 
 
@@ -188,13 +187,25 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
             if (left /= -1 ) then 
                 R = wlc_R
+                collisions = 0
+                ! check for neighbors on old beads
+                do i = left, right
+                    nn = 0
+                    call removeBead(wlc_bin,wlc_R(:,i),i)
+                    call findNeighbors(wlc_bin,wlc_R(:,i),radius,wlc_R,WLC_P__NT,1000,neighbors,distances,nn)
+                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
+                    ! check for collisions
+                    if (nn > 0) then
+                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn),0)
+                    endif
+                enddo
                 ! replace old beads with new moved beads
                 do i = left, right
                     call removeBead(wlc_bin,wlc_R(:,i),i)
                     R(:,i) = wlc_RP(:,i)
                     call addBead(wlc_bin,R,WLC_P__NT,i)
                 enddo
-                collisions = 0
+                collisions = -collisions
                 ! check for neighbors on new beads
                 do i = left, right
                     nn = 0
@@ -203,11 +214,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                     call addBead(wlc_bin,R,WLC_P__NT,i)
                     ! check for collisions
                     if (nn > 0) then
-                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn))
+                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn),1)
                     endif
                 enddo
                 ! ascribe collision penalty
-                energyOf(sterics_)%dx = energyOf(sterics_)%cof*collisions
+                energyOf(sterics_)%dx = energyOf(sterics_)%dx + collisions
                 ! add back beads here in case move is rejected
                 do i = left, right
                     call removeBead(wlc_bin,R(:,i),i)

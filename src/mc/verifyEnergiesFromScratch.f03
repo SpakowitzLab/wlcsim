@@ -8,18 +8,25 @@
 subroutine CalculateEnergiesFromScratch(wlc_p)
 use params, only: wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
-    , wlc_R, wlc_ind_in_list, dp
+    , wlc_R, wlc_ind_in_list, dp, wlc_bin
 use params, only: wlcsim_params
     use umbrella, only: umbrella_energy_from_scratch
     use linkingNumber, only: link_twist_writhe_from_scratch
     use iso_fortran_env
     use energies
+    use binning, only: addBead, removeBead, findNeighbors
     implicit none
     integer IT1, IT2, I
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: wlc_p
     integer Delta !transh
     real(dp) EELAS(4) ! Elastic force
+    !set up for binning
+    real(dp) distances(1000) ! Returned distances
+    real(dp) :: radius = 5.5
+    integer neighbors(1000) ! ID of neighboring beads
+    integer nn ! number of neighbors
+    integer collisions
 
     call set_all_dEnergy_to_zero()
 
@@ -99,6 +106,23 @@ use params, only: wlcsim_params
         call link_twist_writhe_from_scratch()
     endif
 
+    if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
+        collisions = 0
+        ! check for neighbors on new beads
+        do i = 1, WLC_P__NT
+            nn = 0
+            call removeBead(wlc_bin,wlc_R(:,i),i)
+            call findNeighbors(wlc_bin,wlc_R(:,i),radius,wlc_R,WLC_P__NT,1000,neighbors,distances,nn)
+            call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
+            ! check for collisions
+            if (nn > 0) then
+                call MC_sterics(collisions,1,WLC_P__NT,i,nn,neighbors(1:nn),0)
+            endif
+        enddo
+        ! ascribe collision penalty
+        energyOf(sterics_)%dx = collisions
+    endif
+
     call apply_energy_isOn()
     call calc_all_dE_from_dx()
 end subroutine
@@ -137,7 +161,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
    call CalculateEnergiesFromScratch(wlc_p)
 
    do ii = 1,NUMBER_OF_ENERGY_TYPES
-       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox .AND. ii/=21) then !ignore sterics for now
+       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox ) then 
            write(ERROR_UNIT,*) "Warning. Integerated ",&
                energyOf(ii)%name_str," energy:", &
                energyOf(ii)%E," while absolute ",&
