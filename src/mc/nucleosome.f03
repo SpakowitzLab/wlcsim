@@ -276,7 +276,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
             wlc_basepairs(WLC_P__NT) = 0
 
             ! testing sterics here !
-            if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
+            if(WLC_P__GJK_STERICS) then
                 call sameShapeTest()
                 call noIntersectX()
                 call intersectX()

@@ -27,14 +27,6 @@ else:
 input_folder = '../../data'
 output_folder = 'pdb/'
 
-# gather translation/rotation matrix data
-angle = 2*np.pi/10.5
-center = np.asarray([4.8455, -2.4445, 0.6694])
-side = 12
-height = 5.5
-radius = 5.2
-incr = 2*np.pi/(side/2.0)
-
 #define topology ('linear' or 'circular')
 topo = 'linear'
 #define index range for coordinate files

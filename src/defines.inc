@@ -119,9 +119,19 @@
 ! DEFAULTS COMMENT: ! Not in periodic BC
 ! TYPE: LOGICAL
 
-#define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .TRUE.
-! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time (NOT CYLINDERS BUT LINES AND SPHERES)
+#define WLC_P__CYLINDRICAL_CHAIN_EXCLUSION .FALSE.
+! VARIABLE COMMENT: ! Chains cannont occupy the same place at same time
 ! DEFAULTS COMMENT: ! We care about collisions 
+! TYPE: LOGICAL
+
+#define WLC_P__GJK_STERICS .TRUE.
+! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! We care about collisions 
+! TYPE: LOGICAL
+
+#define WLC_P__GJK_POLYGON 12
+! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
+! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*6)
 ! TYPE: LOGICAL
 
 #define WLC_P__NEIGHBOR_BINS .TRUE.
@@ -453,6 +463,21 @@
 ! DEFAULTS COMMENT: Set to zero for no exclusion
 ! TYPE: REAL(DP)
 
+#define WLC_P__DNA_RADIUS 1.0_DP
+! VARIABLE COMMENT: Diameter of chain for exclusion
+! DEFAULTS COMMENT: Set to zero for no exclusion
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
+! VARIABLE COMMENT: Diameter of chain for exclusion
+! DEFAULTS COMMENT: Set to zero for no exclusion
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
+! VARIABLE COMMENT: Diameter of chain for exclusion
+! DEFAULTS COMMENT: Set to zero for no exclusion
+! TYPE: REAL(DP)
+
 
 ! ----------------------------
 !
@@ -556,7 +581,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 110
+#define WLC_P__NUMSAVEPOINTS 100
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER

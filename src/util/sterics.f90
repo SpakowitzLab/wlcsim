@@ -1,3 +1,5 @@
+#include "../defines.inc"
+
 ! npagane | risca lab | feb 2020 | fortran implementation of gjk algorithm 
 ! adapted from MATLAB code https://github.com/mws262/MATLAB-GJK-Collision-Detection/blob/master/GJK.m
 
@@ -244,7 +246,7 @@ MODULE GJKAlgorithm
         real(dp) space, spaceInit, incr, offset1, offset2
         real(dp), dimension(3) :: pos, center, vec
         real(dp), dimension(s,3) :: constructPolygonPrism
-        real(dp) :: angle = 2.0*pi/10.5
+        real(dp), parameter :: angle = 2.0*pi/10.5
 
         incr = 2*pi/(s/2)
 
@@ -257,8 +259,12 @@ MODULE GJKAlgorithm
         if (wrap /= 1) then 
             center = [4.8455, -2.4445, 0.6694]
             pos = pos1
-            h = 5.5 ! nm height
-            r = 5.2 ! nm radius
+            h = WLC_P__NUCLEOSOME_HEIGHT ! nm height
+            if (s /= 2 ) then 
+                r = WLC_P__NUCLEOSOME_RADIUS ! nm radius
+            else
+                r = 0.0_dp
+            endif
             spaceInit = 0
             offset1 = -h/2
             offset2 = h/2
@@ -284,7 +290,11 @@ MODULE GJKAlgorithm
             center = 0.0_dp
             pos = (pos2 + pos1) / 2.0
             h = sqrt(dot_product(pos2 - pos1, pos2-pos1)) ! nm height
-            r = 1.0 ! nm radius 
+            if (s /= 2 ) then 
+                r = WLC_P__DNA_RADIUS ! nm radius
+            else
+                r = 0.0_dp
+            endif
             spaceInit = 2*pi/s
             offset1 = -h/2
             offset2 = h/2

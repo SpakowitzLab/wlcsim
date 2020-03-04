@@ -113,6 +113,7 @@ module params
 
     real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
+    real(dp), allocatable, dimension(:,:):: wlc_R_GJK   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_U   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_V   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_RP !Test Bead positions - only valid from IT1 to IT2
@@ -514,6 +515,7 @@ contains
 !        use savepointLinkingNumber, only: calcTwWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
+        use GJKAlgorithm, only: constructPolygonPrism
 #if MPI_VERSION
         use mpi
 #endif
@@ -537,6 +539,8 @@ contains
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
         integer len_file
+        real(dp) poly(2,3)
+        integer :: s = 2 ! this is just to get the center of the shape
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -547,6 +551,9 @@ contains
         allocate(wlc_R(3,WLC_P__NT))
         if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             allocate(wlc_R_period(3,WLC_P__NT))
+        endif
+        if (WLC_P__NEIGHBOR_BINS .and. WLC_P__CONFINETYPE == 'cube' .AND. WLC_P__GJK_STERICS) then
+            allocate(wlc_R_GJK(3,WLC_P__NT-1))
         endif
         allocate(wlc_U(3,WLC_P__NT))
         if (WLC_P__LOCAL_TWIST) then
@@ -806,7 +813,19 @@ contains
                 elseif (WLC_P__CONFINETYPE == 'sphere') then
                     call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'cube') then
-                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
+                    if (WLC_P__GJK_STERICS) then 
+                        ! NP add center of segments as beads
+                        if (i < WLC_P__NT) then 
+                            poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                                wlc_U(:,i), wlc_V(:,i), s)
+                            wlc_R_GJK(1,i) = sum(poly(:,1))/s
+                            wlc_R_GJK(2,i) = sum(poly(:,2))/s
+                            wlc_R_GJK(3,i) = sum(poly(:,3))/s
+                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
+                        endif
+                    else
+                        print*, "Not an option yet. See params"
+                    endif
                 else
                     print*, "Not an option yet.  See params."
                     stop 1

@@ -19,9 +19,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap, &
-    wlc_bin
-    use binning, only: addBead, removeBead, findNeighbors
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap
     use energies
     use umbrella, only: umbrella_energy
 
@@ -73,9 +71,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
-    integer :: collisions = 0
     logical success
     logical wlc_AlexanderP
+    integer collisions
 
     real(dp) delTw      ! change in twist
     real(dp) delWr      ! change in writhe
@@ -83,16 +81,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) TwP        ! twist of the proposed configuration
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
-
-    !set up for binning
-    real(dp) R(3,WLC_P__NT) ! all bead locations
-    ! Get neighbors within radius of coordinate
-    real(dp) distances(1000) ! Returned distances
-    real(dp) :: radius = 5.5
-    integer neighbors(1000) ! ID of neighboring beads
-    integer nn ! number of neighbors
-    integer left, right
-
 
 ! -------------------------------------
 !
@@ -140,90 +128,12 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
 
 ! sterics check here !
-          if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-              !call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
-              ! beginning of quinn fractal search
-            left = -1 ! default left to -1 for MC move not needing sterics check
-            if (MCTYPE == 4 .or. MCTYPE == 7 .or. MCTYPE == 8 .or. MCTYPE == 9) then
-                left = -1
-                right = -1 !return ! no collision
-            elseif (MCTYPE == 1 .or. MCTYPE == 3 ) then ! Crank-shaft or pivot
-                if (IT1 == IT2) then
-                    left= -1
-                    right = -1 ! return ! Bead only rotated; no collision
-                endif
-                left = IT1
-                right = IT2-1
-            elseif (MCTYPE == 2) then ! Slide
-                if (IB1 == 1) then
-                    left = IT1
-                else
-                    left = IT1 - 1
-                    !wlc_RP(:,IT1-1) = wlc_R(:,IT1-1) ! need to extend RP
-                endif
-                if (IB2 == WLC_P__NB) then
-                    right = IT2 - 1
-                else
-                    right = IT2
-                    !wlc_RP(:,IT2+1) = wlc_R(:,IT2+1) ! need to extend RP
-                endif
-            elseif (MCTYPE == 5 .or. MCTYPE == 6) then ! Full chain move
-                left = IT1
-                right = IT2-1
-            elseif (MCTYPE == 10 .or. MCTYPE == 11) then ! reptation or super rep.
-                if (forward) then
-                    left = IT2-1
-                else
-                    left = IT1
-                endif
-                right = left
-            elseif (MCTYPE == 13) then ! nucleosome slide
-                left = IT1
-                right = IT2
-            else
-                print*, "collision not set up for this movetype ", MCTYPE
-                stop
-            endif
-
-            if (left /= -1 ) then 
-                R = wlc_R
-                collisions = 0
-                ! check for neighbors on old beads
-                do i = left, right
-                    nn = 0
-                    call removeBead(wlc_bin,wlc_R(:,i),i)
-                    call findNeighbors(wlc_bin,wlc_R(:,i),radius,wlc_R,WLC_P__NT,1000,neighbors,distances,nn)
-                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
-                    ! check for collisions
-                    if (nn > 0) then
-                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn),0)
-                    endif
-                enddo
-                ! replace old beads with new moved beads
-                do i = left, right
-                    call removeBead(wlc_bin,wlc_R(:,i),i)
-                    R(:,i) = wlc_RP(:,i)
-                    call addBead(wlc_bin,R,WLC_P__NT,i)
-                enddo
-                collisions = -collisions
-                ! check for neighbors on new beads
-                do i = left, right
-                    nn = 0
-                    call removeBead(wlc_bin,R(:,i),i)
-                    call findNeighbors(wlc_bin,R(:,i),radius,R,WLC_P__NT,1000,neighbors,distances,nn)
-                    call addBead(wlc_bin,R,WLC_P__NT,i)
-                    ! check for collisions
-                    if (nn > 0) then
-                        call MC_sterics(collisions,left,right,i,nn,neighbors(1:nn),1)
-                    endif
-                enddo
-                ! ascribe collision penalty
-                energyOf(sterics_)%dx = energyOf(sterics_)%dx + collisions
-                ! add back beads here in case move is rejected
-                do i = left, right
-                    call removeBead(wlc_bin,R(:,i),i)
-                    call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
-                enddo
+          if(WLC_P__GJK_STERICS) then
+            call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward)
+            ! ascribe collision penalty
+            energyOf(sterics_)%dx = 0!collisions
+            if (collisions > 10) then 
+                goto 10 ! skip move, return RP to nan
             endif
           endif
     
@@ -254,11 +164,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 goto 10 ! skip move, return RP to nan
             ENDif
           ENDif
-
-! if slide on then
-        if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1 .AND. MCTYPE==13 .AND. success) then ! make this into slide global variable
-            call MC_eelas(wlc_p)
-        endif
 
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then

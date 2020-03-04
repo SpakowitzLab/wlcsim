@@ -19,6 +19,7 @@ incr = 2*np.pi/(side/2.0)
 
 for idx in range(0,numFrames): cmd.load("pdb/snap%03d.pdb"%idx,"snap")
 cmd.mset("1 -%d" % numFrames)
+#cmd.color('black', 'snap')
 
 file_inds = range(0,numFrames)
 for ind in file_inds:
@@ -56,18 +57,18 @@ for ind in file_inds:
             for j in range(int(side/2.0)):
                 # rotate into material frame 
                 vec = np.asarray([radius*np.sin(space), radius*np.cos(space), -height/2.0])
-                poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
+                poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
                 space = space + incr
             space = 2*np.pi/side
             for j in range(int(side/2.0),side):
                 # rotate into material frame 
                 vec = np.asarray([radius*np.sin(space), radius*np.cos(space), height/2.0])
-                poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
+                poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
                 space = space + incr
         # make cylinders
         x1,y1,z1 = np.mean(poly[:int(side/2),0]), np.mean(poly[:int(side/2),1]), np.mean(poly[:int(side/2),2])
         (re, g, b) = colorsys.hsv_to_rgb(float(i)/(len(r)-1), 1.0, 1.0)
         x2,y2,z2 = np.mean(poly[int(side/2):,0]), np.mean(poly[int(side/2):,1]), np.mean(poly[int(side/2):,2])
-        cmd.load_cgo( [ 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i))
+        cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1))
 cmd.mplay()
 cmd.orient('snap')
