@@ -29,9 +29,9 @@ real(dp) :: radius = 2.0*WLC_P__NUCLEOSOME_RADIUS ! nm
 integer neighbors(1000) ! ID of neighboring beads
 integer nn ! number of neighbors
 integer left, right, leftExclude, rightExclude, i
-real(dp) poly1M(2,3)
-real(dp) poly1P(2,3)
-integer :: s = 2 ! this is just to get the center of the shape
+real(dp) poly1M(WLC_P__GJK_POLYGON,3)
+real(dp) poly1P(WLC_P__GJK_POLYGON,3)
+integer :: s = WLC_P__GJK_POLYGON ! this is just to get the center of the shape
 
 if ( MCTYPE == 7 .or. MCTYPE == 8 .or. MCTYPE == 9) then
     left = -1

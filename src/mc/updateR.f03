@@ -12,8 +12,8 @@ use binning, only: removeBead, addBead
 use GJKAlgorithm, only: constructPolygonPrism
 implicit none
 integer, intent(in) :: I
-real(dp) poly(2,3)
-integer :: s = 2 ! this is just to get the center of the shape
+real(dp) poly(WLC_P__GJK_POLYGON,3)
+integer :: s = WLC_P__GJK_POLYGON 
 
 if (WLC_P__NEIGHBOR_BINS) then
     if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then

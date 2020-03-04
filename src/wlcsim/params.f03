@@ -539,8 +539,8 @@ contains
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
         integer len_file
-        real(dp) poly(2,3)
-        integer :: s = 2 ! this is just to get the center of the shape
+        real(dp) poly(WLC_P__GJK_POLYGON,3)
+        integer :: s = WLC_P__GJK_POLYGON 
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION

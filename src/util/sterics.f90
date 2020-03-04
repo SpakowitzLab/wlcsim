@@ -260,11 +260,7 @@ MODULE GJKAlgorithm
             center = [4.8455, -2.4445, 0.6694]
             pos = pos1
             h = WLC_P__NUCLEOSOME_HEIGHT ! nm height
-            if (s /= 2 ) then 
-                r = WLC_P__NUCLEOSOME_RADIUS ! nm radius
-            else
-                r = 0.0_dp
-            endif
+            r = WLC_P__NUCLEOSOME_RADIUS ! nm radius
             spaceInit = 0
             offset1 = -h/2
             offset2 = h/2
@@ -290,11 +286,7 @@ MODULE GJKAlgorithm
             center = 0.0_dp
             pos = (pos2 + pos1) / 2.0
             h = sqrt(dot_product(pos2 - pos1, pos2-pos1)) ! nm height
-            if (s /= 2 ) then 
-                r = WLC_P__DNA_RADIUS ! nm radius
-            else
-                r = 0.0_dp
-            endif
+            r = WLC_P__DNA_RADIUS ! nm radius
             spaceInit = 2*pi/s
             offset1 = -h/2
             offset2 = h/2
