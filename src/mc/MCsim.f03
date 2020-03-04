@@ -132,7 +132,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward)
             ! ascribe collision penalty
             energyOf(sterics_)%dx = 0!collisions
-            if (collisions > 10) then 
+            if (collisions > 0) then 
+                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                 goto 10 ! skip move, return RP to nan
             endif
           endif

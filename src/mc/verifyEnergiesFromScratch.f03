@@ -23,7 +23,7 @@ use params, only: wlcsim_params
     real(dp) EELAS(4) ! Elastic force
     !set up for binning
     real(dp) distances(1000) ! Returned distances
-    real(dp) :: radius = WLC_P__NUCLEOSOME_RADIUS ! nm
+    real(dp) :: radius = 2*WLC_P__NUCLEOSOME_RADIUS ! nm
     integer neighbors(1000) ! ID of neighboring beads
     integer nn ! number of neighbors
     integer collisions

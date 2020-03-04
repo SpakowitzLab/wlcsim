@@ -25,7 +25,7 @@ integer, intent(in) :: MCTYPE            ! MC move type
 logical, intent(in) :: forward           ! direction of reptation move
 real(dp) R(3,WLC_P__NT-1) ! all bead locations
 real(dp) distances(1000) ! Returned distances
-real(dp) :: radius = WLC_P__NUCLEOSOME_RADIUS ! nm
+real(dp) :: radius = 2*WLC_P__NUCLEOSOME_RADIUS ! nm
 integer neighbors(1000) ! ID of neighboring beads
 integer nn ! number of neighbors
 integer left, right, leftExclude, rightExclude, i
@@ -283,12 +283,13 @@ do jj = 1, nn
         ! check identity of all other beads in chain 
         if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) /= 1 ) then ! sphere-sphere collision
             ! check for collision
-            collisions = collisions + 10*GJK(poly1Plus, poly2Plus, s)
+            collisions = collisions + 30*GJK(poly1Plus, poly2Plus, s)
             ! if (GJK(poly1Plus, poly2Plus, s) > 0 ) then 
             !     print*, GJK(poly1Plus, poly2Plus, s), 'nuc-nuc', ii, neighbors(jj)
             ! endif
         ! moved bead nuc + DNA
-        else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1) then ! nuc-DNA 
+        else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
+            distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_HEIGHT) then ! nuc-DNA 
             ! ignore 10bp nearest nuc
             if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) .OR. &
                 (neighbors(jj) >= ii .AND. sum(wlc_basepairs(ii:neighbors(jj))) > 10) ) then 
@@ -299,7 +300,8 @@ do jj = 1, nn
                 ! endif
             endif 
         ! moved bead DNA + nuc
-        else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) ) then ! nuc-DNA 
+        else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) .AND. &
+            distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_HEIGHT) then ! nuc-DNA 
             ! ignore 10bp nearest nuc
             if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
                     (ii >= neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii)) > 10) ) then 
@@ -317,7 +319,7 @@ do jj = 1, nn
                     !endif
                 endif
             endif
-        else if (distances(jj) <= 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
+        else if (distances(jj) < 3*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
             ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
             if (((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii)) ) then
                 ! check for collision
