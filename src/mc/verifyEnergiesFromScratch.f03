@@ -23,7 +23,7 @@ use params, only: wlcsim_params
     real(dp) EELAS(4) ! Elastic force
     !set up for binning
     real(dp) distances(1000) ! Returned distances
-    real(dp) :: radius = 2.0*WLC_P__NUCLEOSOME_RADIUS ! nm
+    real(dp) :: radius = WLC_P__NUCLEOSOME_RADIUS ! nm
     integer neighbors(1000) ! ID of neighboring beads
     integer nn ! number of neighbors
     integer collisions
@@ -115,7 +115,7 @@ use params, only: wlcsim_params
         !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
         !     !call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
         !     ! check for collisions
-        !     call sterics_check(collisions,1,-1,i,nn,neighbors(1:nn),0)
+        !     call sterics_check(collisions,1,-1,i,nn,neighbors(1:nn),distances(1:nn),0)
         ! enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions

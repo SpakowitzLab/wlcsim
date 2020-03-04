@@ -25,7 +25,7 @@ integer, intent(in) :: MCTYPE            ! MC move type
 logical, intent(in) :: forward           ! direction of reptation move
 real(dp) R(3,WLC_P__NT-1) ! all bead locations
 real(dp) distances(1000) ! Returned distances
-real(dp) :: radius = 2.0*WLC_P__NUCLEOSOME_RADIUS ! nm
+real(dp) :: radius = WLC_P__NUCLEOSOME_RADIUS ! nm
 integer neighbors(1000) ! ID of neighboring beads
 integer nn ! number of neighbors
 integer left, right, leftExclude, rightExclude, i
@@ -105,7 +105,7 @@ if (left /= -1 ) then
     !     nn = 0
     !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
     !     ! check for collisions
-    !     call sterics_check(collisions,left,right,i,nn,neighbors(1:nn),0)
+    !     call sterics_check(collisions,left,right,i,nn,neighbors(1:nn),distances(1:nn),0)
     ! enddo
     ! replace old beads with new moved beads
     do i = left, right
@@ -151,7 +151,7 @@ if (left /= -1 ) then
         nn = 0
         call findNeighbors(wlc_bin,R(:,i),radius,R,WLC_P__NT-1,1000,neighbors,distances,nn)
         ! check for collisions
-        call sterics_check(collisions,left,right,i,nn,neighbors(1:nn),1)
+        call sterics_check(collisions,left,right,i,nn,neighbors(1:nn),distances(1:nn),1)
     enddo
     ! add back beads here in case move is rejected
     do i = left, right
@@ -169,7 +169,7 @@ endif
 END subroutine MC_sterics
 
 ! sterics check subroutine to check for different types of collisions
-subroutine sterics_check(collisions,left,right,ii,nn,neighbors,checkType)
+subroutine sterics_check(collisions,left,right,ii,nn,neighbors,distances,checkType)
 ! values from wlcsim_data
 use GJKAlgorithm, only: GJK, constructPolygonPrism
 use params, only: dp, wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_VP, wlc_V, &
@@ -182,6 +182,7 @@ integer, intent(in) :: left, right
 integer, intent(in) :: ii
 integer, intent(in) :: nn ! number of neighbors
 integer, intent(in) :: neighbors(nn) ! ID of neighboring beads
+real(dp), intent(in) :: distances(nn) ! ID of neighboring beads
 integer, intent(in) :: checkType ! 0 for not moved beads, 1 for proposed move
 logical :: isNucleosome ! whether or not the moved bead is a nucleosome
 integer :: isM1DNA ! 0 is DNA, 1 is nucleosome, 2 is not on chain
@@ -316,7 +317,7 @@ do jj = 1, nn
                     !endif
                 endif
             endif
-        else ! DNA-DNA collision
+        else if (distances(jj) <= 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
             ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
             if (((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii)) ) then
                 ! check for collision
