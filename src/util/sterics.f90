@@ -3,7 +3,7 @@
 ! npagane | risca lab | feb 2020 | fortran implementation of gjk algorithm 
 ! adapted from MATLAB code https://github.com/mws262/MATLAB-GJK-Collision-Detection/blob/master/GJK.m
 
-! define sphere-sphere intersection module that contains calculation and test
+! define GJK intersection module that contains calculation and test
 MODULE GJKAlgorithm
     use precision, only: dp, pi
     implicit none
@@ -13,7 +13,9 @@ MODULE GJKAlgorithm
     FUNCTION GJK(s1, s2, nVerts)
         implicit none
         integer, intent(in) :: nVerts
-        integer, parameter :: iteration = 6 ! dont know optimal number
+        integer, parameter :: iteration = 7 ! dont know optimal number (MATLAB used 6)
+        ! by upping iteration, we get better at detecting barely penetrating objects so 
+        ! does not provide a huge advantage 
         real(dp), dimension(nVerts, 3), intent(in) :: s1, s2
         real(dp), dimension(3) :: a, b, c, d, aout, bout, cout, dout
         real(dp), dimension(3), parameter :: v = (/0.8, 0.5, 1.0/)

@@ -19,7 +19,7 @@ incr = 2*np.pi/(side/2.0)
 
 for idx in range(0,numFrames): cmd.load("pdb/snap%03d.pdb"%idx,"snap")
 cmd.mset("1 -%d" % numFrames)
-#cmd.color('black', 'snap')
+cmd.color('gray80', 'snap')
 
 file_inds = range(0,numFrames)
 for ind in file_inds:

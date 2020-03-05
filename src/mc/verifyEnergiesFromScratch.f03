@@ -109,14 +109,12 @@ use params, only: wlcsim_params
     if(WLC_P__GJK_STERICS) then
         collisions = 0
         ! check for neighbors on new beads
-        ! do i = 1, WLC_P__NT
-        !     nn = 0
-        !     !call removeBead(wlc_bin,wlc_R(:,i),i)
-        !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
-        !     !call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
-        !     ! check for collisions
-        !     call sterics_check(collisions,1,-1,i,nn,neighbors(1:nn),distances(1:nn),0)
-        ! enddo
+        do i = 1, WLC_P__NT
+            nn = 0
+            call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
+            ! check for collisions
+            call sterics_check(collisions,1,-1,i,nn,neighbors(1:nn),distances(1:nn),0, .TruE.)
+        enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
     endif
