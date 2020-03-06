@@ -38,18 +38,28 @@ integer :: s = WLC_P__GJK_POLYGON ! this is just to get the center of the shape
 if (wlc_nPointsMoved>0) then
     left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
     right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
+    !left = wlc_bendPoints(1)
+    !right = wlc_bendPoints(wlc_nBend)
     ! offset -1 left for rotate
-    if (MCTYPE == 4) then 
-        if (left > 1 ) then 
-            left = left - 1
-        endif
-        if (right < WLC_P__NT) then 
-            right = right + 1
-        endif
-    endif
+    !if (MCTYPE == 4) then 
+    !    if (left > 1 ) then 
+    !        left = left - 1
+    !    endif
+    !    !if (right < WLC_P__NT) then 
+    !    !    right = right + 1
+    !    !endif
+    !endif
     ! adjust extension to left
     offset = 0
     if (left > 1) then 
+        if ( wlc_RP(1,left-1) == wlc_R(1,left-1) .OR. isnan(wlc_RP(1,left-1))) then 
+            ! good
+        else
+            print*, 'oops', MCTYPE
+            print*, wlc_RP(:,left-1)
+            print*, wlc_R(:,left-1)
+            stop
+        endif
         offset = -1
         wlc_RP(:,left-1) = wlc_R(:,left-1)
         wlc_UP(:,left-1) = wlc_U(:,left-1)
@@ -59,12 +69,12 @@ if (wlc_nPointsMoved>0) then
     R = wlc_R_GJK
     collisions = 0
     ! check for neighbors on old beads
-    do i = left+offset, right
-        nn = 0
-        call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
-        ! check for collisions
-        call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),0,.FALSE.)
-    enddo
+    ! do i = left+offset, right
+    !     nn = 0
+    !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
+    !     ! check for collisions
+    !     call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),0,.FALSE.)
+    ! enddo
     ! replace old beads with new moved beads
     do i = left, right
         ! if bead i moves, then remove virtual beads i-1 and i
@@ -99,7 +109,7 @@ if (wlc_nPointsMoved>0) then
         nn = 0
         call findNeighbors(wlc_bin,R(:,i),radius,R,WLC_P__NT-1,1000,neighbors,distances,nn)
         ! check for collisions
-        call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),1,.FALSE.)
+        call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),1,.TRUE.,MCTYPE)
     enddo
     ! add back beads here if move is rejected
     do i = left, right
@@ -117,11 +127,11 @@ endif
 END subroutine MC_sterics
 
 ! sterics check subroutine to check for different types of collisions
-subroutine sterics_check(collisions,left,right,ii,nn,neighbors,distances,checkType,debug)
+subroutine sterics_check(collisions,left,right,ii,nn,neighbors,distances,checkType,debug,MCTYPE)
 ! values from wlcsim_data
 use GJKAlgorithm, only: GJK, constructPolygonPrism
 use params, only: dp, wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_VP, wlc_V, &
-    wlc_basepairs, wlc_nucleosomeWrap
+    wlc_basepairs, wlc_nucleosomeWrap, wlc_nBend, wlc_bendPoints, wlc_pointsMoved, wlc_nPointsMoved
 use nucleosome, only: nucleosomeProp
 
 implicit none
@@ -140,6 +150,7 @@ real(dp), dimension(3) :: tempR, tempU, tempV
 real(dp), dimension(s,3) :: poly1Plus, poly2Plus, poly1Minus
 integer jj, i
 logical, intent(in) :: debug ! printing debugging statements
+integer, intent(in) :: MCTYPE
 
 ! determine identity of moving bead
 if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome
@@ -236,7 +247,7 @@ do jj = 1, nn
         ! check for collision
         collisions = collisions + 30*GJK(poly1Plus, poly2Plus, s)
         if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-            print*, GJK(poly1Plus, poly2Plus, s), 'nuc-nuc', ii, neighbors(jj), left, right
+            print*, GJK(poly1Plus, poly2Plus, s), 'nuc-nuc', ii, neighbors(jj), left, right, MCTYPE
         endif
     ! moved bead nuc + DNA
     else if (iiNotLast .AND. isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
@@ -247,7 +258,7 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, GJK(poly1Plus, poly2Plus, s), 'nuc-dna', ii, neighbors(jj), left, right
+                print*, GJK(poly1Plus, poly2Plus, s), 'nuc-dna', ii, neighbors(jj), left, right, MCTYPE
             endif
         endif 
     ! moved bead DNA + nuc
@@ -261,7 +272,7 @@ do jj = 1, nn
             if (iiNotLast) then 
                 collisions = collisions + GJK(poly1Plus, poly2Plus, s)
                 if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                   print*, GJK(poly1Plus, poly2Plus, s), 'dna-nuc forwards', ii, neighbors(jj), left, right
+                   print*, GJK(poly1Plus, poly2Plus, s), 'dna-nuc forwards', ii, neighbors(jj), left, right, MCTYPE
                 endif
             endif
             ! only the -1 nuc or last bead can check back
@@ -269,7 +280,7 @@ do jj = 1, nn
                 ! check for collision
                 collisions = collisions + GJK(poly1Minus, poly2Plus, s)
                 if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
-                  print*, GJK(poly1Minus, poly2Plus, s), 'dna-nuc backwards', ii, neighbors(jj), left, right
+                  print*, GJK(poly1Minus, poly2Plus, s), 'dna-nuc backwards', ii, neighbors(jj), left, right, MCTYPE
                 endif
             endif
         endif
@@ -279,13 +290,18 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, GJK(poly1Plus, poly2Plus, s), 'dna-dna forwards', ii, neighbors(jj), left, right
+                print*, GJK(poly1Plus, poly2Plus, s), 'dna-dna forwards', ii, neighbors(jj), left, right, MCTYPE
                 print*, poly1Plus(:,1)
                 print*, poly1Plus(:,2)
                 print*, poly1Plus(:,3)
                 print*, poly2Plus(:,1)
                 print*, poly2Plus(:,2)
                 print*, poly2Plus(:,3)
+                print*, wlc_RP(1,left:right) == wlc_R(1,left:right)
+                print*, wlc_RP(2,left:right) == wlc_R(2,left:right)
+                print*, wlc_RP(3,left:right) == wlc_R(3,left:right)
+                print*, wlc_pointsMoved(1:wlc_nPointsMoved)
+                print*, wlc_bendPoints(1:wlc_nBend)
             endif
         endif
         ! only the -1 nuc or last bead can check back in addition to making sure the logic of line segments
@@ -294,13 +310,18 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Minus, poly2Plus, s)
             if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, GJK(poly1Minus, poly2Plus, s), 'dna-dna backwards', ii,neighbors(jj), left, right
+                print*, GJK(poly1Minus, poly2Plus, s), 'dna-dna backwards', ii,neighbors(jj), left, right, MCTYPE
                 print*, poly1Minus(:,1)
                 print*, poly1Minus(:,2)
                 print*, poly1Minus(:,3)
                 print*, poly2Plus(:,1)
                 print*, poly2Plus(:,2)
                 print*, poly2Plus(:,3)
+                print*, wlc_RP(1,left:right) == wlc_R(1,left:right)
+                print*, wlc_RP(2,left:right) == wlc_R(2,left:right)
+                print*, wlc_RP(3,left:right) == wlc_R(3,left:right)
+                print*, wlc_pointsMoved(1:wlc_nPointsMoved)
+                print*, wlc_bendPoints(1:wlc_nBend)
             endif
         endif
     endif
