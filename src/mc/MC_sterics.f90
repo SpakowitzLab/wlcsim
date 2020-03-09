@@ -27,39 +27,19 @@ integer, intent(in) :: MCTYPE            ! MC move type
 logical, intent(in) :: forward           ! direction of reptation move
 real(dp) R(3,WLC_P__NT-1) ! all bead locations
 real(dp) distances(1000) ! Returned distances
-real(dp) :: radius = 2*WLC_P__NUCLEOSOME_RADIUS ! nm
 integer neighbors(1000) ! ID of neighboring beads
 integer nn ! number of neighbors
 integer left, right, i, offset
 real(dp) poly(WLC_P__GJK_POLYGON,3)
-integer :: s = WLC_P__GJK_POLYGON ! this is just to get the center of the shape
+integer :: s = WLC_P__GJK_POLYGON 
 
 ! only if the MC move moved a bead
 if (wlc_nPointsMoved>0) then
     left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
     right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
-    !left = wlc_bendPoints(1)
-    !right = wlc_bendPoints(wlc_nBend)
-    ! offset -1 left for rotate
-    !if (MCTYPE == 4) then 
-    !    if (left > 1 ) then 
-    !        left = left - 1
-    !    endif
-    !    !if (right < WLC_P__NT) then 
-    !    !    right = right + 1
-    !    !endif
-    !endif
     ! adjust extension to left
     offset = 0
     if (left > 1) then 
-        if ( wlc_RP(1,left-1) == wlc_R(1,left-1) .OR. isnan(wlc_RP(1,left-1))) then 
-            ! good
-        else
-            print*, 'oops', MCTYPE
-            print*, wlc_RP(:,left-1)
-            print*, wlc_R(:,left-1)
-            stop
-        endif
         offset = -1
         wlc_RP(:,left-1) = wlc_R(:,left-1)
         wlc_UP(:,left-1) = wlc_U(:,left-1)
@@ -71,9 +51,9 @@ if (wlc_nPointsMoved>0) then
     ! check for neighbors on old beads
     ! do i = left+offset, right
     !     nn = 0
-    !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),radius,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
+    !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
     !     ! check for collisions
-    !     call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),0,.FALSE.)
+    !     call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),0,.FALSE.,MCTYPE)
     ! enddo
     ! replace old beads with new moved beads
     do i = left, right
@@ -107,9 +87,9 @@ if (wlc_nPointsMoved>0) then
     ! check for neighbors on new beads
     do i = left+offset, right
         nn = 0
-        call findNeighbors(wlc_bin,R(:,i),radius,R,WLC_P__NT-1,1000,neighbors,distances,nn)
+        call findNeighbors(wlc_bin,R(:,i),2*WLC_P__GJK_RADIUS,R,WLC_P__NT-1,1000,neighbors,distances,nn)
         ! check for collisions
-        call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),1,.TRUE.,MCTYPE)
+        call sterics_check(collisions,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),1,.FALSE.,MCTYPE)
     enddo
     ! add back beads here if move is rejected
     do i = left, right
@@ -165,12 +145,12 @@ if (ii > 1) then ! -1 on chain
         isM1ii = 0
         if (checkType == 1) then 
             ! construct polygon for i-1 to i bead
-            if (ii > left ) then 
+            if (ii == left ) then 
+                poly1Minus = constructPolygonPrism(wlc_R(:,ii-1), wlc_RP(:,ii), wlc_nucleosomeWrap(ii-1), &
+                           wlc_U(:,ii-1), wlc_V(:,ii-1), s)
+            else
                poly1Minus = constructPolygonPrism(wlc_RP(:,ii-1), wlc_RP(:,ii), wlc_nucleosomeWrap(ii-1), &
                            wlc_UP(:,ii-1), wlc_VP(:,ii-1), s)
-            else
-               poly1Minus = constructPolygonPrism(wlc_R(:,ii-1), wlc_RP(:,ii), wlc_nucleosomeWrap(ii-1), &
-                           wlc_U(:,ii-1), wlc_V(:,ii-1), s)
             endif
         else
             poly1Minus = constructPolygonPrism(wlc_R(:,ii-1), wlc_R(:,ii), wlc_nucleosomeWrap(ii-1), &
@@ -233,10 +213,12 @@ do jj = 1, nn
                 wlc_nucleosomeWrap(neighbors(jj)), wlc_U(:,neighbors(jj)), wlc_V(:,neighbors(jj)), s)
         else if (jj == right) then 
             poly2Plus = constructPolygonPrism(wlc_RP(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
-                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), wlc_VP(:,neighbors(jj)), s)
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), &
+                wlc_VP(:,neighbors(jj)), s)
         else ! both in RP
             poly2Plus = constructPolygonPrism(wlc_RP(:,neighbors(jj)), wlc_RP(:,neighbors(jj)+1), &
-                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), wlc_VP(:,neighbors(jj)), s)
+                wlc_nucleosomeWrap(neighbors(jj)), wlc_UP(:,neighbors(jj)), &
+                wlc_VP(:,neighbors(jj)), s)
         endif
     else
         poly2Plus = constructPolygonPrism(wlc_R(:,neighbors(jj)), wlc_R(:,neighbors(jj)+1), &
@@ -251,7 +233,7 @@ do jj = 1, nn
         endif
     ! moved bead nuc + DNA
     else if (iiNotLast .AND. isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
-        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_RADIUS) then ! nuc-DNA 
+        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_RADIUS) then ! nuc-DNA 
         ! ignore 10bp nearest nuc
         if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) .OR. &
             (neighbors(jj) > ii .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) ) then 
@@ -263,7 +245,7 @@ do jj = 1, nn
         endif 
     ! moved bead DNA + nuc
     else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) .AND. &
-        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_RADIUS) then ! DNA-nuc
+        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! DNA-nuc
         ! ignore 10bp nearest nuc
         if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
                 (ii > neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) ) then 
@@ -284,24 +266,13 @@ do jj = 1, nn
                 endif
             endif
         endif
-    else if (distances(jj) < 3*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
+    else if (distances(jj) < 2.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
         ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
         if (iiNotLast .AND. ((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii)) ) then
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, GJK(poly1Plus, poly2Plus, s), 'dna-dna forwards', ii, neighbors(jj), left, right, MCTYPE
-                print*, poly1Plus(:,1)
-                print*, poly1Plus(:,2)
-                print*, poly1Plus(:,3)
-                print*, poly2Plus(:,1)
-                print*, poly2Plus(:,2)
-                print*, poly2Plus(:,3)
-                print*, wlc_RP(1,left:right) == wlc_R(1,left:right)
-                print*, wlc_RP(2,left:right) == wlc_R(2,left:right)
-                print*, wlc_RP(3,left:right) == wlc_R(3,left:right)
-                print*, wlc_pointsMoved(1:wlc_nPointsMoved)
-                print*, wlc_bendPoints(1:wlc_nBend)
             endif
         endif
         ! only the -1 nuc or last bead can check back in addition to making sure the logic of line segments
@@ -311,17 +282,6 @@ do jj = 1, nn
             collisions = collisions + GJK(poly1Minus, poly2Plus, s)
             if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, GJK(poly1Minus, poly2Plus, s), 'dna-dna backwards', ii,neighbors(jj), left, right, MCTYPE
-                print*, poly1Minus(:,1)
-                print*, poly1Minus(:,2)
-                print*, poly1Minus(:,3)
-                print*, poly2Plus(:,1)
-                print*, poly2Plus(:,2)
-                print*, poly2Plus(:,3)
-                print*, wlc_RP(1,left:right) == wlc_R(1,left:right)
-                print*, wlc_RP(2,left:right) == wlc_R(2,left:right)
-                print*, wlc_RP(3,left:right) == wlc_R(3,left:right)
-                print*, wlc_pointsMoved(1:wlc_nPointsMoved)
-                print*, wlc_bendPoints(1:wlc_nBend)
             endif
         endif
     endif

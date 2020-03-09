@@ -19,7 +19,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr, wlc_basepairs, wlc_nucleosomeWrap
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
+    ,wlc_basepairs, wlc_nucleosomeWrap, wlc_VP
     use energies
     use umbrella, only: umbrella_energy
 
@@ -73,7 +74,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     integer sweepIndex
     logical success
     logical wlc_AlexanderP
-    integer collisions
+    integer collisions, left, right
 
     real(dp) delTw      ! change in twist
     real(dp) delWr      ! change in writhe
@@ -132,10 +133,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             call MC_sterics(collisions,IB1,IB2,IT1,IT2,MCTYPE,forward)
             ! ascribe collision penalty
             energyOf(sterics_)%dx = 0!collisions ! 0 
-            !if (collisions > 0) then 
-            !    wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-            !    goto 10 ! skip move, return RP to nan
-            !endif
+            if (collisions > 0) then 
+                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                goto 10 ! skip move, return RP to nan
+            endif
           endif
     
           call check_RP_for_NAN(success,MCTYPE)
@@ -279,10 +280,18 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                  ENDdo
              endif
              if(MCTYPE /= 7) then
-                 do I = 1,wlc_nPointsMoved
-                     J = wlc_pointsMoved(I)
-                     call updateR(J)
-                 enddo
+                if (WLC_P__GJK_STERICS) then 
+                    left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
+                    right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
+                    do I = left, right
+                        call updateR(I,left)
+                    enddo
+                else
+                    do I = 1,wlc_nPointsMoved
+                        J = wlc_pointsMoved(I)
+                        call updateR(J,0)
+                    enddo
+                endif
              endif
              if (energyOf(confine_)%dE.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
@@ -342,6 +351,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               wlc_UP(1,I) = nan
               wlc_UP(2,I) = nan
               wlc_UP(3,I) = nan
+            if (WLC_P__LOCAL_TWIST) then 
+                wlc_VP(1,I) = nan
+                wlc_VP(2,I) = nan
+                wlc_VP(3,I) = nan
+            endif
               if (WLC_P__VARIABLE_CHEM_STATE) then
                   wlc_ABP(I) = INT_MIN
               endif
@@ -352,6 +366,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 I = wlc_bendPoints(J)
                 wlc_RP(:,I:I+1) = nan
                 wlc_UP(:,I:I+1) = nan
+                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I:I+1) = nan
                 if (WLC_P__VARIABLE_CHEM_STATE) then
                     wlc_ABP(I:I+1) = INT_MIN
                 endif

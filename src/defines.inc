@@ -132,7 +132,7 @@
 #define WLC_P__GJK_POLYGON 12
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
 ! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*6)
-! TYPE: LOGICAL
+! TYPE: INTEGER
 
 #define WLC_P__NEIGHBOR_BINS .TRUE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
@@ -469,15 +469,19 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
-! VARIABLE COMMENT: Diameter of chain for exclusion
+! VARIABLE COMMENT: Radius of nuclelsome
 ! DEFAULTS COMMENT: Set to zero for no exclusion
 ! TYPE: REAL(DP)
 
 #define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
-! VARIABLE COMMENT: Diameter of chain for exclusion
+! VARIABLE COMMENT: Height of nucleosome
 ! DEFAULTS COMMENT: Set to zero for no exclusion
 ! TYPE: REAL(DP)
 
+#define WLC_P__GJK_RADIUS SQRT(WLC_P__NUCLEOSOME_RADIUS**2 + (WLC_P__NUCLEOSOME_HEIGHT/2)**2)
+! VARIABLE COMMENT: ! search radius for GJK alorithm
+! DEFAULTS COMMENT: ! set to hypotenuse of nuc rad + height
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
