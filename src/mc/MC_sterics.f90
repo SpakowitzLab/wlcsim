@@ -49,11 +49,11 @@ if (wlc_nPointsMoved>0) then
     RALL = wlc_R
     collisions = 0
     ! check for neighbors on old beads
-    ! do i = left+offset, right
+    ! do i = left+offset1, right+offset2
     !     nn = 0
     !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
     !     ! check for collisions
-    !     call sterics_check(collisions,wlc_R,wlc_U,wlc_V,left+offset,right,i,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
+    !     call sterics_check(collisions,wlc_R,wlc_U,wlc_V,left+offset1,i,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
     ! enddo
     ! replace old beads with new moved beads
     do i = left, right
@@ -76,10 +76,10 @@ if (wlc_nPointsMoved>0) then
             call removeBead(wlc_bin,wlc_R_GJK(:,i),i)
             if (i == right) then 
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_R(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2( wlc_VP(:,i)), s)
             else
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_RP(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2( wlc_VP(:,i)), s)
             endif
             RGJK(1,i) = sum(poly(:,1))/s
             RGJK(2,i) = sum(poly(:,2))/s
@@ -88,7 +88,7 @@ if (wlc_nPointsMoved>0) then
             ! update bead locations
             RALL(:,i) = wlc_RP(:,i)
             UALL(:,i) = wlc_UP(:,i)
-            VALL(:,i) = wlc_VP(:,i)/norm2(wlc_VP(:,i))
+            VALL(:,i) = wlc_VP(:,i)/norm2( wlc_VP(:,i))
         endif
     enddo
     collisions = -collisions
@@ -173,7 +173,7 @@ endif
 
 ! iterate through all possible interactions 
 do jj = 1, nn
-    if (neighbors(jj) >= ii .and. neighbors(jj) <= ii ) cycle
+    if (neighbors(jj) >= left .and. neighbors(jj) <= ii ) cycle
     ! neighbors(jj) will always be one less than NT since it is the index of the nearby virtual bead
     poly2Plus = constructPolygonPrism(RALL(:,neighbors(jj)), RALL(:,neighbors(jj)+1), &
             wlc_nucleosomeWrap(neighbors(jj)), UALL(:,neighbors(jj)), VALL(:,neighbors(jj)), s)
@@ -198,7 +198,7 @@ do jj = 1, nn
         endif 
     ! moved bead DNA + nuc
     else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) .AND. &
-        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! DNA-nuc
+        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! DNA-nuc
         ! ignore 10bp nearest nuc
         if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
                 (ii > neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) ) then 
@@ -217,7 +217,7 @@ do jj = 1, nn
                 endif
             endif
         endif
-    else if (distances(jj) < 2.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
+    else if (distances(jj) < 3*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
         ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
         if ((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii) ) then
             ! check for collision
