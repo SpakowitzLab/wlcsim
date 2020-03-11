@@ -124,18 +124,18 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
         ! reset box
-        setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-        setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
-        setBinShape = [10,10,10]   ! Specify first level of binning
-        call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
-        do i=1,WLC_P__NT-1
-            poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                wlc_U(:,i), wlc_V(:,i), s)
-            wlc_R_GJK(1,i) = sum(poly(:,1))/s
-            wlc_R_GJK(2,i) = sum(poly(:,2))/s
-            wlc_R_GJK(3,i) = sum(poly(:,3))/s
-            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
-        enddo
+        ! setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
+        ! setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
+        ! setBinShape = [50,50,50]   ! Specify first level of binning
+        ! call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
+        ! do i=1,WLC_P__NT-1
+        !     poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+        !         wlc_U(:,i), wlc_V(:,i), s)
+        !     wlc_R_GJK(1,i) = sum(poly(:,1))/s
+        !     wlc_R_GJK(2,i) = sum(poly(:,2))/s
+        !     wlc_R_GJK(3,i) = sum(poly(:,3))/s
+        !     call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
+        ! enddo
     endif
 
     call apply_energy_isOn()

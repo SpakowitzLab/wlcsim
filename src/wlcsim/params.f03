@@ -804,7 +804,7 @@ contains
             !  Set up binning object
             setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
             setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
-            setBinShape = [10,10,10]   ! Specify first level of binning
+            setBinShape = [50,50,50]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
                 if ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&

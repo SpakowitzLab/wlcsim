@@ -182,7 +182,9 @@ do jj = 1, nn
         ! check for collision
         collisions = collisions + 10*GJK(poly1Plus, poly2Plus, s)
         if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-            print*, 'nuc-nuc', ii, neighbors(jj), left
+            print*, 'nuc-nuc', ii, neighbors(jj), left, distances(jj)
+            print*, neighbors(1:nn)
+            print*, distances(1:nn)
         endif
     ! moved bead nuc + DNA
     else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
@@ -193,7 +195,9 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'nuc-dna', ii, neighbors(jj), left
+                print*, 'nuc-dna', ii, neighbors(jj), left, distances(jj)
+                print*, neighbors(1:nn)
+                print*, distances(1:nn)
             endif
         endif 
     ! moved bead DNA + nuc
@@ -206,14 +210,18 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'dna-nuc forwards', ii, neighbors(jj), left
+                print*, 'dna-nuc forwards', ii, neighbors(jj), left, distances(jj)
+                print*, neighbors(1:nn)
+                print*, distances(1:nn)
             endif
             ! only the -1 nuc can check back
             if (isM1ii) then 
                 ! check for collision
                 collisions = collisions + GJK(poly1Minus, poly2Plus, s)
                 if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
-                  print*, 'dna-nuc backwards', ii, neighbors(jj), left
+                  print*, 'dna-nuc backwards', ii, neighbors(jj), left, distances(jj)
+                  print*, neighbors(1:nn)
+                  print*, distances(1:nn)
                 endif
             endif
         endif
@@ -223,7 +231,9 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'dna-dna forwards', ii, neighbors(jj), left
+                print*, 'dna-dna forwards', ii, neighbors(jj), left, distances(jj)
+                print*, neighbors(1:nn)
+                print*, distances(1:nn)
             endif
         endif
         ! only the -1 nuc can check back in addition to making sure the logic of line segments
@@ -231,7 +241,9 @@ do jj = 1, nn
             ! check for collision
             collisions = collisions + GJK(poly1Minus, poly2Plus, s)
             if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'dna-dna backwards', ii,neighbors(jj), left
+                print*, 'dna-dna backwards', ii,neighbors(jj), left, distances(jj)
+                print*, neighbors(1:nn)
+                print*, distances(1:nn)
             endif
         endif
     endif

@@ -585,7 +585,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 100
+#define WLC_P__NUMSAVEPOINTS 50
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
