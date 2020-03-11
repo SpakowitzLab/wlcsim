@@ -140,11 +140,6 @@ real(dp), dimension(s,3) :: poly1Plus, poly2Plus, poly1Minus
 integer jj, i
 logical, intent(in) :: debug ! printing debugging statements
 
-if (nn <= 1) then 
-    print*, nn, left, ii, collisions
-    stop 
-endif
-
 ! determine identity of moving bead
 if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome
     isNucleosome = .TRUE.
@@ -178,7 +173,7 @@ endif
 
 ! iterate through all possible interactions 
 do jj = 1, nn
-    if (neighbors(jj) >= left .and. neighbors(jj) <= ii ) cycle
+    if (neighbors(jj) >= ii .and. neighbors(jj) <= ii ) cycle
     ! neighbors(jj) will always be one less than NT since it is the index of the nearby virtual bead
     poly2Plus = constructPolygonPrism(RALL(:,neighbors(jj)), RALL(:,neighbors(jj)+1), &
             wlc_nucleosomeWrap(neighbors(jj)), UALL(:,neighbors(jj)), VALL(:,neighbors(jj)), s)
@@ -191,7 +186,7 @@ do jj = 1, nn
         endif
     ! moved bead nuc + DNA
     else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
-        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__NUCLEOSOME_RADIUS) then ! nuc-DNA 
+        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! nuc-DNA 
         ! ignore 10bp nearest nuc
         if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) .OR. &
             (neighbors(jj) > ii .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) ) then 

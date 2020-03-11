@@ -136,6 +136,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             if (collisions > 0) then 
                 wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                 goto 10 ! skip move, return RP to nan
+            !else
+            !    print*, minval(wlc_pointsMoved(1:wlc_nPointsMoved)),maxval(wlc_pointsMoved(1:wlc_nPointsMoved)),&
+            !        collisions, MCTYPE
             endif
           endif
     
