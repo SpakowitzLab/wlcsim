@@ -8,7 +8,7 @@
 subroutine CalculateEnergiesFromScratch(wlc_p)
 use params, only: wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
-    , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK
+    , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK, wlc_U, wlc_V
 use params, only: wlcsim_params
     use umbrella, only: umbrella_energy_from_scratch
     use linkingNumber, only: link_twist_writhe_from_scratch
@@ -108,12 +108,12 @@ use params, only: wlcsim_params
     if(WLC_P__GJK_STERICS) then
         collisions = 0
         ! check for neighbors on new beads
-        do i = 1, WLC_P__NT
+        do i = 1, WLC_P__NT-1
             nn = 0
             call findNeighbors(wlc_bin,wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
                     1000,neighbors,distances,nn)
             ! check for collisions
-            call sterics_check(collisions,1,-1,i,nn,neighbors(1:nn),distances(1:nn),0, .TruE.)
+            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,1,i,nn,neighbors(1:nn),distances(1:nn),.TruE.)
         enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
