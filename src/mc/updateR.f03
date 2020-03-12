@@ -3,7 +3,7 @@ module updateRU
 ! use updateRU, only: updateR, checkR
 contains
 
-subroutine updateR(I,left)
+subroutine updateR(I,left,right)
 ! values from wlcsim_data
 use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP&
     , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_nucleosomeWrap
@@ -12,7 +12,7 @@ use binning, only: removeBead, addBead
 use GJKAlgorithm, only: constructPolygonPrism
 implicit none
 integer, intent(in) :: I
-integer, intent(in) :: left ! only relevant for GJK sterics + binning problems
+integer, intent(in) :: left, right ! only relevant for GJK sterics + binning problems
 real(dp) poly(WLC_P__GJK_POLYGON,3)
 integer :: s = WLC_P__GJK_POLYGON 
 
@@ -65,8 +65,13 @@ if (WLC_P__NEIGHBOR_BINS) then
                 call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,I-1)
             endif
             if (I < WLC_P__NT) then 
-                poly = constructPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
-                    wlc_U(:,I), wlc_V(:,I), s)
+                if (I == right ) then 
+                    poly = constructPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
+                        wlc_U(:,I), wlc_V(:,I), s)
+                else
+                    poly = constructPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
+                        wlc_U(:,I), wlc_V(:,I), s)
+                endif
                 wlc_R_GJK(1,I) = sum(poly(:,1))/s
                 wlc_R_GJK(2,I) = sum(poly(:,2))/s
                 wlc_R_GJK(3,I) = sum(poly(:,3))/s

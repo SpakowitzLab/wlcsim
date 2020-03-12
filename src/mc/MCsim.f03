@@ -136,6 +136,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             if (collisions > 0) then 
                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                goto 10 ! skip move, return RP to nan
+            !else
+            !    print*, minval(wlc_pointsMoved(1:wlc_nPointsMoved)),maxval(wlc_pointsMoved(1:wlc_nPointsMoved)),&
+            !        collisions, MCTYPE
             endif
           endif
     
@@ -284,12 +287,12 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                     left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
                     right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
                     do I = left, right
-                        call updateR(I,left)
+                        call updateR(I,left,right)
                     enddo
                 else
                     do I = 1,wlc_nPointsMoved
                         J = wlc_pointsMoved(I)
-                        call updateR(J,0)
+                        call updateR(J,0,0)
                     enddo
                 endif
              endif

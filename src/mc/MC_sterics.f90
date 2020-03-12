@@ -53,7 +53,7 @@ if (wlc_nPointsMoved>0) then
     !     nn = 0
     !     call findNeighbors(wlc_bin,wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,1000,neighbors,distances,nn)
     !     ! check for collisions
-    !     call sterics_check(collisions,wlc_R,wlc_U,wlc_V,left+offset1,i,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
+    !     call sterics_check(collisions,wlc_R,wlc_U,wlc_V,1,left+offset1,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
     ! enddo
     ! replace old beads with new moved beads
     do i = left, right
@@ -76,10 +76,10 @@ if (wlc_nPointsMoved>0) then
             call removeBead(wlc_bin,wlc_R_GJK(:,i),i)
             if (i == right) then 
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_R(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2( wlc_VP(:,i)), s)
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
             else
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_RP(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2( wlc_VP(:,i)), s)
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
             endif
             RGJK(1,i) = sum(poly(:,1))/s
             RGJK(2,i) = sum(poly(:,2))/s
@@ -88,7 +88,7 @@ if (wlc_nPointsMoved>0) then
             ! update bead locations
             RALL(:,i) = wlc_RP(:,i)
             UALL(:,i) = wlc_UP(:,i)
-            VALL(:,i) = wlc_VP(:,i)/norm2( wlc_VP(:,i))
+            VALL(:,i) = wlc_VP(:,i)/norm2(wlc_VP(:,i))
         endif
     enddo
     collisions = -collisions
@@ -183,12 +183,10 @@ do jj = 1, nn
         collisions = collisions + 10*GJK(poly1Plus, poly2Plus, s)
         if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
             print*, 'nuc-nuc', ii, neighbors(jj), left, distances(jj)
-            print*, neighbors(1:nn)
-            print*, distances(1:nn)
         endif
     ! moved bead nuc + DNA
     else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
-        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! nuc-DNA 
+        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! nuc-DNA 
         ! ignore 10bp nearest nuc
         if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) .OR. &
             (neighbors(jj) > ii .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) ) then 
@@ -196,13 +194,11 @@ do jj = 1, nn
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, 'nuc-dna', ii, neighbors(jj), left, distances(jj)
-                print*, neighbors(1:nn)
-                print*, distances(1:nn)
             endif
         endif 
     ! moved bead DNA + nuc
     else if ( (isNucleosome .EQV. .FALSE.) .AND. (wlc_nucleosomeWrap(neighbors(jj)) /= 1) .AND. &
-        distances(jj) < 1.5*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! DNA-nuc
+        distances(jj) < 2*wlc_nucleosomeWrap(jj)*WLC_P__LENGTH_PER_BP+WLC_P__GJK_RADIUS) then ! DNA-nuc
         ! ignore 10bp nearest nuc
         if ( (ii < neighbors(jj) .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
                 (ii > neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) ) then 
@@ -211,8 +207,6 @@ do jj = 1, nn
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, 'dna-nuc forwards', ii, neighbors(jj), left, distances(jj)
-                print*, neighbors(1:nn)
-                print*, distances(1:nn)
             endif
             ! only the -1 nuc can check back
             if (isM1ii) then 
@@ -220,8 +214,6 @@ do jj = 1, nn
                 collisions = collisions + GJK(poly1Minus, poly2Plus, s)
                 if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
                   print*, 'dna-nuc backwards', ii, neighbors(jj), left, distances(jj)
-                  print*, neighbors(1:nn)
-                  print*, distances(1:nn)
                 endif
             endif
         endif
@@ -232,8 +224,6 @@ do jj = 1, nn
             collisions = collisions + GJK(poly1Plus, poly2Plus, s)
             if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, 'dna-dna forwards', ii, neighbors(jj), left, distances(jj)
-                print*, neighbors(1:nn)
-                print*, distances(1:nn)
             endif
         endif
         ! only the -1 nuc can check back in addition to making sure the logic of line segments
@@ -242,8 +232,6 @@ do jj = 1, nn
             collisions = collisions + GJK(poly1Minus, poly2Plus, s)
             if (GJK(poly1Minus, poly2Plus, s) > 0 .AND. debug) then 
                 print*, 'dna-dna backwards', ii,neighbors(jj), left, distances(jj)
-                print*, neighbors(1:nn)
-                print*, distances(1:nn)
             endif
         endif
     endif
