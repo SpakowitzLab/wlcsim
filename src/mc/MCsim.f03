@@ -134,13 +134,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
             call MC_sterics(collisions,left,right)
             ! ascribe collision penalty
-            !energyOf(sterics_)%dx = collisions 
-            if (collisions > 0) then 
-               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-               goto 10 ! skip move, return RP to nan
-            else
-                print*, left, right, collisions, MCTYPE
-            endif
+            energyOf(sterics_)%dx = collisions 
+            !if (collisions > 0) then 
+            !   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+            !   goto 10 ! skip move, return RP to nan
+            !endif
           endif
     
           call check_RP_for_NAN(success,MCTYPE)

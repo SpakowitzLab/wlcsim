@@ -218,7 +218,7 @@ end subroutine setup_nucleosome_constants
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use precision, only: nan
     ! sterics testing !
-    use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, &
+    use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, runtimeTest5, runtimeTest6, &
                             noIntersectY, intersectY, tangentY, runtimeTest1, runtimeTest3, &
                             noIntersectZ, intersectZ, tangentZ, runtimeTest2, runtimeTest4
     implicit none
@@ -292,6 +292,8 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
                 call runtimeTest2()
                 call runtimeTest3()
                 call runtimeTest4()
+                call runtimeTest5()
+                call runtimeTest6()
             enddo
                 print*, "SUCCESS: successful completion of all GJK collision unit tests"
             endif

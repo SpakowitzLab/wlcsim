@@ -13,7 +13,7 @@ MODULE GJKAlgorithm
     FUNCTION GJK(s1, s2, nVerts)
         implicit none
         integer, intent(in) :: nVerts
-        integer, parameter :: iteration = 7 ! dont know optimal number (MATLAB used 6)
+        integer, parameter :: iteration = WLC_P__GJK_POLYGON ! keep high, this motherfucker was the bug (thxUS)
         ! by upping iteration, we get better at detecting barely penetrating objects so 
         ! does not provide a huge advantage 
         real(dp), dimension(nVerts, 3), intent(in) :: s1, s2
@@ -174,6 +174,7 @@ MODULE GJKAlgorithm
                     abc = acd
                 else if (dot_product(acd, ao) < 0) then 
                     adb = cross(ad, ab)
+                    !print*, 'GJK', dot_product(adb, ao), dot_product(adb, ao) > 0
                     if (dot_product(adb, ao) > 0) then 
                         cout = bout
                         bout = dout
@@ -724,28 +725,63 @@ SUBROUTINE runtimeTest2()
         endif
 
     END SUBROUTINE runtimeTest4
+
+    SUBROUTINE runtimeTest5()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12,3) :: s1
+        real(dp), dimension(12,3) :: s2
+        integer res
+
+        s1(:,1) = (/ -14.3321,  -19.0323,  -19.4626,  -15.1927 , -10.4924,  -10.0621 ,&
+                 -14.1383 , -18.8385,  -19.2688 , -14.9989 , -10.2987  , -9.8683/)
+        s1(:,2) = (/ -20.3595 , -20.2052  ,-19.4766 , -18.9023 , -19.0566 , -19.7852,&
+                  -25.7992  ,-25.6449  ,-24.9163  ,-24.3420 , -24.4963,  -25.2249/)
+        s1(:,3) = (/7.1730  ,  9.3920  , 14.5227 ,  17.4344 ,  15.2153  , 10.0847  , &
+                  7.9617  , 10.1807 ,  15.3114 ,  18.2231 ,  16.0041  , 10.8734/)
+        s2(:,1) =  (/-10.2401 , -15.1238  ,-18.0248 , -16.0422 , -11.1585 ,  -8.2575 , &
+                     -12.0440  ,-16.9276 , -19.8287 , -17.8460  ,-12.9623 , -10.0613/)
+        s2(:,2) =  (/-27.0284  ,-25.3285 , -24.3554 , -25.0824 , -26.7823,  -27.7554,&
+                    -32.2240 , -30.5241  ,-29.5510 , -30.2780 , -31.9779 , -32.9510/)
+        s2(:,3) = (/14.2615  , 13.7140 ,  17.9185 ,  22.6704  , 23.2178 ,  19.0134  , &
+                     14.2193  , 13.6718  , 17.8763 ,  22.6282 ,  23.1756 ,  18.9712/)
+
+        res = GJK(s1, s2, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: runtimeTest5"
+            stop
+        endif
+
+    END SUBROUTINE runtimeTest5
    
+    SUBROUTINE runtimeTest6()
+        implicit none
+        integer :: nVerts = 12
+        real(dp), dimension(12,3) :: s1
+        real(dp), dimension(12,3) :: s2
+        integer res
+
+        s2(:,1) = (/ -14.3321,  -19.0323,  -19.4626,  -15.1927 , -10.4924,  -10.0621 ,&
+                 -14.1383 , -18.8385,  -19.2688 , -14.9989 , -10.2987  , -9.8683/)
+        s2(:,2) = (/ -20.3595 , -20.2052  ,-19.4766 , -18.9023 , -19.0566 , -19.7852,&
+                  -25.7992  ,-25.6449  ,-24.9163  ,-24.3420 , -24.4963,  -25.2249/)
+        s2(:,3) = (/7.1730  ,  9.3920  , 14.5227 ,  17.4344 ,  15.2153  , 10.0847  , &
+                  7.9617  , 10.1807 ,  15.3114 ,  18.2231 ,  16.0041  , 10.8734/)
+        s1(:,1) =  (/-10.2401 , -15.1238  ,-18.0248 , -16.0422 , -11.1585 ,  -8.2575 , &
+                     -12.0440  ,-16.9276 , -19.8287 , -17.8460  ,-12.9623 , -10.0613/)
+        s1(:,2) =  (/-27.0284  ,-25.3285 , -24.3554 , -25.0824 , -26.7823,  -27.7554,&
+                    -32.2240 , -30.5241  ,-29.5510 , -30.2780 , -31.9779 , -32.9510/)
+        s1(:,3) = (/14.2615  , 13.7140 ,  17.9185 ,  22.6704  , 23.2178 ,  19.0134  , &
+                     14.2193  , 13.6718  , 17.8763 ,  22.6282 ,  23.1756 ,  18.9712/)
+
+        res = GJK(s1, s2, nVerts)
+        !print*, res
+        if (res == 0 ) then
+            print*, "failed test: runtimeTest6"
+            stop
+        endif
+
+    END SUBROUTINE runtimeTest6
 
 END MODULE
-
-! test module
-! PROGRAM GJKTest 
-!     use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, &
-!                             noIntersectY, intersectY, tangentY, &
-!                             noIntersectZ, intersectZ, tangentZ
-!     implicit none
-
-!     call sameShapeTest()
-!     call noIntersectX()
-!     call intersectX()
-!     call tangentX()
-!     call noIntersectY()
-!     call intersectY()
-!     call tangentY()
-!     call noIntersectZ()
-!     call intersectZ()
-!     call tangentZ()
-
-!     print*, "SUCCESS: successful completion of all GJK collision unit tests"
-
-! END PROGRAM
