@@ -552,7 +552,7 @@ contains
         if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             allocate(wlc_R_period(3,WLC_P__NT))
         endif
-        if (WLC_P__NEIGHBOR_BINS .and. WLC_P__CONFINETYPE == 'cube' .AND. WLC_P__GJK_STERICS) then
+        if (WLC_P__GJK_STERICS) then
             allocate(wlc_R_GJK(3,WLC_P__NT-1))
         endif
         allocate(wlc_U(3,WLC_P__NT))
@@ -795,6 +795,7 @@ contains
             endif
         endif
 
+
         ! -------------------------------------------
         !
         !  Set up binning proceedure for keeping track of neighbors
@@ -804,7 +805,7 @@ contains
             !  Set up binning object
             setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
             setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
-            setBinShape = [50,50,50]   ! Specify first level of binning
+            setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
                 if ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic')&
@@ -830,6 +831,14 @@ contains
                     print*, "Not an option yet.  See params."
                     stop 1
                 endif
+            enddo
+        else if (WLC_P__GJK_STERICS) then ! set up GJK vecotor
+            do i=1,WLC_P__NT-1
+                poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                    wlc_U(:,i), wlc_V(:,i), s)
+                wlc_R_GJK(1,i) = sum(poly(:,1))/s
+                wlc_R_GJK(2,i) = sum(poly(:,2))/s
+                wlc_R_GJK(3,i) = sum(poly(:,3))/s
             enddo
         endif
 

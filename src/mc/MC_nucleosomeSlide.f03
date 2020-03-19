@@ -39,6 +39,10 @@ integer, parameter :: nNucs = nint((WLC_P__L/WLC_P__LENGTH_PER_BP-WLC_P__LL)/(14
 integer nucArray(nNucs)
 integer loc(1), newloc(1)
 
+print*, "THIS DOESNT WORK SINCE WE NEED TO RECACULATE THE ELASTIC PARAMS UPON MOVE", &
+    "ALSO NEED TO CREATE TEMP WRAP/BASEPAIRS ARRAYS TO CHECK FOR STERICS + CHANGE IN ENERGY"
+stop
+
 success = .false.
 
 ! find nucs

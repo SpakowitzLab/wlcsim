@@ -8,7 +8,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success, moveRatio)
+subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_Window, wlc_MCAMP
 use mersenne_twister, only: random_stat
@@ -20,8 +20,6 @@ logical, intent(out) :: success
 integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real, intent(in) :: moveRatio
-
 
 success = .TRUE.
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
@@ -54,11 +52,7 @@ call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
 call MC_spider(wlc_MCAMP,rand_stat,success)
 case(13)
-if (moveRatio <= 0.1) then 
-       call MC_nucleosomeSlide(IT1,IT2,rand_stat,success)
-else
-       success = .false.
-endif
+call MC_nucleosomeSlide(IT1,IT2,rand_stat,success)
 end select
 RETURN
 END

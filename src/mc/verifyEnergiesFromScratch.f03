@@ -14,22 +14,17 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
     use linkingNumber, only: link_twist_writhe_from_scratch
     use iso_fortran_env
     use energies
-    use binning, only: addBead, removeBead, findNeighbors, constructBin
     use GJKAlgorithm, only: constructPolygonPrism
+    ! if using binning, uncomment the next line
+    !use binnning, only: findNeighbors
     implicit none
     integer IT1, IT2, I
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: wlc_p
     integer Delta !transh
     real(dp) EELAS(4) ! Elastic force
-    !set up for binning
-    real(dp) distances(1000) ! Returned distances
-    integer neighbors(1000) ! ID of neighboring beads
-    real(dp) setBinSize(3)
-    real(dp) setMinXYZ(3) ! location of corner of bin
-    integer setBinShape(3)! Specify first level of binning
-    real(dp) poly(WLC_P__GJK_POLYGON,3)
-    integer :: s = WLC_P__GJK_POLYGON 
+    real(dp) distances(WLC_P__NT) ! Returned distances
+    integer neighbors(WLC_P__NT) ! ID of neighboring beads
     integer nn ! number of neighbors
     integer collisions
 
@@ -115,27 +110,13 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
         collisions = 0
         ! check for neighbors on new beads
         do i = 1, WLC_P__NT-1
-            nn = 0
-            call findNeighbors(wlc_bin,wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
-                    1000,neighbors,distances,nn)
+            call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
+                    WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
             call sterics_check(collisions,wlc_R,wlc_U,wlc_V,1,i,nn,neighbors(1:nn),distances(1:nn),.TruE.)
         enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
-        ! reset box
-        ! setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-        ! setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
-        ! setBinShape = [50,50,50]   ! Specify first level of binning
-        ! call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
-        ! do i=1,WLC_P__NT-1
-        !     poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-        !         wlc_U(:,i), wlc_V(:,i), s)
-        !     wlc_R_GJK(1,i) = sum(poly(:,1))/s
-        !     wlc_R_GJK(2,i) = sum(poly(:,2))/s
-        !     wlc_R_GJK(3,i) = sum(poly(:,3))/s
-        !     call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
-        ! enddo
     endif
 
     call apply_energy_isOn()

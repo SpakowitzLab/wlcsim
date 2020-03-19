@@ -445,9 +445,14 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         IB=otherEnd+1
     enddo
 elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
-    R(1,1) = 5000.0_dp
-    R(2,1) = 5000.0_dp
-    R(3,1) = 5000.0_dp
+    if (WLC_P__NEIGHBOR_BINS) then 
+        R(1,1) = 5000.0_dp
+        R(2,1) = 5000.0_dp
+        R(3,1) = 5000.0_dp
+    endif
+    R(1,1) = 0.0_dp
+    R(2,1) = 0.0_dp
+    R(3,1) = 0.0_dp
     U(1,1) = 0.0_dp
     U(2,1) = 0.0_dp
     U(3,1) = 1.0_dp

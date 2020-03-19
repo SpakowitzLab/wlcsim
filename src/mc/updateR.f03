@@ -84,6 +84,27 @@ if (WLC_P__NEIGHBOR_BINS) then
         print*, "Not an option yet.  See MCsim."
         stop 1
     endif
+else if (WLC_P__GJK_STERICS) then 
+    ! add back in virtual beads i-1 and i for moved bead i
+    if (I > 1 .AND. I == left) then 
+        poly = constructPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
+            wlc_U(:,I-1), wlc_V(:,I-1), s)
+        wlc_R_GJK(1,I-1) = sum(poly(:,1))/s
+        wlc_R_GJK(2,I-1) = sum(poly(:,2))/s
+        wlc_R_GJK(3,I-1) = sum(poly(:,3))/s
+    endif
+    if (I < WLC_P__NT) then 
+        if (I == right ) then 
+            poly = constructPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
+                wlc_U(:,I), wlc_V(:,I), s)
+        else
+            poly = constructPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
+                wlc_U(:,I), wlc_V(:,I), s)
+        endif
+        wlc_R_GJK(1,I) = sum(poly(:,1))/s
+        wlc_R_GJK(2,I) = sum(poly(:,2))/s
+        wlc_R_GJK(3,I) = sum(poly(:,3))/s
+    endif
 endif
 
 end subroutine updateR

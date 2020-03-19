@@ -20,7 +20,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
     , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
-    ,wlc_basepairs, wlc_nucleosomeWrap, wlc_VP
+    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK
     use energies
     use umbrella, only: umbrella_energy
 
@@ -112,7 +112,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               goto 10 ! skip move, return RP to nan
           endif
           call MC_move(IB1,IB2,IT1,IT2,IT3,IT4,&
-                       MCTYPE,forward,wlc_rand_stat,dib,success, 1.0*ISTEP/WLC_P__STEPSPEREXCHANGE)
+                       MCTYPE,forward,wlc_rand_stat,dib,success)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
               goto 10 ! skip move, return RP to nan
@@ -130,15 +130,16 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
 ! sterics check here !
           if(WLC_P__GJK_STERICS) then
-            call MC_sterics(collisions)
+            left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
+            right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
+            call MC_sterics(collisions,left,right)
             ! ascribe collision penalty
             !energyOf(sterics_)%dx = collisions 
             if (collisions > 0) then 
                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                goto 10 ! skip move, return RP to nan
-            !else
-            !    print*, minval(wlc_pointsMoved(1:wlc_nPointsMoved)),maxval(wlc_pointsMoved(1:wlc_nPointsMoved)),&
-            !        collisions, MCTYPE
+            else
+                print*, left, right, collisions, MCTYPE
             endif
           endif
     
@@ -284,8 +285,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
              endif
              if(MCTYPE /= 7) then
                 if (WLC_P__GJK_STERICS) then 
-                    left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
-                    right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
                     do I = left, right
                         call updateR(I,left,right)
                     enddo

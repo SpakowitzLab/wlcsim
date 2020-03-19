@@ -35,7 +35,7 @@
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
 
-#define WLC_P__CONFINETYPE 'cube'
+#define WLC_P__CONFINETYPE 'none'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! spherical nucleus
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -134,7 +134,7 @@
 ! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*6)
 ! TYPE: INTEGER
 
-#define WLC_P__NEIGHBOR_BINS .TRUE.
+#define WLC_P__NEIGHBOR_BINS .FALSE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
 ! TYPE: LOGICAL

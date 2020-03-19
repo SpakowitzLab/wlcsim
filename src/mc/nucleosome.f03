@@ -219,8 +219,8 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use precision, only: nan
     ! sterics testing !
     use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, &
-                            noIntersectY, intersectY, tangentY, &
-                            noIntersectZ, intersectZ, tangentZ
+                            noIntersectY, intersectY, tangentY, runtimeTest1, runtimeTest3, &
+                            noIntersectZ, intersectZ, tangentZ, runtimeTest2, runtimeTest4
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
@@ -277,6 +277,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
             ! testing sterics here !
             if(WLC_P__GJK_STERICS) then
+            do iter = 1, 10000 ! check to make sure GJK is not stochastic
                 call sameShapeTest()
                 call noIntersectX()
                 call intersectX()
@@ -287,7 +288,11 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
                 call noIntersectZ()
                 call intersectZ()
                 call tangentZ()
-
+                call runtimeTest1()
+                call runtimeTest2()
+                call runtimeTest3()
+                call runtimeTest4()
+            enddo
                 print*, "SUCCESS: successful completion of all GJK collision unit tests"
             endif
         endif
