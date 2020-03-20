@@ -129,9 +129,9 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
-#define WLC_P__GJK_POLYGON 12
+#define WLC_P__GJK_POLYGON 16
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
-! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*6)
+! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*8)
 ! TYPE: INTEGER
 
 #define WLC_P__NEIGHBOR_BINS .FALSE.
@@ -575,7 +575,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 10000
+#define WLC_P__STEPSPEREXCHANGE 500
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -1259,22 +1259,22 @@
 ! DEFAULTS COMMENT: ! no window
 ! TYPE: REAL(DP)
 
-#define WLC_P__NADAPT_CRANK_SHAFT 500
+#define WLC_P__NADAPT_CRANK_SHAFT 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_SLIDE_MOVE 500
+#define WLC_P__NADAPT_SLIDE_MOVE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_PIVOT_MOVE 500
+#define WLC_P__NADAPT_PIVOT_MOVE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_ROTATE_MOVE 500
+#define WLC_P__NADAPT_ROTATE_MOVE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER

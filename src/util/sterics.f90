@@ -13,7 +13,7 @@ MODULE GJKAlgorithm
     FUNCTION GJK(s1, s2, nVerts)
         implicit none
         integer, intent(in) :: nVerts
-        integer, parameter :: iteration = WLC_P__GJK_POLYGON ! keep high, this motherfucker was the bug (thxUS)
+        integer, parameter :: iteration = WLC_P__GJK_POLYGON ! keep high, this motherfucker was part of the bug (thxUS)
         ! by upping iteration, we get better at detecting barely penetrating objects so 
         ! does not provide a huge advantage 
         real(dp), dimension(nVerts, 3), intent(in) :: s1, s2
