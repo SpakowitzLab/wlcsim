@@ -1,6 +1,6 @@
 #! /bin/bash
 #SBATCH -N 1
-#SBATCH -n 16
+#SBATCH -n 1
 #SBATCH -p risc
 
 echo This is job $SLURM_JOB_ID
