@@ -35,14 +35,16 @@ integer :: s = WLC_P__GJK_POLYGON
 ! only if the MC move moved a bead
 if (wlc_nPointsMoved>0) then
     ! adjust extension to left
-    offset1 = -1
     if (left == 1) then
         offset1 = 0
+    else
+        offset1 = -1
     endif
     ! adjust extension to right
-    offset2 = 0
     if (right == WLC_P__NT) then 
         offset2 = -1
+    else
+        offset2 = 0
     endif
     ! set up for collision searching
     RGJK = wlc_R_GJK
@@ -54,7 +56,7 @@ if (wlc_nPointsMoved>0) then
     do i = left+offset1, right+offset2
         call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
-        call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
+        call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
     enddo
     ! replace old beads with new moved beads
     do i = left, right
@@ -89,14 +91,14 @@ if (wlc_nPointsMoved>0) then
     do i = left+offset1, right+offset2
         call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
-        call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn),.FALSE.)
+        call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
     enddo
 endif
 
 END subroutine MC_sterics
 
 ! sterics check subroutine to check for different types of collisions
-subroutine sterics_check(collisions,RALL,UALL,VALL,left,ii,nn,neighbors,distances,debug)
+subroutine sterics_check(collisions,RALL,UALL,VALL,left,ii,nn,neighbors,distances)
 ! values from wlcsim_data
 use GJKAlgorithm, only: GJK, constructPolygonPrism
 use params, only: dp, wlc_basepairs, wlc_nucleosomeWrap, wlc_pointsMoved, wlc_nPointsMoved
@@ -113,11 +115,11 @@ integer, intent(in) :: nn ! number of neighbors
 integer, intent(in) :: neighbors(nn) ! ID of neighboring beads
 real(dp), intent(in) :: distances(nn) ! ID of neighboring beads
 logical :: isNucleosome ! whether or not the moved bead is a nucleosome
+logical :: jjGreaterThanii ! as it says
 integer, parameter :: s = WLC_P__GJK_POLYGON ! num sides of desired polygon
 real(dp), dimension(3) :: tempR, tempU, tempV
 real(dp), dimension(s,3) :: poly1Plus, poly2Plus, poly1Minus, poly2Minus
 integer jj
-logical, intent(in) :: debug ! printing debugging statements
 
 ! determine identity of moving bead
 if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome
@@ -135,12 +137,18 @@ do jj = 1, nn
     if (neighbors(jj) >= left .and. neighbors(jj) <= ii ) cycle
     poly2Plus = constructPolygonPrism(RALL(:,neighbors(jj)), RALL(:,neighbors(jj)+1), &
             wlc_nucleosomeWrap(neighbors(jj)), UALL(:,neighbors(jj)), VALL(:,neighbors(jj)), s)
+    if (neighbors(jj) > ii) then 
+        jjGreaterThanii = .true.
+    else
+        jjGreaterThanii = .false.
+    endif
     ! check identity of all other beads in chain 
     if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) /= 1 ) then ! nuc-nuc collision
         ! check for collision
-        collisions = collisions + 10*GJK(poly1Plus, poly2Plus, s)
-        if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-            print*, 'nuc-nuc', ii, neighbors(jj), left, distances(jj)
+        if (jjGreaterThanii) then ! ORDER MATTERS
+            collisions = collisions + 10*GJK(poly1Plus, poly2Plus, s)
+        else
+            collisions = collisions + 10*GJK(poly2Plus, poly1Plus, s)
         endif
     ! moved bead nuc + DNA
     else if (isNucleosome .AND. wlc_nucleosomeWrap(neighbors(jj)) == 1 .AND. & 
@@ -149,9 +157,10 @@ do jj = 1, nn
         if ( (neighbors(jj) < ii .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) .OR. &
             (neighbors(jj) > ii .AND. sum(wlc_basepairs(ii:neighbors(jj)-1)) > 10) ) then 
             ! check for collision
-            collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-            if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'nuc-dna forwards', ii, neighbors(jj), left, distances(jj)
+            if (jjGreaterThanii) then ! ORDER MATTERS
+                collisions = collisions + GJK(poly1Plus, poly2Plus, s)
+            else
+                collisions = collisions + GJK(poly2Plus, poly1Plus, s)
             endif
         endif 
     ! moved bead DNA + nuc
@@ -162,18 +171,20 @@ do jj = 1, nn
                 (ii > neighbors(jj) .AND. sum(wlc_basepairs(neighbors(jj):ii-1)) > 10) ) then 
             ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
             ! check for collision
-            collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-            if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'dna-nuc forwards', ii, neighbors(jj), left, distances(jj)
+            if (jjGreaterThanii) then ! ORDER MATTERS
+                collisions = collisions + GJK(poly1Plus, poly2Plus, s)
+            else
+                collisions = collisions + GJK(poly2Plus, poly1Plus, s)
             endif
         endif
     else if (distances(jj) < 3*wlc_basepairs(jj)*WLC_P__LENGTH_PER_BP) then ! DNA-DNA collision
         ! P1 segment is start of either DNA or nucleosome regardless, can complete line segment
         if ((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii) ) then
             ! check for collision
-            collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-            if (GJK(poly1Plus, poly2Plus, s) > 0 .AND. debug) then 
-                print*, 'dna-dna i,j forwards', ii, neighbors(jj), left, distances(jj)
+            if (jjGreaterThanii) then ! ORDER MATTERS
+                collisions = collisions + GJK(poly1Plus, poly2Plus, s)
+            else
+                collisions = collisions + GJK(poly2Plus, poly1Plus, s)
             endif
         endif
     endif

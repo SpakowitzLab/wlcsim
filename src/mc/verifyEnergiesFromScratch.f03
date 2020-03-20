@@ -113,7 +113,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
             call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
                     WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
-            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,1,i,nn,neighbors(1:nn),distances(1:nn),.TruE.)
+            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,1,i,nn,neighbors(1:nn),distances(1:nn))
         enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
