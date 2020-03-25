@@ -449,10 +449,11 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
         R(1,1) = 5000.0_dp
         R(2,1) = 5000.0_dp
         R(3,1) = 5000.0_dp
+    else
+        R(1,1) = 0.0_dp
+        R(2,1) = 0.0_dp
+        R(3,1) = 0.0_dp
     endif
-    R(1,1) = 0.0_dp
-    R(2,1) = 0.0_dp
-    R(3,1) = 0.0_dp
     U(1,1) = 0.0_dp
     U(2,1) = 0.0_dp
     U(3,1) = 1.0_dp

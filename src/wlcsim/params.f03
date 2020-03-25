@@ -515,7 +515,7 @@ contains
 !        use savepointLinkingNumber, only: calcTwWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
-        use GJKAlgorithm, only: constructPolygonPrism
+        use GJKAlgorithm, only: findCenterPolygonPrism
 #if MPI_VERSION
         use mpi
 #endif
@@ -539,8 +539,7 @@ contains
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
         integer len_file
-        real(dp) poly(WLC_P__GJK_POLYGON,3)
-        integer :: s = WLC_P__GJK_POLYGON 
+        real(dp) poly(3)
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -817,11 +816,9 @@ contains
                     if (WLC_P__GJK_STERICS) then 
                         ! NP add center of segments as beads
                         if (i < WLC_P__NT) then 
-                            poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                                wlc_U(:,i), wlc_V(:,i), s)
-                            wlc_R_GJK(1,i) = sum(poly(:,1))/s
-                            wlc_R_GJK(2,i) = sum(poly(:,2))/s
-                            wlc_R_GJK(3,i) = sum(poly(:,3))/s
+                            poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                                wlc_U(:,i), wlc_V(:,i))
+                            wlc_R_GJK(:,i) = poly
                             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
                         endif
                     else
@@ -834,11 +831,9 @@ contains
             enddo
         else if (WLC_P__GJK_STERICS) then ! set up GJK vecotor
             do i=1,WLC_P__NT-1
-                poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                    wlc_U(:,i), wlc_V(:,i), s)
-                wlc_R_GJK(1,i) = sum(poly(:,1))/s
-                wlc_R_GJK(2,i) = sum(poly(:,2))/s
-                wlc_R_GJK(3,i) = sum(poly(:,3))/s
+                poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                    wlc_U(:,i), wlc_V(:,i))
+                wlc_R_GJK(:,i) = poly
             enddo
         endif
 

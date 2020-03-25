@@ -13,19 +13,19 @@ MODULE GJKAlgorithm
     FUNCTION GJK(s1, s2, nVerts)
         implicit none
         integer, intent(in) :: nVerts
-        integer, parameter :: iteration = WLC_P__GJK_POLYGON ! keep high, this motherfucker was part of the bug (thxUS)
+        integer, parameter :: iteration = WLC_P__GJK_POLYGON ! keep high, this MF was part of the bug (thxUS)
         ! by upping iteration, we get better at detecting barely penetrating objects so 
         ! does not provide a huge advantage 
         real(dp), dimension(nVerts, 3), intent(in) :: s1, s2
         real(dp), dimension(3) :: a, b, c, d, aout, bout, cout, dout
-        real(dp), dimension(3), parameter :: v = (/0.8, 0.5, 1.0/) ! dont know optimum
+        real(dp), dimension(3), parameter :: v = (/0.8, 0.5, 1.0/) ! random yet determined
         integer GJK
 
         ! default value (i.e. no intersection)
         GJK = 0
 
         ! check for shape overlap
-        if ( sum(s2(:,1)-s1(:,1)) + sum(s2(:,2)-s1(:,2)) + sum(s2(:,3)-s1(:,3)) == 0 ) then 
+        if ( all(sum(s2-s1,1) == 0) ) then 
            GJK = 1!iteration
            return
         endif
@@ -245,11 +245,10 @@ MODULE GJKAlgorithm
         integer, intent(in) :: s ! num sides of desired polygon
         real(dp) :: r, h ! radius and height of desired shape
         integer i
-        real(dp), dimension(3,3) :: mtrx, rot
+        real(dp), dimension(3,3) :: mtrx
         real(dp) space, spaceInit, incr, offset1, offset2
         real(dp), dimension(3) :: pos, center, vec
         real(dp), dimension(s,3) :: constructPolygonPrism
-        real(dp), parameter :: angle = 2.0*pi/10.5
 
         incr = 2*pi/(s/2)
 
@@ -314,6 +313,39 @@ MODULE GJKAlgorithm
         endif 
 
     END FUNCTION constructPolygonPrism
+
+    FUNCTION findCenterPolygonPrism(pos1, pos2, wrap, u, v)
+        use vector_utils, only: cross
+        implicit none
+        real(dp), dimension(3), intent(in) :: pos1 ! first bead position
+        real(dp), dimension(3), intent(in) :: pos2 ! second bead position
+        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), dimension(3), intent(in) :: u ! u angle of bead 1
+        real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
+        real(dp), dimension(3,3) :: mtrx
+        real(dp), dimension(3) :: pos, center
+        real(dp), dimension(3) :: findCenterPolygonPrism
+
+        ! construct material rotation matrix
+        mtrx(:,1) = v
+        mtrx(:,2) = cross(u,v)
+        mtrx(:,3) = u
+
+        ! determine if nucleosome or not
+        if (wrap /= 1) then 
+            center = [4.8455, -2.4445, 0.6694]
+            pos = pos1
+            ! find center of polygon
+            findCenterPolygonPrism = pos + MATMUL(mtrx, center)
+        else ! dna 
+            center = 0.0_dp
+            pos = (pos2 + pos1) / 2.0
+            ! find center of polygon
+            findCenterPolygonPrism = pos + MATMUL(mtrx, center)
+        endif 
+
+    END FUNCTION findCenterPolygonPrism
+
 
     SUBROUTINE sameShapeTest()
         implicit none

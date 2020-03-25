@@ -14,9 +14,8 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
     use linkingNumber, only: link_twist_writhe_from_scratch
     use iso_fortran_env
     use energies
-    use GJKAlgorithm, only: constructPolygonPrism
     ! if using binning, uncomment the next line
-    !use binnning, only: findNeighbors
+    !use binning, only: findNeighbors
     implicit none
     integer IT1, IT2, I
     real(dp) phiTot
@@ -110,6 +109,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
         collisions = 0
         ! check for neighbors on new beads
         do i = 1, WLC_P__NT-1
+            !nn = 0
             call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
                     WLC_P__NT,neighbors,distances,nn)
             ! check for collisions

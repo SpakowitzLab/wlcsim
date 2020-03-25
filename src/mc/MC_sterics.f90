@@ -14,9 +14,9 @@ subroutine MC_sterics(collisions,left,right)
 ! values from wlcsim_data
 use params, only: dp, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, &
     wlc_R_GJK, wlc_nucleosomeWrap, wlc_nPointsMoved, wlc_bin
-use GJKAlgorithm, only: constructPolygonPrism
+use GJKAlgorithm, only: findCenterPolygonPrism
 ! if using binning, uncomment the next line
-!use binnning, only: addBead, removeBead, findNeighbors
+!use binning, only: addBead, removeBead, findNeighbors
 implicit none
 
 integer, intent(out) :: collisions
@@ -29,8 +29,7 @@ real(dp) distances(WLC_P__NT) ! Returned distances
 integer neighbors(WLC_P__NT) ! ID of neighboring beads
 integer nn ! number of neighbors
 integer i, offset1, offset2
-real(dp) poly(WLC_P__GJK_POLYGON,3)
-integer :: s = WLC_P__GJK_POLYGON 
+real(dp) poly(3)
 
 ! only if the MC move moved a bead
 if (wlc_nPointsMoved>0) then
@@ -54,6 +53,7 @@ if (wlc_nPointsMoved>0) then
     collisions = 0
     ! check for neighbors on old beads
     do i = left+offset1, right+offset2
+        !nn = 0
         call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
@@ -67,37 +67,56 @@ if (wlc_nPointsMoved>0) then
         ! if bead i moves, then remove virtual beads i-1 and i
         ! add back in virtual beads i-1 and i for moved bead i
         if (i > 1 .AND. i == left) then 
-            poly = constructPolygonPrism(wlc_R(:,i-1), wlc_RP(:,i), &
-                wlc_nucleosomeWrap(i-1), wlc_U(:,i-1), wlc_V(:,i-1), s)
-            RGJK(1,i-1) = sum(poly(:,1))/s
-            RGJK(2,i-1) = sum(poly(:,2))/s
-            RGJK(3,i-1) = sum(poly(:,3))/s
+            poly = findCenterPolygonPrism(wlc_R(:,i-1), wlc_RP(:,i), &
+                wlc_nucleosomeWrap(i-1), wlc_U(:,i-1), wlc_V(:,i-1))
+            RGJK(:,i-1) = poly
+            !if (WLC_P__NEIGHBOR_BINS) then
+            !    call removeBead(wlc_bin,wlc_R_GJK(:,i-1),i-1)
+            !    call addBead(wlc_bin,RGJK,WLC_P__NT-1,i-1)
+            !endif
         endif
         if (i < WLC_P__NT) then 
             if (i == right) then 
-                poly = constructPolygonPrism(wlc_RP(:,i), wlc_R(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
+                poly = findCenterPolygonPrism(wlc_RP(:,i), wlc_R(:,i+1), &
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)))
             else
-                poly = constructPolygonPrism(wlc_RP(:,i), wlc_RP(:,i+1), &
-                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)), s)
+                poly = findCenterPolygonPrism(wlc_RP(:,i), wlc_RP(:,i+1), &
+                    wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)))
             endif
-            RGJK(1,i) = sum(poly(:,1))/s
-            RGJK(2,i) = sum(poly(:,2))/s
-            RGJK(3,i) = sum(poly(:,3))/s
+            RGJK(:,i) = poly
+            !if (WLC_P__NEIGHBOR_BINS) then
+            !    call removeBead(wlc_bin,wlc_R_GJK(:,i),i)
+            !    call addBead(wlc_bin,RGJK,WLC_P__NT-1,i)
+            !endif
         endif
     enddo
     collisions = -collisions
     ! check for neighbors on new beads
     do i = left+offset1, right+offset2
+        !nn = 0
         call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
     enddo
+    ! if (WLC_P__NEIGHBOR_BINS) then
+    !     ! add back in beads if move is rejected
+    !     do i = left,right
+    !         if (i > 1 .AND. i == left) then 
+    !             call removeBead(wlc_bin,RGJK(:,i-1),i-1)
+    !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i-1)
+    !         endif
+    !         if (i < WLC_P__NT) then 
+    !             call removeBead(wlc_bin,RGJK(:,i),i)
+    !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
+    !         endif
+    !     enddo
+    ! endif
 endif
 
 END subroutine MC_sterics
 
 ! sterics check subroutine to check for different types of collisions
+! currently have a blind spot in the linker DNA extruding from the nucleosome
 subroutine sterics_check(collisions,RALL,UALL,VALL,left,ii,nn,neighbors,distances)
 ! values from wlcsim_data
 use GJKAlgorithm, only: GJK, constructPolygonPrism
