@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 #from pymol import cmd
 
-if ('nicolepagane' not in os.getcwd()):
+if ('pagane' not in os.getcwd()):
     print('hi, sorry nicole is lazy and this is configured to run on her computer, for chromatin simulations, and for the code version after date jan ~28. if you want to run on your machine, you will need to change/comment out a few things in this script and movie.py.\nx0x0 np')
 
 if (len(sys.argv) <= 1):
@@ -62,16 +62,17 @@ def nucleosomeProp(Uin, Vin, Rin, linkBP, wrapBP):
 # inspired from https://www.slideshare.net/dvidby0/the-dna-double-helix
 def DNAhelix(bp, omega=defaultOmega, v=0.332): # distances=nm, angles=radians
     r = 1.0 
-    alpha = 1 
-    beta=2.4 
+    alpha = 0 
+    beta=2.4
     if (type(bp)==int or type(bp)==float):
         bp = np.asarray([bp])
-    strand1 = np.zeros(len(bp)*3).reshape([len(bp),3])
-    strand2 = np.zeros(len(bp)*3).reshape([len(bp),3])
-    strand1[:,0] = r*np.cos(omega*bp+alpha); strand2[:,0] = r*np.cos(omega*bp+beta)
-    strand1[:,1] = r*np.sin(omega*bp+alpha); strand2[:,1] = r*np.sin(omega*bp+beta)
-    z = v*bp; strand1[:,2] = z; strand2[:,2] = z
-    return strand1, strand2
+    phos1 = np.zeros(len(bp)*3).reshape([len(bp),3])
+    phos2 = np.zeros(len(bp)*3).reshape([len(bp),3])
+    base = np.zeros(len(bp)*3).reshape([len(bp),3])
+    phos1[:,0] = r*np.cos(omega*bp+alpha); phos2[:,0] = r*np.cos(omega*bp+beta); base[:,0] = 0
+    phos1[:,1] = r*np.sin(omega*bp+alpha); phos2[:,1] = r*np.sin(omega*bp+beta); base[:,1] = 0
+    z = v*bp; phos1[:,2] = z; phos2[:,2] = z; base[:,2] = z
+    return phos1, base, phos2
 
 def get_UV_angle(r1,r2,u1,u2):
     t = np.linspace(0,1,2)
@@ -86,6 +87,7 @@ def get_UV_angle(r1,r2,u1,u2):
 #define index range for coordinate files
 file_inds = range(0,timePts)
 os.system('rm -r %s/*' %output_folder)
+row = np.zeros(3*3).reshape([3,3])
 for ind in file_inds:
     #load file r
     r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel[ind]))
@@ -96,58 +98,80 @@ for ind in file_inds:
     dna = r2pdb.mkpdb(r, topology = topo)
     #save pdb file
     #r2pdb.save_pdb('%s/snap%0.3d.pdb' %(output_folder,ind),dna)
-    temp = np.sum(np.max(np.asarray([wrap,bps]),0))-1
+    temp = np.sum(np.max(np.asarray([wrap,bps]),0))-1+np.sum(bps[np.linspace(0,len(wrap)-1,len(wrap),dtype='int')[np.asarray(wrap!=1)]])
     bpRes = np.zeros(int(temp)*3*3).reshape([int(temp*3),3])
     indR = 0
+    offset = 0
     for i in range(len(r)):
         maxBp = bps[i]
+        if (i < len(r)-1 and wrap[i]==1):
+            omega = get_UV_angle(r[i,:], r[i+1,:], u[i,3:6], u[i+1,3:6])/maxBp
+            v = defaultOmega/omega*lengthPerBP
+            offset = offset + (np.pi-omega*maxBp) % np.pi
         if (wrap[i] != 1):
-            Uin = u[i,0:3]; Vin = u[i,3:6]
+            # add the nucleosome
+            Uin = u[i,0:3]; Vin = u[i,3:6]; Rin = r[i,:]
             for j in range(len(nucT)):
-                Rin = np.asarray(nucT.iloc[j,:])
                 row = np.zeros(3*3).reshape([3,3])
                 Uout, Vout, Rout = nucleosomeProp(Uin, Vin, Rin, 1, 1)
-                strand1, strand2 = DNAhelix(j,v=0)
-                mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-                strand1 = np.asarray(np.matmul(mat, strand1[0])[0])
-                strand2 = np.asarray(np.matmul(mat, strand2[0])[0])
-                Vin = Vout; Uin = Uout
+                strand1, base, strand2 = DNAhelix(j,v=0)
+                Vin = Vout; Uin = Uout; Rin = np.asarray(nucT.iloc[len(nucT)-1-j,:])
+                # mat for rotation to lab frame
+                mat = np.matrix([u[i,3:6], np.cross(u[i,0:3], u[i,3:6]), u[i,0:3]]).T
                 # strand 1 backbone
                 row[0,:] = r[i,:] + np.matmul(mat,Rin+strand1[0])
                 # strand 2 backbone
                 row[2,:] = r[i,:] + np.matmul(mat,Rin+strand2[0])
                 # base
-                row[1,:] = r[i,:] + np.matmul(mat,Rin+(strand1[0]+strand2[0])/2)
-                # plot
+                row[1,:] = r[i,:] + np.matmul(mat,Rin+base[0])
+                # save atoms
                 bpRes[indR:indR+3,:] = row
                 indR = indR + 3
-                #ax.plot3D(row[:,0], row[:,1], row[:,2], '--o', c=cmap[i],alpha=0.5)
+            # add the extruding linker from the nucleosome
+            Uout, Vout, Rout = nucleosomeProp(u[i,0:3], u[i,3:6], r[i,:], bps[i], wrap[i])
+            RnucEnd = Rout; Rin = Rout; Vin = Vout; Uin = Uout
+            for j in range(int(maxBp)):
+                row = np.zeros(3*3).reshape([3,3])
+                strand1, base, strand2 = DNAhelix(j,omega=0,v=v)
+                mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
+                strand1 = np.matmul(mat, strand1[0])
+                base = np.matmul(mat, base[0])
+                strand2 = np.matmul(mat, strand2[0])
+                Uout, Vout, Rout = nucleosomeProp(Uin, Vin, Rin, 1, 1)
+                Vin = Vout; Uin = Uout
+                # strand 1 backbone
+                row[0,:] = RnucEnd+strand1
+                # strand 2 backbone
+                row[2,:] = RnucEnd+strand2
+                # base
+                row[1,:] = RnucEnd+base
+                # save atoms
+                bpRes[indR:indR+3,:] = row
+                indR = indR + 3
+            offset = 0
         else:
-            if (i < len(r)-1):
-                omega = get_UV_angle(r[i,:], r[i+1,:], u[i,3:6], u[i+1,3:6])/maxBp
-                v = omega/defaultOmega*lengthPerBP
             Uin = u[i,0:3]; Vin = u[i,3:6]; Rin = r[i,:]
             for j in range(int(maxBp)):
                 row = np.zeros(3*3).reshape([3,3])
-                strand1, strand2 = DNAhelix(j,omega=omega,v=v)
+                strand1, base, strand2 = DNAhelix(float(j+offset),omega=0,v=v)
                 mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
                 strand1 = np.matmul(mat, strand1[0])
+                base = np.matmul(mat, base[0])
                 strand2 = np.matmul(mat, strand2[0])
                 Uout, Vout, Rout = nucleosomeProp(Uin, Vin, Rin, 1, 1)
-                Vin = Vout
+                Vin = Vout; Uin = Uout
                 # strand 1 backbone
                 row[0,:] = r[i,:]+strand1
                 # strand 2 backbone
                 row[2,:] = r[i,:]+strand2
                 # base
-                row[1,:] = r[i,:]+(strand1+strand2)/2
-                # plot
+                row[1,:] = r[i,:]+base
+                # save atoms
                 bpRes[indR:indR+3,:] = row
                 indR = indR + 3
-                #ax.plot3D(row[:,0], row[:,1], row[:,2], '--o', c='grey',alpha=0.75)
     dna = r2pdb.mkpdb(bpRes, topology = topo)
     r2pdb.save_pdb('%s/fine%0.3d.pdb' %(output_folder,ind),dna)
             
 # run pymol
-#os.system("~/Applications/pymol/pymol -r movie.py -- " + str(timePts) + " " + channelOG)
+os.system("~/Applications/pymol/pymol -r movieFine.py -- " + str(timePts))
 #os.system("/Applications/PyMOL.app/Contents/MacOS/MacPyMOL -r movie.py -- " + str(timePts) + " " + channelOG)

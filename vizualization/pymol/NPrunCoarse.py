@@ -37,8 +37,8 @@ for ind in file_inds:
     r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel[ind]))
     dna = r2pdb.mkpdb(r, topology = topo)
     #save pdb file
-    r2pdb.save_pdb('%s/snap%0.3d.pdb' %(output_folder,ind),dna)
+    r2pdb.save_pdb('%s/coarse%0.3d.pdb' %(output_folder,ind),dna)
 
 # run pymol
-os.system("~/Applications/pymol/pymol -r movie.py -- " + str(timePts) + " " + channelOG)
+os.system("~/Applications/pymol/pymol -r movieCoarse.py -- " + str(timePts) + " " + channelOG)
 #os.system("/Applications/PyMOL.app/Contents/MacOS/MacPyMOL -r movie.py -- " + str(timePts) + " " + channelOG)
