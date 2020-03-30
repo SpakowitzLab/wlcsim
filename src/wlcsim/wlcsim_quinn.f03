@@ -288,7 +288,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     do i = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
         wlc_ind_exchange=i
         !   * Perform a MC simulation *
-        call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
+        call MCsim(wlc_p)
 
         !   * Replica Exchange *
         call replicaExchange()
@@ -324,7 +324,7 @@ subroutine onlyNode(wlc_p)
         call VerifyEnergiesFromScratch(wlc_p)
     endif
     call cpu_time(start)
-    call MCsim(wlc_p,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
+    call MCsim(wlc_p)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode
