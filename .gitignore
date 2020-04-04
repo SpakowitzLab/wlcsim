@@ -12,7 +12,8 @@ tags
 .DS_Store
 *.mod
 vizualization/xyz/*
-vizualization/pdb/*
+vizualization/pymol/pdb/*
+analysis/data/*
 vizualization/pdb0/*
 vizualization/png/*
 par-run-dir
