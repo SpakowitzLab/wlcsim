@@ -6,18 +6,20 @@ import colorsys
 # this script is run automatically by NPrun.py and will need to be changed for someone else's use
 
 numFrames = int(argv[1])
-channel = sys.argv[2]
+channel = argv[2]
+pathPDB = argv[3]
+pathData = argv[4]
 if (channel == 'PT'):
-    nodes = np.loadtxt('../../data/nodeNumber')
+    nodes = np.loadtxt(pathData+'nodeNumber')
     nodes = np.vstack((np.linspace(0, np.shape(nodes)[1]-1, np.shape(nodes)[1]), nodes))
     channel = np.asarray(nodes[:,-1], 'int')
 else:
     channel = [channel]*numFrames
-input_folder = '../../data'
-side = 12
+input_folder = pathData
+side = 16
 incr = 2*np.pi/(side/2.0)
 
-for idx in range(0,numFrames): cmd.load("pdb/coarse%03d.pdb"%idx,"snap")
+for idx in range(0,numFrames): cmd.load(pathPDB+"coarse%03d.pdb"%idx,"snap")
 cmd.mset("1 -%d" % numFrames)
 cmd.color('gray80', 'snap')
 

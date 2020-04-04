@@ -326,22 +326,20 @@ MODULE GJKAlgorithm
         real(dp), dimension(3) :: pos, center
         real(dp), dimension(3) :: findCenterPolygonPrism
 
-        ! construct material rotation matrix
-        mtrx(:,1) = v
-        mtrx(:,2) = cross(u,v)
-        mtrx(:,3) = u
-
         ! determine if nucleosome or not
         if (wrap /= 1) then 
+            ! construct material rotation matrix
+            mtrx(:,1) = v
+            mtrx(:,2) = cross(u,v)
+            mtrx(:,3) = u
             center = [4.8455, -2.4445, 0.6694]
             pos = pos1
             ! find center of polygon
             findCenterPolygonPrism = pos + MATMUL(mtrx, center)
         else ! dna 
-            center = 0.0_dp
             pos = (pos2 + pos1) / 2.0
             ! find center of polygon
-            findCenterPolygonPrism = pos + MATMUL(mtrx, center)
+            findCenterPolygonPrism = pos
         endif 
 
     END FUNCTION findCenterPolygonPrism
