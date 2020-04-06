@@ -16,14 +16,15 @@ import pickle
 
 class Simulation:
     def __init__(self,path_to_data=defaultDirectory+'data/',trials=[''],trajectories=[''],
-                 time_min=0,time_max=110):
+                 time_min=0,time_max=110,channel=0):
         # path to data directory
         self.path_to_data = path_to_data
         # store Trials in dictionary
         self.trials = {}
         for trial in trials:
             self.trials[trial] = Trial(self.path_to_data+trial,
-                    time_min,time_max,trajectories)
+                    time_min,time_max,trajectories,channel=channel)
+            channel += 1
         # linearized snapshots for multiprocessing
         self.linearized_snapshots = []
     def returnTrials(self):
@@ -73,14 +74,14 @@ class Simulation:
             i.RICCbreak()
 
 class Trial:
-    def __init__(self,path_to_data,time_min,time_max,trajectories):
+    def __init__(self,path_to_data,time_min,time_max,trajectories,channel):
         # path to data directory
         self.path_to_data = path_to_data
         # channels
         if (trajectories==['']):
             self.channels = np.linspace(0,len(trajectories)-1,len(trajectories),dtype='int')
         else:
-            self.channels = [0]*len(trajectories)
+            self.channels = [channel]*len(trajectories)
         # store Trajectories in dictionary
         self.trajectories = {}
         for i,trajectory in enumerate(trajectories):
@@ -98,6 +99,9 @@ class Trajectory:
         self.PT = False
         # store Snapshots in dictionary
         self.snapshots = {}
+        # snapshots stats
+        self.end_to_end = []
+        self.energies = []
         # check for PT
         if os.path.exists(self.path_to_data+'nodeNumber'):
             nodes = np.loadtxt(self.path_to_data+'nodeNumber')
@@ -109,6 +113,15 @@ class Trajectory:
         # load snapshots in dictionary
         for i,time in enumerate(range(self.time_min,self.time_max)):
             self.snapshots[time] = Snapshot(self.path_to_data,time,self.channel[i])
+    def getEndToEnd(self):
+        for time in range(self.time_min,self.time_max):
+            self.end_to_end.append(self.snapshots[time].end_to_end)
+    def getEnergies(self):
+        for time in range(self.time_min,self.time_max):
+            self.energies.append(self.snapshots[time].energies)
+    def setEquilibrium(self,time):
+        for time in range(self.time_min,time):
+            self.snapshots.pop(time)
     def playFineMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo)
@@ -327,7 +340,7 @@ class Snapshot:
             self.interpolate()
         dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]), topology = topo)
         r2pdb.save_pdb('%s/fine%0.3d.pdb' %(path,self.time),dna)
-    def saveRICCbreak(self,path=defaultDirectory+'data'):
+    def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
         tempDict = {'strand1': [self.break_length_s1, self.break_location_s1],
                     'base': [self.break_length_b, self.break_location_b],
                     'strand2': [self.break_length_s2, self.break_location_s2]}
