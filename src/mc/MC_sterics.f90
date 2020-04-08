@@ -52,12 +52,12 @@ if (wlc_nPointsMoved>0) then
     VALL = wlc_V
     collisions = 0
     ! check for neighbors on old beads
-    do i = left+offset1, right+offset2
-        !nn = 0
-        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
-        ! check for collisions
-        call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
-    enddo
+    !do i = left+offset1, right+offset2
+    !    !nn = 0
+    !    call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
+    !    ! check for collisions
+    !    call sterics_check(collisions,RALL,UALL,VALL,left+offset1,i,nn,neighbors(1:nn),distances(1:nn))
+    !enddo
     ! replace old beads with new moved beads
     do i = left, right
         ! update real bead locations
@@ -117,6 +117,9 @@ END subroutine MC_sterics
 
 ! sterics check subroutine to check for different types of collisions
 ! currently have a blind spot in the linker DNA extruding from the nucleosome
+! could be optimized by quitting as soon as a collision is found rather than summing
+! up all collisions. leaving as is now in case we need to probabilsitcally accept
+! collisions to get out of unfavorable initial conditions
 subroutine sterics_check(collisions,RALL,UALL,VALL,left,ii,nn,neighbors,distances)
 ! values from wlcsim_data
 use GJKAlgorithm, only: GJK, constructPolygonPrism

@@ -8,7 +8,6 @@ import numpy as np
 lengthPerBP = 0.332
 defaultOmega = 34.3*np.pi/180
 defaultDirectory = str(pathlib.Path(__file__).parent.absolute()).split(__file__)[0]+'/../'
-
 # read in translation and rotation files
 nucleosomeTran = np.loadtxt(defaultDirectory+'input/nucleosomeT')
 nucleosomeRot = np.loadtxt(defaultDirectory+'input/nucleosomeR')

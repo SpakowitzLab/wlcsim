@@ -1,5 +1,5 @@
 #/usr/bin/python 
-# npagane | python object to store MC data and simple analysis
+# npagane | python object to store MC data with tools to perform simple analyses
 
 import sys
 import pathlib
@@ -24,6 +24,7 @@ class Simulation:
         for trial in trials:
             self.trials[trial] = Trial(self.path_to_data+trial,
                     time_min,time_max,trajectories,channel=channel)
+            print('read in ' + str(trial))
             channel += 1
         # linearized snapshots for multiprocessing
         self.linearized_snapshots = []
@@ -95,13 +96,14 @@ class Trajectory:
         self.path_to_data = path_to_data
         # set time range
         self.time_min = time_min
+        self.equilibrium_time = self.time_min
         self.time_max = time_max+1 # add plus one here for iteration
         self.PT = False
         # store Snapshots in dictionary
         self.snapshots = {}
         # snapshots stats
         self.end_to_end = []
-        self.energies = []
+        self.reduced_pair_nucs = []
         # check for PT
         if os.path.exists(self.path_to_data+'nodeNumber'):
             nodes = np.loadtxt(self.path_to_data+'nodeNumber')
@@ -113,15 +115,21 @@ class Trajectory:
         # load snapshots in dictionary
         for i,time in enumerate(range(self.time_min,self.time_max)):
             self.snapshots[time] = Snapshot(self.path_to_data,time,self.channel[i])
+    def setEquilibriumTime(self,time):
+        self.equilibrium_time = time
     def getEndToEnd(self):
-        for time in range(self.time_min,self.time_max):
+        for time in range(self.equilibrium_time,self.time_max):
             self.end_to_end.append(self.snapshots[time].end_to_end)
     def getEnergies(self):
-        for time in range(self.time_min,self.time_max):
-            self.energies.append(self.snapshots[time].energies)
-    def setEquilibrium(self,time):
-        for time in range(self.time_min,time):
-            self.snapshots.pop(time)
+        self.energies = self.snapshots[self.equilibrium_time].energies
+        for time in range(self.equilibrium_time+1,self.time_max):
+            self.energies = self.energies.append(self.snapshots[time].energies)
+    def getReducedPairwiseNucleosomeDistance(self):
+        for time in range(self.equilibrium_time,self.time_max):
+            self.snapshots[time].reducedPairwiseNucleosomeDistance()
+            self.reduced_pair_nucs.append(self.snapshots[time].reduced_pair_nucs)
+        nnuc = self.snapshots[time].n_nucs # assume all snapshots have the same number of nucleosomes
+        self.reduced_pair_nucs = np.asarray(self.reduced_pair_nucs).reshape([self.time_max-self.equilibrium_time,nnuc-1])
     def playFineMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo)
@@ -187,9 +195,9 @@ class Snapshot:
         # interpolation/ricc-seq stuff
         self.bps = None
         self.n_pair_bps = int(scipy.special.comb(self.n_nucs,2))
-        self.break_length_s1 = None; self.break_location_s1 = None
-        self.break_length_b = None; self.break_location_b = None
-        self.break_length_s2 = None; self.break_location_s2 = None
+        self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
+        self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
+        self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
     # determine center of beads from regular polygons
     def centerBeads(self,nside=12,type='regular'):
         if (type!='regular'):
@@ -211,15 +219,21 @@ class Snapshot:
             self.center_r[i,:] = poly
     # determine the pairwise distances between nucleosomes
     def pairwiseNucleosomeDistance(self):
-        if (self.center_r == None):
-            self.centerBeads()    
+        try :
+            if (self.center_r == None):
+                self.centerBeads()    
+        except:
+            print('warning: this has already been run')
         nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>1],dtype='int')
         self.pair_nucs = scipy.spatial.distance.pdist(self.center_r[nucLocs,:])
     # determine the reduced pairwise distances between nucleosomes
     # such that n+x where x -> 1..self.n_nucs-1
     def reducedPairwiseNucleosomeDistance(self):
-        if (self.pair_nucs == None):
-            self.pairwiseNucleosomeDistance()
+        try:
+            if (self.pair_nucs == None):
+                self.pairwiseNucleosomeDistance()
+        except:
+            print('warning: this has already been run')
         self.reduced_pair_nucs = np.zeros((self.n_nucs-1)).reshape([self.n_nucs-1])
         # sum up distances
         iterTemp = 0
@@ -306,8 +320,11 @@ class Snapshot:
                     self.bps[indR,:,:] = row
                     indR = indR + 1
     def RICCbreak(self,cutoff=3.5,noise=50.0): # units in nm or bp
-        if (self.bps == None):
-            self.interpolate()
+        try :
+            if (self.bps == None):
+                self.interpolate()
+        except:
+            print('warning: this has already been run')
         # figure out combinatorial correlated cleaves
         nPair = int(scipy.special.comb(self.n_bps,2))
         indPair = np.zeros(nPair*2).reshape([nPair,2])
@@ -329,17 +346,20 @@ class Snapshot:
         fragBreakB = indPair[indBreakB,1]-indPair[indBreakB,0]
         fragBreakS2 = indPair[indBreakS2,1]-indPair[indBreakS2,0]
         noiseIndS1 = fragBreakS1 >= noise; noiseIndB = fragBreakB >= noise; noiseIndS2 = fragBreakS2 >= noise
-        self.break_length_s1 = fragBreakS1[noiseIndS1]; self.break_location_s1 = pairS1[cutIndS1][noiseIndS1]
-        self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = pairB[cutIndB][noiseIndB]
-        self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = pairS2[cutIndS2][noiseIndS2]
+        self.break_length_s1 = fragBreakS1[noiseIndS1]; self.break_location_s1 = indPair[indBreakS1][noiseIndS1]; self.break_distance_s1 = pairS1[cutIndS1][noiseIndS1]
+        self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
+        self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
     def saveCoarseGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
         dna = r2pdb.mkpdb(self.r, topology = topo)
-        r2pdb.save_pdb('%s/coarse%0.3d.pdb' %(path,self.time),dna)
+        r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        if (self.bps == None):
-            self.interpolate()
+        try: 
+            if (self.bps == None):
+                self.interpolate()
+        except:
+            print('warning: this has already been run')
         dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]), topology = topo)
-        r2pdb.save_pdb('%s/fine%0.3d.pdb' %(path,self.time),dna)
+        r2pdb.save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
     def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
         tempDict = {'strand1': [self.break_length_s1, self.break_location_s1],
                     'base': [self.break_length_b, self.break_location_b],
