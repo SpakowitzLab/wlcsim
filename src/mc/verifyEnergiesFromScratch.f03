@@ -102,8 +102,8 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     endif
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
-
     if (WLC_P__NO_SELF_CROSSING) then
+
         call link_twist_writhe_from_scratch()
     endif
 
@@ -126,7 +126,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
         do i = 1,WLC_P__NT-1
             if (wlc_basepairs(i)==1) cycle
             do j = i+1,WLC_P__NT
-                if (wlc_basepairs(j)==1 .or. i==j) cycle
+                if (wlc_basepairs(j)==1) cycle
                 delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
                                                          wlc_U(:,i),wlc_U(:,j),&
                                                          wlc_V(:,i),wlc_V(:,j))

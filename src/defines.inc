@@ -69,7 +69,7 @@
 ! DEFAULTS COMMENT: ! read in methelation state
 ! TYPE: LOGICAL
 
-#define WLC_P__FRMFILE .TRUE.
+#define WLC_P__FRMFILE .FALSE.
 ! VARIABLE COMMENT: ! read initial condition R from file
 ! DEFAULTS COMMENT: ! don't load initial bead positions from file
 ! TYPE: LOGICAL
@@ -570,14 +570,14 @@
 ! TYPE: REAL(DP)
 
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 0.693_DP
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt 
-! DEFAULTS COMMENT: ! (0.693 is 50:50 chance of acceptance)
+! DEFAULTS COMMENT: ! hydrogen bond is 2-12 kt??
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_DISTANCE 0.2_DP
-! VARIABLE COMMENT: ! critical distance for nucleosome attraction 
-! DEFAULTS COMMENT: ! .2 nm hydrogen bond?? should look IDR tail dynamics to get radius
+#define WLC_P__INTERNUCLEOSOME_DISTANCE 2.5_DP
+! VARIABLE COMMENT: ! critical distance for nucleosome attraction (nm)
+! DEFAULTS COMMENT: ! should look at IDR tail dynamics to get gyration radius
 ! TYPE: REAL(DP)
 
 ! ----------------------------
