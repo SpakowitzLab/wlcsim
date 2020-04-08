@@ -20,7 +20,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
     , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
-    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK
+    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK, wlc_basepairs, wlc_nucleosomeWrap
     use energies
     use umbrella, only: umbrella_energy
 
@@ -29,6 +29,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     use updateRU, only: updateR
     use polydispersity, only: length_of_chain, chain_ID, leftmost_from
     use linkingNumber, only: getDelTw_Wr_Lk
+    use nucleosome, only: internucleosome_energy
 
     implicit none
     interface
@@ -82,6 +83,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) TwP        ! twist of the proposed configuration
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
+    real(dp) delInt     ! change in internucleosome attraction energy
 
 ! -------------------------------------
 !
@@ -139,6 +141,45 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                goto 10 ! skip move, return RP to nan
             endif
+          endif
+
+! internucleosome check here
+          if (WLC_P__INTERNUCLEOSOME_ON) then
+            delInt = 0
+            ! will only do internucleosome if sterics is on (probably)
+            do i = left,right
+                if (wlc_basepairs(i)==1) cycle
+                do j = 1,WLC_P__NT
+                    if (wlc_basepairs(j)==1 .or. (j>=left .and. j<=i)) cycle
+                    ! old config
+                    delInt = delInt - internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
+                                                             wlc_U(:,i),wlc_U(:,j),&
+                                                             wlc_V(:,i),wlc_V(:,j))
+                    ! new config
+                    if (i >= left .AND. i <= right) then 
+                        if (j >= left .AND. j <= right) then ! i in moved, j in moved
+                             delInt = delInt + internucleosome_energy(wlc_RP(:,i),wlc_RP(:,j),&
+                                                                      wlc_UP(:,i),wlc_UP(:,j),&
+                                                                      wlc_VP(:,i),wlc_VP(:,j))
+                        else ! i in moved, j not in moved
+                            delInt = delInt + internucleosome_energy(wlc_RP(:,i),wlc_R(:,j),&
+                                                                     wlc_UP(:,i),wlc_U(:,j),&
+                                                                     wlc_VP(:,i),wlc_V(:,j))
+                        endif
+                    else 
+                        if (j >= left .AND. j <= right) then ! i not in moved, j in moved
+                            delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_RP(:,j),&
+                                                                     wlc_U(:,i),wlc_UP(:,j),&
+                                                                     wlc_V(:,i),wlc_VP(:,j))
+                        else ! i not in moved, j not in moved
+                            delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
+                                                                     wlc_U(:,i),wlc_U(:,j),&
+                                                                     wlc_V(:,i),wlc_V(:,j))
+                        endif
+                    endif
+                enddo
+            enddo
+            energyOf(internucleosome_)%dx = delInt
           endif
     
           call check_RP_for_NAN(success,MCTYPE)

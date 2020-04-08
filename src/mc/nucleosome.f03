@@ -105,7 +105,7 @@ end function nucleosome_energy
 ! oscillator), need spring constant and preferred distance
 !
 !  ------------------------------------------------------
-function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ,tau)
+function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     use MC_wlc, only: E_SSWLCWT
     use vector_utils, only: cross
     use energies, only: energyOf, internucleosome_
@@ -115,27 +115,48 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ,tau)
     real(dp), intent(in), dimension(3) :: UJ ! U of nuc j
     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
-    real(dp), intent(in) :: tau ! 0 E distance of nuc i bottom and j top faces
+    real(dp), parameter :: tau = WLC_P__INTERNUCLEOSOME_DISTANCE 
     integer i, j
-    real(dp), parameter :: h = 5.5 ! nm height
     real(dp), dimension(3,3) :: mtrxI, mtrxJ
-    real(dp), dimension(3) :: faceI, faceJ
+    real(dp), dimension(3) :: faceI, faceItop, faceIbot 
+    real(dp), dimension(3) :: faceJ, faceJtop, faceJbot
+    real(dp) dist
     real(dp) :: internucleosome_energy
+
+    ! initialize energy
+    internucleosome_energy = 0
 
     ! construct matrices
     mtrxI(:,1) = VI
     mtrxI(:,2) = cross(UI,VI)
     mtrxI(:,3) = UI
-
     mtrxJ(:,1) = VJ
     mtrxJ(:,2) = cross(UJ,VJ)
     mtrxJ(:,3) = UJ
 
-    ! attract bottom of nuc i to top of nuc j
-    faceI = RI + MATMUL(mtrxI, (/0.0_dp, -h/2, 0.0_dp/))
-    faceJ = RJ + MATMUL(mtrxJ, (/0.0_dp, h/2, 0.0_dp/))
-    ! attraction energy
-    internucleosome_energy = 0.5_dp * energyOf(internucleosome_)%cof * (norm2(faceI-faceJ)-tau) ** 2
+    ! construct face I normal vector (pointing down)
+    faceItop = RI + MATMUL(mtrxI, (/0.0_dp, WLC_P__NUCLEOSOME_HEIGHT/2, 0.0_dp/))
+    faceIbot = RI + MATMUL(mtrxI, (/0.0_dp, -WLC_P__NUCLEOSOME_HEIGHT/2, 0.0_dp/))
+    faceI = faceIbot-faceItop
+
+    ! construct face I normal vector (pointing up)
+    faceJtop = RJ + MATMUL(mtrxJ, (/0.0_dp, WLC_P__NUCLEOSOME_HEIGHT/2, 0.0_dp/))
+    faceJbot = RJ + MATMUL(mtrxJ, (/0.0_dp, -WLC_P__NUCLEOSOME_HEIGHT/2, 0.0_dp/))
+    faceJ = faceJtop-faceJbot
+
+    ! attract bottom of nuc i to top of nuc j 
+    dist = dot_product(faceI/norm2(faceI),faceJ/norm2(faceJ))*norm2(faceIbot-faceJtop)
+    ! determine attraction energy
+    if (dist > 0 .and. dist < tau) then ! in the right direction in within critical distance
+        internucleosome_energy = internucleosome_energy - energyOf(internucleosome_)%cof
+    endif
+
+    ! attract top of nuc i to bottom of nuc j  
+    dist = dot_product(faceI/norm2(faceI),faceJ/norm2(faceJ))*norm2(faceItop-faceJbot)
+    ! determine attraction energy
+    if (dist > 0 .and. dist < tau) then ! in the right direction in within critical distance
+        internucleosome_energy = internucleosome_energy - energyOf(internucleosome_)%cof
+    endif
 
 end function internucleosome_energy
 

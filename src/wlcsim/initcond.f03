@@ -90,7 +90,7 @@ if (FRMFILE)then
        open (UNIT = 5, FILE = 'input/v0', STATUS = 'OLD')
        Do I = 1,NT
           READ(5,*) wlc_V(1,I),wlc_V(2,I),wlc_V(3,I)
-           wlc_V = wlc_V/norm2(wlc_V)
+           wlc_V(:,I) = wlc_V(:,I)/norm2(wlc_V(:,I))
        enddo
    endif
    CLOSE(5)

@@ -9,15 +9,16 @@ subroutine CalculateEnergiesFromScratch(wlc_p)
 use params, only: wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
     , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK, wlc_U, wlc_V
-use params, only: wlcsim_params, wlc_nucleosomeWrap
+use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     use umbrella, only: umbrella_energy_from_scratch
     use linkingNumber, only: link_twist_writhe_from_scratch
+    use nucleosome, only: internucleosome_energy
     use iso_fortran_env
     use energies
     ! if using binning, uncomment the next line
     !use binning, only: findNeighbors
     implicit none
-    integer IT1, IT2, I
+    integer IT1, IT2, I,j
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: wlc_p
     integer Delta !transh
@@ -26,6 +27,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
     integer neighbors(WLC_P__NT) ! ID of neighboring beads
     integer nn ! number of neighbors
     integer collisions
+    real(dp) delInt
 
     call set_all_dEnergy_to_zero()
 
@@ -117,6 +119,20 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap
         enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions
+    endif
+
+    if (WLC_P__INTERNUCLEOSOME_ON) then 
+        delInt = 0
+        do i = 1,WLC_P__NT-1
+            if (wlc_basepairs(i)==1) cycle
+            do j = i+1,WLC_P__NT
+                if (wlc_basepairs(j)==1 .or. i==j) cycle
+                delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
+                                                         wlc_U(:,i),wlc_U(:,j),&
+                                                         wlc_V(:,i),wlc_V(:,j))
+            enddo
+        enddo
+        energyOf(internucleosome_)%dx = delInt
     endif
 
     call apply_energy_isOn()

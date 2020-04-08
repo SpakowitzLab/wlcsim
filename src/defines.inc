@@ -69,7 +69,7 @@
 ! DEFAULTS COMMENT: ! read in methelation state
 ! TYPE: LOGICAL
 
-#define WLC_P__FRMFILE .FALSE.
+#define WLC_P__FRMFILE .TRUE.
 ! VARIABLE COMMENT: ! read initial condition R from file
 ! DEFAULTS COMMENT: ! don't load initial bead positions from file
 ! TYPE: LOGICAL
@@ -131,7 +131,7 @@
 
 #define WLC_P__GJK_POLYGON 16
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
-! DEFAULTS COMMENT: ! use hexagons for now (i.e. 2*8)
+! DEFAULTS COMMENT: ! use hexagons for now 
 ! TYPE: INTEGER
 
 #define WLC_P__NEIGHBOR_BINS .FALSE.
@@ -246,7 +246,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 53
+#define WLC_P__NB 118
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -338,12 +338,12 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 667.92_dp
+#define WLC_P__L 775.17_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 20.0_DP
+#define WLC_P__LL 45.0_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
@@ -564,9 +564,20 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME 1.0_DP
-! VARIABLE COMMENT: ! spring constant for internucleosomal attraction
-! DEFAULTS COMMENT: ! will eventually have to data fit over this parameter
+#define WLC_P__INTERNUCLEOSOME_ON .tRUE.
+! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
+! DEFAULTS COMMENT: ! 
+! TYPE: REAL(DP)
+
+
+#define WLC_P__INTERNUCLEOSOME_ENERGY 0.693_DP
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt 
+! DEFAULTS COMMENT: ! (0.693 is 50:50 chance of acceptance)
+! TYPE: REAL(DP)
+
+#define WLC_P__INTERNUCLEOSOME_DISTANCE 0.2_DP
+! VARIABLE COMMENT: ! critical distance for nucleosome attraction 
+! DEFAULTS COMMENT: ! .2 nm hydrogen bond?? should look IDR tail dynamics to get radius
 ! TYPE: REAL(DP)
 
 ! ----------------------------
@@ -575,7 +586,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 500
+#define WLC_P__STEPSPEREXCHANGE 250
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -585,7 +596,7 @@
 ! DEFAULTS COMMENT: ! make this large <e.g. 2000>, 10000 for big sim
 ! TYPE: INTEGER
 
-#define WLC_P__NUMSAVEPOINTS 150
+#define WLC_P__NUMSAVEPOINTS 110
 ! VARIABLE COMMENT: ! total number of save points
 ! DEFAULTS COMMENT: !
 ! TYPE: INTEGER
@@ -780,7 +791,7 @@
 ! TYPE: LOGICAL
 
 #define WLC_P__PT_INTERNUCLEOSOME .FALSE.
-! VARIABLE COMMENT: ! parallel temper steric collision penalty
+! VARIABLE COMMENT: ! parallel temper internucleosome attraction term
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
