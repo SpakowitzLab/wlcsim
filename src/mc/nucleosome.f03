@@ -116,14 +116,15 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
     real(dp), parameter :: tau = WLC_P__INTERNUCLEOSOME_DISTANCE 
-    integer i, j
+    real(dp), dimension(3), parameter :: center = [4.8455, -2.4445, 0.6694]
     real(dp), dimension(3,3) :: mtrxI, mtrxJ
     real(dp), dimension(3) :: faceI, faceItop, faceIbot 
     real(dp), dimension(3) :: faceJ, faceJtop, faceJbot
+    real(dp), dimension(3) :: dist
     real(dp) costheta
-    real(dp) :: internucleosome_energy
+    real(dp) internucleosome_energy
 
-    ! initialize energy
+    ! initialiaze
     internucleosome_energy = 0
 
     ! construct matrices
@@ -134,26 +135,46 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     mtrxJ(:,2) = cross(UJ,VJ)
     mtrxJ(:,3) = UJ
 
-    ! construct face I normal vector (pointing down)
-    faceItop = RI + MATMUL(mtrxI, (/0.0_dp,0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2/))
-    faceIbot = RI + MATMUL(mtrxI, (/0.0_dp,0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2/))
-    faceI = faceIbot-faceItop
+    ! construct face I normal vector (pointing up)
+    faceItop = RI + MATMUL(mtrxI, center+[0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
+    faceIbot = RI + MATMUL(mtrxI, center+[0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
+    faceI = faceItop-faceIbot
 
     ! construct face J normal vector (pointing up)
-    faceJtop = RJ + MATMUL(mtrxJ, (/0.0_dp,0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2/))
-    faceJbot = RJ + MATMUL(mtrxJ, (/0.0_dp,0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2/))
+    faceJtop = RJ + MATMUL(mtrxJ, center+[0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
+    faceJbot = RJ + MATMUL(mtrxJ, center+[0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
     faceJ = faceJtop-faceJbot
 
     costheta = dot_product(faceI/norm2(faceI),faceJ/norm2(faceJ))
 
-    ! attract bottom of nuc i to top of nuc j 
-    if (costheta > 0 .and. norm2(faceIbot-faceJtop) <= tau) then ! in the right direction in within critical distance
-        internucleosome_energy = internucleosome_energy - costheta*energyOf(internucleosome_)%cof
-    endif
-
-    ! attract top of nuc i to bottom of nuc j  
-    if (costheta > 0 .and. norm2(faceItop-faceJbot) <= tau) then ! in the right direction in within critical distance
-        internucleosome_energy = internucleosome_energy - costheta*energyOf(internucleosome_)%cof
+    if (costheta > 0) then ! nucleosomes oriented in same diretion (i.e. up+up, down+down)
+        if (norm2(faceIbot-faceJtop) <= tau) then ! attract bottom of nuc i to top of nuc j 
+            dist = faceIbot-faceJtop
+            costheta = dot_product(dist/norm2(dist),faceJ/norm2(faceJ))
+            if (costheta>0) then 
+                internucleosome_energy = -costheta
+            endif
+        else if (norm2(faceJbot-faceItop) <= tau) then ! attract top of nuc i to bottom of nuc j  
+            dist = faceJbot-faceItop
+            costheta = dot_product(dist/norm2(dist),faceI/norm2(faceI))
+            if (costheta>0) then 
+                internucleosome_energy = -costheta
+            endif
+        endif
+    else if (costheta < 0) then ! nucleosomes oriented in opposite diretion (i.e. up+down, down+up)
+        if (norm2(faceIbot-faceJbot) <= tau) then ! attract bottom of nuc i to bottom of nuc j
+            dist = faceIbot-faceJbot
+            costheta = dot_product(dist/norm2(dist),faceI/norm2(faceI))
+            if (costheta>0) then 
+                internucleosome_energy = -costheta
+            endif
+        else if (norm2(faceItop-faceJtop) <= tau) then ! attract top of nuc i to top of nuc j 
+            dist = faceItop-faceJtop
+            costheta = dot_product(dist/norm2(dist),faceJ/norm2(faceJ))
+            if (costheta>0) then 
+                internucleosome_energy = -costheta
+            endif
+        endif
     endif
 
 end function internucleosome_energy

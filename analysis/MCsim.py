@@ -25,7 +25,6 @@ class Simulation:
             self.trials[trial] = Trial(self.path_to_data+trial,
                     time_min,time_max,trajectories,channel=channel)
             print('read in ' + str(trial))
-            channel += 1
         # linearized snapshots for multiprocessing
         self.linearized_snapshots = []
     def returnTrials(self):

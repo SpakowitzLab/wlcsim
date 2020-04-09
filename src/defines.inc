@@ -569,15 +569,14 @@
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
 
-
-#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP
+#define WLC_P__INTERNUCLEOSOME_ENERGY 2.69_DP
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt 
-! DEFAULTS COMMENT: ! hydrogen bond is 2-12 kt??
+! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_DISTANCE 2.5_DP
-! VARIABLE COMMENT: ! critical distance for nucleosome attraction (nm)
-! DEFAULTS COMMENT: ! should look at IDR tail dynamics to get gyration radius
+#define WLC_P__INTERNUCLEOSOME_DISTANCE 3.0_DP
+! VARIABLE COMMENT: ! critical distance for nucleosome attraction (nm) [see above ref]
+! DEFAULTS COMMENT: ! maybe look at IDR tail dynamics to get gyration radius?
 ! TYPE: REAL(DP)
 
 ! ----------------------------

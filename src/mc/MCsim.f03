@@ -148,13 +148,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             delInt = 0
             ! will only do internucleosome if sterics is on (probably)
             do i = left,right
-                if (wlc_basepairs(i)==1) cycle
+                if (wlc_nucleosomeWrap(i)==1) cycle
                 do j = 1,WLC_P__NT
-                    if (wlc_basepairs(j)==1 .or. (j>=left .and. j<=i)) cycle
-                    ! old config
-                    delInt = delInt - internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
-                                                             wlc_U(:,i),wlc_U(:,j),&
-                                                             wlc_V(:,i),wlc_V(:,j))
+                    if (wlc_nucleosomeWrap(j)==1 .or. (j>=left .and. j<=i)) cycle
+                        ! old config
+                        delInt = delInt - internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
+                                                                 wlc_U(:,i),wlc_U(:,j),&
+                                                                 wlc_V(:,i),wlc_V(:,j))
                     ! new config
                     if (i >= left .AND. i <= right) then 
                         if (j >= left .AND. j <= right) then ! i in moved, j in moved

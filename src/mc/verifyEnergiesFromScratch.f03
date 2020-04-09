@@ -124,9 +124,9 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     if (WLC_P__INTERNUCLEOSOME_ON) then 
         delInt = 0
         do i = 1,WLC_P__NT-1
-            if (wlc_basepairs(i)==1) cycle
+            if (wlc_nucleosomeWrap(i)==1) cycle
             do j = i+1,WLC_P__NT
-                if (wlc_basepairs(j)==1) cycle
+                if (wlc_nucleosomeWrap(j)==1) cycle
                 delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
                                                          wlc_U(:,i),wlc_U(:,j),&
                                                          wlc_V(:,i),wlc_V(:,j))
