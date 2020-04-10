@@ -25,8 +25,9 @@ class Simulation:
             self.trials[trial] = Trial(self.path_to_data+trial,
                     time_min,time_max,trajectories,channel=channel)
             print('read in ' + str(trial))
-        # linearized snapshots for multiprocessing
-        self.linearized_snapshots = []
+        self.linearizeSnapshots()
+        # remove intermediary data structures if they do not exist
+        self.unnest()
     def returnTrials(self):
         return self.trials.keys()
     def returnTrajectories(self):
@@ -42,34 +43,42 @@ class Simulation:
                 tempDict[i][j] = self.trials[i].trajectories[j].snapshots.keys()
         return tempDict
     def linearizeSnapshots(self):
-        for i in self.trials.keys():
-            for j in self.trials[i].trajectories.keys():
-                for k in self.trials[i].trajectories[j].snapshots.keys():
+        self.linearized_snapshots = []
+        snapshots=self.returnSnapshots()
+        for i in snapshots.keys():
+            for j in snapshots[i]:
+                for k in snapshots[i][j]:
                     self.linearized_snapshots.append(self.trials[i].trajectories[j].snapshots[k])
+    def unnest(self):
+        trials=self.returnTrials()
+        trajectories=self.returnTrajectories()
+        snapshots=self.returnSnapshots()
+        if '' in trials and '' not in trajectories['']:
+            self.trajectories = {} 
+            for i in trajectories['']:
+                self.trajectories[i] = self.trials[''].trajectories[i]
+        elif '' in trials and '' in trajectories['']:
+            self.snapshots = {} 
+            for i in snapshots['']['']:
+                self.snapshots[i] = self.trials[''].trajectories[''].snapshots[i]
+        elif '' not in trials:
+            for i in trials:
+                if '' in trajectories[i]:
+                    self.trials[i] = self.trials[i].trajectories['']
     def getCenterBeads(self):
         #mulitprocessing does not work with class methods GRRR >:|
-        if (self.linearized_snapshots==None):
-            self.linearizeSnapshots()
         for i in self.linearized_snapshots:
             i.centerBeads()
     def getPairwiseNucleosomeDistance(self):
-        if (self.linearized_snapshots==None):
-            self.linearizeSnapshots()
         for i in self.linearized_snapshots:
             i.pairwiseNucleosomeDistance()
     def getReducedPairwiseNucleosomeDistance(self):
-        if (self.linearized_snapshots==None):
-            self.linearizeSnapshots()
         for i in self.linearized_snapshots:
             i.reducedPairwiseNucleosomeDistance()
     def getInterpolate(self):
-        if (self.linearized_snapshots==None):
-            self.linearizeSnapshots()
         for i in self.linearized_snapshots:
             i.interpolate()
     def getRICCbreak(self):
-        if (self.linearized_snapshots==None):
-            self.linearizeSnapshots()
         for i in self.linearized_snapshots:
             i.RICCbreak()
 
@@ -77,16 +86,24 @@ class Trial:
     def __init__(self,path_to_data,time_min,time_max,trajectories,channel):
         # path to data directory
         self.path_to_data = path_to_data
-        # channels
-        if (trajectories==['']):
-            self.channels = np.linspace(0,len(trajectories)-1,len(trajectories),dtype='int')
+        if trajectories != ['']:
+            self.channels = trajectories
         else:
             self.channels = [channel]*len(trajectories)
+        if type(time_max) != int:
+            self.time_maxs = time_max            
+        else:
+            self.time_maxs = [time_max]*len(trajectories)
+        if type(time_min) != int:
+            self.time_mins = time_min
+        else:
+            self.time_mins = [time_min]*len(trajectories)
+
         # store Trajectories in dictionary
         self.trajectories = {}
         for i,trajectory in enumerate(trajectories):
-            self.trajectories[trajectory] = Trajectory(self.path_to_data+trajectory,
-                    time_min,time_max,self.channels[i])
+            self.trajectories[trajectory] = Trajectory(self.path_to_data,
+                    self.time_mins[i],self.time_maxs[i],self.channels[i])
 
 class Trajectory:
     # constructor 
