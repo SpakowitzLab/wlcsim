@@ -12,6 +12,7 @@ import os
 import scipy
 import scipy.special 
 import scipy.spatial
+from scipy.ndimage import gaussian_filter
 import pickle
 
 class Simulation:
@@ -23,7 +24,7 @@ class Simulation:
         self.trials = {}
         for trial in trials:
             self.trials[trial] = Trial(self.path_to_data+trial,
-                    time_min,time_max,trajectories,channel=channel)
+                    time_min,time_max,trajectories,channel)
             print('read in ' + str(trial))
         self.linearizeSnapshots()
         # remove intermediary data structures if they do not exist
@@ -153,7 +154,7 @@ class Trajectory:
                     + str(self.time_max-self.time_min) + " " + path)
     def playCoarseMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
         for i,time in enumerate(range(self.time_min,self.time_max)):
-             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
+            self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
         if (self.PT):
             os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " PT " + path + " " + self.path_to_data)
@@ -194,12 +195,17 @@ class Snapshot:
                 if i == 0:
                     # get column specifiers
                     cols = line.strip().split()
-                elif i == self.time+1:
-                    # get time data
-                    energies = line.strip().split()
-                    break
+                else:
+                    temp = line.strip().split()
+                    if temp[0] == self.time:
+                        # get time data
+                        energies = line.strip().split()
+                        break
         cols = cols[4:]
-        energies = energies[2:]
+        try:
+            energies = energies[2:]
+        except:
+            energies = [np.nan]*len(cols)
         self.energies = pd.DataFrame([energies],columns=cols)
         # centered beads 
         self.center_r = None
@@ -265,76 +271,79 @@ class Snapshot:
         # rotate DNA strand into material frame
         offset = 0
         self.bps = np.zeros(int(self.n_bps)*3*3).reshape([int(self.n_bps),3,3])
-        indR = 0
-        for i in range(self.n_beads-1):
-            maxBp = self.basepairs[i]
-            if (i < self.n_beads-1 and self.wrap[i] == 1):
-                # find the rotational/height offset between beads
-                omega = getUVangle(self.r[i,:], self.r[i+1,:], self.v[i,:], self.v[i+1,:])/maxBp
-                v = defaultOmega/omega*lengthPerBP
-                offset = offset + (np.pi-omega*maxBp) % np.pi
-            if (self.wrap[i] > 1): # nucleosome
-                Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
-                # define mat for rotation to lab frame
-                mat = np.matrix([self.v[i,:], np.cross(self.u[i,:], self.v[i,:]), self.u[i,:]]).T
-                for j in range(len(nucleosomeTran)):
-                    row = np.zeros(3*3).reshape([3,3])
-                    Uout, Vout, Rout = rotateBead(Uin,Vin,Rin,1,1)
-                    omega = getUVangle(Rin, Rout, Vin, Vout)
-                    strand1, base, strand2 = DNAhelix(j,omega=omega,v=0)
-                    Vin = Vout; Uin = Uout; Rin = np.asarray(nucleosomeTran[len(nucleosomeTran)-1-j,:])
-                    # strand 1 backbone
-                    row[0,:] = self.r[i,:] + np.matmul(mat,Rin+strand1[0])
-                    # strand 2 backbone
-                    row[2,:] = self.r[i,:] + np.matmul(mat,Rin+strand2[0])
-                    # base
-                    row[1,:] = self.r[i,:] + np.matmul(mat,Rin+base[0])
-                    # save atoms
-                    self.bps[indR,:,:] = row
-                    indR = indR + 1
-                # add the extruding linker from the nucleosome
-                Uout, Vout, Rout = rotateBead(self.u[i,:],self.v[i,:],self.r[i,:],self.basepairs[i],self.wrap[i])
-                RnucEnd = Rout; Rin = Rout; Vin = Vout; Uin = Uout
-                for j in range(int(maxBp)):
-                    row = np.zeros(3*3).reshape([3,3])
-                    strand1, base, strand2 = DNAhelix(j,omega=0,v=v)
-                    mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-                    strand1 = np.matmul(mat, strand1[0])
-                    base = np.matmul(mat, base[0])
-                    strand2 = np.matmul(mat, strand2[0])
-                    Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
-                    Vin = Vout
-                    # strand 1 backbone
-                    row[0,:] = RnucEnd+strand1
-                    # strand 2 backbone
-                    row[2,:] = RnucEnd+strand2
-                    # base
-                    row[1,:] = RnucEnd+base
-                    # save atoms
-                    self.bps[indR,:,:] = row
-                    indR = indR + 1
-                # reset to 0 since nucleosome should have reset offset
+        indR = 0; indA = 0
+        for i in range(self.n_beads):
+            if self.basepairs[i] != 0:
+                maxBp = self.basepairs[i]
+                if ((i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i == 0) and self.wrap[i] == 1):
+                    # find the rotational/height offset between beads
+                    omega = getUVangle(self.r[i,:], self.r[i+1,:], self.v[i,:], self.v[i+1,:])/maxBp
+                    v = defaultOmega/omega*lengthPerBP
+                    offset = offset + (np.pi-omega*maxBp) % np.pi
+                if (self.wrap[i] > 1): # nucleosome
+                    Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
+                    # define mat for rotation to lab frame
+                    mat = np.matrix([self.v[i,:], np.cross(self.u[i,:], self.v[i,:]), self.u[i,:]]).T
+                    for j in range(len(nucleosomeTran)):
+                        row = np.zeros(3*3).reshape([3,3])
+                        Uout, Vout, Rout = rotateBead(Uin,Vin,Rin,1,1)
+                        omega = getUVangle(Rin, Rout, Vin, Vout)
+                        strand1, base, strand2 = DNAhelix(j,omega=omega,v=0)
+                        Vin = Vout; Uin = Uout; Rin = np.asarray(nucleosomeTran[len(nucleosomeTran)-1-j,:])
+                        # strand 1 backbone
+                        row[0,:] = self.r[i,:] + np.matmul(mat,Rin+strand1[0])
+                        # strand 2 backbone
+                        row[2,:] = self.r[i,:] + np.matmul(mat,Rin+strand2[0])
+                        # base
+                        row[1,:] = self.r[i,:] + np.matmul(mat,Rin+base[0])
+                        # save atoms
+                        self.bps[indR,:,:] = row
+                        indR = indR + 1
+                    # add the extruding linker from the nucleosome
+                    Uout, Vout, Rout = rotateBead(self.u[i,:],self.v[i,:],self.r[i,:],self.basepairs[i],self.wrap[i])
+                    RnucEnd = Rout; Rin = Rout; Vin = Vout; Uin = Uout
+                    for j in range(int(maxBp)):
+                        row = np.zeros(3*3).reshape([3,3])
+                        strand1, base, strand2 = DNAhelix(j,omega=0,v=v)
+                        mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
+                        strand1 = np.matmul(mat, strand1[0])
+                        base = np.matmul(mat, base[0])
+                        strand2 = np.matmul(mat, strand2[0])
+                        Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
+                        Vin = Vout
+                        # strand 1 backbone
+                        row[0,:] = RnucEnd+strand1
+                        # strand 2 backbone
+                        row[2,:] = RnucEnd+strand2
+                        # base
+                        row[1,:] = RnucEnd+base
+                        # save atoms
+                        self.bps[indR,:,:] = row
+                        indR = indR + 1
+                    # reset to 0 since nucleosome should have reset offset
+                    offset = 0
+                else: # dna bead
+                    Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
+                    for j in range(int(maxBp)):
+                        row = np.zeros(3*3).reshape([3,3])
+                        strand1, base, strand2 = DNAhelix(float(j+offset),omega=0,v=v)
+                        mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
+                        strand1 = np.matmul(mat, strand1[0])
+                        base =  np.matmul(mat, base[0])
+                        strand2 = np.matmul(mat, strand2[0])
+                        Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
+                        Vin = Vout
+                        # strand 1 backbone
+                        row[0,:] = self.r[i,:]+strand1
+                        # strand 2 backbone
+                        row[2,:] = self.r[i,:]+strand2
+                        # base
+                        row[1,:] = self.r[i,:]+base
+                        # save atoms
+                        self.bps[indR,:,:] = row
+                        indR = indR + 1
+            else:
                 offset = 0
-            else: # dna bead
-                Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
-                for j in range(int(maxBp)):
-                    row = np.zeros(3*3).reshape([3,3])
-                    strand1, base, strand2 = DNAhelix(float(j+offset),omega=0,v=v)
-                    mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-                    strand1 = np.matmul(mat, strand1[0])
-                    base =  np.matmul(mat, base[0])
-                    strand2 = np.matmul(mat, strand2[0])
-                    Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
-                    Vin = Vout
-                    # strand 1 backbone
-                    row[0,:] = self.r[i,:]+strand1
-                    # strand 2 backbone
-                    row[2,:] = self.r[i,:]+strand2
-                    # base
-                    row[1,:] = self.r[i,:]+base
-                    # save atoms
-                    self.bps[indR,:,:] = row
-                    indR = indR + 1
     def RICCbreak(self,cutoff=3.5,noise=50.0): # units in nm or bp
         try :
             if (self.bps == None):
@@ -366,7 +375,13 @@ class Snapshot:
         self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
         self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
     def saveCoarseGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        dna = r2pdb.mkpdb(self.r, topology = topo)
+        connect = []
+        for i in range(self.n_beads):
+            if (i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i==0):
+                connect.append((i,i+1))
+        chain = ['A' for i in range(self.n_beads)]
+        chain[int(self.n_beads/2):] = 'B'
+        dna = r2pdb.mkpdb(self.r,topology=topo,connect=connect,chain=chain)
         r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
         try: 
@@ -374,13 +389,36 @@ class Snapshot:
                 self.interpolate()
         except:
             print('warning: this has already been run')
-        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]), topology = topo)
+        chain = ['A' for i in range(3*self.n_bps)]
+        chain[int(3*self.n_bps/sum(self.basepairs==0)):] = 'B'
+        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)
         r2pdb.save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
     def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
+        self.RICCbreak()
         tempDict = {'strand1': [self.break_length_s1, self.break_location_s1],
                     'base': [self.break_length_b, self.break_location_b],
                     'strand2': [self.break_length_s2, self.break_location_s2]}
-        f = open('%s/ricc%0.3d.pkl' %(path,self.time),"wb")
+        f = open('%s/riccBreak%0.3d.pkl' %(path,self.time),"wb")
         pickle.dump(tempDict,f)
         f.close()
-
+    def RICCmatrix(self,blur=20,removeLow=True,init=0.5):
+        self.RICCbreak()
+        mat = init*np.ones(self.n_bps**2).reshape([self.n_bps,self.n_bps])
+        for iterN in range(len(self.break_location_s1)):
+            j = int(self.break_location_s1[iterN,0])
+            k = int(self.break_location_s1[iterN,1])
+            mat[j,k] += 1
+        for iterN in range(len(self.break_location_s2)):
+            j = int(self.break_location_s2[iterN,0])
+            k = int(self.break_location_s2[iterN,1])
+            mat[j,k] += 1
+        mat = gaussian_filter(mat, sigma=blur)
+        if (removeLow):
+            mat[mat < 1] = np.nan
+        return mat
+    def saveRICCmat(self,path=defaultDirectory+'analysis/data'):
+        mat = self.RICCmatrix(blur=0,removeLow=False,init=0)
+        with open('%s/riccMat%0.3d.txt' %(path,self.time), 'w') as f:
+            for i in range(np.shape(mat)[0]):
+                for j in range(np.shape(mat)[1]):
+                    f.write(str(i) + ' ' + str(j) + ' ' + str(mat[i,j])+ '\n')

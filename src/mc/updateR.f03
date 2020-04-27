@@ -10,6 +10,7 @@ use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP&
 use params, only:  dp
 use binning, only: removeBead, addBead
 use GJKAlgorithm, only: findCenterPolygonPrism
+use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 implicit none
 integer, intent(in) :: I
 integer, intent(in) :: left, right ! only relevant for GJK sterics + binning problems
@@ -55,13 +56,13 @@ if (WLC_P__NEIGHBOR_BINS) then
     elseif (WLC_P__CONFINETYPE == 'cube') then
         if (WLC_P__GJK_STERICS) then 
             ! add back in virtual beads i-1 and i for moved bead i
-            if (I > 1 .AND. I == left) then 
+            if (I > first_bead_of_chain(get_IP(I)) .AND. I == left) then 
                 poly = findCenterPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
                     wlc_U(:,I-1), wlc_V(:,I-1))
                 wlc_R_GJK(:,I-1) = poly
                 call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,I-1)
             endif
-            if (I < WLC_P__NT) then 
+            if (I < last_bead_of_chain(get_IP(I)) ) then 
                 if (I == right ) then 
                     poly = findCenterPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
                         wlc_U(:,I), wlc_V(:,I))
@@ -81,12 +82,12 @@ if (WLC_P__NEIGHBOR_BINS) then
     endif
 else if (WLC_P__GJK_STERICS) then 
     ! add back in virtual beads i-1 and i for moved bead i
-    if (I > 1 .AND. I == left) then 
+    if (I > first_bead_of_chain(get_IP(I)) .AND. I == left) then 
         poly = findCenterPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
             wlc_U(:,I-1), wlc_V(:,I-1))
         wlc_R_GJK(:,I-1) = poly
     endif
-    if (I < WLC_P__NT) then 
+    if (I < last_bead_of_chain(get_IP(I)) ) then 
         if (I == right ) then 
             poly = findCenterPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
                 wlc_U(:,I), wlc_V(:,I))

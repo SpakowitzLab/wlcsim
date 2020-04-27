@@ -31,46 +31,47 @@ for ind in file_inds:
     # load discretization data
     disc = np.loadtxt('%s/d%sv%s' %(input_folder,ind,channel[ind]))
     wrap = disc[0]; bps = disc[1]
-    for i in range(len(r)-1):
-        poly = np.zeros(side*3).reshape([side,3])
-        uin = np.asarray(u[i,0:3]); vin = np.asarray(u[i,3:6]); cross = np.cross(uin, vin)
-        mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
-        if (wrap[i]>1):
-            space = 0
-            height = 5.5
-            radius = 5.2
-            center = np.asarray([4.8455, -2.4445, 0.6694])
-            for j in range(int(side/2.0)):
-                # rotate into material frame 
-                vec = np.asarray([radius*np.cos(space), -height/2.0, radius*np.sin(space)])
-                poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
-                space = space + incr
-            space = 0
-            for j in range(int(side/2.0),side):
-                # rotate into material frame 
-                vec = np.asarray([radius*np.cos(space), height/2.0, radius*np.sin(space)])
-                poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
-                space = space + incr
-        else:
-            space = 2*np.pi/side
-            height = np.sqrt(np.dot(r[i+1,:]-r[i,:], r[i+1,:]-r[i,:]))
-            radius = 1.0
-            center = np.zeros(3)
-            for j in range(int(side/2.0)):
-                # rotate into material frame 
-                vec = np.asarray([radius*np.sin(space), radius*np.cos(space), -height/2.0])
-                poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
-                space = space + incr
-            space = 2*np.pi/side
-            for j in range(int(side/2.0),side):
-                # rotate into material frame 
-                vec = np.asarray([radius*np.sin(space), radius*np.cos(space), height/2.0])
-                poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
-                space = space + incr
-        # make cylinders
-        x1,y1,z1 = np.mean(poly[:int(side/2),0]), np.mean(poly[:int(side/2),1]), np.mean(poly[:int(side/2),2])
-        (re, g, b) = colorsys.hsv_to_rgb(float(i)/(len(r)-1), 1.0, 1.0)
-        x2,y2,z2 = np.mean(poly[int(side/2):,0]), np.mean(poly[int(side/2):,1]), np.mean(poly[int(side/2):,2])
-        cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1))
+    for i in range(len(r)):
+        if bps[i] != 0:
+            poly = np.zeros(side*3).reshape([side,3])
+            uin = np.asarray(u[i,0:3]); vin = np.asarray(u[i,3:6]); cross = np.cross(uin, vin)
+            mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
+            if (wrap[i]>1):
+                space = 0
+                height = 5.5
+                radius = 5.2
+                center = np.asarray([4.8455, -2.4445, 0.6694])
+                for j in range(int(side/2.0)):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.cos(space), -height/2.0, radius*np.sin(space)])
+                    poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
+                    space = space + incr
+                space = 0
+                for j in range(int(side/2.0),side):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.cos(space), height/2.0, radius*np.sin(space)])
+                    poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
+                    space = space + incr
+            else:
+                space = 2*np.pi/side
+                height = np.sqrt(np.dot(r[i+1,:]-r[i,:], r[i+1,:]-r[i,:]))
+                radius = 1.0
+                center = np.zeros(3)
+                for j in range(int(side/2.0)):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.sin(space), radius*np.cos(space), -height/2.0])
+                    poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
+                    space = space + incr
+                space = 2*np.pi/side
+                for j in range(int(side/2.0),side):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.sin(space), radius*np.cos(space), height/2.0])
+                    poly[j,:] = (r[i,:]+r[i+1,:])/2.0 + np.matmul(mat, center+vec)
+                    space = space + incr
+            # make cylinders
+            x1,y1,z1 = np.mean(poly[:int(side/2),0]), np.mean(poly[:int(side/2),1]), np.mean(poly[:int(side/2),2])
+            (re, g, b) = colorsys.hsv_to_rgb(float(i)/(len(r)-1), 1.0, 1.0)
+            x2,y2,z2 = np.mean(poly[int(side/2):,0]), np.mean(poly[int(side/2):,1]), np.mean(poly[int(side/2):,2])
+            cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1))
 cmd.mplay()
 cmd.orient('snap')

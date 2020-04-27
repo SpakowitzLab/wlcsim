@@ -261,7 +261,7 @@
 ! DEFAULTS COMMENT: Each bead is a nucleosome
 ! TYPE: INTEGER
 
-#define WLC_P__NP 1
+#define WLC_P__NP 2
 ! VARIABLE COMMENT: ! Number of polymers
 ! DEFAULTS COMMENT: ! sigle chromosome
 ! TYPE: INTEGER
@@ -564,7 +564,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .tRUE.
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
@@ -706,7 +706,7 @@
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 1
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 25
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! nucleosome slide <default ?>
 ! TYPE: INTEGER
@@ -1154,6 +1154,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
@@ -1210,6 +1215,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)

@@ -190,6 +190,9 @@ module params
     !   nucleosomes
     integer, allocatable, dimension(:) :: wlc_basepairs
     integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
+    integer, allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
+    integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for breathing
+
 
     ! Linking number, Twist, and Writhe (only for one-chain simulation)
     ! These values are updated in MCsim, checked against and update to their values
@@ -280,7 +283,7 @@ contains
         wlc_p%MINAMP(10) = WLC_P__MINAMP_REPTATION
         wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
         wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
-        wlc_p%MINAMP(13) = NAN
+        wlc_p%MINAMP(13) = WLC_P__MINAMP_NUCLEOSOME_SLIDE
         wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
         wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
         wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -293,7 +296,7 @@ contains
         wlc_p%MAXAMP(10) = WLC_P__MAXAMP_REPTATION
         wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
         wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
-        wlc_p%MAXAMP(13) = NAN
+        wlc_p%MAXAMP(13) = WLC_P__MAXAMP_NUCLEOSOME_SLIDE
         wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
         wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
         wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -516,6 +519,7 @@ contains
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
         use GJKAlgorithm, only: findCenterPolygonPrism
+        use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 #if MPI_VERSION
         use mpi
 #endif
@@ -526,7 +530,7 @@ contains
         character(5) zonedum  ! trash
         integer seedvalues(8) ! clock readings
         integer NBin ! total number of bins
-        integer i, ii
+        integer i, j, ii
         integer irand
 #if MPI_VERSION
         integer ( kind = 4 ) dest   !destination id for messages
@@ -552,7 +556,7 @@ contains
             allocate(wlc_R_period(3,WLC_P__NT))
         endif
         if (WLC_P__GJK_STERICS) then
-            allocate(wlc_R_GJK(3,WLC_P__NT-1))
+            allocate(wlc_R_GJK(3,WLC_P__NT))
         endif
         allocate(wlc_U(3,WLC_P__NT))
         if (WLC_P__LOCAL_TWIST) then
@@ -611,6 +615,9 @@ contains
         if (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
             allocate(wlc_basepairs(WLC_P__NT))
             allocate(wlc_nucleosomeWrap(WLC_P__NT))
+            if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then
+                allocate(wlc_basepairs_prop(WLC_P__NT))
+            endif
         endif
         if (WLC_P__EXPLICIT_BINDING) then
             if (WLC_P__NETWORK) then
@@ -815,11 +822,14 @@ contains
                 elseif (WLC_P__CONFINETYPE == 'cube') then
                     if (WLC_P__GJK_STERICS) then 
                         ! NP add center of segments as beads
-                        if (i < WLC_P__NT) then 
+                        if (i < last_bead_of_chain(get_IP(i))) then 
                             poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
                                 wlc_U(:,i), wlc_V(:,i))
                             wlc_R_GJK(:,i) = poly
-                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
+                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
+                        else
+                            wlc_R_GJK(:,i) = nan
+                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
                         endif
                     else
                         print*, "Not an option yet. See params"
@@ -830,10 +840,14 @@ contains
                 endif
             enddo
         else if (WLC_P__GJK_STERICS) then ! set up GJK vecotor
-            do i=1,WLC_P__NT-1
-                poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                    wlc_U(:,i), wlc_V(:,i))
-                wlc_R_GJK(:,i) = poly
+            do i=1,WLC_P__NT
+                if (i < last_bead_of_chain(get_IP(i))) then 
+                    poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                        wlc_U(:,i), wlc_V(:,i))
+                    wlc_R_GJK(:,i) = poly
+                else
+                    wlc_R_GJK(:,i) = nan
+                endif
             enddo
         endif
 
@@ -945,6 +959,7 @@ contains
         wlc_MCAMP(8) = nan
         wlc_MCAMP(9) = nan
         wlc_MCAMP(10) = nan
+        wlc_MCAMP(13) = nan
 
         ! if we're not using field interactions
         ! energies, then this should never be on

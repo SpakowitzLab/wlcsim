@@ -261,6 +261,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, runtimeTest5, runtimeTest6, &
                             noIntersectY, intersectY, tangentY, runtimeTest1, runtimeTest3, &
                             noIntersectZ, intersectZ, tangentZ, runtimeTest2, runtimeTest4
+    use polydispersity, only: first_bead_of_chain, last_bead_of_chain
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
     integer, intent(out) :: wlc_basepairs(WLC_P__NT)
@@ -268,17 +269,13 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     integer, parameter :: nNucs = nint((L_in_bp-WLC_P__LL)/(147+WLC_P__LL)) ! assuming all octasomes
     real(dp) discretization, num_link_beads
     real(dp) discretization_overhang, num_link_beads_overhang
-    integer iter, off_discretization, off_discretization_overhang
+    integer iter, i, off_discretization, off_discretization_overhang
 
     ! choose nucleosome spacing
     print*, WLC_P__L0
     print*, nNucs, WLC_P__NB, WLC_P__LL
     if (WLC_P__INCLUDE_NUC_TRANS) then
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
-            if (WLC_P__NT /= WLC_P__NB) then
-                print*, "oops havent set up for multipolymer sims yet"
-                stop
-            endif
             ! figure out main discretization scheme
             discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
             call discretizationScheme(discretization, discretization, num_link_beads, &
@@ -290,31 +287,32 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
             ! print for sanity check
             print*, discretization, num_link_beads, off_discretization
             print*, discretization_overhang, num_link_beads_overhang, off_discretization_overhang
-            ! set first overhang
-            iter = 1
-            wlc_basepairs(iter) = off_discretization_overhang
-            wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
-            iter = iter + 1
-            wlc_basepairs(iter:iter+num_link_beads_overhang-2) = discretization_overhang  
-            ! set middle beads
-            iter = iter + num_link_beads_overhang - 1
-            do while (iter <= WLC_P__NT-num_link_beads_overhang)
-                wlc_nucleosomeWrap(iter) = 147
-                wlc_basepairs(iter) = off_discretization
+            do i = 1, WLC_P__NP
+                ! set first overhang
+                iter = first_bead_of_chain(i)
+                wlc_basepairs(iter) = off_discretization_overhang
+                wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
                 iter = iter + 1
-                if (iter + num_link_beads - 2 <= WLC_P__NT - num_link_beads) then
-                    wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
-                    wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
-                    iter = iter + num_link_beads - 1
-                endif
+                wlc_basepairs(iter:iter+num_link_beads_overhang-2) = discretization_overhang  
+                ! set middle beads
+                iter = iter + num_link_beads_overhang - 1
+                do while (iter <= last_bead_of_chain(i)-num_link_beads_overhang)
+                    wlc_nucleosomeWrap(iter) = 147
+                    wlc_basepairs(iter) = off_discretization
+                    iter = iter + 1
+                    if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
+                        wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
+                        wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
+                        iter = iter + num_link_beads - 1
+                    endif
+                enddo
+                ! set last overhang
+                wlc_basepairs(iter-1) = off_discretization_overhang
+                wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
+                wlc_basepairs(iter:iter+num_link_beads_overhang-1) = discretization_overhang
+                ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
+                wlc_basepairs(last_bead_of_chain(i)) = 0
             enddo
-            ! set last overhang
-            wlc_basepairs(iter-1) = off_discretization_overhang
-            wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
-            wlc_basepairs(iter:iter+num_link_beads_overhang-1) = discretization_overhang
-            ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
-            wlc_basepairs(WLC_P__NT) = 0
-
             ! testing sterics here !
             if(WLC_P__GJK_STERICS) then
             do iter = 1, 10000 ! check to make sure GJK is not stochastic
@@ -342,6 +340,8 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         wlc_nucleosomeWrap = 147
         wlc_basepairs = WLC_P__LL
     endif
+    print*, wlc_basepairs
+    print*, wlc_nucleosomeWrap
 
 end subroutine
 

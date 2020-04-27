@@ -20,7 +20,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
     , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
-    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK, wlc_basepairs, wlc_nucleosomeWrap
+    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK, wlc_nucleosomeWrap, &
+    wlc_basepairs, wlc_basepairs_prop
     use energies
     use umbrella, only: umbrella_energy
 
@@ -129,15 +130,20 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               endif
           endif
 
+! set wlc_basepairs to prop if not slide move
+        if (MCTYPE/=13) then 
+            wlc_basepairs_prop = wlc_basepairs
+        endif
 
 ! sterics check here !
+          left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
+          right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
           if(WLC_P__GJK_STERICS) then
-            left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
-            right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
             call MC_sterics(collisions,left,right)
             ! ascribe collision penalty
             !energyOf(sterics_)%dx = collisions 
             if (collisions > 0) then 
+               ! print*, MCTYPE, collisions
                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                goto 10 ! skip move, return RP to nan
             endif
@@ -213,6 +219,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p)
+              !if (MCTYPE==13) then 
+              ! print*, 'new'
+              ! print*, energyOf(bend_)%dx
+              ! print*, energyOf(stretch_)%dx
+              ! print*, energyOf(shear_)%dx
+              ! print*, energyOf(twist_)%dx
+              !endif
               if (WLC_P__RING.AND.WLC_P__TWIST) then
                   print*, "Change this to new global twist energy!!!"
                   stop
@@ -322,6 +335,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                       wlc_AB(I) = wlc_ABP(I)
                  ENDdo
              endif
+             if (MCTYPE==13) then 
+                wlc_basepairs = wlc_basepairs_prop
+            endif
              if(MCTYPE /= 7) then
                 if (WLC_P__GJK_STERICS) then 
                     do I = left, right
