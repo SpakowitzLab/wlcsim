@@ -246,7 +246,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 118
+#define WLC_P__NB 53
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -564,17 +564,16 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 2.69_DP
-! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt 
+#define WLC_P__INTERNUCLEOSOME_ENERGY 7.2361_DP
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt (squared)
 ! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_DISTANCE 3.0_DP
 ! VARIABLE COMMENT: ! critical distance for nucleosome attraction (nm) [see above ref]
 ! DEFAULTS COMMENT: ! maybe look at IDR tail dynamics to get gyration radius?
 ! TYPE: REAL(DP)
@@ -585,7 +584,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 250
+#define WLC_P__STEPSPEREXCHANGE 300
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -910,7 +909,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER
