@@ -188,9 +188,9 @@ module params
     real(dp) wlc_time
 
     !   nucleosomes
-    integer, allocatable, dimension(:) :: wlc_basepairs
+    real(dp), allocatable, dimension(:) :: wlc_basepairs
     integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
-    integer, allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
+    real(dp), allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
     integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for breathing
 
 
@@ -1312,14 +1312,16 @@ contains
     ! Saves U to ASCII file for analisys
         !use nucleosome, only: wlc_nucleosomeWrap, wlc_basepairs
         implicit none
-        integer I,J,IB  ! counters
+        integer ii ! counters
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
         character(len = *), intent(in) :: stat
         fullName=  trim(fileName) // trim(wlc_repSuffix)
         open (unit = outFileUnit, file = fullName, status = stat)
         write(outFileUnit,*) wlc_nucleosomeWrap
-        write(outFileUnit,*) wlc_basepairs
+        do ii = 1,WLC_P__NT
+            call print_11char_float(outFileUnit,wlc_basepairs(ii))
+        enddo
         close(outFileUnit)
     end subroutine
 

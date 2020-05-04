@@ -143,7 +143,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             ! ascribe collision penalty
             !energyOf(sterics_)%dx = collisions 
             if (collisions > 0) then 
-               ! print*, MCTYPE, collisions
                wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                goto 10 ! skip move, return RP to nan
             endif
@@ -219,13 +218,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p)
-              !if (MCTYPE==13) then 
-              ! print*, 'new'
-              ! print*, energyOf(bend_)%dx
-              ! print*, energyOf(stretch_)%dx
-              ! print*, energyOf(shear_)%dx
-              ! print*, energyOf(twist_)%dx
-              !endif
+            !   if (MCTYPE==13) then 
+            !   print*, 'new'
+            !   print*, energyOf(bend_)%dx
+            !   print*, energyOf(stretch_)%dx
+            !   print*, energyOf(shear_)%dx
+            !   print*, energyOf(twist_)%dx
+            !   endif
               if (WLC_P__RING.AND.WLC_P__TWIST) then
                   print*, "Change this to new global twist energy!!!"
                   stop
@@ -336,6 +335,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                  ENDdo
              endif
              if (MCTYPE==13) then 
+                !print*, 'MOVE', wlc_basepairs_prop(left:right)
+                !stop
                 wlc_basepairs = wlc_basepairs_prop
             endif
              if(MCTYPE /= 7) then

@@ -2,6 +2,9 @@ from pymol import cmd
 from sys import argv
 import numpy as np
 import colorsys
+import sys
+sys.path.append('../../analysis/')
+from analysis.utility import *
 
 # this script is run automatically by NPrun.py and will need to be changed for someone else's use
 
@@ -51,6 +54,29 @@ for ind in file_inds:
                     # rotate into material frame 
                     vec = np.asarray([radius*np.cos(space), height/2.0, radius*np.sin(space)])
                     poly[j,:] = r[i,:] + np.matmul(mat, center+vec)
+                    space = space + incr
+                # make cylinders
+                x1,y1,z1 = np.mean(poly[:int(side/2),0]), np.mean(poly[:int(side/2),1]), np.mean(poly[:int(side/2),2])
+                (re, g, b) = colorsys.hsv_to_rgb(float(i)/(len(r)-1), 1.0, 1.0)
+                x2,y2,z2 = np.mean(poly[int(side/2):,0]), np.mean(poly[int(side/2):,1]), np.mean(poly[int(side/2):,2])
+                cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1)+'nuc')
+                # add extruding linker
+                space = 2*np.pi/side
+                tempU, tempV, tempR = rotateBead(uin,vin,r[i,:],int(bps[i]),int(wrap[i]))
+                height = np.sqrt(np.dot(r[i+1,:]-tempR, r[i+1,:]-tempR))
+                radius = 1.0
+                center = np.zeros(3)
+                tempMat = np.matrix([tempV, np.cross(tempU, tempV), tempU]).reshape([3,3]).T
+                for j in range(int(side/2.0)):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.sin(space), radius*np.cos(space), -height/2.0])
+                    poly[j,:] = (tempR+r[i+1,:])/2.0 + np.matmul(tempMat, center+vec)
+                    space = space + incr
+                space = 2*np.pi/side
+                for j in range(int(side/2.0),side):
+                    # rotate into material frame 
+                    vec = np.asarray([radius*np.sin(space), radius*np.cos(space), height/2.0])
+                    poly[j,:] = (tempR+r[i+1,:])/2.0 + np.matmul(tempMat, center+vec)
                     space = space + incr
             else:
                 space = 2*np.pi/side

@@ -136,7 +136,7 @@ integer, intent(inout) :: collisions
 real(dp), intent(in) :: RALL(3,WLC_P__NT) ! all bead R
 real(dp), intent(in) :: UALL(3,WLC_P__NT) ! all bead U
 real(dp), intent(in) :: VALL(3,WLC_P__NT) ! all bead V
-integer, intent(in) :: basepairs(WLC_P__NT) ! basepair discretization
+real(dp), intent(in) :: basepairs(WLC_P__NT) ! basepair discretization
 integer, intent(in) :: left ! leftmost check bead
 integer, intent(in) :: ii ! index of moved bead
 integer, intent(in) :: nn ! number of neighbors
@@ -214,8 +214,8 @@ do jj = 1, nn
     else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
         distances(jj) < (2*basepairs(jj)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
         ! ignore 10bp nearest nuc
-        if ( (neighbors(jj) < ii .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) .OR. &
-            (neighbors(jj) > ii .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) ) then 
+        if ( (neighbors(jj) < ii-1 .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) .OR. &
+            (neighbors(jj)-1 > ii .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) ) then 
             ! check for collision of nucleosome i with DNA j,
             ! and for collision of exit DNA i with DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS
@@ -230,8 +230,8 @@ do jj = 1, nn
     else if ( (iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
         distances(jj) < (2*basepairs(jj)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
         ! ignore 10bp nearest nuc
-        if ( (ii < neighbors(jj) .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
-                (ii > neighbors(jj) .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) ) then 
+        if ( (ii < neighbors(jj)-1 .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
+                (ii-1 > neighbors(jj) .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) ) then 
             ! check for collision of DNA i with nucleosome j,
             ! and for collision DNA i with exit DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS

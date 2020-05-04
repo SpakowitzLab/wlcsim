@@ -33,7 +33,7 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     real(dp), intent(in), dimension(3) :: Uin
     real(dp), intent(in), dimension(3) :: Vin
     real(dp), intent(in), dimension(3) :: Rin
-    integer, intent(in) :: linkBP
+    real(dp), intent(in) :: linkBP
     integer, intent(in) :: wrapBP
     real(dp), intent(out), dimension(3) :: Uout
     real(dp), intent(out), dimension(3) :: Vout
@@ -79,9 +79,11 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
     real(dp), intent(in), dimension(3) :: UP1 ! U of bead i+1
     real(dp), intent(in), dimension(3) :: V ! V of bead i
     real(dp), intent(in), dimension(3) :: VP1 ! V of bead i+1
-    integer, intent(in) :: linkBP
+    real(dp), intent(in) :: linkBP
     integer, intent(in) :: wrapBP
     real(dp) nucleosome_energy(4)
+    real(dp) EB, EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype
+
 
     real(dp) Rtemp(3)
     real(dp) Utemp(3)
@@ -90,13 +92,16 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
 
     call nucleosomeProp(U,V,R,linkBP,wrapBP,Utemp,Vtemp,Rtemp)
 
+    !  need to interpolate between basepairs if fractional
+    call get_params(linkBP,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
+
     nucleosome_energy =  E_SSWLCWT(RP1,Rtemp,UP1,Utemp,VP1,Vtemp, &
-                   multiParams(1,linkBP),&   ! EB
-                   multiParams(2,linkBP),&   ! EPAR
-                   multiParams(3,linkBP),&   ! EPERP
-                   multiParams(5,linkBP),&   ! ETA
-                   multiParams(4,linkBP),&   ! GAM
-                   multiParams(9,linkBP))   ! etwist
+                   EB,&!multiParams(1,linkBP),&   ! EB
+                   EPAR,&!multiParams(2,linkBP),&   ! EPAR
+                   EPERP,&!multiParams(3,linkBP),&   ! EPERP
+                   ETA,&!multiParams(5,linkBP),&   ! ETA
+                   GAM,&!multiParams(4,linkBP),&   ! GAM
+                   ETWIST)!multiParams(9,linkBP))   ! etwist
 end function nucleosome_energy
 
 !  ------------------------------------------------------
@@ -184,19 +189,27 @@ end function internucleosome_energy
 ! ---------------------------------------------------------------------
 subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
     implicit none
-    integer, intent(in) :: i
+    real(dp), intent(in) :: i
     real(dp), intent(out) :: EB, EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype
+    integer indUp, indDown
+    real(dp) ratio, offratio
 
-        EB     = multiParams(1,i)
-        EPAR   = multiParams(2,i)
-        EPERP  = multiParams(3,i)
-        GAM    = multiParams(4,i)
-        ETA    = multiParams(5,i)
-        XIR    = multiParams(6,i)
-        XIU    = multiParams(7,i)
-        sigma  = multiParams(8,i)
-        etwist = multiParams(9,i)
-        simtype = int(multiParams(10,i)+0.1_dp) ! the +0.1 is to prevent round down due to lack of precision
+        ! interpolate between points
+        indDown = floor(i)
+        indUp = ceiling(i)
+        ratio = i/indUp
+        offratio = 1-ratio
+
+        EB     = ratio*multiParams(1,indUp) + offratio*multiParams(1,indDown)
+        EPAR   = ratio*multiParams(2,indUp) + offratio*multiParams(2,indDown)
+        EPERP  = ratio*multiParams(3,indUp) + offratio*multiParams(3,indDown)
+        GAM    = ratio*multiParams(4,indUp) + offratio*multiParams(4,indDown)
+        ETA    = ratio*multiParams(5,indUp) + offratio*multiParams(5,indDown)
+        XIR    = ratio*multiParams(6,indUp) + offratio*multiParams(6,indDown)
+        XIU    = ratio*multiParams(7,indUp) + offratio*multiParams(7,indDown)
+        sigma  = ratio*multiParams(8,indUp) + offratio*multiParams(8,indDown)
+        etwist = ratio*multiParams(9,indUp) + offratio*multiParams(9,indDown)
+        simtype = int(ratio*multiParams(10,indUp) + offratio*multiParams(10,indDown)+0.1_dp) ! the +0.1 is to prevent round down due to lack of precision
 end subroutine get_params
 
 ! ----------------------------------------------------------------------
@@ -264,12 +277,11 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     use polydispersity, only: first_bead_of_chain, last_bead_of_chain
     implicit none
     integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
-    integer, intent(out) :: wlc_basepairs(WLC_P__NT)
+    real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
     real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
     integer, parameter :: nNucs = nint((L_in_bp-WLC_P__LL)/(147+WLC_P__LL)) ! assuming all octasomes
-    real(dp) discretization, num_link_beads
-    real(dp) discretization_overhang, num_link_beads_overhang
-    integer iter, i, off_discretization, off_discretization_overhang
+    real(dp) discretization, off_discretization, num_link_beads
+    integer iter, i
 
     ! choose nucleosome spacing
     print*, WLC_P__L0
@@ -278,25 +290,19 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
             ! figure out main discretization scheme
             discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-            call discretizationScheme(discretization, discretization, num_link_beads, &
-                    off_discretization)
-            ! figure out overhang discretization scheme
-            discretization_overhang = WLC_P__LL/ ((WLC_P__NB - ((num_link_beads-1)*(nNucs-1) + nNucs)) / 2)
-            call discretizationScheme(discretization_overhang, discretization_overhang, num_link_beads_overhang, &
-                off_discretization_overhang)
+            call discretizationScheme(discretization, num_link_beads, off_discretization)
             ! print for sanity check
             print*, discretization, num_link_beads, off_discretization
-            print*, discretization_overhang, num_link_beads_overhang, off_discretization_overhang
             do i = 1, WLC_P__NP
-                ! set first overhang
+                ! set first linker
                 iter = first_bead_of_chain(i)
-                wlc_basepairs(iter) = off_discretization_overhang
-                wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
+                wlc_basepairs(iter) = off_discretization
+                wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
                 iter = iter + 1
-                wlc_basepairs(iter:iter+num_link_beads_overhang-2) = discretization_overhang  
+                wlc_basepairs(iter:iter+num_link_beads-2) = discretization
                 ! set middle beads
-                iter = iter + num_link_beads_overhang - 1
-                do while (iter <= last_bead_of_chain(i)-num_link_beads_overhang)
+                iter = iter + num_link_beads - 1
+                do while (iter <= last_bead_of_chain(i)-num_link_beads)
                     wlc_nucleosomeWrap(iter) = 147
                     wlc_basepairs(iter) = off_discretization
                     iter = iter + 1
@@ -306,10 +312,10 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
                         iter = iter + num_link_beads - 1
                     endif
                 enddo
-                ! set last overhang
-                wlc_basepairs(iter-1) = off_discretization_overhang
-                wlc_nucleosomeWrap(iter:iter+num_link_beads_overhang-1) = 1
-                wlc_basepairs(iter:iter+num_link_beads_overhang-1) = discretization_overhang
+                ! set last last linker
+                wlc_basepairs(iter-1) = off_discretization
+                wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
+                wlc_basepairs(iter:iter+num_link_beads-1) = discretization
                 ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                 wlc_basepairs(last_bead_of_chain(i)) = 0
             enddo
@@ -345,18 +351,16 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
 end subroutine
 
-subroutine discretizationScheme(discretizationIN, discretization, num_link_beads, off_discretization)
+subroutine discretizationScheme(discretization, num_link_beads, off_discretization)
     implicit none
-    real(dp), intent(in) :: discretizationIN
-    real(dp), intent(out) :: discretization
+    real(dp), intent(inout) :: discretization
     real(dp), intent(out) :: num_link_beads
-    integer, intent(out) :: off_discretization
+    real(dp), intent(out) :: off_discretization
 
     real(dp), parameter:: threshold = 0.0001
     real(dp) off_link_beads
     integer iter
 
-    discretization = discretizationIN
     ! figure out discretization scheme
         num_link_beads = WLC_P__LL/discretization
         if (modulo(num_link_beads,1.0) >= threshold) then 

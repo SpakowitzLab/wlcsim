@@ -261,7 +261,7 @@
 ! DEFAULTS COMMENT: Each bead is a nucleosome
 ! TYPE: INTEGER
 
-#define WLC_P__NP 2
+#define WLC_P__NP 1
 ! VARIABLE COMMENT: ! Number of polymers
 ! DEFAULTS COMMENT: ! sigle chromosome
 ! TYPE: INTEGER
@@ -910,7 +910,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER

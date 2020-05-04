@@ -182,12 +182,12 @@ class Snapshot:
         else:
             self.v = None
         # load discretization data
-        disc = np.loadtxt('%sd%sv%s' %(self.path_to_data,self.time,self.channel), dtype='int')
-        self.wrap = disc[0]; self.basepairs = disc[1]
+        disc = np.loadtxt('%sd%sv%s' %(self.path_to_data,self.time,self.channel), dtype='float')
+        self.wrap = np.asarray(disc[0],dtype='int'); self.basepairs = disc[1]
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = np.sum(np.max(np.asarray([self.wrap,self.basepairs]),0))-1+np.sum(self.basepairs[np.linspace(0,self.n_beads-1,self.n_beads,dtype='int')[np.asarray(self.wrap>1)]])
+        self.n_bps = int(np.sum(np.max(np.asarray([self.wrap,self.basepairs]),0))-1+np.sum(self.basepairs[np.linspace(0,self.n_beads-1,self.n_beads,dtype='int')[np.asarray(self.wrap>1)]]))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*lengthPerBP)
         # energies
         with open('%senergiesv%s' %(self.path_to_data,self.channel)) as fp:
@@ -270,7 +270,7 @@ class Snapshot:
     def interpolate(self):
         # rotate DNA strand into material frame
         offset = 0
-        self.bps = np.zeros(int(self.n_bps)*3*3).reshape([int(self.n_bps),3,3])
+        self.bps = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
         indR = 0; indA = 0
         for i in range(self.n_beads):
             if self.basepairs[i] != 0:
@@ -304,7 +304,7 @@ class Snapshot:
                     RnucEnd = Rout; Rin = Rout; Vin = Vout; Uin = Uout
                     for j in range(int(maxBp)):
                         row = np.zeros(3*3).reshape([3,3])
-                        strand1, base, strand2 = DNAhelix(j,omega=0,v=v)
+                        strand1, base, strand2 = DNAhelix(j)#,omega=0,v=v)
                         mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
                         strand1 = np.matmul(mat, strand1[0])
                         base = np.matmul(mat, base[0])
@@ -326,7 +326,7 @@ class Snapshot:
                     Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
                     for j in range(int(maxBp)):
                         row = np.zeros(3*3).reshape([3,3])
-                        strand1, base, strand2 = DNAhelix(float(j+offset),omega=0,v=v)
+                        strand1, base, strand2 = DNAhelix(j)#float(j+offset),omega=0,v=v)
                         mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
                         strand1 = np.matmul(mat, strand1[0])
                         base =  np.matmul(mat, base[0])
@@ -375,13 +375,15 @@ class Snapshot:
         self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
         self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
     def saveCoarseGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        connect = []
-        for i in range(self.n_beads):
-            if (i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i==0):
-                connect.append((i,i+1))
-        chain = ['A' for i in range(self.n_beads)]
-        chain[int(self.n_beads/2):] = 'B'
-        dna = r2pdb.mkpdb(self.r,topology=topo,connect=connect,chain=chain)
+        #connect = []
+        #for i in range(self.n_beads):
+        #    if (i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i==0):
+        #        connect.append((i,i+1))
+        #chain = ['1' for i in range(self.n_beads)]
+        # TODO: fix chain!!! and connect above!!
+        #for i in range(sum(self.basepairs==0)):
+        #    chain[int(self.n_beads/2):] = str(i+1)
+        dna = r2pdb.mkpdb(self.r,topology=topo)#,connect=connect,chain=chain)
         r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
         try: 
@@ -389,9 +391,9 @@ class Snapshot:
                 self.interpolate()
         except:
             print('warning: this has already been run')
-        chain = ['A' for i in range(3*self.n_bps)]
-        chain[int(3*self.n_bps/sum(self.basepairs==0)):] = 'B'
-        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)
+        #chain = ['A' for i in range(3*self.n_bps)]
+        #chain[int(3*self.n_bps/sum(self.basepairs==0)):] = 'B'
+        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo)#,chain=chain)
         r2pdb.save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
     def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
         self.RICCbreak()
