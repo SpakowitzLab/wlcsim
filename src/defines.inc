@@ -569,7 +569,7 @@
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 7.2361_DP
+#define WLC_P__INTERNUCLEOSOME_ENERGY 2.69_DP
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt (squared)
 ! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
 ! TYPE: REAL(DP)
