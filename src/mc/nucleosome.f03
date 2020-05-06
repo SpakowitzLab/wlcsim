@@ -121,19 +121,19 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
     real(dp), parameter :: tau_faceface = 0.83
-    real(dp), parameter :: e_faceface = 4.628
+    real(dp), parameter :: e_faceface = 4.6
     real(dp), parameter :: tau_faceside = 0.35
-    real(dp), parameter :: e_faceside = 1.457
+    real(dp), parameter :: e_faceside = 1.5
     real(dp), parameter :: tau_sideside = 1.2
-    real(dp), parameter :: e_sideside = 2.01
+    real(dp), parameter :: e_sideside = 2.0
     real(dp), dimension(3), parameter :: center = [4.8455, -2.4445, 0.6694]
     real(dp), dimension(3,3) :: mtrxI, mtrxJ
-    real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot 
+    real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
     real(dp), dimension(3) :: polyJ, faceJ, faceJtop, faceJbot
     real(dp), dimension(4,3) :: faceDistList
     real(dp), dimension(4) :: distList
-    real(dp), dimension(3) :: dist
-    real(dp) costhetaN, costhetaF
+    real(dp), dimension(3) :: distS, distC, dist
+    real(dp) cospsi, costhetaS, costhetaC
     integer i, indList(1)
     real(dp) internucleosome_energy
 
@@ -151,15 +151,17 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     ! center of nucs
     polyI = RI + MATMUL(mtrxI, center)
     polyJ = RJ +  MATMUL(mtrxJ, center)
-    ! construct face I normal vector (pointing up)
+
+    ! construct face I normal vector (pointing up through face)
     faceItop = RI + MATMUL(mtrxI, center+[0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
     faceIbot = RI + MATMUL(mtrxI, center+[0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
     faceI = faceItop-faceIbot
-    ! construct face J normal vector (pointing up)
+    ! construct face J normal vector (pointing up through face)
     faceJtop = RJ + MATMUL(mtrxJ, center+[0.0_dp,WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
     faceJbot = RJ + MATMUL(mtrxJ, center+[0.0_dp,-WLC_P__NUCLEOSOME_HEIGHT/2,0.0_dp])
     faceJ = faceJtop-faceJbot
-    costhetaN = dot_product(faceI/norm2(faceI),faceJ/norm2(faceJ))
+    cospsi = dot_product(faceI/norm2(faceI),faceJ/norm2(faceJ))
+
     ! list of combinatorial face attractions
     faceDistList(1,:) = faceItop - faceJbot 
     faceDistList(2,:) = faceItop - faceJtop 
@@ -171,36 +173,35 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
         distList(i) = norm2(faceDistList(i,:))
     enddo
     indList = minloc(distList)
-    dist = faceDistList(indList(1),:)
-    costhetaF = dot_product(dist/norm2(dist),-costhetaN*faceJ/(abs(costhetaN)*norm2(faceJ)))
-
+    distS = faceDistList(indList(1),:)
+    costhetaS = dot_product(distS/norm2(distS),faceJ/norm2(faceJ))!-cospsi*faceJ/(abs(cospsi)*norm2(faceJ)))
     ! face-face (histone-histone attraction)
-    if (costhetaF>0) then 
-        if (norm2(dist) <= tau_faceface) then 
-            internucleosome_energy = internucleosome_energy &
-                    - e_faceface*costhetaF/tau_faceface
-        else
-            internucleosome_energy = internucleosome_energy &
-                    - e_faceface*costhetaF/norm2(dist)
-        endif
+    if (norm2(distS) <= tau_faceface) then 
+        internucleosome_energy = internucleosome_energy &
+                - e_faceface*(cospsi**2)*(costhetaS**2)/tau_faceface
+    else
+        internucleosome_energy = internucleosome_energy &
+                - e_faceface*(cospsi**2)*(costhetaS**2)/norm2(distS)
     endif
+    distC = polyI-polyJ
+    costhetaC = dot_product(distC/norm2(distC),faceJ/norm2(faceJ))!-cospsi*faceJ/(abs(cospsi)*norm2(faceJ)))
     ! face-side (histone-DNA attraction)
-    dist = norm2(polyI-polyJ)-WLC_P__NUCLEOSOME_HEIGHT/2-WLC_P__NUCLEOSOME_RADIUS
+    dist = norm2(distC)-WLC_P__NUCLEOSOME_HEIGHT/2-WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_faceside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-costhetaN**2)/tau_faceside
+                - e_faceside*(1-cospsi*2)*(costhetaC**2)/tau_faceside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-costhetaN**2)/norm2(dist)
+                - e_faceside*(1-cospsi**2)*(costhetaC**2)/norm2(dist)
     endif
     ! side-side (DNA-DNA attraction)
-    dist = norm2(polyI-polyJ)-2*WLC_P__NUCLEOSOME_RADIUS
+    dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_sideside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(costhetaN**2)*(1-costhetaF**2)/tau_sideside
+                - e_sideside*(1-costhetaC**2)/tau_sideside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(costhetaN**2)*(1-costhetaF**2)/norm2(dist)
+                - e_sideside*(1-costhetaC**2)/norm2(dist)
     endif
 
 end function internucleosome_energy

@@ -197,9 +197,9 @@ class Snapshot:
                     cols = line.strip().split()
                 else:
                     temp = line.strip().split()
-                    if temp[0] == self.time:
+                    if int(temp[0]) == self.time:
                         # get time data
-                        energies = line.strip().split()
+                        energies = temp
                         break
         cols = cols[4:]
         try:

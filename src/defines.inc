@@ -574,10 +574,6 @@
 ! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
 ! TYPE: REAL(DP)
 
-! VARIABLE COMMENT: ! critical distance for nucleosome attraction (nm) [see above ref]
-! DEFAULTS COMMENT: ! maybe look at IDR tail dynamics to get gyration radius?
-! TYPE: REAL(DP)
-
 ! ----------------------------
 !
 !   Time / steps variables
