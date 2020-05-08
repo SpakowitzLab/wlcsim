@@ -446,9 +446,9 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
     enddo
 elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
     if (WLC_P__NEIGHBOR_BINS) then 
-        R(1,1) = 5000.0_dp
-        R(2,1) = 5000.0_dp
-        R(3,1) = 5000.0_dp
+        R(1,1) = WLC_P__LBOX_X/2
+        R(2,1) = WLC_P__LBOX_Y/2
+        R(3,1) = WLC_P__LBOX_Z/2
     else
         R(1,1) = 0.0_dp
         R(2,1) = 0.0_dp

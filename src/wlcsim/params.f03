@@ -113,7 +113,8 @@ module params
 
     real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
-    real(dp), allocatable, dimension(:,:):: wlc_R_GJK   ! Conformation of polymer chains
+    real(dp), allocatable, dimension(:,:,:):: wlc_GJK   ! excluded volume of polymer chains (vertices)
+    real(dp), allocatable, dimension(:,:):: wlc_R_GJK   ! excluded volume of polymer chains (centers)
     real(dp), allocatable, dimension(:,:):: wlc_U   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_V   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_RP !Test Bead positions - only valid from IT1 to IT2
@@ -518,7 +519,7 @@ contains
 !        use savepointLinkingNumber, only: calcTwWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
-        use GJKAlgorithm, only: findCenterPolygonPrism
+        use GJKAlgorithm, only: constructPolygonPrism
         use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 #if MPI_VERSION
         use mpi
@@ -543,7 +544,7 @@ contains
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
         integer len_file
-        real(dp) poly(3)
+        real(dp) poly(WLC_P__GJK_POLYGON,3)
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -557,6 +558,7 @@ contains
         endif
         if (WLC_P__GJK_STERICS) then
             allocate(wlc_R_GJK(3,WLC_P__NT))
+            allocate(wlc_GJK(WLC_P__GJK_POLYGON,3,WLC_P__NT))
         endif
         allocate(wlc_U(3,WLC_P__NT))
         if (WLC_P__LOCAL_TWIST) then
@@ -810,7 +812,7 @@ contains
         if (WLC_P__NEIGHBOR_BINS) then
             !  Set up binning object
             setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-            setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
+            setMinXYZ = [0,0,0]![-WLC_P__LBOX_X/2, -WLC_P__LBOX_Y/2, -WLC_P__LBOX_Z/2] ! location of corner of bin
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
@@ -823,13 +825,16 @@ contains
                     if (WLC_P__GJK_STERICS) then 
                         ! NP add center of segments as beads
                         if (i < last_bead_of_chain(get_IP(i))) then 
-                            poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                                wlc_U(:,i), wlc_V(:,i))
-                            wlc_R_GJK(:,i) = poly
+                            poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                                wlc_U(:,i), wlc_V(:,i),WLC_P__GJK_POLYGON)
+                            wlc_GJK(:,:,i) = poly
+                            wlc_R_GJK(1,i) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                            wlc_R_GJK(2,i) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                            wlc_R_GJK(3,i) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
                             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
                         else
                             wlc_R_GJK(:,i) = nan
-                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
+                            !call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
                         endif
                     else
                         print*, "Not an option yet. See params"
@@ -842,11 +847,15 @@ contains
         else if (WLC_P__GJK_STERICS) then ! set up GJK vecotor
             do i=1,WLC_P__NT
                 if (i < last_bead_of_chain(get_IP(i))) then 
-                    poly = findCenterPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
-                        wlc_U(:,i), wlc_V(:,i))
-                    wlc_R_GJK(:,i) = poly
+                    poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                    wlc_U(:,i), wlc_V(:,i),WLC_P__GJK_POLYGON)
+                    wlc_GJK(:,:,i) = poly
+                    wlc_R_GJK(1,i) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                    wlc_R_GJK(2,i) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                    wlc_R_GJK(3,i) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
                 else
                     wlc_R_GJK(:,i) = nan
+                    wlc_GJK(:,:,i) = nan
                 endif
             enddo
         endif

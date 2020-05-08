@@ -6,15 +6,15 @@ contains
 subroutine updateR(I,left,right)
 ! values from wlcsim_data
 use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP&
-    , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_nucleosomeWrap
+    , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap
 use params, only:  dp
 use binning, only: removeBead, addBead
-use GJKAlgorithm, only: findCenterPolygonPrism
+use GJKAlgorithm, only: constructPolygonPrism
 use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 implicit none
 integer, intent(in) :: I
 integer, intent(in) :: left, right ! only relevant for GJK sterics + binning problems
-real(dp) poly(3)
+real(dp) poly(WLC_P__GJK_POLYGON,3)
 
 if (WLC_P__NEIGHBOR_BINS) then
     if (WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') then
@@ -57,20 +57,26 @@ if (WLC_P__NEIGHBOR_BINS) then
         if (WLC_P__GJK_STERICS) then 
             ! add back in virtual beads i-1 and i for moved bead i
             if (I > first_bead_of_chain(get_IP(I)) .AND. I == left) then 
-                poly = findCenterPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
-                    wlc_U(:,I-1), wlc_V(:,I-1))
-                wlc_R_GJK(:,I-1) = poly
+                poly = constructPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
+                    wlc_U(:,I-1), wlc_V(:,I-1),WLC_P__GJK_POLYGON)
+                wlc_GJK(:,:,I-1) = poly
+                wlc_R_GJK(1,I-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                wlc_R_GJK(2,I-1) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                wlc_R_GJK(3,I-1) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
                 call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,I-1)
             endif
             if (I < last_bead_of_chain(get_IP(I)) ) then 
                 if (I == right ) then 
-                    poly = findCenterPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
-                        wlc_U(:,I), wlc_V(:,I))
+                    poly = constructPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
+                        wlc_U(:,I), wlc_V(:,I),WLC_P__GJK_POLYGON)
                 else
-                    poly = findCenterPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
-                        wlc_U(:,I), wlc_V(:,I))
+                    poly = constructPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
+                        wlc_U(:,I), wlc_V(:,I),WLC_P__GJK_POLYGON)
                 endif
-                wlc_R_GJK(:,I) = poly
+                wlc_GJK(:,:,I) = poly
+                wlc_R_GJK(1,I) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                wlc_R_GJK(2,I) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                wlc_R_GJK(3,I) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
                 call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,I)
             endif
         else
@@ -83,19 +89,25 @@ if (WLC_P__NEIGHBOR_BINS) then
 else if (WLC_P__GJK_STERICS) then 
     ! add back in virtual beads i-1 and i for moved bead i
     if (I > first_bead_of_chain(get_IP(I)) .AND. I == left) then 
-        poly = findCenterPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
-            wlc_U(:,I-1), wlc_V(:,I-1))
-        wlc_R_GJK(:,I-1) = poly
+        poly = constructPolygonPrism(wlc_R(:,I-1), wlc_R(:,I), wlc_nucleosomeWrap(I-1), &
+            wlc_U(:,I-1), wlc_V(:,I-1),WLC_P__GJK_POLYGON)
+        wlc_GJK(:,:,I-1) = poly
+        wlc_R_GJK(1,I-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+        wlc_R_GJK(2,I-1) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+        wlc_R_GJK(3,I-1) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
     endif
     if (I < last_bead_of_chain(get_IP(I)) ) then 
         if (I == right ) then 
-            poly = findCenterPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
-                wlc_U(:,I), wlc_V(:,I))
+            poly = constructPolygonPrism(wlc_R(:,I), wlc_R(:,I+1), wlc_nucleosomeWrap(I), &
+                wlc_U(:,I), wlc_V(:,I),WLC_P__GJK_POLYGON)
         else
-            poly = findCenterPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
-                wlc_U(:,I), wlc_V(:,I))
+            poly = constructPolygonPrism(wlc_R(:,I), wlc_RP(:,I+1), wlc_nucleosomeWrap(I), &
+                wlc_U(:,I), wlc_V(:,I),WLC_P__GJK_POLYGON)
         endif
-        wlc_R_GJK(:,I) = poly
+        wlc_GJK(:,:,I) = poly
+        wlc_R_GJK(1,I) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+        wlc_R_GJK(2,I) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+        wlc_R_GJK(3,I) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
     endif
 endif
 

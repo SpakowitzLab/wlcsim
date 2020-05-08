@@ -35,7 +35,7 @@
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
 
-#define WLC_P__CONFINETYPE 'none'
+#define WLC_P__CONFINETYPE 'cube'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! spherical nucleus
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -134,7 +134,7 @@
 ! DEFAULTS COMMENT: ! use hexagons for now 
 ! TYPE: INTEGER
 
-#define WLC_P__NEIGHBOR_BINS .FALSE.
+#define WLC_P__NEIGHBOR_BINS .TRUE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
 ! TYPE: LOGICAL
@@ -246,7 +246,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 53
+#define WLC_P__NB 118
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -564,7 +564,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
@@ -580,7 +580,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 300
+#define WLC_P__STEPSPEREXCHANGE 500
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
