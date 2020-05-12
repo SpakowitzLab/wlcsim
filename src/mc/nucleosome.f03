@@ -120,12 +120,12 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     real(dp), intent(in), dimension(3) :: UJ ! U of nuc j
     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
-    real(dp), parameter :: tau_faceface = 0.83
-    real(dp), parameter :: e_faceface = 4.6
-    real(dp), parameter :: tau_faceside = 0.35
-    real(dp), parameter :: e_faceside = 1.5
-    real(dp), parameter :: tau_sideside = 1.2
-    real(dp), parameter :: e_sideside = 2.0
+    real(dp), parameter :: tau_faceface = 1.38
+    real(dp), parameter :: e_faceface = 3.712
+    real(dp), parameter :: tau_faceside = 0.82
+    real(dp), parameter :: e_faceside = 1.476
+    real(dp), parameter :: tau_sideside = 2.0
+    real(dp), parameter :: e_sideside = 1.64
     real(dp), dimension(3), parameter :: center = [4.8455, -2.4445, 0.6694]
     real(dp), dimension(3,3) :: mtrxI, mtrxJ
     real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot

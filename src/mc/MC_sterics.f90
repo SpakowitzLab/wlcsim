@@ -18,7 +18,7 @@ use params, only: dp, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
 use GJKAlgorithm, only: constructPolygonPrism
 use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 ! if using binning, uncomment the next line
-use binning, only: addBead, removeBead, findNeighbors
+!use binning, only: addBead, removeBead, findNeighbors
 implicit none
 
 integer, intent(out) :: collisions
@@ -83,10 +83,10 @@ if (wlc_nPointsMoved>0) then
             RGJK(1,i-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
             RGJK(2,i-1) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
             RGJK(3,i-1) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
-            if (WLC_P__NEIGHBOR_BINS) then
-               call removeBead(wlc_bin,wlc_R_GJK(:,i-1),i-1)
-               call addBead(wlc_bin,RGJK,WLC_P__NT-1,i-1)
-            endif
+            !if (WLC_P__NEIGHBOR_BINS) then
+            !   call removeBead(wlc_bin,wlc_R_GJK(:,i-1),i-1)
+            !   call addBead(wlc_bin,RGJK,WLC_P__NT-1,i-1)
+            !endif
         endif
         if (i < last_bead_of_chain(IP)) then 
             if (i == right) then 
@@ -100,34 +100,34 @@ if (wlc_nPointsMoved>0) then
             RGJK(1,i) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
             RGJK(2,i) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
             RGJK(3,i) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
-            if (WLC_P__NEIGHBOR_BINS) then
-               call removeBead(wlc_bin,wlc_R_GJK(:,i),i)
-               call addBead(wlc_bin,RGJK,WLC_P__NT-1,i)
-            endif
+            !if (WLC_P__NEIGHBOR_BINS) then
+            !   call removeBead(wlc_bin,wlc_R_GJK(:,i),i)
+            !   call addBead(wlc_bin,RGJK,WLC_P__NT-1,i)
+            !endif
         endif
     enddo
     collisions = -collisions
     ! check for neighbors on new beads
     do i = left+offset1, right+offset2
-        nn = 0
-        call findNeighbors(wlc_bin,RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+        !nn = 0
+        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,left+offset1,i,&
                 nn,neighbors(1:nn),distances(1:nn),.false.)
     enddo
-    if (WLC_P__NEIGHBOR_BINS) then
-        ! add back in beads if move is rejected
-        do i = left,right
-            if (i > 1 .AND. i == left) then 
-                call removeBead(wlc_bin,RGJK(:,i-1),i-1)
-                call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i-1)
-            endif
-            if (i < WLC_P__NT) then 
-                call removeBead(wlc_bin,RGJK(:,i),i)
-                call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
-            endif
-        enddo
-    endif
+    ! if (WLC_P__NEIGHBOR_BINS) then
+    !     ! add back in beads if move is rejected
+    !     do i = left,right
+    !         if (i > 1 .AND. i == left) then 
+    !             call removeBead(wlc_bin,RGJK(:,i-1),i-1)
+    !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i-1)
+    !         endif
+    !         if (i < WLC_P__NT) then 
+    !             call removeBead(wlc_bin,RGJK(:,i),i)
+    !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
+    !         endif
+    !     enddo
+    ! endif
 endif
 END subroutine MC_sterics
 
@@ -269,31 +269,31 @@ enddo
 END subroutine sterics_check 
 
 ! ! using this instead of quinn's binning code
-! subroutine findNeighbors(pos,radius,beads,nBeads,neighboringMax,neighbors,distances,nn)
-! use params, only: dp
-! use vector_utils, only: distance
-! implicit none
+subroutine findNeighbors(pos,radius,beads,nBeads,neighboringMax,neighbors,distances,nn)
+use params, only: dp
+use vector_utils, only: distance
+implicit none
 
-! real(dp), intent(in) :: pos(3)
-! real(dp), intent(in) :: radius
-! integer, intent(in) :: nBeads
-! real(dp), intent(in) :: beads(3,nBeads)
-! integer, intent(in) :: neighboringMax
-! integer, intent(out) :: neighbors(neighboringMax)
-! real(dp), intent(out) :: distances(neighboringMax)
-! integer, intent(out) :: nn
-! integer i
-! real(dp) dist
+real(dp), intent(in) :: pos(3)
+real(dp), intent(in) :: radius
+integer, intent(in) :: nBeads
+real(dp), intent(in) :: beads(3,nBeads)
+integer, intent(in) :: neighboringMax
+integer, intent(out) :: neighbors(neighboringMax)
+real(dp), intent(out) :: distances(neighboringMax)
+integer, intent(out) :: nn
+integer i
+real(dp) dist
 
-! nn = 0
-! do i = 1,nBeads
-!     dist = distance(pos,beads(:,i))
-!     if (dist <= radius) then 
-!         nn = nn + 1
-!         neighbors(nn) = i
-!         distances(nn) = dist
-!     endif
-! enddo
+nn = 0
+do i = 1,nBeads
+    dist = distance(pos,beads(:,i))
+    if (dist <= radius) then 
+        nn = nn + 1
+        neighbors(nn) = i
+        distances(nn) = dist
+    endif
+enddo
 
-! end subroutine findNeighbors
+end subroutine findNeighbors
 ! ---------------------------------------------------------------*

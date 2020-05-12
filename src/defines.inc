@@ -35,7 +35,7 @@
 ! DEFAULTS COMMENT: ! don't include twist by default
 ! TYPE: LOGICAL
 
-#define WLC_P__CONFINETYPE 'cube'
+#define WLC_P__CONFINETYPE 'none'
 ! VARIABLE COMMENT: ! type of Boundary Conditions
 ! DEFAULTS COMMENT: ! spherical nucleus
 ! TYPE: CHARACTER(MAXPARAMLEN)
@@ -134,7 +134,7 @@
 ! DEFAULTS COMMENT: ! use hexagons for now 
 ! TYPE: INTEGER
 
-#define WLC_P__NEIGHBOR_BINS .TRUE.
+#define WLC_P__NEIGHBOR_BINS .FALSE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
 ! TYPE: LOGICAL
@@ -564,13 +564,13 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 2.69_DP
-! VARIABLE COMMENT: ! nucleosome-nucleosome attraction energy in kt (squared)
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
 ! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
 ! TYPE: REAL(DP)
 
