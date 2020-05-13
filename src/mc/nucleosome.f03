@@ -178,10 +178,10 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     ! face-face (histone-histone attraction)
     if (norm2(distS) <= tau_faceface) then 
         internucleosome_energy = internucleosome_energy &
-                - e_faceface*(cospsi**2)*(costhetaS**2)/tau_faceface
+                - e_faceface*abs(cospsi)*abs(costhetaS)/tau_faceface
     else
         internucleosome_energy = internucleosome_energy &
-                - e_faceface*(cospsi**2)*(costhetaS**2)/norm2(distS)
+                - e_faceface*abs(cospsi)*abs(costhetaS)/norm2(distS)
     endif
     distC = polyI-polyJ
     costhetaC = dot_product(distC/norm2(distC),faceJ/norm2(faceJ))!-cospsi*faceJ/(abs(cospsi)*norm2(faceJ)))
@@ -189,19 +189,19 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     dist = norm2(distC)-WLC_P__NUCLEOSOME_HEIGHT/2-WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_faceside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-cospsi*2)*(costhetaC**2)/tau_faceside
+                - e_faceside*(1-abs(cospsi))*abs(costhetaC)/tau_faceside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-cospsi**2)*(costhetaC**2)/norm2(dist)
+                - e_faceside*(1-abs(cospsi))*abs(costhetaC)/norm2(dist)
     endif
     ! side-side (DNA-DNA attraction)
     dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_sideside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(1-costhetaC**2)/tau_sideside
+                - e_sideside*(1-abs(costhetaC))/tau_sideside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(1-costhetaC**2)/norm2(dist)
+                - e_sideside*(1-abs(costhetaC))/norm2(dist)
     endif
 
 end function internucleosome_energy
