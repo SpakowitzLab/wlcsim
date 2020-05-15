@@ -10,12 +10,13 @@ from analysis.utility import *
 
 numFrames = int(argv[1])
 channel = argv[2]
-pathPDB = argv[3]
-pathData = argv[4]
+temperature = int(argv[3])
+pathPDB = argv[4]
+pathData = argv[5]
 if (channel == 'PT'):
     nodes = np.loadtxt(pathData+'nodeNumber')
     nodes = np.vstack((np.linspace(0, np.shape(nodes)[1]-1, np.shape(nodes)[1]), nodes))
-    channel = np.asarray(nodes[:,-1], 'int')
+    channel = np.asarray(nodes[:,temperature], 'int')
 else:
     channel = [channel]*numFrames
 input_folder = pathData

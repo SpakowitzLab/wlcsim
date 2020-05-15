@@ -99,34 +99,37 @@ class Trial:
             self.time_mins = time_min
         else:
             self.time_mins = [time_min]*len(trajectories)
-
         # store Trajectories in dictionary
         self.trajectories = {}
         for i,trajectory in enumerate(trajectories):
             self.trajectories[trajectory] = Trajectory(self.path_to_data,
                     self.time_mins[i],self.time_maxs[i],self.channels[i])
+        # check for PT
+        if os.path.exists(self.path_to_data+'nodeNumber'):
+            for i in range(1,max(self.channels)+1):
+                self.trajectories['PT'+str(i)] = Trajectory(self.path_to_data,
+                        max(self.time_mins),min(self.time_maxs),1,temperature=i)
+            print('PT configured')
 
 class Trajectory:
     # constructor 
-    def __init__(self,path_to_data,time_min,time_max,channel):
+    def __init__(self,path_to_data,time_min,time_max,channel,temperature=None):
         # path to data directory
         self.path_to_data = path_to_data
         # set time range
         self.time_min = time_min
         self.equilibrium_time = self.time_min
         self.time_max = time_max+1 # add plus one here for iteration
-        self.PT = False
         # store Snapshots in dictionary
         self.snapshots = {}
         # snapshots stats
         self.end_to_end = []
         self.reduced_pair_nucs = []
-        # check for PT
-        if os.path.exists(self.path_to_data+'nodeNumber'):
+        self.temperature = temperature
+        if (self.temperature != None):
             nodes = np.loadtxt(self.path_to_data+'nodeNumber')
             nodes = np.vstack((np.linspace(0, np.shape(nodes)[1]-1, np.shape(nodes)[1]), nodes))
-            self.channel = np.asarray(nodes[:,-1], 'int')
-            self.PT = True
+            self.channel = np.asarray(nodes[:,temperature], 'int')
         else:
             self.channel = [channel]*(self.time_max-self.time_min)
         # load snapshots in dictionary
@@ -155,12 +158,12 @@ class Trajectory:
     def playCoarseMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
         for i,time in enumerate(range(self.time_min,self.time_max)):
             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
-        if (self.PT):
+        if (self.temperature != None):
             os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieCoarse.py -- " 
-                        + str(self.time_max-self.time_min) + " PT " + path + " " + self.path_to_data)
+                        + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " + path + " " + self.path_to_data)
         else:
             os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieCoarse.py -- " 
-                        + str(self.time_max-self.time_min) + " " + str(self.channel[i]) + " " 
+                        + str(self.time_max-self.time_min) + " " + str(self.channel[i]) + " 1 "  
                         + path + " " + self.path_to_data)
 
 class Snapshot:
