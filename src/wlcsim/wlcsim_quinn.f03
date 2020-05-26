@@ -257,7 +257,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     integer ( kind = 4 ) error  ! error id for MIP functions
     type(wlcsim_params), intent(inout) :: wlc_p
     integer i, ii
-    logical system_has_been_changed
+    logical system_has_been_changed, netSterics
     real :: start, finish
 
     if (id == -1) then
@@ -282,6 +282,13 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
         call VerifyEnergiesFromScratch(wlc_p)
     endif
 
+    ! figure out what sterics sim to run
+    if (energyOf(21)%E == 0) then 
+        netSterics = .false.
+    else
+        netSterics = .true.
+    endif
+
     ! ------------------------------
     !
     ! call main simulation code
@@ -292,7 +299,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     do i = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
         wlc_ind_exchange=i
         !   * Perform a MC simulation *
-        call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
+        call MCsim(wlc_p,netSterics,WLC_P__STEPSPEREXCHANGE)
 
         !   * Replica Exchange *
         call replicaExchange()
@@ -309,7 +316,7 @@ subroutine onlyNode(wlc_p)
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     implicit none
     type(wlcsim_params), intent(inout) :: wlc_p
-    logical system_has_been_changed
+    logical system_has_been_changed, netSterics
     real :: start, finish
     integer ii
     !   * Perform a MC simulation *
@@ -327,8 +334,15 @@ subroutine onlyNode(wlc_p)
     else
         call VerifyEnergiesFromScratch(wlc_p)
     endif
+    ! figure out what sterics sim to run
+    if (energyOf(21)%E == 0) then 
+        netSterics = .false.
+    else
+        netSterics = .true.
+    endif
+    ! mc sim
     call cpu_time(start)
-    call MCsim(wlc_p,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
+    call MCsim(wlc_p,netSterics,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode

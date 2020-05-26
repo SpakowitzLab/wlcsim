@@ -246,7 +246,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 118
+#define WLC_P__NB 105
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -338,14 +338,19 @@
 !
 ! ---------------------------
 
-#define WLC_P__L 775.17_dp
+#define WLC_P__L 742.809_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 45.0_DP
+#define WLC_P__LL 37.4566_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_TYPE 'voong'
+! VARIABLE COMMENT: ! linker length geometry type
+! DEFAULTS COMMENT: ! phased is constant linker length, voong uses MESC LL distribution 23-55bp
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 50.0_DP
@@ -564,7 +569,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
@@ -580,7 +585,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 500
+#define WLC_P__STEPSPEREXCHANGE 1000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -701,9 +706,9 @@
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 25
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
 ! VARIABLE COMMENT: ! how many times each move is done per step
-! DEFAULTS COMMENT: ! nucleosome slide <default ?>
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.25_dp
@@ -779,7 +784,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__PT_STERICS .TRUE.
+#define WLC_P__PT_STERICS .FALSE.
 ! VARIABLE COMMENT: ! parallel temper steric collision penalty
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -905,7 +910,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER

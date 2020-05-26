@@ -9,7 +9,7 @@
 !    Quinn Made Changes to this file starting on 12/15/15
 !
 
-subroutine MCsim(wlc_p)
+subroutine MCsim(wlc_p,netSterics)
 ! values from wlcsim_data
 use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_DPHI_l2, wlc_AB, wlc_NCross &
@@ -86,6 +86,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) LkP        ! linking number of the proposed configuration
     real(dp) delInt     ! change in internucleosome attraction energy
 
+    logical, intent(in) :: netSterics
+
 ! -------------------------------------
 !
 !   Begin Monte Carlo simulation
@@ -139,12 +141,15 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
           right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
           if(WLC_P__GJK_STERICS) then
-            call MC_sterics(collisions,left,right)
+            call MC_sterics(collisions,left,right,netSterics)
             ! ascribe collision penalty
-            !energyOf(sterics_)%dx = collisions 
-            if (collisions > 0) then 
-               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
-               goto 10 ! skip move, return RP to nan
+            if (netSterics) then 
+                energyOf(sterics_)%dx = collisions 
+            else
+                if (collisions > 0) then 
+                    wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                    goto 10 ! skip move, return RP to nan
+                endif
             endif
           endif
 

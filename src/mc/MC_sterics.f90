@@ -10,7 +10,7 @@
 !--------------------------------------------------------------
 
 
-subroutine MC_sterics(collisions,left,right)
+subroutine MC_sterics(collisions,left,right,netSterics)
 ! values from wlcsim_data
 use params, only: dp, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
     wlc_R_GJK, wlc_nucleosomeWrap, wlc_nPointsMoved, wlc_bin, wlc_basepairs, &
@@ -23,6 +23,7 @@ implicit none
 
 integer, intent(out) :: collisions
 integer, intent(in) :: left, right
+logical, intent(in) :: netSterics
 real(dp) RALL(3,WLC_P__NT) ! all bead R
 real(dp) UALL(3,WLC_P__NT) ! all bead U
 real(dp) VALL(3,WLC_P__NT) ! all bead V
@@ -60,14 +61,16 @@ if (wlc_nPointsMoved>0) then
     UALL = wlc_U
     VALL = wlc_V
     collisions = 0
-    ! check for neighbors on old beads
-    !do i = left+offset1, right+offset2
-    !   nn = 0
-    !   call findNeighbors(wlc_bin,RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT,neighbors,distances,nn)
-    !   ! check for collisions
-    !   call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,left+offset1,i,&
-    !        nn,neighbors(1:nn),distances(1:nn),.true.)
-    !enddo
+    if (netSterics) then 
+        ! check for neighbors on old beads
+        do i = left+offset1, right+offset2
+        !nn = 0
+        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+        ! check for collisions
+        call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,left+offset1,i,&
+                nn,neighbors(1:nn),distances(1:nn),.true.)
+        enddo
+    endif
     ! replace old beads with new moved beads
     do i = left, right
         ! update real bead locations
@@ -113,7 +116,7 @@ if (wlc_nPointsMoved>0) then
         call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,left+offset1,i,&
-                nn,neighbors(1:nn),distances(1:nn),.false.)
+                nn,neighbors(1:nn),distances(1:nn),netSterics)
     enddo
     ! if (WLC_P__NEIGHBOR_BINS) then
     !     ! add back in beads if move is rejected
@@ -226,8 +229,8 @@ do jj = 1, nn
     else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
         distances(jj) < (2*basepairs(jj)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
         ! ignore 10bp nearest nuc
-        if ( (neighbors(jj) < ii-1 .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) .OR. &
-            (neighbors(jj)-1 > ii .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) ) then 
+        if ( (neighbors(jj) < ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) > 10) .OR. &
+            (neighbors(jj)-1 > ii .AND. sum(basepairs(ii+1:neighbors(jj)-1)) > 10) ) then 
             ! check for collision of nucleosome i with DNA j,
             ! and for collision of exit DNA i with DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS
@@ -242,8 +245,8 @@ do jj = 1, nn
     else if ( (iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
         distances(jj) < (2*basepairs(jj)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
         ! ignore 10bp nearest nuc
-        if ( (ii < neighbors(jj)-1 .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) .OR. &
-                (ii-1 > neighbors(jj) .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) ) then 
+        if ( (ii < neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) > 10) .OR. &
+                (ii-1 > neighbors(jj) .AND. sum(basepairs(neighbors(jj)+1:ii-1)) > 10) ) then 
             ! check for collision of DNA i with nucleosome j,
             ! and for collision DNA i with exit DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS

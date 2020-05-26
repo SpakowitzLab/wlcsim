@@ -121,11 +121,11 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     real(dp), intent(in), dimension(3) :: VI ! V of nuc i
     real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
     real(dp), parameter :: tau_faceface = 1.38
-    real(dp), parameter :: e_faceface = 3.712
+    real(dp), parameter :: e_faceface = 3.712*WLC_P__INTERNUCLEOSOME_ENERGY
     real(dp), parameter :: tau_faceside = 0.82
-    real(dp), parameter :: e_faceside = 1.476
+    real(dp), parameter :: e_faceside = 1.476*WLC_P__INTERNUCLEOSOME_ENERGY
     real(dp), parameter :: tau_sideside = 2.0
-    real(dp), parameter :: e_sideside = 1.64
+    real(dp), parameter :: e_sideside = 1.64*WLC_P__INTERNUCLEOSOME_ENERGY
     real(dp), dimension(3), parameter :: center = [4.8455, -2.4445, 0.6694]
     real(dp), dimension(3,3) :: mtrxI, mtrxJ
     real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
@@ -303,7 +303,10 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
     integer, parameter :: nNucs = nint((L_in_bp-WLC_P__LL)/(147+WLC_P__LL)) ! assuming all octasomes
     real(dp) discretization, off_discretization, num_link_beads
-    integer iter, i
+    real(dp), dimension(2,33) :: LL_dist
+    real(dp) cumlinker, linker
+    real(dp) urand(3)  ! random vector
+    integer iter, i, j
 
     ! choose nucleosome spacing
     print*, WLC_P__L0
@@ -312,35 +315,95 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
             ! figure out main discretization scheme
             discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-            call discretizationScheme(discretization, num_link_beads, off_discretization)
+            call discretizationScheme(discretization, WLC_P__LL, num_link_beads, off_discretization)
             ! print for sanity check
             print*, discretization, num_link_beads, off_discretization
-            do i = 1, WLC_P__NP
-                ! set first linker
-                iter = first_bead_of_chain(i)
-                wlc_basepairs(iter) = off_discretization
-                wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
-                iter = iter + 1
-                wlc_basepairs(iter:iter+num_link_beads-2) = discretization
-                ! set middle beads
-                iter = iter + num_link_beads - 1
-                do while (iter <= last_bead_of_chain(i)-num_link_beads)
-                    wlc_nucleosomeWrap(iter) = 147
+            if (WLC_P__LINKER_TYPE == 'phased' ) then
+                do i = 1, WLC_P__NP
+                    ! set first linker
+                    iter = first_bead_of_chain(i)
                     wlc_basepairs(iter) = off_discretization
+                    wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
                     iter = iter + 1
-                    if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
-                        wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
-                        wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
-                        iter = iter + num_link_beads - 1
-                    endif
+                    wlc_basepairs(iter:iter+num_link_beads-2) = discretization
+                    ! set middle beads
+                    iter = iter + num_link_beads - 1
+                    do while (iter <= last_bead_of_chain(i)-num_link_beads)
+                        wlc_nucleosomeWrap(iter) = 147
+                        wlc_basepairs(iter) = off_discretization
+                        iter = iter + 1
+                        if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
+                            wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
+                            wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
+                            iter = iter + num_link_beads - 1
+                        endif
+                    enddo
+                    ! set last last linker
+                    wlc_basepairs(iter-1) = off_discretization
+                    wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
+                    wlc_basepairs(iter:iter+num_link_beads-1) = discretization
+                    ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
+                    wlc_basepairs(last_bead_of_chain(i)) = 0
                 enddo
-                ! set last last linker
-                wlc_basepairs(iter-1) = off_discretization
+            else if (WLC_P__LINKER_TYPE == 'voong') then 
+                ! read in the LL distribution
+                open (UNIT = 5, FILE = "input/Voong_LL_23to55.txt", STATUS = "OLD")
+                do i = 1,33
+                    read(5,*) LL_dist(:,i)
+                enddo
+                close(5)
+                if (WLC_P__NP/=1) then 
+                    print*, 'need to adjust for multupolymer'
+                    stop
+                endif
+                linker = 0
+                do while (linker <= 23 .or. linker >= 55) 
+                    ! initialize
+                    cumlinker = 0
+                    iter = 1
+                    ! set first linker later
+                    iter = iter + num_link_beads
+                    ! set middle linkers 
+                    do i = 2, nNucs ! hanging linker off nucleosomes
+                        call random_number(urand)
+                        do j = 1,33
+                            if (LL_dist(2,j) >= urand(1)) then 
+                                exit
+                            endif
+                        enddo
+                        linker =  LL_dist(1,j)
+                        discretization = linker/num_link_beads
+                        print*, linker, discretization, num_link_beads
+                        wlc_nucleosomeWrap(iter) = 147
+                        wlc_basepairs(iter) = discretization
+                        iter = iter + 1
+                        if (iter + num_link_beads - 2 <= WLC_P__NT - num_link_beads) then
+                            wlc_basepairs(iter:iter+num_link_beads-2) = discretization  
+                            wlc_nucleosomeWrap(iter:iter+num_link_beads-2) = 1 
+                            iter = iter + num_link_beads - 1
+                        endif
+                        cumlinker = cumlinker + linker
+                    enddo
+                    ! set last (and first) linker to conserve contour length
+                    linker = (WLC_P__LL*(1+nNucs)-cumlinker)/2
+                    print*, 'attempted to sample from linker distribution for chain'
+                enddo
+                discretization = linker/num_link_beads
+                print*, linker, discretization, num_link_beads
+                ! first linker
+                wlc_nucleosomeWrap(1:num_link_beads) = 1
+                wlc_basepairs(1:num_link_beads) = discretization
+                ! last linker
+                wlc_basepairs(iter-1) = discretization
+                wlc_nucleosomeWrap(iter-1) = 147
                 wlc_nucleosomeWrap(iter:iter+num_link_beads-1) = 1
                 wlc_basepairs(iter:iter+num_link_beads-1) = discretization
                 ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
-                wlc_basepairs(last_bead_of_chain(i)) = 0
-            enddo
+                wlc_basepairs(WLC_P__NT) = 0
+            else
+                print*, 'not recognized linker length type'
+                stop
+            endif
             ! testing sterics here !
             if(WLC_P__GJK_STERICS) then
             do iter = 1, 10000 ! check to make sure GJK is not stochastic
@@ -373,9 +436,10 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
 end subroutine
 
-subroutine discretizationScheme(discretization, num_link_beads, off_discretization)
+subroutine discretizationScheme(discretization, linker, num_link_beads, off_discretization)
     implicit none
     real(dp), intent(inout) :: discretization
+    real(dp), intent(in) :: linker 
     real(dp), intent(out) :: num_link_beads
     real(dp), intent(out) :: off_discretization
 
@@ -384,26 +448,27 @@ subroutine discretizationScheme(discretization, num_link_beads, off_discretizati
     integer iter
 
     ! figure out discretization scheme
-        num_link_beads = WLC_P__LL/discretization
-        if (modulo(num_link_beads,1.0) >= threshold) then 
-            print*, "choose a bead value to discretize linker DNA at an integer number"
-            stop
-        endif
-        off_discretization = WLC_P__LL-floor(discretization)*num_link_beads
+        num_link_beads = linker/discretization
+        !print*, num_link_beads
+        !if (modulo(num_link_beads,1.0) >= threshold) then 
+        !    print*, "choose a bead value to discretize linker DNA at an integer number"
+        !    stop
+        !endif
+        off_discretization = linker-floor(discretization)*num_link_beads
         off_link_beads = num_link_beads
         do while ( modulo(discretization,1.0) >= threshold .OR. (off_discretization < 2 .AND. off_link_beads > 0))
             discretization = floor(discretization)
             off_link_beads = off_link_beads - 1
-            off_discretization = WLC_P__LL-discretization*off_link_beads
+            off_discretization = linker-discretization*off_link_beads
         enddo
-        if (off_discretization > 2*discretization) then
-            print*, off_discretization, discretization
-            print*, "offset discretization is twice the size of the actual discretization &
-                    &(not sure if this is actually an issue but jic)"
-            stop
-        else if (off_discretization == 0) then
-            off_discretization = discretization
-        endif
+        !if (off_discretization > 2*discretization) then
+        !    print*, off_discretization, discretization
+        !    print*, "offset discretization is twice the size of the actual discretization &
+        !            &(not sure if this is actually an issue but jic)"
+        !    stop
+        !else if (off_discretization == 0) then
+        !    off_discretization = discretization
+        !endif
         if (off_link_beads < 1) then
             print*, "lower discretization length or change linker/fragment length pairing"
             stop
