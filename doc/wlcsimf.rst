@@ -59,3 +59,4 @@ succeed by summing the various energies that are turned on (like `MC_wlc.f90`).
 .. f:autosrcfile:: MC_wlc.f90
 
 .. f:autosrcfile:: adapt.f90
+
