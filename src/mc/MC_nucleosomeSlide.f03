@@ -37,15 +37,15 @@ real(dp) DR    ! Displacement for slide move (integer BPs)
 real(dp), parameter :: optRatio = 0.25 ! max ratio of average discretization to allow for bp slide 
 integer I ! test bead
 integer II,JJ,KK,J ! test indices
-real(dp) tempR(3), tempU(3), tempV(3)
 integer max_bp 
 integer prevNuc, nextNuc, linkerSum
 integer nNucs
 integer nucArray(WLC_P__NT)
+real(dp), parameter :: eps = 0.00001 ! rescale to avoid urand vals of 0 
 
 ! initialize
 success = .false.
-max_bp = 2*sum(wlc_basepairs)/WLC_P__NT
+max_bp = 15
 
 ! find nucs
 KK = 1
@@ -58,7 +58,7 @@ nNucs = KK-1
 
 ! select nuc to move
 call random_number(urand,rand_stat)
-KK = ceiling(nNucs*(urand(1)))
+KK = ceiling(nNucs*(urand(1)+eps)/(1+1.1*eps))
 I = nucArray(KK)
 
 ! select distance to move (in bp)
@@ -133,7 +133,7 @@ if (success) then
         J=IB1
         wlc_RP(:,J)=wlc_R(:,J)
         wlc_UP(:,J)=wlc_U(:,J)
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,J) = wlc_V(:,J)
+        wlc_VP(:,J) = wlc_V(:,J)
         wlc_nPointsMoved=wlc_nPointsMoved+1
         wlc_pointsMoved(wlc_nPointsMoved)=J
     endif
@@ -148,16 +148,9 @@ if (success) then
         wlc_pointsMoved(wlc_nPointsMoved)=J
     endif
     do KK = IT1, IT2
-        call nucleosomeProp(wlc_UP(:,KK-1), wlc_VP(:,KK-1), wlc_RP(:,KK-1), &
-                            wlc_basepairs_prop(KK-1),wlc_nucleosomeWrap(KK-1), &
-                            tempU, tempV, tempR)
-        wlc_RP(:,KK) = tempR + tempU*WLC_P__LENGTH_PER_BP*wlc_basepairs_prop(KK)
-        wlc_UP(:,KK) = tempU
-        !if (wlc_nucleosomeWrap(KK) == 1) then 
-        !    wlc_VP(:,KK) = tempV
-        !else
-            wlc_VP(:,KK) = wlc_V(:,KK) ! dont change twist since incompatible
-        !endif 
+        wlc_RP(:,KK) = wlc_R(:,KK) + wlc_U(:,KK)*WLC_P__LENGTH_PER_BP*(wlc_basepairs_prop(KK)-wlc_basepairs(KK))
+        wlc_UP(:,KK) = wlc_U(:,KK)
+        wlc_VP(:,KK) = wlc_V(:,KK) 
         wlc_nPointsMoved=wlc_nPointsMoved+1
         wlc_pointsMoved(wlc_nPointsMoved)=KK
     enddo

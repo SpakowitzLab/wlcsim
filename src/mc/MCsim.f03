@@ -370,7 +370,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                  ENDdo
              endif
              if (MCTYPE==13) then 
-                !print*, 'MOVE', wlc_basepairs_prop(left:right)
+                !print*, 'MOVE', wlc_basepairs_prop(left:right)-wlc_basepairs(left:right)
                 !stop
                 wlc_basepairs = wlc_basepairs_prop
             endif

@@ -348,7 +348,7 @@
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
 
-#define WLC_P__LINKER_TYPE 'voong'
+#define WLC_P__LINKER_TYPE 'phased'
 ! VARIABLE COMMENT: ! linker length geometry type
 ! DEFAULTS COMMENT: ! phased is constant linker length, voong uses MESC LL distribution 23-55bp
 ! TYPE: REAL(DP)
@@ -910,7 +910,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER
