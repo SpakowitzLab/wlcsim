@@ -110,10 +110,10 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     if(WLC_P__GJK_STERICS) then
         collisions = 0
         ! check for neighbors on new beads
-        do i = 1, WLC_P__NT-1
+        do i = 1, WLC_P__NT
             !nn = 0
-            call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT-1,&
-                    WLC_P__NT-1,neighbors,distances,nn)
+            call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT,&
+                    WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
             call sterics_check(collisions,wlc_R,wlc_U,wlc_V,wlc_GJK,wlc_basepairs,1,i,nn,neighbors(1:nn),distances(1:nn),.true.)
         enddo

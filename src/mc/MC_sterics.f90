@@ -64,7 +64,7 @@ if (wlc_nPointsMoved>0) then
         ! check for neighbors on old beads
         do i = left+offset1, right+offset2
         !nn = 0
-        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT-1,neighbors,distances,nn)
+        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,left+offset1,i,&
                 nn,neighbors(1:nn),distances(1:nn),.true.)
@@ -112,7 +112,7 @@ if (wlc_nPointsMoved>0) then
     ! check for neighbors on new beads
     do i = left+offset1, right+offset2
         !nn = 0
-        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT-1,WLC_P__NT-1,neighbors,distances,nn)
+        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
         ! check for collisions
         call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,left+offset1,i,&
                 nn,neighbors(1:nn),distances(1:nn),netSterics)
@@ -160,6 +160,8 @@ integer, parameter :: s = WLC_P__GJK_POLYGON ! num sides of desired polygon
 real(dp), dimension(3) :: tempR, tempU, tempV
 real(dp), dimension(s,3) :: poly1Plus, poly2Plus, poly1ExitDNA, poly2ExitDNA
 integer jj
+
+if (ii == last_bead_of_chain(get_IP(ii))) return
 
 ! determine identity of moving bead
 if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome

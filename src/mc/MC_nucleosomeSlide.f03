@@ -126,7 +126,7 @@ if (success) then
     IB1 = I-II
     IB2 = I+JJ
     IT1 = IB1+1
-    IT2 = IB2
+    IT2 = IB2-1
     if (IB1>=1) then 
         wlc_nBend = wlc_nBend + 1
         wlc_bendPoints(wlc_nBend)=IB1
@@ -140,12 +140,13 @@ if (success) then
     if (IB2<WLC_P__NT) then 
         wlc_nBend = wlc_nBend + 1
         wlc_bendPoints(wlc_nBend)=IB2
-        J=IB2+1
-        wlc_RP(:,J)=wlc_R(:,J)
-        wlc_UP(:,J)=wlc_U(:,J)
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,J) = wlc_V(:,J)
-        wlc_nPointsMoved=wlc_nPointsMoved+1
-        wlc_pointsMoved(wlc_nPointsMoved)=J
+        do J = IB2, IB2+1
+            wlc_RP(:,J)=wlc_R(:,J)
+            wlc_UP(:,J)=wlc_U(:,J)
+            wlc_VP(:,J) = wlc_V(:,J)
+            wlc_nPointsMoved=wlc_nPointsMoved+1
+            wlc_pointsMoved(wlc_nPointsMoved)=J
+        enddo
     endif
     do KK = IT1, IT2
         wlc_RP(:,KK) = wlc_R(:,KK) + wlc_U(:,KK)*WLC_P__LENGTH_PER_BP*(wlc_basepairs_prop(KK)-wlc_basepairs(KK))
