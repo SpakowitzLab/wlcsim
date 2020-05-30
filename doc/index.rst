@@ -18,10 +18,9 @@ Contents:
    wlcsimpy
    wlcsimf
    features
-   homolog.ipynb
    output
    parallel_temp
-   MC_wlc
+   homolog.ipynb
 
 
 Indices and tables

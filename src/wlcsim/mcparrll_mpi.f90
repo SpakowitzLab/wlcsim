@@ -4,7 +4,7 @@
 #if MPI_VERSION
 
 subroutine startWorker()
-! values from wlcsim_data
+! Start worker node.
 use params, only: wlc_id, wlc_AB, wlc_rep, wlc_repSuffix, wlc_METH
 use params
 use mpi
@@ -93,14 +93,16 @@ use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
     wlc_repSuffix = iostrg
 
 end subroutine
+
 subroutine replicaExchange()
-! values from wlcsim_data
-use params, only: wlc_mc_ind, wlc_rep,  wlc_repSuffix
 ! This checks in with the mpi head node to
 ! For parallel tempering of the form:  E = cof*x
 ! 1: Tell head node the x value
 ! 2: Recive replica assignment from head node
 ! 3: Recive assigned cof value
+
+! values from wlcsim_data
+use params, only: wlc_mc_ind, wlc_rep,  wlc_repSuffix
 use params, only : dp, MAXFILENAMELEN, epsApprox
 use mpi
 use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf

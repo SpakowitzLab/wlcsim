@@ -1,12 +1,9 @@
 #include "../defines.inc"
-!---------------------------------------------------------------*
-
-!     subroutine MC_eelas
-!
-!     Calculate the change in the polymer elastic energy
-!     due to the displacement from a MC move
-!
 subroutine MC_eelas(wlc_p)
+!Calculate the change in the polymer elastic energy
+!due to the displacement from a MC move.  Only calculate for
+!bonds that have been changed which are listed in wlc_bendPints.
+
 ! values from wlcsim_data
 use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V&
     , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend

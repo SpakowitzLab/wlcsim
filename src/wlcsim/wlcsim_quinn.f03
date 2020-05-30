@@ -1,7 +1,10 @@
 #include "../defines.inc"
 
 subroutine wlcsim_quinn(save_ind, wlc_p)
-! values from wlcsim_data
+! Quinn's branch of the Fortran codebase.
+! This branch is set up for Monte-Carlo simulations with a
+! particular focus on parallel tempering.
+
 use params, only: wlc_mc_ind, wlc_numProcesses, wlc_id
 use params, only: printLinkingNumber
 #if MPI_VERSION
@@ -44,7 +47,9 @@ end subroutine wlcsim_quinn
 
 #if MPI_VERSION
 subroutine head_node(process)
-! values from wlcsim_data
+! Head node for multiple thread parallel tempering using MPI.
+! Sends worker threads their coefficients, receives x back, then
+! attempts replica swap move.
 use params, only: wlc_mc_ind, wlc_rand_stat
     use mersenne_twister
     use mpi
@@ -212,14 +217,20 @@ end subroutine head_node
 #endif
 
 function cof_path_by_energy_type(energy_type, s) result(cof)
+    ! Define path over which parallel tempering will occur.  By default,
+    ! values will range between zero and the value specifed in defines.inc.
+    ! Edit this function to set up your desired path.
+    !
+    ! Initially s will range from 0 to WLC_P__INITIAL_MAX_S.  The upper bound
+    ! can change if adaptation is turned on.
     use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_, &
         global_twistLiner_, global_twistQuadratic_
     use umbrella, only: setUmbrellaCof, setUmbrellaQuadraticCof
     use params, only: dp, nan
     implicit none
-    integer, intent(in) :: energy_type
-    real(dp), intent(in) :: s
-    real(dp) cof
+    integer, intent(in) :: energy_type ! energy type from :ref:`energies`
+    real(dp), intent(in) :: s ! Path length along parallel temper path.
+    real(dp) cof ! Coefficient of energy, see :ref:`energies`.
 
     cof = energyOf(energy_type)%cof ! Use Default value
 
@@ -242,7 +253,9 @@ end function cof_path_by_energy_type
 
 #if MPI_VERSION
 subroutine worker_node(wlc_p)
-! values from wlcsim_data
+! Worker node for MPI parallel tempering.
+! Recieves Coefficients from head node, runs many Monte-Carlo steps, then returns
+! x values to head node.
 use params, only: wlc_ind_exchange, wlc_mc_ind
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     use mpi
@@ -330,13 +343,15 @@ subroutine onlyNode(wlc_p)
 end subroutine onlyNode
 
 subroutine schedule(wlc_p,system_has_been_changed)
-! values from wlcsim_data
+! Change values in simulation at specified times.
+! For example, interactions can be turned off for the first several
+! save points.
 use params, only: wlc_mc_ind, eps
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     use params
     implicit none
-    type(wlcsim_params), intent(inout) :: wlc_p
-    logical, intent(out) :: system_has_been_changed
+    type(wlcsim_params), intent(inout) :: wlc_p ! some data
+    logical, intent(out) :: system_has_been_changed ! True if difinition of system has changed
     integer ii
 
     system_has_been_changed = .False.

@@ -28,25 +28,17 @@ Monte-Carlo simulations of solutions and melts of polymers are greatly accelerat
 
 Under this approach the local volume fraction of each constituent is calculated for each of a grid of bins.  The code for calculating the volume fractions and updating them after a Monte-Carlo move are
 
-.. f:autosrcfile:: MC_int.f03
+.. f:autosrcfile:: mc_int.f03
 
-The process of calculating the change in volume fractions after a move is often the computational bottle-neck in the simulation.  Routines for doing this that are optimized for different move types are
-
-.. f:autosrcfile:: MC_int_chem.f03
-
-.. f:autosrcfile:: MC_int_rep.f03
-
-.. f:autosrcfile:: MC_int_super_rep.f03
-
-.. f:autosrcfile:: MC_int_swap.f03
+The process of calculating the change in volume fractions after a move is often the computational bottle-neck in the simulation.  Routines for doing this that are optimized for different move types are documented here :ref:`other_int_fun`.
 
 The density is interpolated linearly between bins as described by Pike.  This interpolation is performed in 
 
-.. f:autosrcfile:: MC_interp.f03
+.. f:autosrcfile:: mc_interp.f03
 
-To run a simulation with the field theoretic interaction turned on set `WLC_P__FIELD_INT_ON` to true.  You will also need to specify the relevant interaction parameters to your problem, for example `WLC_P__CHI`.  The details of the interaction depend on problem (i.e. `WLC_P__FIELDINTERACTIONTYPE`).  What each of these interactions are (or to add your own) see `src/mc/MC_Hamiltonain.f03`.
+To run a simulation with the field theoretic interaction turned on set `WLC_P__FIELD_INT_ON` to true.  You will also need to specify the relevant interaction parameters to your problem, for example `WLC_P__CHI`.  The details of the interaction depend on problem (i.e. `WLC_P__FIELDINTERACTIONTYPE`).  What each of these interactions are (or to add your own) see `src/mc/mc_hamiltonain.f03`.
 
-.. f:autosrcfile:: MC_Hamiltonian.f03
+.. f:autosrcfile:: mc_hamiltonian.f03
 
 If you edit this file be sure to edit both the initial calculation of volume fraction and change in volume fraction options.
 
@@ -57,13 +49,12 @@ Nucleosome geometry
 
 For simulations of chromatin that require the geometry of nucleosomes to determine the entry exit angles of the DNA linkers the module `nucleosome` has the details.
 
-.. f:autosrcfile:: nucleosome.f03
+:ref:`nucleosome`
 
 Streamlined Energy Components
 =============================
 
 The are many different energy contributions.  To keep track of these (or to add more) you should look to the `energies` module.
 
-.. f:autosrcfile:: energies.f03
-
+:ref:`energies`
 

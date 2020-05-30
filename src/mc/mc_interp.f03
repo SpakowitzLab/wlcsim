@@ -1,25 +1,31 @@
 #include "../defines.inc"
 !-----------------------------------------------------------------
 !
-!     This program linearly interpolates a bead at RBin into
-!     8 bins indexed by IX, IY, IZ with weights WX, WY, WZ
-!
 !        Addapted from MC_int.f95
 !        By Quinn MacPherson in summer 2016
 !
 !---------------------------------------------------------------
 subroutine interp(wlc_p,RBin,IX,IY,IZ,WX,WY,WZ)
+!This program linearly interpolates a bead at RBin into
+!8 bins indexed by IX, IY, IZ with weights WX, WY, WZ.
+!Interpolation is based on Pike (2009), "Theoretically informed
+!coarse grain simulation of polymeric systems".
+!
+!For exampe a if a bead is closer to the center of IX(1) then IX(2)
+!then WX(1) will be proportionally higher then WX(2).  The total
+!weight in any of the eight bins is given by WX*WY*WZ.
+
 use params, only: dp, wlcsim_params
 implicit none
 Type(wlcsim_params), intent(in) :: wlc_p      ! system varibles
 
-real(dp), intent(inout) :: RBin(3) ! position or posiion within bin
-integer, intent(out) :: IX(2)  ! Output
-integer, intent(out) :: IY(2) ! Output
-integer, intent(out) :: IZ(2)  ! Output
-real(dp), intent(out) :: WX(2) ! Output
-real(dp), intent(out) :: WY(2) ! Output
-real(dp), intent(out) :: WZ(2) ! Output
+real(dp), intent(inout) :: RBin(3) ! position of bead
+integer, intent(out) :: IX(2)  ! Range of bins in x direction
+integer, intent(out) :: IY(2) ! Range of bins in y direction
+integer, intent(out) :: IZ(2)  ! Range of bins in z direction
+real(dp), intent(out) :: WX(2) ! Fractional contributions in x
+real(dp), intent(out) :: WY(2) ! Fractional contributions in y
+real(dp), intent(out) :: WZ(2) ! Fractional contributions in z
 SELECT CASE (WLC_P__CONFINETYPE)
 CASE ('none') ! Box from 0-wlc_p%LBOX, Bins split by boundaries
     ! Periodic BC

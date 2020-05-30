@@ -1,4 +1,5 @@
 #include "../defines.inc"
+module nucleosome
 !   --------------------------------------------------------------
 !
 !    This module is designed to handle the various geometrical
@@ -6,7 +7,6 @@
 !
 !   --------------------------------------------------------------
 
-module nucleosome
     use precision, only: dp, pi
     implicit none
     real(dp), parameter :: basePairsPerTurn = 10.5_dp
@@ -17,27 +17,23 @@ module nucleosome
     private :: nucleosomeROT, nucleosomeTran
 contains
 
-! -------------------------------------------------------------
-!
-!  nucleosomeProp calculates the final position and orientation
-!  Rout,Uout,Vout
-!  based on the the incomming position and orientation
-!  Rin, Uin, Vin
-!  for a nucleosome with wrapBP bace paris of DNA wrapped around it.
-!  The intrisic rotation of a liner that follows.
-!
-! -------------------------------------------------------------
 subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
+!Calculates the final position and orientation
+!Rout,Uout,Vout
+!based on the the incomming position and orientation
+!Rin, Uin, Vin
+!for a nucleosome with wrapBP bace paris of DNA wrapped around it.
+!The intrisic rotation of a linkBP long linker that follows is also included.
     use vector_utils, only: cross
     implicit none
-    real(dp), intent(in), dimension(3) :: Uin
-    real(dp), intent(in), dimension(3) :: Vin
-    real(dp), intent(in), dimension(3) :: Rin
+    real(dp), intent(in), dimension(3) :: Uin ! Entry direction along DNA
+    real(dp), intent(in), dimension(3) :: Vin ! Entry tangent vector
+    real(dp), intent(in), dimension(3) :: Rin ! Position of entry
     integer, intent(in) :: linkBP
     integer, intent(in) :: wrapBP
-    real(dp), intent(out), dimension(3) :: Uout
-    real(dp), intent(out), dimension(3) :: Vout
-    real(dp), intent(out), dimension(3) :: Rout
+    real(dp), intent(out), dimension(3) :: Uout ! Exit position
+    real(dp), intent(out), dimension(3) :: Vout ! Exit tangent vector
+    real(dp), intent(out), dimension(3) :: Rout ! Exit position
 
     real(dp), dimension(3,3) :: linkRot
     real(dp), dimension(3,3) :: mtrx
@@ -61,17 +57,12 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
 
 end subroutine nucleosomeProp
 
-
-!  ------------------------------------------------------
-!
-!  nucleosome_energy caltulate the bending energy of a nucleosome
-!  at position R and orientation U, V
-!  with wrapBP of DNA wrapped around it followed by a liner linkBP
-!  bace pairs long that ends at RP1, UP1, and VP1.
-!  It does this assuming a SSWLCWT linker.
-!
-!  ------------------------------------------------------
 function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
+!Caltulate the bending energy of a nucleosome
+!at position R and orientation U, V
+!with wrapBP of DNA wrapped around it followed by a liner linkBP
+!bace pairs long that ends at RP1, UP1, and VP1.
+!Assumes a SSWLCWT linker.
     use MC_wlc, only: E_SSWLCWT
     real(dp), intent(in), dimension(3) :: R ! R of bead i
     real(dp), intent(in), dimension(3) :: RP1 ! R of bead i+1
@@ -99,14 +90,18 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
                    multiParams(9,linkBP))   ! etwist
 end function nucleosome_energy
 
-
-! ---------------------------------------------------------------------
-!  Return parameters for a linker i bace pairs long
-! ---------------------------------------------------------------------
 subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
+!Return parameters for a linker that is i bace pairs long
     implicit none
-    integer, intent(in) :: i
-    real(dp), intent(out) :: EB, EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype
+    integer, intent(in) :: i ! Number of bace pairs in linder
+    real(dp), intent(out) :: EB ! Bending modulus
+    real(dp), intent(out) :: EPAR ! Stretch modulus
+    real(dp), intent(out) :: EPERP ! Shear modulus
+    real(dp), intent(out) :: GAM ! ground state segment length
+    real(dp), intent(out) :: ETA ! bend-shear coupling
+    real(dp), intent(out) :: XIR,XIU,sigma
+    real(dp), intent(out) :: etwist ! Twist coefficient
+    real(dp), intent(out) :: simtype ! WLC, SSWLC, or Gaussian Chain
 
         EB     = multiParams(1,i)
         EPAR   = multiParams(2,i)

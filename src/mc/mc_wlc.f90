@@ -1,23 +1,20 @@
 #include "../defines.inc"
 module MC_wlc
-!---------------------------------------------------------------*
-!
-!      Chain backbone potential between two beads
-!
-! E_wlc(RM1,R,RP1,EB)
-! E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
-! E_GAUSS(R,RM1,EPAR)
-!---------------------------------------------------------------
+! Module for calculating chain backbone potential between two beads
+! based on the position and orientation of the beads.
+! Seperate subroutines for different polymer models are porvided.
+
 use precision, only: dp
 implicit none
 contains
 
 function E_wlc(RM1,R,RP1,EB)
+! Energy between beads of wormlike chain
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
     real(dp), intent(in), dimension(3) :: R ! R of bead i
     real(dp), intent(in), dimension(3) :: RP1 ! R of bead i+1
-    real(dp), intent(in) :: EB
+    real(dp), intent(in) :: EB ! Bend modulus
     real(dp) E_wlc
     real(dp), dimension(3) :: U0, U
 
@@ -29,12 +26,17 @@ function E_wlc(RM1,R,RP1,EB)
 end function E_wlc
 
 function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
+! Energy between beads of Shearable-Stretchable Wormlike Chain
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
     real(dp), intent(in), dimension(3) :: R ! R of bead i
     real(dp), intent(in), dimension(3) :: UM1 ! U of bead i-1
     real(dp), intent(in), dimension(3) :: U ! U of bead i
-    real(dp), intent(in) :: EB, EPAR, EPERP, ETA, GAM ! SSWLC constants
+    real(dp), intent(in) :: EB ! Bending modulus
+    real(dp), intent(in) :: EPAR ! Stretch modulus
+    real(dp), intent(in) :: EPERP ! Shear modulus
+    real(dp), intent(in) :: GAM ! ground state segment length
+    real(dp), intent(in) :: ETA ! bend-shear coupling
     real(dp), dimension(4) :: E_SSWLC
     real(dp) GI(3)
     real(dp) DR(3)
@@ -52,6 +54,7 @@ function E_SSWLC(R,RM1,U,UM1,EB,EPAR,EPERP,ETA,GAM)
 end function E_SSWLC
 
 function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
+! Energy between beads of Shearable-Stretchable Wormlike Chain With Twist
     use vector_utils, only: cross, axisAngle, rotateU, angle_between
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
@@ -60,7 +63,12 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
     real(dp), intent(in), dimension(3) :: U ! U of bead i
     real(dp), intent(in), dimension(3) :: VM1 ! V of bead i-1
     real(dp), intent(in), dimension(3) :: V ! V of bead i
-    real(dp), intent(in) :: EB, EPAR, EPERP, ETA, GAM, ETWIST ! SSWLC constants
+    real(dp), intent(in) :: EB ! Bending modulus
+    real(dp), intent(in) :: EPAR ! Stretch modulus
+    real(dp), intent(in) :: EPERP ! Shear modulus
+    real(dp), intent(in) :: GAM ! ground state segment length
+    real(dp), intent(in) :: ETA ! bend-shear coupling
+    real(dp), intent(in) :: ETWIST ! twist modulus
     real(dp), dimension(4) :: E_SSWLCWT
     real(dp) GI(3)
     real(dp) DR(3)
@@ -91,6 +99,7 @@ function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
 end function E_SSWLCWT
 
 function E_GAUSS(R,RM1,EPAR)
+! Energy between two beads of flexible polymer.
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
     real(dp), intent(in), dimension(3) :: R ! R of bead i
@@ -102,30 +111,31 @@ function E_GAUSS(R,RM1,EPAR)
     ! in gaussian chain, there's only parallel stretching energy. DEELAS init'd to zeros, so sum(DEELAS) == DEELAS(2) later
 end function E_GAUSS
 
-! ------------------------------------------------------------
-!    Lookup precultulated WLC parameters
-!
-!     1. Determine the simulation type
-!     2. Evaluate the polymer elastic parameters
-!     3. Determine the parameters for Brownian dynamics simulation
-! -----------------------------------------------------------
 subroutine calc_elastic_constants(DEL,LP,LT,EB,EPAR,GAM,XIR,EPERP,ETA,XIU,DT,SIGMA,&
                                   ETWIST,simtype)
+! Lookup precultulated WLC parameters.
+!
+!1. Determine the simulation type
+!
+!2. Evaluate the polymer elastic parameters
+!
+!3. Determine the parameters for Brownian dynamics simulation
+!
     implicit none
     real(dp), intent(in) :: DEL  ! Number of persistance lengths between beads
     real(dp), intent(in) :: LP   ! Persistance length in units of simulation
     real(dp), intent(in) :: LT   ! Twist persistance length
-    real(dp), intent(out) :: EB
-    real(dp), intent(out) :: EPAR
-    real(dp), intent(out) :: GAM
+    real(dp), intent(out) :: EB  ! Bend modulus
+    real(dp), intent(out) :: EPAR ! Stretch modulus
+    real(dp), intent(out) :: GAM ! ground state segment length
     real(dp), intent(out) :: XIR
     real(dp), intent(out) :: EPERP
-    real(dp), intent(out) :: ETA
+    real(dp), intent(out) :: ETA ! bend-shear coupling
     real(dp), intent(out) :: XIU
     real(dp), intent(out) :: DT
-    real(dp), intent(out) :: ETWIST
+    real(dp), intent(out) :: ETWIST ! twist modulus
     real(dp), intent(out) :: SIGMA
-    integer, intent(out) :: simtype
+    integer, intent(out) :: simtype ! WLC, SSWLC, or Gaussian Chain
 
     integer ind, i
     real(dp) M

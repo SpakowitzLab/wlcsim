@@ -1,16 +1,10 @@
 #include "../defines.inc"
-!---------------------------------------------------------------*
-!
-!
-!
-!     This subroutine performs a Monte Carlo simulation on the
-!     polymer chain.
-!
-!    Quinn Made Changes to this file starting on 12/15/15
-!
-
 subroutine MCsim(wlc_p)
-! values from wlcsim_data
+!Perform Metropolis Hastings Monte Carlo moves on the system of polymers.
+!Loops over move types (crank shaft, slide,...) and calls each energy
+!function.  Accepts move by the Metropolis condition on the change in
+!energy.  If accepted update system.
+
 use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_DPHI_l2, wlc_AB, wlc_NCross &
     , wlc_ind_exchange, wlc_inDPHI, wlc_rand_stat, wlc_Cross&

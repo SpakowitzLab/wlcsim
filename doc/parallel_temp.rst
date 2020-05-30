@@ -21,3 +21,29 @@ Adjustable spacing
 
 By default, replicas are spaced evenly between 0 and the maximum value.  You can adjust the spacing by writing a more complicated function into cof_path_by_energy_type` in the file `src/wlcsim/wlcsim_quinn`.  There is a built in way to adjust the spacing of the replicas to achieve an acceptable exchange rate between sequential replicas.  To do this set `WLC_P__INDSTARTREPADAT`, and `WLC_P__INDENDREPADAPT` to the save point range during which you would like the adaptation to occur.  For more details see the file `src/mc/adaptCof`.
 
+Structure of code
+=================
+
+The code preforms the following sequence of events
+
+1- The `head_node` calculates starting coefficient values and sends them to the
+workers.
+
+2- The `worker_node` runs `start_worker`.
+
+3- The `worker_node` runs Monte Carlo moves with `mcsim`.
+
+4- The `worker_node` call `replicaExchange` to return values to the `head_node`.
+
+5- The `head_node` attempts a replica exchange.
+
+6- The `head_node` return new coefficient values to the worker via
+`replicaExchange`
+
+7- Return to step 3 and repeat.
+
+.. f:autosubroutine:: head_node
+
+.. f:autofunction:: worker_node
+
+.. f:autosrcfile:: mcparrll_mpi.f90
