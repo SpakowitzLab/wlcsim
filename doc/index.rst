@@ -21,6 +21,8 @@ Contents:
    output
    parallel_temp
    homolog.ipynb
+   FrankExample.ipynb
+   
 
 
 Indices and tables
