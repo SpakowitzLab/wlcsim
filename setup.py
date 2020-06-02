@@ -14,7 +14,7 @@ if __name__ == "__main__":
           cmdclass=versioneer.get_cmdclass(),
           url="https://github.com/SpakowitzLab/BasicWLC",
           license="",
-          long_description=open("README.md").read(),
+          long_description=open("README.rst").read(),
           classifiers=["Intended Audience :: Science/Research",
                        'Intended Audience :: Developers',
                        'Development Status :: 2 - Pre-Alpha',
