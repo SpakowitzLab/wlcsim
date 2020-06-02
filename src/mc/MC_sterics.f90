@@ -210,23 +210,25 @@ do jj = 1, nn
             collisions = collisions + GJK(poly2Plus, poly1Plus, s)
         endif
         ! check for exit DNA collisions
-        if (distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then 
+        if (distances(jj) <  (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then 
             ! check for collision of nucleosome i with exit DNA j ,
             ! collision of exit DNA i with nuclesome j, and
             ! colllision of exit DNA i and j
-            if (jjGreaterThanii) then ! ORDER MATTERS
-                collisions = collisions + GJK(poly1Plus, poly2ExitDNA, s)
-                collisions = collisions + GJK(poly1ExitDNA, poly2Plus, s)
-                collisions = collisions + GJK(poly1ExitDNA, poly2ExitDNA, s)
-            else
-                collisions = collisions + GJK(poly2ExitDNA, poly1Plus, s)
-                collisions = collisions + GJK(poly2Plus, poly1ExitDNA, s)
-                collisions = collisions + GJK(poly2ExitDNA, poly1ExitDNA, s)
+            if ((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii) ) then
+                if (jjGreaterThanii) then ! ORDER MATTERS
+                    collisions = collisions + GJK(poly1Plus, poly2ExitDNA, s)
+                    collisions = collisions + GJK(poly1ExitDNA, poly2Plus, s)
+                    collisions = collisions + GJK(poly1ExitDNA, poly2ExitDNA, s)
+                else
+                    collisions = collisions + GJK(poly2ExitDNA, poly1Plus, s)
+                    collisions = collisions + GJK(poly2Plus, poly1ExitDNA, s)
+                    collisions = collisions + GJK(poly2ExitDNA, poly1ExitDNA, s)
+                endif
             endif
         endif
     ! moved bead nuc + DNA
     else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
-        distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
+        distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
         ! ignore 10bp nearest nuc
         if ( (neighbors(jj)+1 <= ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) >= 10) .OR. &
             (neighbors(jj)-1 >= ii+1 .AND. sum(basepairs(ii:neighbors(jj)-1)) >= 10) ) then 
@@ -246,7 +248,7 @@ do jj = 1, nn
         endif 
     ! moved bead DNA + nuc
     else if ( (iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
-        distances(jj) < (2*basepairs(ii)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
+        distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
         ! ignore 10bp nearest nuc
         if ( (ii+1 <= neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) >= 10) .OR. &
                 (ii-1 >= neighbors(jj)+1 .AND. sum(basepairs(neighbors(jj):ii-1)) >= 10) ) then 
