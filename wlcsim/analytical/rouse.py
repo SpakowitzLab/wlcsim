@@ -96,38 +96,49 @@ def rouse_large_cvv_g(t, delta, deltaN, b, D):
       - 2*np.power(np.abs(t), 1/2)*gt
     )
 
+
 mod_file = os.path.abspath(__file__)
 mod_path = os.path.dirname(mod_file)
+
+
 def end2end_distance(r, lp, N, L):
-    """For now, always returns values for r = np.linspace(0, 1, 50001).
-    TODO: fix this
+    """
+    For now, always returns values for ``r = np.linspace(0, 1, 50001)``.
 
-    The end to end distance for a polymer with given parameters.
-    end2end_distance(r: array_like(n), lp: float, N: int, L: float):
-        -> array_like(n)
-    Params:
-        r - the values at which to evaluate the end-to-end probability
-            distribution
-        lp - persistence length of polymer
-        N - number of beads in polymer
-        L - polymer length
-    Output:
-        (x,g)
-        x = np.linspace(0, 1, 5001)
-        g = P(|R| = x | lp, N, L)
+    Parameters
+    ----------
+    r : (N, ) float, array_like
+        the values at which to evaluate the end-to-end probability
+        distribution. ignored for now (TODO: fix)
+    lp : float
+        persistence length of polymer
+    N : int
+        number of beads in polymer
+    L : float
+        polymer length
 
+    Returns
+    -------
+    x : (5001,) float
+        ``np.linspace(0, 1, 5001)``
+    g : (5001,) float
+        :math:`P(|R| = x | lp, N, L)`
+
+    Notes
+    -----
     Uses the gaussian chain whenever applicable, ssWLC tabulated values
     otherwise. If you request parameters that require a WLC end-to-end
-    distance, the function will ValueError."""
-    Delta = L/(lp*(N-1)) # as in wlcsim code
+    distance, the function will ValueError.
+    """
+    Delta = L/(lp*(N-1))  # as in wlcsim code
     # WLC case
     actual_r = np.linspace(0, 1, 5001)
-    if Delta < 0.01: # as in wlcsim code
+    if Delta < 0.01:  # as in wlcsim code
         ValueError('end2end_distance: doesn\'t know how to compute WLC case!')
     # ssWLC case
-    elif Delta < 10: # as in wlcsim code
-        Eps = N/(2*lp*L) # as in wlcsim code
-        file_num = round(100*Eps) # index into file-wise tabulated values
+    elif Delta < 10:  # as in wlcsim code
+        Eps = N/(2*lp*L)  # as in wlcsim code
+        file_num = round(100*Eps)  # index into file-wise tabulated values
         file_name = os.path.join('pdata', 'out' + str(file_num) + '.txt')
         file_name = os.path.join(mod_path, file_name)
         G = np.loadtxt(file_name)
@@ -147,15 +158,14 @@ def test_rouse_msd_line_approx():
     """Figure out what Dapp is exactly using our analytical result.
 
     if we use msd_approx(t) = 3*bhat*np.sqrt(Dhat*t)/np.sqrt(3)*1.1283791(6)
-    then |msd(t) - msd_approx(t)|/msd(t) = np.sqrt(2)/N*np.power(t, -1/2)
-    msd_approx(t) > msd(t) in this range, so that means that
-    msd_approx(t)/(np.sqrt(2)/N*np.power(t, -1/2) + 1) = msd(t)
+    then ``|msd(t) - msd_approx(t)|/msd(t) = np.sqrt(2)/N*np.power(t, -1/2)``.
+    ``msd_approx(t) > msd(t)`` in this range, so that means that
+    ``msd_approx(t)/(np.sqrt(2)/N*np.power(t, -1/2) + 1) = msd(t)``.
 
     if we redefine msd_approx with this correction, the new relative error is
-    about np.sqrt(2)/N/100*t**(-1/2)? gotta see if this carries over to other chain
-    parameters though...it does not...
-    this time msd(t) is bigger, so
-    msd_approx = msd_approx(t)/(1 - np.sqrt(2)/N/100*t**(-1/2))
+    about ``np.sqrt(2)/N/100*t**(-1/2)``? gotta see if this carries over to
+    other chain parameters though...it does not...  this time msd(t) is bigger,
+    so ``msd_approx = msd_approx(t)/(1 - np.sqrt(2)/N/100*t**(-1/2))``.
 
     okay actually looks like extra factor is additive?
 
@@ -277,6 +287,8 @@ def ring_mscd(t, D, Ndel, N, num_modes=1000):
     mscd : (N,) np.array<float>
         result
 
+    Notes
+    -----
     Adapted from Andy's code, for calculating MSCD curve of synaptonemal
     complex model. Computes NPT mscd curves for homologous loci on rings of
     length N at some distance NDEL from each other. D is chosen exp-randomly
@@ -284,6 +296,9 @@ def ring_mscd(t, D, Ndel, N, num_modes=1000):
     curve with probability 0.1 (but never actually does it) for some reason....
     DEL is fraction of way along the loop, so N is actually half the length of
     the ring (hence the "1/2"'s).
+
+    .. code-block:: matlab
+
         % number of P modes
         PMAX=10000;
         % time
@@ -350,6 +365,7 @@ def ring_mscd(t, D, Ndel, N, num_modes=1000):
         hold on
         loglog(T,10*power(T,0.25),'k--','LineWidth',4)
         %loglog(T,10*power(T,0.5),'k--','LineWidth',4)
+
     """
     mscd = np.zeros_like(t)
     for p in range(1, num_modes+1):

@@ -7,7 +7,7 @@ Welcome to wlcsim's documentation!
 ==================================
 
 
-.. include:: ../README.md
+.. include:: ../README.rst
     :start-line: 3
 
 Contents:
@@ -22,7 +22,7 @@ Contents:
    parallel_temp
    homolog.ipynb
    FrankExample.ipynb
-   
+
 
 
 Indices and tables

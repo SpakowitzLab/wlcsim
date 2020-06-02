@@ -1,9 +1,15 @@
-# WormLike Chain SIMulator
+WormLike Chain SIMulator
+========================
 
-[![Build Status](https://travis-ci.org/brunobeltran/wlcsim.svg?branch=master)](https://travis-ci.org/brunobeltran/wlcsim)
+.. image:: https://travis-ci.com/SpakowitzLab/wlcsim.svg?branch=master
+    :target: https://travis-ci.com/SpakowitzLab/wlcsim
 
-## What wlcsim is
-=================
+.. image:: https://readthedocs.org/projects/wlcsim/badge/?version=latest
+    :target: https://wlcsim.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+What wlcsim is
+--------------
 
 This is a project started by the Spakowitz lab to make varioius polymer physics
 simulations / calulations.  The bulk of the codebalse is build around a FORTRAN
@@ -11,7 +17,7 @@ code that is designed to efficiently simulate various simualtions of wormlike
 chain polymer(s) using various coarse-grainings where applicable.  This code
 performs Monte Carlo or Brownian dynamics simulations.
 
-The wlcsim projects also contains various related code in PYTHON.  These include
+The wlcsim projects also contains various related code in Python  These include
 a more modern Browning dynamics simulation as well as a number of analytical
 calculations.  For more details on these see :ref:`wlcsimpy`.
 
@@ -20,8 +26,8 @@ The features of this codebase are described in :ref:`features`.
 
 More details on how the code is structured see :ref:`wlcsimf`
 
-## Setting up a simulation
-==========================
+Setting up a simulation
+-----------------------
 
 To define the system you would like to simulate set the approparte values
 ``src\defines.inc``.  Discriptions of each parameter are found along with the
@@ -33,8 +39,8 @@ from compiling. This is on purpose so that the code is not accidentally run with
 something arbitrary for these values (like the length of the chain, the
 persistence length, etc).
 
-## To Run
-=========
+To Run
+------
 
 Simply typing ``make`` in the top level directory will build the simulator
 from source. The executable created (``wlcsim.exe``) will data from the ``input/``
@@ -54,8 +60,8 @@ To perform parallel tempering using MPI for multiprocessing using 10 threads
 first compile using ``make`` then type ``mpirun -np 10 wlcsim.exe``.  For more
 details on parallel tempering see :ref:`parallel_temp`.
 
-## Output
-=========
+Output
+------
 
 There are several ways to easily visualize simulation output. There are PyMol
 scripts in the ``vizualization`` directory, ``python -m wlcsim.plot_wlcsim``
@@ -67,8 +73,8 @@ directory, which contains rank two arrays of shape
 For more details see :ref:`output`.
 
 
-## Disclaimer
-=============
+Disclaimer
+----------
 
 This codebase is internal to the Spakowitz lab and is not guaranteed to be
 bug-free at any point. For battle-tested versions of our software, please see

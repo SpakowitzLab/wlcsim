@@ -71,29 +71,28 @@ from .runge_kutta import *
 from numba import jit
 import numpy as np
 
-from pathlib import Path
-
 # for testing
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.widgets import Slider, Button, RadioButtons
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import Qt
+
 
 def recommended_dt(N, L, b, D):
-    r"""Recommended "dt" for use with rouse*jit family of functions.
+    r"""
+    Recommended "dt" for use with rouse*jit family of functions.
 
     Currently set to :math:`\frac{1}{10}\frac{b^2}{6D}`.
 
-    See the :func:`jit_rouse` docstring for source of this time scale."""
+    See the :func:`jit_rouse` docstring for source of this time scale.
+    """
     Nhat = L/b
     L0 = L/(N-1)
     Dhat = D*N/Nhat
     bhat = np.sqrt(L0*b)
     return (1/10)*bhat**2/(6*Dhat)
 
+
 def measured_D_to_rouse(Dapp, d, N, bhat=None, regime='rouse'):
-    r"""Get the full-polymer diffusion coefficient from the "apparent" D
+    r"""
+    Get the full-polymer diffusion coefficient from the "apparent" D.
 
     In general, a discrete Rouse polymer's MSD will have three regimes. On time
     scales long enough that the whole polymer diffuses as a large effective
@@ -246,29 +245,30 @@ def rouse(N, L, b, D, t, x0=None):
 
 @jit(nopython=True)
 def jit_rouse(N, L, b, D, t, t_save=None):
-    r"""faster version of wlcsim.bd.rouse.rouse using jit
+    r"""
+    Faster version of wlcsim.bd.rouse.rouse using jit
 
-    N=101,L=100,b=1,D=1 takes about 3.5min to run when
-    t=np.linspace(0, 1e5, 1e7+1)
-    adding t_save does not slow function down
+    ``N=101,L=100,b=1,D=1`` takes about 3.5min to run when
+    ``t=np.linspace(0, 1e5, 1e7+1)``
+    adding ``t_save`` does not slow function down
 
     our srk1 scheme is accurate as long as :math:`\Delta t` is less than the
-    transition time where the MSD goes from high k behavior (t^1) to rouse
-    behavior (t^(1/2)).  This is exactly the time required to diffuse a Kuhn
-    length, so we just need :math:`\Delta t < \frac{\hat{b}^2}{6\hat{D}}` in
-    3D. the "crossover" from fast-k to rouse-like behavior takes about one
-    order of magnitude in time, but adding more than that doesn't seem to make
-    the MSD any more accurate, so we suggest setting :math:`\Delta t` to one
-    tenth of the bound above.
+    transition time where the MSD goes from high k behavior (:math:`t^1`) to
+    Rouse behavior (:math:`t^{1/2}`).  This is exactly the time required to
+    diffuse a Kuhn length, so we just need
+    :math:`\Delta t < \frac{\hat{b}^2}{6\hat{D}}` in 3D. the "crossover" from
+    fast-k to rouse-like behavior takes about one order of magnitude in time,
+    but adding more than that doesn't seem to make the MSD any more accurate,
+    so we suggest setting :math:`\Delta t` to one tenth of the bound above.
 
     the number of orders of magnitude of "rouse" scaling the simulation will
     capture is exactly dictated by the ratio between this time scale and the
-    rouse relaxation time (so like ?N**2?)
+    rouse relaxation time (so like ``N**2``?)
 
     recall (doi & edwards, eq 4.25) that the first mode's relaxation time is
     :math:`\tau_1 = \frac{\xi N^2}{k \pi^2 }`.
-    and the :math:`p`th mode is :math:`\tau_p = \tau_1/p^2` (this is the
-    exponential falloff rate of the :math:`p`th mode's correlation function).
+    and the :math:`p`\th mode is :math:`\tau_p = \tau_1/p^2` (this is the
+    exponential falloff rate of the :math:`p`\th mode's correlation function).
     """
     rtol = 1e-5
     # derived parameters

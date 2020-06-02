@@ -3,16 +3,22 @@ from scipy.integrate import simps
 from matplotlib import pyplot as plt
 
 def invLaplace(p_values, G_values, L, reduction=0.0):
-    """Numerical Inverse Laplace from G(p) -> G(L)
+    r"""
+    Numerical Inverse Laplace from :math:`G(p) \to G(L)`.
 
-    Args:
-        p_values (numpy array): 1D complex array of p values (i.e. the contour)
-        G_values (numpy array): 1D complex array G(p)
-        L (real): Polymer length (In Kuhn lengths)
-        reduction (real): multiply answer by exp(-reduction) for better numerics
+    Parameters
+    ----------
+    p_values : array_like
+        1D complex array of p values (i.e. the contour)
+    G_values : array_like
+        1D complex array G(p)
+    L : float
+        Polymer length (In Kuhn lengths)
+    reduction : float
+        multiply answer by exp(-reduction) for better numerics
     """
-    x_values=np.imag(p_values)
-    #print(x_values[0:10])
+    x_values = np.imag(p_values)
+    # print(x_values[0:10])
     y_values = np.array(G_values)*np.exp(p_values*L-reduction)
     return simps(y_values, x_values)/(2*np.pi)
 
@@ -27,21 +33,33 @@ def concentrate_high(low, high, halfpoints):
 
 def make_path(factor=100, scale=1.0, lambda_offset=0.1, width=2.0, depth=2.0,
               nwing=100, nside=30, nback=20, maxp=6000, pole_offset=0.0):
-    '''Path for complex integral that draws a half rectangle about the origin.
+    """
+    Path for complex integral that draws a half rectangle about the origin.
 
-    Args:
-        factor (int): Number of points to caltulate (sort of)
-        scale (float): Scale of path.  Recomended: ~10.0/N
-        lambda_offset (float): distance from complex axis
-        width (float): width of rectangle
-        depth (float): depth of rectangle
-        nwing (int): number of points in wing before *factor
-        nside (int): number of points to a side before *factor
-        back (int): number of points on the back before *factor
-        maxp (float): approximation for infinity
-        pole_offset (float): add to depth
-    '''
-    assert depth>=lambda_offset, "depth must be >= lambda_offset"
+    Parameters
+    ----------
+    factor : int
+        Number of points to caltulate (sort of)
+    scale : float
+        Scale of path.  Recomended: around 10.0/N
+    lambda_offset : float
+        distance from complex axis
+    width : float
+        width of rectangle
+    depth : float
+        depth of rectangle
+    nwing : int
+        number of points in wing before ``factor``
+    nside : int
+        number of points to a side before ``factor``
+    back : int
+        number of points on the back before ``factor``
+    maxp : float
+        approximation for infinity
+    pole_offset : float
+        add to depth
+    """
+    assert depth >= lambda_offset
     nside=nside*factor
     nback=nback*factor
     nwing=nwing*factor
@@ -128,7 +146,7 @@ def plot_invLaplace_path(path, cutts, G_values, L, title="Inverse Laplace"):
         else:
             x_values=np.imag(p_values)
             sgn=1.0/(2*np.pi) # the 1j/1j cancels
-        
+
         x_values = x_values-x_values[0]+x_total
         x_total=x_values[-1]
         plt.plot(x_values, np.real(y_values), '.-')
@@ -143,10 +161,10 @@ def test_inv_laplace():
     aa = -0.1
     for ii, p in enumerate(p_values):
         nums[ii] = 1.0/(p-aa)
-    
+
     N_set = {0.05, 0.1, 0.5, 1.0, 10}
     for iN, N in enumerate(N_set):
-        print("Correct= %f, Calc=%f"%(np.exp(aa*N), 
+        print("Correct= %f, Calc=%f"%(np.exp(aa*N),
                                       invLaplace_path(nums, N)))
         plot_invLaplace_path(nums, N, title="N="+str(N))
 #test_inv_laplace()
@@ -159,8 +177,8 @@ def test_scale():
         aa = -0.1
         for ii, p in enumerate(p_values):
             nums[ii] = 1.0/(p-aa)
-    
-        print("Correct= %f, Calc=%f"%(np.exp(aa*N), 
+
+        print("Correct= %f, Calc=%f"%(np.exp(aa*N),
                                       invLaplace_path(nums, N)))
         plot_invLaplace_path(nums, N, title="N="+str(N))
 #test_scale()
