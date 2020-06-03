@@ -3,6 +3,10 @@
 wlcsim Fortran Codebase Structure
 #################################
 
+.. image:: code_diagram.png
+    :width: 500
+    :alt: Should show image of code diagram
+
 .. f:program:: wlcsim
 
     Use a universal discretization scheme to simulate from WLCs through
@@ -31,8 +35,15 @@ the input in `defines.inc`.
 `mcsim.f03` calls different subroutines that define possible Monte Carlo moves
 (like `MC_reptationMove.f03`) and then checks for whether the move should
 succeed by summing the various energies that are turned on (like `mc_wlc.f90`).
+Diagrams describing a few of the moves are provided here:
 
-.. f:autosrcfile:: MC_reptationMove.f03
+.. image:: moves.png
+    :width: 600
+    :alt: Should show images of moves
+
+.. image:: spider_move.png
+    :width: 400
+    :alt: Should show the image of spider move
 
 :ref:`MC_wlc`
 

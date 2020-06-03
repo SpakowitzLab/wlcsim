@@ -12,8 +12,8 @@ What wlcsim is
 --------------
 
 This is a project started by the Spakowitz lab to make varioius polymer physics
-simulations / calulations.  The bulk of the codebalse is build around a FORTRAN
-code that is designed to efficiently simulate various simualtions of wormlike
+simulations / calulations.  The bulk of the codebalse is built around a FORTRAN
+code that is designed to efficiently simulate various systems of wormlike
 chain polymer(s) using various coarse-grainings where applicable.  This code
 performs Monte Carlo or Brownian dynamics simulations.
 
@@ -29,8 +29,8 @@ More details on how the code is structured see :ref:`wlcsimf`
 Setting up a simulation
 -----------------------
 
-To define the system you would like to simulate set the approparte values
-``src\defines.inc``.  Discriptions of each parameter are found along with the
+To define the system you would like to simulate, set the approparte values
+``src\defines.inc``.  Discriptions of each parameter are found along with their
 definitions in ``src\defines.inc``.  In pracatice, the best approach is often to
 start from examples provided in ``input/example_defines/``.
 
@@ -39,8 +39,11 @@ from compiling. This is on purpose so that the code is not accidentally run with
 something arbitrary for these values (like the length of the chain, the
 persistence length, etc).
 
+For tips on setting up and running simulations see :ref:`tips`.
+
 To Run
 ------
+
 
 Simply typing ``make`` in the top level directory will build the simulator
 from source. The executable created (``wlcsim.exe``) will data from the ``input/``
@@ -48,7 +51,7 @@ directoyr and write its output to the ``data`` directory.
 To force a rerun without having to manually delete all the old output files, you
 can also simply type ``make run`` at any time.
 
-By default, pecifying multiple polymers just simulates them in parallel in the same
+By default, specifying multiple polymers just simulates them in parallel in the same
 reaction volume, no interactions are assumed.
 
 To scan parameters, the Python script ``scan_wlcsim.py`` should be used. It takes

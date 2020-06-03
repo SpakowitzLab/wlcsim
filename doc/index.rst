@@ -20,6 +20,7 @@ Contents:
    features
    output
    parallel_temp
+   tips
    homolog.ipynb
    FrankExample.ipynb
 
