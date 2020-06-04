@@ -61,20 +61,20 @@ def Ploop_given_paired(n, starts, ends, b, dN, a):
             #TODO: use conf gaus green's function to get actual "free" ploop
             pass # assume floor ploop will be set outside of here
         # the current "loop" is the free tails at the start of the polymer
-        if si == -1:
+        elif si == -1:
             ploop[:ei] = gaussian_Ploop(a, 2*dN*(ei - np.arange(ei)), b)
-            continue
         # the current "loop" is the free tails at the end of the polymer
-        if ei == n:
+        elif ei == n:
             tail_len = (n - 1) - si
             ploop[si+1:] = gaussian_Ploop(a,
                     2*dN*(tail_len - np.arange(tail_len)[::-1]), b)
         # the current "loop" is in between si and ei, with total length
-        L = 2 * (ei - si)
-        # length of the one arm of the loop connecting each homolog pair
-        N = 2*np.arange(1, ei - si)
-        Nb2_hat = 1 / ( 1/N/b/b + 1/(L-N)/b/b )
-        ploop[si+1:ei] = gaussian_Ploop(a, Nb2_hat, 1)
+        else:
+            L = 2*dN*(ei - si)
+            # length of the one arm of the loop connecting each homolog pair
+            N = 2*dN*np.arange(1, ei - si)
+            Nb2_hat = 1 / ( 1/N/b/b + 1/(L-N)/b/b )
+            ploop[si+1:ei] = gaussian_Ploop(a, Nb2_hat, 1)
     return ploop
 
 @jit(nopython=True)
