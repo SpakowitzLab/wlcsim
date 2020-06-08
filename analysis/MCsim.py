@@ -190,7 +190,7 @@ class Snapshot:
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(np.max(np.asarray([self.wrap,self.basepairs]),0))-1+np.sum(self.basepairs[np.linspace(0,self.n_beads-1,self.n_beads,dtype='int')[np.asarray(self.wrap>1)]]))
+        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*lengthPerBP)
         # energies
         with open('%senergiesv%s' %(self.path_to_data,self.channel)) as fp:
@@ -249,6 +249,7 @@ class Snapshot:
                 self.centerBeads()    
         except:
             print('warning: this has already been run')
+            return
         nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>1],dtype='int')
         self.pair_nucs = scipy.spatial.distance.pdist(self.center_r[nucLocs,:])
     # determine the reduced pairwise distances between nucleosomes
@@ -259,6 +260,7 @@ class Snapshot:
                 self.pairwiseNucleosomeDistance()
         except:
             print('warning: this has already been run')
+            return
         self.reduced_pair_nucs = np.zeros((self.n_nucs-1)).reshape([self.n_nucs-1])
         # sum up distances
         iterTemp = 0
@@ -272,87 +274,74 @@ class Snapshot:
     # interpolate atoms into coarse grained chain
     def interpolate(self):
         # rotate DNA strand into material frame
-        offset = 0
         self.bps = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
         indR = 0; indA = 0
+        connect = []
+        chain = []
+        chainNum = 1
         for i in range(self.n_beads):
             if self.basepairs[i] != 0:
                 maxBp = self.basepairs[i]
-                if ((i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i == 0) and self.wrap[i] == 1):
-                    # find the rotational/height offset between beads
-                    omega = getUVangle(self.r[i,:], self.r[i+1,:], self.v[i,:], self.v[i+1,:])/maxBp
-                    v = defaultOmega/omega*lengthPerBP
-                    offset = offset + (np.pi-omega*maxBp) % np.pi
+                omega = defaultOmega + (getUVangle(self.r[i,:], self.v[i+1,:], self.v[i,:], self.v[i+1,:])%(2*np.pi) - (maxBp*defaultOmega)%(2*np.pi))
+                v = omega/defaultOmega*lengthPerBP
+                Uout, Vout, Rout = rotateBead(self.u[i,:], self.v[i,:], self.r[i,:], self.basepairs[i], self.wrap[i])
+                matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
+                mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
                 if (self.wrap[i] > 1): # nucleosome
-                    Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
-                    # define mat for rotation to lab frame
-                    mat = np.matrix([self.v[i,:], np.cross(self.u[i,:], self.v[i,:]), self.u[i,:]]).T
                     for j in range(len(nucleosomeTran)):
                         row = np.zeros(3*3).reshape([3,3])
-                        Uout, Vout, Rout = rotateBead(Uin,Vin,Rin,1,1)
-                        omega = getUVangle(Rin, Rout, Vin, Vout)
-                        strand1, base, strand2 = DNAhelix(j,omega=omega,v=0)
-                        Vin = Vout; Uin = Uout; Rin = np.asarray(nucleosomeTran[len(nucleosomeTran)-1-j,:])
+                        strand1, base, strand2 = DNAhelix(j,v=0)
+                        Rin = np.asarray(nucleosomeTran[len(nucleosomeTran)-1-j,:])
                         # strand 1 backbone
-                        row[0,:] = self.r[i,:] + np.matmul(mat,Rin+strand1[0])
+                        row[0,:] = self.r[i,:] + np.matmul(matIn,Rin+strand1[0])
                         # strand 2 backbone
-                        row[2,:] = self.r[i,:] + np.matmul(mat,Rin+strand2[0])
+                        row[2,:] = self.r[i,:] + np.matmul(matIn,Rin+strand2[0])
                         # base
-                        row[1,:] = self.r[i,:] + np.matmul(mat,Rin+base[0])
+                        row[1,:] = self.r[i,:] + np.matmul(matIn,Rin+base[0])
                         # save atoms
                         self.bps[indR,:,:] = row
-                        indR = indR + 1
+                        indR = indR + 1                    
+                        #connect.append((indR,indR+1))
+                        chain.extend([str(chainNum)]*3)
                     # add the extruding linker from the nucleosome
-                    Uout, Vout, Rout = rotateBead(self.u[i,:],self.v[i,:],self.r[i,:],self.basepairs[i],self.wrap[i])
-                    RnucEnd = Rout; Rin = Rout; Vin = Vout; Uin = Uout
-                    for j in range(int(maxBp)):
+                    for j in range(int(np.round(maxBp))):
                         row = np.zeros(3*3).reshape([3,3])
                         strand1, base, strand2 = DNAhelix(j)#,omega=0,v=v)
-                        mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-                        strand1 = np.matmul(mat, strand1[0])
-                        base = np.matmul(mat, base[0])
-                        strand2 = np.matmul(mat, strand2[0])
-                        Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
-                        Vin = Vout
                         # strand 1 backbone
-                        row[0,:] = RnucEnd+strand1
+                        row[0,:] = Rout + np.matmul(mat, strand1[0])
                         # strand 2 backbone
-                        row[2,:] = RnucEnd+strand2
+                        row[2,:] = Rout + np.matmul(mat, strand2[0])
                         # base
-                        row[1,:] = RnucEnd+base
+                        row[1,:] = Rout + np.matmul(mat, base[0])
                         # save atoms
                         self.bps[indR,:,:] = row
                         indR = indR + 1
-                    # reset to 0 since nucleosome should have reset offset
-                    offset = 0
+                        chain.extend([str(chainNum)]*3)
                 else: # dna bead
-                    Uin = self.u[i,:]; Vin = self.v[i,:]; Rin = self.r[i,:]
-                    for j in range(int(maxBp)):
+                    for j in range(int(np.round(maxBp))):
                         row = np.zeros(3*3).reshape([3,3])
-                        strand1, base, strand2 = DNAhelix(j)#float(j+offset),omega=0,v=v)
-                        mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-                        strand1 = np.matmul(mat, strand1[0])
-                        base =  np.matmul(mat, base[0])
-                        strand2 = np.matmul(mat, strand2[0])
-                        Uout, Vout, Rout = rotateBead(Uin, Vin, Rin, 1, 1)
-                        Vin = Vout
+                        strand1, base, strand2 = DNAhelix(j)#,omega=omega,v=v)
                         # strand 1 backbone
-                        row[0,:] = self.r[i,:]+strand1
+                        row[0,:] = Rout + np.matmul(mat, strand1[0])
                         # strand 2 backbone
-                        row[2,:] = self.r[i,:]+strand2
+                        row[2,:] = Rout + np.matmul(mat, strand2[0])
                         # base
-                        row[1,:] = self.r[i,:]+base
+                        row[1,:] = Rout + np.matmul(mat, base[0])
                         # save atoms
                         self.bps[indR,:,:] = row
                         indR = indR + 1
+                        chain.extend([str(chainNum)]*3)
             else:
-                offset = 0
+                chainNum +=1
+        return chain
+    # distance constraint ricc-seq
     def RICCbreak(self,cutoff=3.5,noise=50.0): # units in nm or bp
         try :
             if (self.bps == None):
                 self.interpolate()
         except:
             print('warning: this has already been run')
+            return
         # figure out combinatorial correlated cleaves
         nPair = int(scipy.special.comb(self.n_bps,2))
         indPair = np.zeros(nPair*2).reshape([nPair,2])
@@ -378,25 +367,17 @@ class Snapshot:
         self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
         self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
     def saveCoarseGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        #connect = []
-        #for i in range(self.n_beads):
-        #    if (i % (self.n_beads/sum(self.basepairs==0)-1) != 0 or i==0):
-        #        connect.append((i,i+1))
-        #chain = ['1' for i in range(self.n_beads)]
-        # TODO: fix chain!!! and connect above!!
-        #for i in range(sum(self.basepairs==0)):
-        #    chain[int(self.n_beads/2):] = str(i+1)
-        dna = r2pdb.mkpdb(self.r,topology=topo)#,connect=connect,chain=chain)
+        chain = []
+        chainNum = 1
+        for i in range(self.n_beads):
+            chain.append(chainNum) 
+            if self.basepairs[i]==0:
+                chainNum += 1
+        dna = r2pdb.mkpdb(self.r,topology=topo,chain=chain)
         r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        try: 
-            if (self.bps == None):
-                self.interpolate()
-        except:
-            print('warning: this has already been run')
-        #chain = ['A' for i in range(3*self.n_bps)]
-        #chain[int(3*self.n_bps/sum(self.basepairs==0)):] = 'B'
-        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo)#,chain=chain)
+        chain = self.interpolate()
+        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)#,connect=connect)
         r2pdb.save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
     def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
         self.RICCbreak()

@@ -46,7 +46,7 @@ def mkpdb(r, connect = None,Atom = None, serial = None,b = None, occup = None, c
         connect = [(i,i+1) for i in range(N-1)]
         if topology == 'circular':
             connect.append((N-1,0))
-
+    
     #Initialize list of lines
     lines = []
     #loop over atoms
@@ -56,7 +56,7 @@ def mkpdb(r, connect = None,Atom = None, serial = None,b = None, occup = None, c
         line += ('%s' %Atom[i]).rjust(5)
         line += ' '
         line += ('%s' %res[i]).rjust(3)
-        line += ' 1'
+        line += ('%s' %chain[i]).rjust(2)
         line += ' '*8
         line += ('%.1f' % r[i,0]).rjust(8)
         line += ('%.1f' % r[i,1]).rjust(8)
