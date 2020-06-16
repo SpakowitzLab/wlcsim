@@ -29,7 +29,7 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     real(dp), intent(in), dimension(3) :: Uin ! Entry direction along DNA
     real(dp), intent(in), dimension(3) :: Vin ! Entry tangent vector
     real(dp), intent(in), dimension(3) :: Rin ! Position of entry
-    integer, intent(in) :: linkBP
+    real(dp), intent(in) :: linkBP
     integer, intent(in) :: wrapBP
     real(dp), intent(out), dimension(3) :: Uout ! Exit position
     real(dp), intent(out), dimension(3) :: Vout ! Exit tangent vector
@@ -203,7 +203,7 @@ end function internucleosome_energy
 subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
 !Return parameters for a linker that is i bace pairs long
     implicit none
-    integer, intent(in) :: i ! Number of bace pairs in linder
+    real(dp), intent(in) :: i ! Number of bace pairs in linder
     real(dp), intent(out) :: EB ! Bending modulus
     real(dp), intent(out) :: EPAR ! Stretch modulus
     real(dp), intent(out) :: EPERP ! Shear modulus
@@ -313,7 +313,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
             ! figure out main discretization scheme
             discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-            call discretizationScheme(discretization, WLC_P__LL, num_link_beads, off_discretization)
+            call discretizationScheme(discretization, 1.0_DP*WLC_P__LL, num_link_beads, off_discretization)
             ! print for sanity check
             print*, discretization, num_link_beads, off_discretization
             if (WLC_P__LINKER_TYPE == 'phased' ) then

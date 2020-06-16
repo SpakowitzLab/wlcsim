@@ -186,6 +186,16 @@
 ! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
 ! TYPE: LOGICAL
 
+#define WLC_P__CHI_L2_ABLE .FALSE.
+! VARIABLE COMMENT: ! Include quadrupole interactions.  That is, whether the l=2 component of the field is ever calculated.
+! DEFAULTS COMMENT: ! Not included by default.
+! TYPE: LOGICAL
+
+#define WLC_P__UMBRELLA .FALSE.
+! VARIABLE COMMENT: ! Perfore umbrella sampling.
+! DEFAULTS COMMENT: ! No umbrella sampling by default.
+! TYPE: LOGICAL
+
 #define WLC_P__NO_SELF_CROSSING .FALSE.
 ! VARIABLE COMMENT: ! Whether to prevent self-crossing of ring polymer by conserving the linking number.
 ! DEFAULTS COMMENT: ! Allow self-crossing by default
@@ -339,6 +349,11 @@
 #define WLC_P__LL 38_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_TYPE 'phased'
+! VARIABLE COMMENT: ! linker length geometry type for initialization
+! DEFAULTS COMMENT: ! phased is constant linker length
 ! TYPE: REAL(DP)
 
 #define WLC_P__L WLC_P__LENGTH_PER_BP*WLC_P__LL*(WLC_P__NB-1)
@@ -1144,6 +1159,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
@@ -1201,6 +1221,11 @@
 
 #define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
