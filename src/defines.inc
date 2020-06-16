@@ -124,7 +124,7 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
-#define WLC_P__GJK_STERICS .TRUE.
+#define WLC_P__GJK_STERICS .FALSE.
 ! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
@@ -179,7 +179,7 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
-#define WLC_P__INCLUDE_DISCRETIZE_LINKER .TRUE.
+#define WLC_P__INCLUDE_DISCRETIZE_LINKER .FALSE.
 ! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
 ! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
 ! TYPE: LOGICAL

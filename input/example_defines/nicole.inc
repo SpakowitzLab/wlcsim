@@ -261,7 +261,7 @@
 ! DEFAULTS COMMENT: Each bead is a nucleosome
 ! TYPE: INTEGER
 
-#define WLC_P__NP 3
+#define WLC_P__NP 1
 ! VARIABLE COMMENT: ! Number of polymers
 ! DEFAULTS COMMENT: ! sigle chromosome
 ! TYPE: INTEGER
