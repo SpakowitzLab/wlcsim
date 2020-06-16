@@ -19,7 +19,7 @@ use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
 use mersenne_twister
 use params, only: dp
 use windowTools, only: exponential_random_int
-use polydispersity, only: get_I
+use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 use nucleosome, only: nucleosomeProp
 
 implicit none
@@ -78,14 +78,20 @@ MCAMP = max(nint(optRatio*sum(wlc_basepairs)/WLC_P__NT),3)
 prevNuc = KK-1
 if (prevNuc > 0) then
     prevNuc = nucArray(prevNuc)
+    if (get_IP(prevNuc) /= get_IP(I)) then 
+        prevNuc = first_bead_of_chain(get_IP(I))
+    endif
 else
     prevNuc = 1
 endif
 nextNuc = KK+1
 if (nextNuc <= nNucs) then 
     nextNuc = nucArray(nextNuc)
+    if (get_IP(nextNuc) /= get_IP(I)) then 
+        nextNuc = last_bead_of_chain(get_IP(I))-1
+    endif
 else
-    nextNuc = WLC_P__NB
+    nextNuc = WLC_P__NT-1
 endif
 
 wlc_basepairs_prop = wlc_basepairs
@@ -104,23 +110,23 @@ enddo outer1
 
 ! piece-wise movement of linker rather than just on one bead
 linkerSum = 0
-if (success .eqv. .false.) then 
-    outer2: do II = 1, I-prevNuc ! explore the previous linker space
-        inner2: do JJ = 0, (nextNuc-1)-I ! explore the next linker space
-            if ((wlc_basepairs(I-II)+DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I-II)+DR/(I-prevNuc) < max_bp) .AND. &
-            (wlc_basepairs(I+JJ)-DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I+JJ)-DR/(I-prevNuc) < max_bp) ) then
-                wlc_basepairs_prop(I-II) = wlc_basepairs(I-II) + DR/(I-prevNuc)
-                wlc_basepairs_prop(I+JJ) = wlc_basepairs(I+JJ) - DR/(I-prevNuc)
-                linkerSum = linkerSum + abs(DR/(I-prevNuc))
-                if (linkerSum>=10) then 
-                    success = .true.
-                    !print*, 'WOO'
-                    exit outer2
-                endif
-            endif
-        enddo inner2
-    enddo outer2
-endif
+!if (success .eqv. .false.) then 
+!    outer2: do II = 1, I-prevNuc ! explore the previous linker space
+!        inner2: do JJ = 0, (nextNuc-1)-I ! explore the next linker space
+!            if ((wlc_basepairs(I-II)+DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I-II)+DR/(I-prevNuc) < max_bp) .AND. &
+!            (wlc_basepairs(I+JJ)-DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I+JJ)-DR/(I-prevNuc) < max_bp) ) then
+!                wlc_basepairs_prop(I-II) = wlc_basepairs(I-II) + DR/(I-prevNuc)
+!                wlc_basepairs_prop(I+JJ) = wlc_basepairs(I+JJ) - DR/(I-prevNuc)
+!                linkerSum = linkerSum + abs(DR/(I-prevNuc))
+!                if (linkerSum>=10) then 
+!                    success = .true.
+!                    !print*, 'WOO'
+!                    exit outer2
+!                endif
+!            endif
+!        enddo inner2
+!    enddo outer2
+!endif
 
 if (success) then
     IB1 = I-II

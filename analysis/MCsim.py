@@ -190,7 +190,7 @@ class Snapshot:
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
+        self.n_bps = int(np.round(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1])))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*lengthPerBP)
         # energies
         with open('%senergiesv%s' %(self.path_to_data,self.channel)) as fp:
@@ -275,9 +275,8 @@ class Snapshot:
     def interpolate(self):
         # rotate DNA strand into material frame
         self.bps = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
-        indR = 0; indA = 0
-        connect = []
-        chain = []
+        indR = 0
+        connect = []; chain = []
         chainNum = 1
         for i in range(self.n_beads):
             if self.basepairs[i] != 0:
@@ -303,6 +302,7 @@ class Snapshot:
                         indR = indR + 1                    
                         #connect.append((indR,indR+1))
                         chain.extend([str(chainNum)]*3)
+                        if (indR == self.n_bps): break
                     # add the extruding linker from the nucleosome
                     for j in range(int(np.round(maxBp))):
                         row = np.zeros(3*3).reshape([3,3])
@@ -317,6 +317,7 @@ class Snapshot:
                         self.bps[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
+                        if (indR == self.n_bps): break
                 else: # dna bead
                     for j in range(int(np.round(maxBp))):
                         row = np.zeros(3*3).reshape([3,3])
@@ -331,6 +332,7 @@ class Snapshot:
                         self.bps[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
+                        if (indR == self.n_bps): break
             else:
                 chainNum +=1
         return chain
@@ -367,13 +369,15 @@ class Snapshot:
         self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
         self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
     def saveCoarseGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
-        chain = []
+        chain = []; connect =  []
         chainNum = 1
         for i in range(self.n_beads):
             chain.append(chainNum) 
             if self.basepairs[i]==0:
                 chainNum += 1
-        dna = r2pdb.mkpdb(self.r,topology=topo,chain=chain)
+            else:
+                connect.append((i,i+1))
+        dna = r2pdb.mkpdb(self.r,topology=topo,chain=chain,connect=connect)
         r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
         chain = self.interpolate()

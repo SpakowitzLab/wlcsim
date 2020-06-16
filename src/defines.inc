@@ -131,7 +131,7 @@
 
 #define WLC_P__GJK_POLYGON 16
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
-! DEFAULTS COMMENT: ! use hexagons for now 
+! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
 ! TYPE: INTEGER
 
 #define WLC_P__NEIGHBOR_BINS .FALSE.
@@ -181,7 +181,7 @@
 
 #define WLC_P__INCLUDE_DISCRETIZE_LINKER .TRUE.
 ! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
-! DEFAULTS COMMENT: !
+! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
 ! TYPE: LOGICAL
 
 #define WLC_P__CHI_L2_ABLE .FALSE.
@@ -246,7 +246,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 118
+#define WLC_P__NB 53
 ! VARIABLE COMMENT: ! Number of beads in a polymer NB = nMpP*nBpM
 ! DEFAULTS COMMENT: ! From Chr 16 at 200bp per nucleosome
 ! TYPE: INTEGER
@@ -349,8 +349,8 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__LINKER_TYPE 'phased'
-! VARIABLE COMMENT: ! linker length geometry type
-! DEFAULTS COMMENT: ! phased is constant linker length, voong uses MESC LL distribution 23-55bp
+! VARIABLE COMMENT: ! linker length geometry type for initialization
+! DEFAULTS COMMENT: ! phased is constant linker length
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 50.0_DP
@@ -408,7 +408,7 @@
 ! DEFAULTS COMMENT: ! same
 ! TYPE: INTEGER
 
-#define WLC_P__LBOX_X 10000.0_dp
+#define WLC_P__LBOX_X 100.0_dp
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -438,7 +438,7 @@
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SPHERE_DIAMETER 62_dp
+#define WLC_P__CONFINEMENT_SPHERE_DIAMETER 250_dp
 ! VARIABLE COMMENT: !
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
@@ -469,22 +469,22 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__DNA_RADIUS 1.0_DP
-! VARIABLE COMMENT: Diameter of chain for exclusion
-! DEFAULTS COMMENT: Set to zero for no exclusion
+! VARIABLE COMMENT: Radius of DNA (GJK)
+! DEFAULTS COMMENT: 1 nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
-! VARIABLE COMMENT: Radius of nuclelsome
-! DEFAULTS COMMENT: Set to zero for no exclusion
+! VARIABLE COMMENT: Radius of nuclelsome (GJK)
+! DEFAULTS COMMENT: 5.2 nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
-! VARIABLE COMMENT: Height of nucleosome
-! DEFAULTS COMMENT: Set to zero for no exclusion
+! VARIABLE COMMENT: Height of nucleosome (GJK)
+! DEFAULTS COMMENT: 5.5. nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__GJK_RADIUS SQRT(WLC_P__NUCLEOSOME_RADIUS**2 + (WLC_P__NUCLEOSOME_HEIGHT/2)**2)
-! VARIABLE COMMENT: ! search radius for GJK alorithm
+! VARIABLE COMMENT: ! search radius for GJK alorithm checking
 ! DEFAULTS COMMENT: ! set to hypotenuse of nuc rad + height
 ! TYPE: REAL(DP)
 
@@ -569,14 +569,14 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
-! DEFAULTS COMMENT: ! 
+! DEFAULTS COMMENT: ! toggle on or off
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
-! DEFAULTS COMMENT: ! https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6396382/pdf/oc8b00836.pdf
+! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
 ! TYPE: REAL(DP)
 
 ! ----------------------------
@@ -585,7 +585,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 500
+#define WLC_P__STEPSPEREXCHANGE 1000
 ! VARIABLE COMMENT: ! number of steps between parallel tempering
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -910,7 +910,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 1
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER

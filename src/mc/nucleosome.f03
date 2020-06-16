@@ -221,7 +221,6 @@ subroutine get_params(i,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
         indUp = ceiling(i)
         ratio = i/indUp
         offratio = 1-ratio
-
         EB     = ratio*multiParams(1,indUp) + offratio*multiParams(1,indDown)
         EPAR   = ratio*multiParams(2,indUp) + offratio*multiParams(2,indDown)
         EPERP  = ratio*multiParams(3,indUp) + offratio*multiParams(3,indDown)

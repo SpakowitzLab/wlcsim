@@ -449,6 +449,10 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
         R(1,1) = WLC_P__LBOX_X/2
         R(2,1) = WLC_P__LBOX_Y/2
         R(3,1) = WLC_P__LBOX_Z/2
+    else if (WLC_P__CONFINETYPE=='sphere') then 
+        R(1,1) = 3*WLC_P__LBOX_X/4
+        R(2,1) = 3*WLC_P__LBOX_Y/4
+        R(3,1) = -WLC_P__LBOX_Z/4
     else
         R(1,1) = 0.0_dp
         R(2,1) = 0.0_dp
