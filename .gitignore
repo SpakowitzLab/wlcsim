@@ -41,3 +41,5 @@ input/meth
 input/_temp*
 input/polyLengths
 input/field_l2
+.vscode
+.vscode/*
