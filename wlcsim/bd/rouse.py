@@ -50,7 +50,7 @@ To compare these results to the :mod:`rouse.analytical.rouse` module, use
 >>> # constant prefactor determined empirically...
 >>> # otherwise, ~6*Dhat*np.sqrt(t_R * t_save)/N, where t_R is the terminal
 >>> # relaxation time of the polymer, t_R = b**2 * N**2 / Dhat
->>> plt.plot(t_save, 1.9544100*bhat*np.sqrt(t_save/Dhat))
+>>> plt.plot(t_save, 1.9544100*b*np.sqrt(D)*np.sqrt(t_save))
 
 where cutting off the number of modes corresponds to ensuring that the rouse
 behavior only continues down to the length scale of a single "bead", thus
@@ -71,25 +71,28 @@ from .runge_kutta import *
 from numba import jit
 import numpy as np
 
-from pathlib import Path
-
 # for testing
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.widgets import Slider, Button, RadioButtons
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import Qt
 
-def recommended_dt(b, D):
-    r"""Recommended "dt" for use with rouse*jit family of functions.
+
+def recommended_dt(N, L, b, D):
+    r"""
+    Recommended "dt" for use with rouse*jit family of functions.
 
     Currently set to :math:`\frac{1}{10}\frac{b^2}{6D}`.
 
-    See the rouse_jit docstring for source of this time scale."""
-    return (1/10)*b*b/6/D
+    See the :func:`jit_rouse` docstring for source of this time scale.
+    """
+    Nhat = L/b
+    L0 = L/(N-1)
+    Dhat = D*N/Nhat
+    bhat = np.sqrt(L0*b)
+    return (1/10)*bhat**2/(6*Dhat)
+
 
 def measured_D_to_rouse(Dapp, d, N, bhat=None, regime='rouse'):
-    r"""Get the full-polymer diffusion coefficient from the "apparent" D
+    r"""
+    Get the full-polymer diffusion coefficient from the "apparent" D.
 
     In general, a discrete Rouse polymer's MSD will have three regimes. On time
     scales long enough that the whole polymer diffuses as a large effective
@@ -236,37 +239,36 @@ def rouse(N, L, b, D, t, x0=None):
         dx = np.diff(x, axis=0)
         return -k_over_xi*(np.concatenate([zero, dx]) + np.concatenate([dx, zero]))
     if x0 is None:
-        L0 = L/(N-1) # length per bead
-        Lb = L0/b # kuhn lengths per bead
-        x0 = b*np.sqrt(Lb)*np.cumsum(np.random.normal(size=(N,3)), axis=0)
+        x0 = bhat/np.sqrt(3)*np.cumsum(np.random.normal(size=(N,3)), axis=0)
     X = rk4_thermal_lena(rouse_f, Dhat, t, x0)
     return X
 
 @jit(nopython=True)
 def jit_rouse(N, L, b, D, t, t_save=None):
-    r"""faster version of wlcsim.bd.rouse.rouse using jit
+    r"""
+    Faster version of wlcsim.bd.rouse.rouse using jit
 
-    N=101,L=100,b=1,D=1 takes about 3.5min to run when
-    t=np.linspace(0, 1e5, 1e7+1)
-    adding t_save does not slow function down
+    ``N=101,L=100,b=1,D=1`` takes about 3.5min to run when
+    ``t=np.linspace(0, 1e5, 1e7+1)``
+    adding ``t_save`` does not slow function down
 
     our srk1 scheme is accurate as long as :math:`\Delta t` is less than the
-    transition time where the MSD goes from high k behavior (t^1) to rouse
-    behavior (t^(1/2)).  This is exactly the time required to diffuse a Kuhn
-    length, so we just need :math:`\Delta t < \frac{b^2}{6D}` in 3D. the
-    "crossover" from fast-k to rouse-like behavior takes about one order of
-    magnitude in time, but adding more than that doesn't seem to make the MSD
-    any more accurate, so we suggest setting :math:`\Delta t =
-    \frac{1}{10}\frac{b^2}{6D}`.
+    transition time where the MSD goes from high k behavior (:math:`t^1`) to
+    Rouse behavior (:math:`t^{1/2}`).  This is exactly the time required to
+    diffuse a Kuhn length, so we just need
+    :math:`\Delta t < \frac{\hat{b}^2}{6\hat{D}}` in 3D. the "crossover" from
+    fast-k to rouse-like behavior takes about one order of magnitude in time,
+    but adding more than that doesn't seem to make the MSD any more accurate,
+    so we suggest setting :math:`\Delta t` to one tenth of the bound above.
 
     the number of orders of magnitude of "rouse" scaling the simulation will
     capture is exactly dictated by the ratio between this time scale and the
-    rouse relaxation time (so like ?N**2?)
+    rouse relaxation time (so like ``N**2``?)
 
     recall (doi & edwards, eq 4.25) that the first mode's relaxation time is
     :math:`\tau_1 = \frac{\xi N^2}{k \pi^2 }`.
-    and the :math:`p`th mode is :math:`\tau_p = \tau_1/p^2` (this is the
-    exponential falloff rate of the :math:`p`th mode's correlation function).
+    and the :math:`p`\th mode is :math:`\tau_p = \tau_1/p^2` (this is the
+    exponential falloff rate of the :math:`p`\th mode's correlation function).
     """
     rtol = 1e-5
     # derived parameters
@@ -410,7 +412,7 @@ def _init_in_confinement(N, bhat, rx, ry, rz):
 
     Parameters
     ----------
-    bLb : float
+    bhat : float
         b*np.sqrt(Lb), the std dev of the distance between beads
     rx, ry, rz : float
         principle axes of confinement ellipse
@@ -609,7 +611,7 @@ def homolog_points_to_loops_list(N, homolog_points):
     num_loops = num_points + 1 # includes two end non-"loops" (aka free ends)
     loop_list = np.zeros((num_loops, 4))
     if num_loops == 1:
-        return np.array([[-1,N,N,2*N-1]])
+        return 2*int(N), np.array([[-1,N,N,2*N-1]]).astype(int)
     # keep track of length of "x0"
     curr_n = N
     # there's at least one connection point, thanks to num_loops==1 check above
@@ -625,29 +627,60 @@ def homolog_points_to_loops_list(N, homolog_points):
 
 @jit(nopython=True)
 def f_elas_homolog(x0, N, loop_list, k_over_xi):
-    """compute spring forces on two linear rouse polymers hooked together
+    r"""compute spring forces on two linear rouse polymers hooked together
     (homologously) at beads specified by loop_list. While each polymer is of length
     N beads, the beads that are hooked together move together identically, so
-    you have `x0.shape[0] == 2*N - len(loop_list)`"""
+    you have `x0.shape[0] == 2*N - len(loop_list)`
+
+    We assume that, as per the documentation in
+    :func:`homolog_points_to_loops_list`, a polymer of the shape
+
+    .. code-block:: text
+
+        ++   ^^^   '''''''   ""   =
+          \ /   \ /       \ /  \ /
+           .     .         .    .
+          / \   / \       / \  / \
+        --   ---   -------   --   -
+
+    will be laid out in memory like
+
+    .. code-block:: text
+
+        --.---.-------.--.-++^^^'''''''""=
+
+    If we call the lower polymer "polymer 1", and all the beads on the top row
+    "polymer 2", then it makes sense to first compute the spring forces between
+    adjacent beads in polymer 1 as if there was no "polymer 2". Then, we can
+    compute all the forces between beads in "polymer 2" and the "." beads.
+    Finally, for each "loop" (represented as symbols of different types above)
+    in polymer 2, we can compute the usual linear forces along the polymer.
+
+    """
     f = np.zeros(x0.shape)
     num_loops, _ = loop_list.shape
-    # first get forces on "first" polymer
+    # first get forces linearly along "first" polymer
     for j in range(1,N):
-        for n in range(3):
-            f[j,n] += -k_over_xi*(x0[j,n] - x0[j-1,n])
-            f[j-1,n] += -k_over_xi*(x0[j-1,n] - x0[j,n])
+        f[j] += -k_over_xi*(x0[j] - x0[j-1])
+        f[j-1] += -k_over_xi*(x0[j-1] - x0[j])
+    # in what follows, "loop" means the stretches between homologous
+    # connections, including from the homologous connection to the end of the
+    # polymer
     for i in range(num_loops):
         # k1l, k1r denote the connected beads, so the array contains a "loop"
         # representing the beads of the second chain from k1l+1 to k1r-1
         # at array locations [k2l, k2r].
         k1l, k1r, k2l, k2r = loop_list[i]
-        # k1l == -1 is flag for "end" loop
-        if k1l >= 0:
+        # k1l == -1 is flag for "end" loop (free end)
+        # k2l > k2r => no beads in "second chain"
+        if k1l >= 0 and k2l <= k2r:
+            f[k1l] += -k_over_xi*(x0[k1l] - x0[k2l])
             f[k2l] += -k_over_xi*(x0[k2l] - x0[k1l])
-        # k1r == N is flat for "end" loop
-        if k1r < N:
+        # k1r == N is flag for "end" loop (free end)
+        if k1r < N and k2l <= k2r:
+            f[k1r] += -k_over_xi*(x0[k1r] - x0[k2r])
             f[k2r] += -k_over_xi*(x0[k2r] - x0[k1r])
-        N_loop = k1r - k1l + 1
+        N_loop = k2r - k2l + 1
         # analagous to loop above, since end-bead forces already done
         for k in range(1,N_loop):
             j = k2l+k
@@ -656,12 +689,12 @@ def f_elas_homolog(x0, N, loop_list, k_over_xi):
     return f
 
 @jit(nopython=True)
-def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
+def _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz):
     """VERY ad-hoc, probably not that near equilibrium, or even strictly in the
     confinement"""
     # first initialize the first chain
     x0 = np.zeros((N_tot,3))
-    x0[:N,:] = _init_in_confinement(N, bLb, rx, ry, rz)
+    x0[:N,:] = _init_in_confinement(N, bhat, rx, ry, rz)
     # now initialize the loops
     num_loops, _ = loop_list.shape
     for j in range(1,num_loops-1):
@@ -673,9 +706,9 @@ def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
         for i in range(num_beads):
             i1 = k2l + i - 1 if i > 0 else k1l
             i2 = k2l + i
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
             while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-                x0[i2] = x0[i1] + bLb*np.random.randn(3)
+                x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         # then subtract off the correct amount from each step to make the
         # brownian bridge. This guy is no longer guaranteed to be in the
         # confinement....but prevents being catastrophically far outside
@@ -695,25 +728,26 @@ def _init_homologs(N, N_tot, loop_list, bLb, rx, ry, rz):
         # x0[k2l:k2r+1] = x0[k2l:k2r+1] + x0[k1l][None,:]
     # finally, initialize the free ends
     if num_loops == 1:
-        x0[N:,:] = _init_in_confinement(N, bLb, rx, ry, rz)
+        x0[N:,:] = _init_in_confinement(N, bhat, rx, ry, rz)
+        return x0
     # "left" free end must be built backwards from first connection point
     k1l, k1r, k2l, k2r = loop_list[0]
     num_beads = k1r - k1l - 1 # or k2r - k2l + 1
     for i in range(num_beads):
         i1 = k2r - i + 1 if i > 0 else k1r
         i2 = k2r - i
-        x0[i2] = x0[i1] + bLb*np.random.randn(3)
+        x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
     # right free end can be built as normal with no bridge stuff
     k1l, k1r, k2l, k2r = loop_list[-1]
     num_beads = k1r - k1l - 1 # or k2r - k2l + 1
     for i in range(num_beads):
         i1 = k2l + i - 1 if i > 0 else k1l
         i2 = k2l + i
-        x0[i2] = x0[i1] + bLb*np.random.randn(3)
+        x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         while x0[i2,0]**2/rx**2 + x0[i2,1]**2/ry**2 + x0[i2,2]**2/rz**2 > 1:
-            x0[i2] = x0[i1] + bLb*np.random.randn(3)
+            x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
     return x0
 
 def split_homologs_X(X, N, loop_list):
@@ -867,12 +901,25 @@ def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
     tether_list = list(tether_list) + list(sim_loc(tethered_p2, N, loop_list))
     tether_list = np.sort(np.array(tether_list))
 
-    x = _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
+    x = _jit_rouse_homologs(int(N), int(N_tot), tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
     return tether_list, loop_list, x
 
 @jit(nopython=True)
-def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save):
-    """"Inner loop" of rouse_homologs."""
+def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry,
+                        rz, t, t_save, x0=None):
+    """"Inner loop" of rouse_homologs.
+
+    Some typing stuff: needs N, N_tot as int, needs tether_list/loop_list as
+    dtype == int64, and uses loop_list.shape[0] to get num_loops. This is in
+    particular important for empty list cases, where you need to do stuff like
+
+    >>> x = rouse._jit_rouse_homologs(int(N), int(2*N),
+    >>>         np.array([]).astype(int),
+    >>>         np.array([[]]).T.astype(int),
+    >>>         L, b, D, Aex, R, R, R, t, t_save)
+
+    """
+    N = int(N); N_tot = int(N_tot)
     rtol = 1e-5
     # derived parameters
     L0 = L/(N-1) # length per bead
@@ -881,7 +928,8 @@ def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, 
     Dhat = D*N/Nhat # diffusion coef of a discrete gaussian chain bead
     k_over_xi = 3*Dhat/bhat**2
     # initial position
-    x0 = _init_homologs(N, N_tot, loop_list, b*np.sqrt(Lb), rx, ry, rz)
+    if x0 is None:
+        x0 = _init_homologs(N, N_tot, loop_list, bhat, rx, ry, rz)
     # pre-alloc output
     if t_save is None:
         t_save = t
@@ -904,13 +952,13 @@ def _jit_rouse_homologs(N, N_tot, tether_list, loop_list, L, b, D, Aex, rx, ry, 
         S = 2*(np.random.rand() < 0.5) - 1
         # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
         Fbrown = np.sqrt(2*Dhat/h)*(dW - S)
-        # tethered beads have half the diffusivity
+        # "homolog paired" beads have half the diffusivity
         Fbrown[homolog_points] = Fbrown[homolog_points]/2
         # estimate for slope at interval start
         K1 = f_conf(x0, Aex, rx, ry, rz) + f_elas_homolog(x0, N, loop_list, k_over_xi) + Fbrown
         K1[tether_list] += f_tether(x0[tether_list], Aex, rx, ry, rz)
         Fbrown = np.sqrt(2*Dhat/h)*(dW + S)
-        # tethered beads have half the diffusivity
+        # "homolog paired" beads have half the diffusivity
         Fbrown[homolog_points] = Fbrown[homolog_points]/2
         x1 = x0 + h*K1
         # estimate for slope at interval end

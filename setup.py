@@ -14,7 +14,7 @@ if __name__ == "__main__":
           cmdclass=versioneer.get_cmdclass(),
           url="https://github.com/SpakowitzLab/BasicWLC",
           license="",
-          long_description=open("README.md").read(),
+          long_description=open("README.rst").read(),
           classifiers=["Intended Audience :: Science/Research",
                        'Intended Audience :: Developers',
                        'Development Status :: 2 - Pre-Alpha',
@@ -24,12 +24,12 @@ if __name__ == "__main__":
                        "Programming Language :: Fortran",
                        "Topic :: Scientific/Engineering :: Chemistry",
                        "Topic :: Scientific/Engineering :: Physics",
-                      ],
+                       ],
           packages=find_packages(include=["wlcsim", "wlcsim.*"]),
           package_data={
               'wlcsim.tabulation': ['*.csv'],
           },
           install_requires=["scipy", "statsmodels", "matplotlib", "seaborn",
                             "mpmath", "pandas", "numpy", "bruno_util",
-                            "PyQt5"],
+                            "spycial", "PyQt5"],
           )

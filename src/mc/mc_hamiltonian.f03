@@ -1,16 +1,16 @@
 #include "../defines.inc"
-!--------------------------------------------------------------------
-!
-!
-! This subroutine calculates the field Hamiltonian from the phi values.
-!      by Quinn MacPherson based on code from Shifan Mao
-!       Made a separate function on 7/8/16
-!
-!   If initialize then calculate all bins.
-!   Otherwise calcualte only specified bins.
-!-------------------------------------------------------------------
 
 subroutine hamiltonian(wlc_p,initialize)
+!--------------------------------------------------------------------
+! This subroutine calculates the field energy (Hamiltonian) based on
+! volume fractions phi_A and phi_B.  The expresion used to calculate the
+! energy is different for different systems.  The setting
+! WLC_P__FIELDINTERACTIONTYPE determines which expression to use.
+!
+! If `initialize` is true then the energy for all bins is calculated.
+! Otherwise calculate only for bins specified by wlc_inDPHI.
+!-------------------------------------------------------------------
+
 ! values from wlcsim_data
 use params, only: wlc_NPHI, wlc_inDPHI &
     , wlc_PHIB, wlc_PHIH, wlc_PHI_l2 &
@@ -20,8 +20,8 @@ use params, only: wlc_NPHI, wlc_inDPHI &
 use energies, only: energyOf, chi_, couple_, kap_, field_, maierSaupe_
 use params,only: dp,wlcsim_params
 implicit none
-TYPE(wlcsim_params), intent(inout) :: wlc_p
-logical, intent(in) :: initialize ! Need to do all beads
+TYPE(wlcsim_params), intent(inout) :: wlc_p ! data
+logical, intent(in) :: initialize ! Need to do all beads?
 real(dp) PHIPoly ! fraction polymer
 real(dp) phi_A ! demsotu of A
 real(dp) phi_B ! density of B

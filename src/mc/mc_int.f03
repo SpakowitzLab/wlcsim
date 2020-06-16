@@ -1,17 +1,12 @@
 #include "../defines.inc"
-!---------------------------------------------------------------!
-!
-!     This subroutine calculates the field energy from scratch.
-!     Also sets PhiA and PhiB to 0.
-!     Set x_chi, x
-!
-!     Andrew Spakowitz
-!     Written 6-29-04
-!
-!     Edited by Shifan
-!     Edited by Quinn in 2016
-
 subroutine MC_int_initialize(wlc_p)
+!This subroutine calculates the field energy from scratch based
+!on the positions and types of the beads as described in
+!the hamiltonian.
+!This subroutine also sets the value fractions
+!PhiA and PhiB to 0 and sets x_chi.
+!Volume fractions are linearly interpolated between bins.
+
 ! values from wlcsim_data
 use params, only: wlc_PHIB, wlc_NPHI, wlc_PHI_l2, wlc_U, wlc_AB&
     , wlc_PHIA, wlc_R, wlc_phi_l2, wlc_dphi_l2, wlc_inDPHI, wlc_DPHIA&
@@ -20,7 +15,7 @@ use params, only: dp, wlcsim_params
 use energies, only: energyOf, maierSaupe_
 implicit none
 
-TYPE(wlcsim_params), intent(in) :: wlc_p   ! <---- Contains output
+TYPE(wlcsim_params), intent(in) :: wlc_p   ! 
 LOGICAL,parameter :: initialize = .TRUE.   ! if true, calculate absolute energy
 
 !   Internal variables
@@ -35,11 +30,9 @@ integer ISX,ISY,ISZ
 real(dp), dimension(-2:2) :: phi2
 integer m_index ! m for spherical harmonics
 
-! Copy so I don't have to type wlc_p% everywhere
-
 ! -------------------------------------------------------------
 !
-!  Calculate change (or value if initialize) of phi for A and B
+!  Calculate value of phi for A and B
 !
 !--------------------------------------------------------------
 wlc_PHIA = 0.0_dp
@@ -134,20 +127,11 @@ call hamiltonian(wlc_p,initialize)
 RETURN
 END
 
-!---------------------------------------------------------------!
-!---------------------------------------------------------------!
-
-!
-!     This subroutine calculates the change in the self energy for
-!     a small Monte Carlo move in the position.
-!
-!     Andrew Spakowitz
-!     Written 6-29-04
-!
-!     Edited by Shifan
-!     Edited by Quinn in 2016
-!--------------------------------------------------------------!
 subroutine MC_int_update(wlc_p)
+!This subroutine calculates the change in the field energy after
+!a Monte Carlo move.  Calculation only performed for bins containing
+!moved (or changed) beads.
+
 ! values from wlcsim_data
 use params, only: wlc_NPHI, wlc_inDPHI,wlc_ind_in_list, wlc_nPointsMoved, wlc_pointsMoved
 use params, only: wlcsim_params
@@ -169,8 +153,12 @@ call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density
 end subroutine MC_int_update
 
 subroutine CalcDphi(wlc_p,IB)
-!  Note: This subroutine assumes you have set wlc_bin_in_list=FALSE
-!  some time before the start of the move.
+!This subroutine calculated the change in volume fraction in various bins
+!assocated with the motion of bead IB.  The old positon is taken from wlc_R
+!while the new position is taken from wlc_RP.
+!
+!Developer Note: This subroutine assumes you have set wlc_bin_in_list=FALSE
+!some time before the start of the move.
 
 ! values from wlcsim_data
 use params, only: wlc_NPHI, wlc_RP, wlc_U, wlc_AB, wlc_R&
@@ -180,8 +168,8 @@ use params, only: dp, wlcsim_params
 use energies, only: energyOf, maierSaupe_
 implicit none
 
-TYPE(wlcsim_params), intent(in) :: wlc_p
-integer, intent(in) :: IB           ! Test bead position 1
+TYPE(wlcsim_params), intent(in) :: wlc_p ! data structure
+integer, intent(in) :: IB ! Index of moved bead
 
 !   Internal variables
 integer I                 ! For looping over bins

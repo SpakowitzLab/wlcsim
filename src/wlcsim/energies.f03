@@ -1,34 +1,41 @@
 #include "../defines.inc"
 
 module energies
+    ! Organizes diffent energy types.
+    ! Add new interaction energies here.
+    !
+    ! All energies are assumed to be of the form E=cof*x
+    ! where cof is some constant and x is some function
+    ! that depends on the positions,
+    ! types, and/or orientation of the monomers.
     use precision, only: dp, epsapprox, pi
 
     implicit none
     public
     integer, parameter :: NUMBER_OF_ENERGY_TYPES = 22
 
-    integer, parameter :: chi_ = 1
-    integer, parameter :: mu_ = 2
-    integer, parameter :: field_ = 3
-    integer, parameter :: couple_ = 4
-    integer, parameter :: kap_ = 5
-    integer, parameter :: bend_ = 6
-    integer, parameter :: stretch_ = 7
-    integer, parameter :: shear_ = 8
-    integer, parameter :: maierSaupe_ = 9
-    integer, parameter :: external_ = 10
-    integer, parameter :: twoBody_ = 11
-    integer, parameter :: twist_ = 12
-    integer, parameter :: bind_ = 13
-    integer, parameter :: self_ = 14
-    integer, parameter :: explicitBinding_ = 15
-    integer, parameter :: confine_ = 16
-    integer, parameter :: umbrella_ = 17
-    integer, parameter :: umbrellaQuadratic_ = 18
-    integer, parameter :: global_twistLiner_ = 19
-    integer, parameter :: global_twistQuadratic_ = 20
-    integer, parameter :: sterics_ = 21
-    integer, parameter :: internucleosome_ = 22
+    integer, parameter :: chi_ = 1 ! Flory-Huggins chi parameter
+    integer, parameter :: mu_ = 2 ! Chemical potential (e.g. of HP1)
+    integer, parameter :: field_ = 3 ! Applied field
+    integer, parameter :: couple_ = 4 ! Coupling constant (e.g. HP1 oligomerization)
+    integer, parameter :: kap_ = 5 ! Incompresability parameter
+    integer, parameter :: bend_ = 6 ! Bending constant
+    integer, parameter :: stretch_ = 7 ! Stretch constant
+    integer, parameter :: shear_ = 8 ! Shear constant
+    integer, parameter :: maierSaupe_ = 9 ! Maier Saupe liquic crystal intercation
+    integer, parameter :: external_ = 10 ! External potentail strength
+    integer, parameter :: twoBody_ = 11 ! Two body interaction strength
+    integer, parameter :: twist_ = 12 ! Twist constant
+    integer, parameter :: bind_ = 13 ! Binding energy
+    integer, parameter :: self_ = 14 ! Self interaction energy
+    integer, parameter :: explicitBinding_ = 15 ! Explicit Binding energy (e.g. LEFs)
+    integer, parameter :: confine_ = 16 ! Confinement energy
+    integer, parameter :: umbrella_ = 17 ! Energy from umbrella sampling (linear partion)
+    integer, parameter :: umbrellaQuadratic_ = 18 ! Quadratic energy from umbrella
+    integer, parameter :: global_twistLiner_ = 19 ! Global twist linear portion
+    integer, parameter :: global_twistQuadratic_ = 20 ! Global twist quadratic portion
+    integer, parameter :: sterics_ = 21 ! Steric collision energy when using GJK
+    integer, parameter :: internucleosome_ = 22 ! Internucleosomal potential
 
     type MC_energy
         real(dp) E  ! Energy in units of kT
@@ -46,6 +53,7 @@ module energies
 
 contains
     subroutine set_up_energyOf()
+        ! Set up energy module.
         implicit none
         integer ii
         energyOf(1)%name_str='chi     '
@@ -136,6 +144,7 @@ contains
 
     end subroutine
     subroutine set_all_energy_to_zero()
+        !Reset all dE, E, x, and dx values to zero.
         implicit none
         integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
@@ -146,6 +155,7 @@ contains
         enddo
     end subroutine
     subroutine set_all_dEnergy_to_zero()
+        ! Set all dE and dx values to zero
         implicit none
         integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
@@ -154,6 +164,7 @@ contains
         enddo
     end subroutine
     subroutine sum_all_dEnergies(total_energy)
+        ! Sums total change in energy.
         implicit none
         integer ii
         real(dp), intent(out) :: total_energy
@@ -170,6 +181,7 @@ contains
         endif
     end subroutine
     subroutine accept_all_energies()
+        ! Set E to E+dE because move has been accepted
         implicit none
         integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
@@ -178,6 +190,7 @@ contains
         enddo
     end subroutine
     subroutine calc_all_dE_from_dx()
+        ! dE=cof*dx
         implicit none
         integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
@@ -185,6 +198,7 @@ contains
         enddo
     end subroutine
     subroutine apply_energy_isOn()
+        ! Zero energies that are off.
         implicit none
         integer ii
         do ii = 1,NUMBER_OF_ENERGY_TYPES
@@ -193,6 +207,7 @@ contains
         enddo
     end subroutine
     subroutine print_all_denergies()
+        ! Print energie changes to standard out
         implicit none
         integer ii
         print*, "-----------------"

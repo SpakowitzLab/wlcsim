@@ -18,3 +18,4 @@ from . import mc
 from . import chains
 from . import utils
 from . import analytical
+from . import special

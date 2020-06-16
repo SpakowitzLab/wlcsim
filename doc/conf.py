@@ -83,7 +83,7 @@ release = wlcsim.__version__
 autosummary_generate = True
 
 # Napoleon settings
-napoleon_google_docstring = False
+napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
 # Include the example source for plots in API docs

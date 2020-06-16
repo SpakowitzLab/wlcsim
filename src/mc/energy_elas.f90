@@ -1,13 +1,9 @@
 #include "../defines.inc"
-!---------------------------------------------------------------*
 
-!
+      subroutine energy_elas(EELAS,wlc_p)
 !     This subroutine calculates the elastic energies for a wormlike
 !     chain with a stretching potential. The stretch and bend
 !     moduli are fed along with the bead positions.
-
-
-      subroutine energy_elas(EELAS,wlc_p)
       ! values from wlcsim_data
       use params, only: wlc_nucleosomeWrap, wlc_basepairs, wlc_V, wlc_R, wlc_U
       use params, only: dp, pi,  wlcsim_params

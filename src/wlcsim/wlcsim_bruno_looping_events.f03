@@ -51,7 +51,7 @@ if (save_ind == 1) then
     !brown always true
     call save_simulation_state(-1, wlc_p, outfile_base, 'NEW')
     call InitializeEnergiesForVerifier(wlc_p)
-    call MCsim(wlc_p, WLC_P__NINITMCSTEPS)
+    call MCsim(wlc_p, .false., WLC_P__NINITMCSTEPS)
     call VerifyEnergiesFromScratch(wlc_p)
     call save_simulation_state(0, wlc_p, outfile_base, 'REPLACE')
     ! for BDsim

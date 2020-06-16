@@ -38,3 +38,33 @@ wlcsim.input
 .. automodule:: wlcsim.input
     :members:
     :private-members:
+
+wlcsim.FrankElastic
+-------------------
+The calculation of Frank elastic constants occures in the function
+`get_Frank_values`.  
+
+.. automodule:: wlcsim.FrankElastic.frank
+    :members:
+    :private-members:
+
+Plotting scripts are found in plot_Frank
+
+.. automodule:: wlcsim.FrankElastic.plot_frank
+    :members:
+    :private-members:
+
+There are also a number of helper funtions,
+
+.. automodule:: wlcsim.FrankElastic.invlaplace
+    :members:
+    :private-members:
+
+.. automodule:: wlcsim.FrankElastic.stonefence
+    :members:
+    :private-members:
+
+.. automodule:: wlcsim.FrankElastic.yyyreal
+    :members:
+    :private-members:
+
