@@ -21,6 +21,8 @@ integer, intent(in) :: MCTYPE
 logical, intent(out) :: forward
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
 
+
+
 success = .TRUE.
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1)
