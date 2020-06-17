@@ -174,7 +174,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
    call CalculateEnergiesFromScratch(wlc_p)
 
    do ii = 1,NUMBER_OF_ENERGY_TYPES
-       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox ) then 
+       if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox) then
            write(ERROR_UNIT,*) "Warning. Integerated ",&
                energyOf(ii)%name_str," energy:", &
                energyOf(ii)%E," while absolute ",&

@@ -225,7 +225,7 @@ contains
         type(wlcsim_params), intent(inout) :: wlc_p
 
 
-        wlc_p%EPS=WLC_P__L0/(2.0_dp*WLC_P__LP) ! NP not actual kuhn length for chromatin sims
+        wlc_p%EPS=WLC_P__L0/(2.0_dp*WLC_P__LP)
 
         call set_up_energyOf()
 
@@ -803,7 +803,6 @@ contains
             endif
         endif
 
-
         ! -------------------------------------------
         !
         !  Set up binning proceedure for keeping track of neighbors
@@ -812,7 +811,7 @@ contains
         if (WLC_P__NEIGHBOR_BINS) then
             !  Set up binning object
             setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-            setMinXYZ = [0,0,0]![-WLC_P__LBOX_X/2, -WLC_P__LBOX_Y/2, -WLC_P__LBOX_Z/2] ! location of corner of bin
+            setMinXYZ = [0.0_dp,0.0_dp,0.0_dp]  ! location of corner of bin
             setBinShape = [10,10,10]   ! Specify first level of binning
             call constructBin(wlc_bin,setBinShape,setMinXYZ,setBinSize)
             do i=1,WLC_P__NT
@@ -916,13 +915,13 @@ contains
                    WLC_P__NBIN_X, WLC_P__NBIN_Y,WLC_P__NBIN_Z
         print*, " Number of bins", wlc_p%NBIN
         print*, " spatial descritation dbin = ",WLC_P__DBIN
-        print*, " L0 = (NP not true)", WLC_P__L0
+        print*, " L0 = ", WLC_P__L0
         print*, " GAM = ", wlc_p%GAM
         print*, " bead volume V = ", WLC_P__BEADVOLUME
-        print*, " number of kuhn lengths between beads, eps (NP not true)", wlc_p%EPS
+        print*, " number of kuhn lengths between beads, eps ", wlc_p%EPS
         print*, " "
         print*, "Energy Variables"
-        print*, " elasticity EPS (NP not true)=", wlc_p%EPS
+        print*, " elasticity EPS =", wlc_p%EPS
         print*, " solvent-polymer CHI =",energyOf(chi_)%cof
         print*, " compression cof, KAP =", energyOf(kap_)%cof
         print*, " field strength, hA =", energyOf(field_)%cof

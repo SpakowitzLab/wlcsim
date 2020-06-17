@@ -1,15 +1,11 @@
 """Some spare stochastic integrators.
-
 Not currently used because if you pass a function as an argument you can't
 @numba.jit that.
-
 For rouse chains, Bruno (that's me) has tested the srk1 integrator and found it
 to work extremely well (see notes in wlcsim.bd.rouse on suggested dt).
-
 For WLC/ssWLC, Lena found it useful to use a scheme that was higher
 deterministic order in time, to resolve the high elastic energies involved.
 Bruno has not yet tested this explicitly.
-
 You can find Lena's algorithm (hold brownian force constant over an rk4 step)
 below. It is unlikely to be strongly convergent except if you subsample below
 the actual desired time resolution."""
@@ -21,9 +17,7 @@ import numpy as np
 ########
 def rk4_thermal_lena(f, D, t, x0):
     """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D
-
     x0 is x(t[0]).
-
     :math:`f: R^n x R -> R^n`
     """
     t = np.array(t)
@@ -56,9 +50,7 @@ def rk4_thermal_bruno(f, D, t, x0):
     """WARNING: does not converge strongly (autocorrelation function seems
     higher than should be for OU process...), as is...x'(t) = f(x(t), t) +
     Xi(t), where Xi is thermal, diffusivity D
-
     x0 is x(t[0]).
-
     :math:`f: R^n x R -> R^n`
     """
     t = np.array(t)
@@ -111,21 +103,14 @@ def euler_maruyama(f, D, t, x0):
 def srk1_roberts(f, D, t, x0):
     r"""From wiki, from A. J. Roberts. Modify the improved Euler scheme to
     integrate stochastic differential equations. [1], Oct 2012.
-
     If we have an Ito SDE given by
-
     .. math::
-
         d\vec{X} = \vec{a}(t, \vec{X}) + \vec{b}(t, \vec{X}) dW
-
     then
-
     .. math::
-
         \vec{K}_1 = h \vec{a}(t_k, \vec{X}_k) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_k, \vec{X}_k)
         \vec{K}_2 = h \vec{a}(t_{k+1}, \vec{X}_k + \vec{K}_1) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_{k+1}, \vec{X}_k + \vec{K}_1)
         \vec{X}_{k+1} = \vec{X}_k + \frac{1}{2}(\vec{K}_1 + \vec{K}_2)
-
     where :math:`\Delta W_k = \sqrt{h} Z_k` for a normal random :math:`Z_k \sim
     N(0,1)`, and :math:`S_k=\pm1`, with the sign chosen uniformly at random
     each time."""
@@ -162,34 +147,34 @@ def ou(x0, t, k_over_xi, D, method=rk4_thermal_lena):
     return method(f, D=D, t=t, x0=x0)
 
 @jit(nopython=True)
-def _get_scalar_corr(X, t):
+def _get_scalar_corr(X):
     "fast correlation calculation for testing"
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(X.shape[1]):
-        for j in range(X.shape[0]):
-            for k in range(j, X.shape[0]):
-                corr[k-j] += X[k,i]*X[j,i]
-                count[k-j] += 1
+    num_samples, num_t = X.shape
+    corr = np.zeros((num_t,))
+    count = np.zeros((num_t,))
+    for i in range(num_samples):
+        for j in range(num_t):
+            for k in range(j, num_t):
+                corr[k-j] = corr[k-j] + X[i,k]*X[i,j]
+                count[k-j] = count[k-j] + 1
     return corr, count
 
-@jit
-def _get_vector_corr(X, t):
+@jit(nopython=True)
+def _get_vector_corr(X):
     "fast correlation calculation for testing"
-    num_t, num_samples = X.shape
-    corr = np.zeros_like(t)
-    count = np.zeros_like(t)
-    for i in range(num_t):
-        for j in range(j, num_t):
-            for k in range(num_samples):
-                corr[j-i] += X[j,k]@X[i,k]
-                count[j-i] += 1
+    num_samples, num_t, d = X.shape
+    corr = np.zeros((num_t,))
+    count = np.zeros((num_t,))
+    for i in range(num_samples):
+        for j in range(num_t):
+            for k in range(j, num_t):
+                corr[k-j] = corr[k-j] + X[i,k]@X[i,j]
+                count[k-j] = count[k-j] + 1
     return corr, count
 
 @jit(nopython=True)
 def _get_bead_msd(X, k=None):
     """center bead by default
-
     for 1e4-long time arrays, this takes ~10-30s on my laptop"""
     num_t, num_beads, d = X.shape
     if k is None:
@@ -213,6 +198,8 @@ def _msd(x):
     return result
 
 # test different integrators below on simply OU process
+import scipy.stats
+import matplotlib.pyplot as plt
 def test_ou_autocorr(method=srk1_roberts):
     k = 2
     xi = 4
@@ -223,7 +210,7 @@ def test_ou_autocorr(method=srk1_roberts):
     t = np.linspace(0, 1e2, 1e3+1)
     X = ou(x0, t, k_over_xi, D, method=method)
     assert(np.abs(np.var(X) - D/k_over_xi)/(D/k_over_xi) < 0.1)
-    corr, count = _get_corr(X, t)
+    corr, count = _get_scalar_corr(X.T)
     err = corr/count - (kbT/k)*np.exp(-k_over_xi*t)
     plt.figure()
     plt.plot(t, err)
@@ -232,5 +219,4 @@ def test_ou_autocorr(method=srk1_roberts):
     x = np.linspace(-3, 3, 100)
     plt.plot(x, scipy.stats.norm(scale=np.sqrt(D/k_over_xi)).pdf(x))
     return X
-
 

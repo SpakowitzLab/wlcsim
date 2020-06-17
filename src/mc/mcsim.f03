@@ -21,6 +21,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
+    use binning, only: addBead, removeBead
     use updateRU, only: updateR
     use polydispersity, only: length_of_chain, chain_ID, leftmost_from
     use linkingNumber, only: getDelTw_Wr_Lk
@@ -68,6 +69,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) para(10)
     integer m_index  ! m is the m from spherical harmonics (z component)
     integer sweepIndex
+    logical collide
     logical success
     logical wlc_AlexanderP
     integer collisions, left, right
@@ -126,12 +128,20 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               endif
           endif
 
-! set wlc_basepairs to prop if not slide move
+          if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
+              call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
+              if (collide) then
+                  wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                  goto 10 ! skip move, return RP to nan
+              endif
+          endif
+
+        ! set wlc_basepairs to prop if not slide move
         if (MCTYPE/=13) then 
             wlc_basepairs_prop = wlc_basepairs
         endif
 
-! sterics check here !
+         ! sterics check here !
           left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
           right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
           if(WLC_P__GJK_STERICS) then
@@ -147,7 +157,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             endif
           endif
 
-! internucleosome check here
+          ! internucleosome check here
           if (WLC_P__INTERNUCLEOSOME_ON) then
             delInt = 0
             ! will only do internucleosome if sterics is on (probably)

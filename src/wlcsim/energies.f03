@@ -120,8 +120,8 @@ contains
         energyOf(twist_)%cof = 1.0_dp
         energyOf(umbrella_)%cof = 0.0_dp ! set in umbrella/wlcsim_quinn
         energyOf(umbrellaQuadratic_)%cof = 0.0_dp ! set in umbrella/wlcsim_quinn
-        energyOf(global_twistLiner_)%cof = -4*pi**2*WLC_P__LINKING_NUMBER*WLC_P__LT/WLC_P__L !NP might run into trouble if we want to use these energetics
-        energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L !NP since we might define WLC_P__L differently from quinn
+        energyOf(global_twistLiner_)%cof = -4*pi**2*WLC_P__LINKING_NUMBER*WLC_P__LT/WLC_P__L
+        energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L
         ! We split global twist into a Wr**2 term and a Wr term
         ! (2*pi*(LK-Wr))**2*LT/(2L) = 2*pi**2*LT*Wr**2/L + 4*pi**2*LK*LT*WR/L
         energyOf(sterics_)%cof = 3.0_dp

@@ -9,7 +9,7 @@ use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V&
     , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend, &
     wlc_basepairs_prop
 
-use params, only: dp, wlcsim_params, NAN
+use params, only: dp, wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_SSWLCWT, E_GAUSS
 use nucleosome, only: nucleosome_energy
 use polydispersity, only: is_right_end, leftmost_from, is_left_end, rightmost_from
@@ -25,6 +25,7 @@ integer IT2P1
 integer IT2M1
 real(dp) energy_change(4)
 integer ii
+
 ! Setup parameters
 energy_change = 0.0_dp
 

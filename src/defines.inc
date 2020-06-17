@@ -143,7 +143,7 @@
 
 #define WLC_P__APPLY_EXTERNAL_FIELD .FALSE.
 ! VARIABLE COMMENT: ! Externally applied field (e.g. radial binding)
-! DEFAULTS COMMENT: !
+! DEFAULTS COMMENT: ! None applied
 ! TYPE: LOGICAL
 
 #define WLC_P__EXTERNAL_FIELD_TYPE "none"
@@ -171,9 +171,9 @@
 ! DEFAULTS COMMENT: ! LEF’s not included so it doesn’t matter.
 ! TYPE: LOGICAL
 
-#define WLC_P__ELASTICITY_TYPE "nucleosomes"
-! VARIABLE COMMENT: ! which simulation code to run
-! DEFAULTS COMMENT: ! not bruno, brad, or quinn, so will error unless specified elsewehre
+#define WLC_P__ELASTICITY_TYPE "constant"
+! VARIABLE COMMENT: ! whether to allow differential elasticity along polymer, also allows for kinks: "constant", "nucleosome"
+! DEFAULTS COMMENT: ! by default, 'constant' bead spacing
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__INCLUDE_NUC_TRANS .TRUE.
@@ -198,7 +198,7 @@
 
 #define WLC_P__NO_SELF_CROSSING .FALSE.
 ! VARIABLE COMMENT: ! Whether to prevent self-crossing of ring polymer by conserving the linking number.
-! DEFAULTS COMMENT: ! Allow self-crossing by default
+! DEFAULTS COMMENT: ! Allow self-crossing by default.
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -333,7 +333,6 @@
 ! DEFAULTS COMMENT: ! baseline twist density 0.0
 ! TYPE: REAL(DP)
 
-
 ! ----------------------------
 !
 !   Length variables
@@ -373,7 +372,7 @@
 
 #define WLC_P__LT 100.0_DP
 ! VARIABLE COMMENT: ! twist persistence length
-! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
+! DEFAULTS COMMENT: ! approximent twist persistance length of DNA in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.1_DP
@@ -678,7 +677,7 @@
 
 #define WLC_P__MOVESPERSTEP_FULL_CHAIN_SLIDE 6
 ! VARIABLE COMMENT: ! how many times each move is done per step
-! DEFAULTS COMMENT: ! full chain slide <default 6>
+! DEFAULTS COMMENT: ! full chain slide 
 ! TYPE: INTEGER
 
 #define WLC_P__MOVESPERSTEP_CHANGE_BINDING_STATE 111

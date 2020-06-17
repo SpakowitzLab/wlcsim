@@ -110,7 +110,6 @@ use params, only: wlc_mc_ind, wlc_rand_stat
             cofMtrx(rep,ii) = cof_path_by_energy_type(ii,s_vals(rep))
         enddo
     enddo
-    print*, cofMtrx(:,21)
 
     N_average = 0
 
@@ -312,7 +311,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     do i = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
         wlc_ind_exchange=i
         !   * Perform a MC simulation *
-        call MCsim(wlc_p,netSterics,WLC_P__STEPSPEREXCHANGE)
+        call MCsim(wlc_p,netSterics)
 
         !   * Replica Exchange *
         call replicaExchange()
@@ -355,7 +354,7 @@ subroutine onlyNode(wlc_p)
     endif
     ! mc sim
     call cpu_time(start)
-    call MCsim(wlc_p,netSterics,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT*WLC_P__STEPSPEREXCHANGE)
+    call MCsim(wlc_p,netSterics)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode

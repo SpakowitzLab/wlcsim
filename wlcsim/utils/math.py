@@ -1,5 +1,7 @@
 import numpy as np
 
+from functools import reduce
+
 
 def center_by_mass(x, particle_axis=0):
     """Subtract center of mass (unweighted) from a collection of vectors
@@ -16,8 +18,6 @@ def center_by_mass(x, particle_axis=0):
     centers_of_mass = np.tile(centers_of_mass, tile_shape)
     return x - centers_of_mass
 
-<<<<<<< HEAD
-=======
 from scipy import arange, pi, sqrt, zeros
 from scipy.special import spherical_jn
 from scipy.optimize import brentq
@@ -43,4 +43,3 @@ def spherical_jn_zeros(n, nt):
         points = racines
         zerosj[i][:nt] = racines[:nt]
     return (zerosj)
->>>>>>> 5aa30d367779eeaaa095dade2b71e947cb751302

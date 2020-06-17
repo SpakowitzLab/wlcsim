@@ -9,7 +9,7 @@ use params, only: wlc_id, wlc_AB, wlc_rep, wlc_repSuffix, wlc_METH
 use params
 use mpi
 use energies, only: NUMBER_OF_ENERGY_TYPES, energyOf
-use binning
+
 ! Override initialization with parallel setup parameters energyOf(*_)%cof
     Implicit none
     integer (kind = 4) dest ! message destination
