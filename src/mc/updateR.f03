@@ -32,8 +32,6 @@ if (WLC_P__NEIGHBOR_BINS) then
             if (I < WLC_P__NT) then 
                 call removeBead(wlc_bin,wlc_R_GJK(:,I),I)
             endif
-        else
-            print*, "Not an option yet. See MCsim."
         endif
     else
         print*, "Not an option yet.  See MCsim."
@@ -79,8 +77,6 @@ if (WLC_P__NEIGHBOR_BINS) then
                 wlc_R_GJK(3,I) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
                 call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,I)
             endif
-        else
-            print*, "Not an option yet. See MCsim."
         endif
     else
         print*, "Not an option yet.  See MCsim."
