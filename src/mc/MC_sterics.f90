@@ -11,7 +11,8 @@
 
 
 subroutine MC_sterics(collisions,left,right,netSterics)
-! values from wlcsim_data
+! checks for steric collisons using the GJK algorithm, check under the 
+! utils/sterics file for actual implentation of GJK. 
 use params, only: dp, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
     wlc_R_GJK, wlc_nucleosomeWrap, wlc_nPointsMoved, wlc_bin, wlc_basepairs, &
     wlc_basepairs_prop
@@ -21,9 +22,9 @@ use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 !use binning, only: addBead, removeBead, findNeighbors
 implicit none
 
-integer, intent(out) :: collisions
-integer, intent(in) :: left, right
-logical, intent(in) :: netSterics
+integer, intent(out) :: collisions ! number of steric collisions
+integer, intent(in) :: left, right ! leftmost and rightmost moved beads
+logical, intent(in) :: netSterics ! whether to check the sterics of the OG confiration
 real(dp) RALL(3,WLC_P__NT) ! all bead R
 real(dp) UALL(3,WLC_P__NT) ! all bead U
 real(dp) VALL(3,WLC_P__NT) ! all bead V

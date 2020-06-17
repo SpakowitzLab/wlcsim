@@ -7,10 +7,15 @@
 !
 !---------------------------------------------------------------
 
-! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
-! please move other variables in as you see fit
 subroutine MC_nucleosomeSlide(IB1,IB2,IT1,IT2,rand_stat,success)
-! values from wlcsim_data
+! this move will "slide" a nucleosome bead some fractional basepair 
+! this is implemented by changed the discretization of the neighboring beads
+! i.e. if you move a nucleosome +1bp along the chain, then the discretization to
+! downstream the nucleosome will shorten to adjust for this and the discretization 
+! of the linker upstream will increase. likewise the nucleosome is then shifted 
+! along its U-vector in the direction of this change. this move was intended for 
+! simulations with linker discretization (i.e. WLC_P__INCLUDE_DISCRETIZE_LINKER==TRUE), 
+! but it should in *theory* work for simulations that discretize per nucleosome
 use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
     , wlc_UP, wlc_ABP, wlc_VP, wlc_pointsMoved, wlc_nPointsMoved, &
     wlc_nucleosomeWrap, wlc_basepairs, wlc_nBend, wlc_bendPoints, &
@@ -27,7 +32,7 @@ integer, intent(out) :: IB1   ! Test bead position 1
 integer, intent(out) :: IT1   ! Index of test bead 1
 integer, intent(out) :: IB2   ! Test bead position 2
 integer, intent(out) :: IT2   ! Index of test bead 2
-logical, intent(out) :: success
+logical, intent(out) :: success ! success of move to take place
 
 ! Things for random number generator
 type(random_stat), intent(inout) :: rand_stat  ! status of random number generator

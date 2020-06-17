@@ -95,13 +95,18 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
                    ETWIST)!multiParams(9,linkBP))   ! etwist
 end function nucleosome_energy
 
-!  ------------------------------------------------------
-!
-! internucleosomal energy (i.e. faces attracted via harmonic
-! oscillator), need spring constant and preferred distance
-!
-!  ------------------------------------------------------
 function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
+! internucleosome attraction energy. this is based off the work out of 
+! de pablos group where they look at the pairwise potential between 2
+! nucleosome dependent on their orientation/geometry and distance
+! from each other. parameters come from their counterion condensation 
+! assumptions. i try to simplify their findings and create 3 main 
+! classes of interactions: 1) face-face where the nucleosomes are 
+! aligned such that their core histones can interact 2) face-side
+! where the nucleosomes are aligned perpendicular such that the core
+! histones of one nucleosome interacts with the DNA wrapping the exterior
+! of the other nucleosome and 3) side-side where the nucleosome DNA wrappings
+! are in line with each other.  
     use MC_wlc, only: E_SSWLCWT
     use vector_utils, only: cross
     use energies, only: energyOf, internucleosome_
@@ -289,6 +294,14 @@ subroutine setup_nucleosome_constants()
 end subroutine setup_nucleosome_constants
 
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+! if WLC_P__INCLUDE_DISCRETIZE_LINKER is turn on, then this determines the 
+! discretization scheme of the beads throughout the chain. it defaults to trying
+! to set integer values for each bead discretization, but not has the capability to 
+! use real numbers. if WLC_P__INCLUDE_DISCRETIZE_LINKER is off, then each bead is 
+! default assumed to be a nucleosome, so there are no additional beads used to model
+! the fluctuations of the linker geometry with more detail. nucleosomes are intialized
+! on the chain according to WLC_P__LINKER_TYPE, where the default is 'phased', i.e.
+! the nuclesomes are separated by a constant linker length throughout the chain
     use precision, only: nan
     ! sterics testing !
     use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, runtimeTest5, runtimeTest6, &
@@ -306,7 +319,6 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
     real(dp) urand(3)  ! random vector
     integer iter, i, j
 
-    ! choose nucleosome spacing
     print*, WLC_P__L0
     print*, nNucs, WLC_P__NB, WLC_P__LL
     if (WLC_P__INCLUDE_NUC_TRANS) then

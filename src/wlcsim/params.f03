@@ -396,7 +396,20 @@ contains
                 stop
             endif
         endif
-
+        if  ((WLC_P__RING .AND. WLC_P__GJK_STERICS) .OR. (WLC_P__INTERNUCLEOSOME_ON .AND. WLC_P__RING)) then
+            print*, 'currently, the GJK sterics and internucleosome attraction calculations are not'
+            print*, 'compatible with ring simulations. internucleosome should be any easy fix and '
+            print*, 'adapting the GJK checking should not be too bad, but does not implementation.'
+            stop
+        endif
+        if  ((WLC_P__INCLUDE_DISCRETIZE_LINKER .eqv. .false.) .AND. WLC_P__GJK_STERICS) then
+            print*, 'GJK can only work on regular/unbent polygonal prisms. we need to be WAY'
+            print*, 'below the persistence length to ensure we meet those criterions, so '
+            print*, 'the linker needs to be explicitly modeled. this could be cleverly '
+            print*, 'updated one day to just make finite straight prisms to connect 2 beads.'
+            print*, 'but clearly needs to be implemented'
+            stop
+        endif
         err = WLC_P__NO_SELF_CROSSING .and. WLC_P__NP > 1
         call stop_if_err(err, "linking number calculation is implemented only for one chain.")
 

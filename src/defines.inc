@@ -128,7 +128,7 @@
 
 #define WLC_P__GJK_STERICS .FALSE.
 ! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
-! DEFAULTS COMMENT: ! We care about collisions 
+! DEFAULTS COMMENT: ! Don't check for sterics via GJK by default.
 ! TYPE: LOGICAL
 
 #define WLC_P__GJK_POLYGON 16
@@ -351,8 +351,8 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__LINKER_TYPE 'phased'
-! VARIABLE COMMENT: ! linker length geometry type for initialization
-! DEFAULTS COMMENT: ! phased is constant linker length
+! VARIABLE COMMENT: ! linker length geometry type for initialization (i.e. phased array or sampled from a file)
+! DEFAULTS COMMENT: ! default to phased, i.e. set up a chain of constant linker length
 ! TYPE: REAL(DP)
 
 #define WLC_P__L WLC_P__LENGTH_PER_BP*WLC_P__LL*(WLC_P__NB-1)

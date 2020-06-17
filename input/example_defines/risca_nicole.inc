@@ -346,7 +346,7 @@
 ! DEFAULTS COMMENT: ! known value in nm
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 38_DP
+#define WLC_P__LL 45_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
@@ -591,7 +591,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__STEPSPEREXCHANGE 1000
+#define WLC_P__STEPSPEREXCHANGE 200
 ! VARIABLE COMMENT: ! The number of steps between parallel tempering exchanges.
 ! DEFAULTS COMMENT: ! 100 steps between parallel tempering is pretty frequent
 ! TYPE: INTEGER
@@ -824,12 +824,12 @@
 ! DEFAULTS COMMENT: ! From experience.
 ! TYPE: REAL(DP)
 
-#define WLC_P__INDSTARTREPADAPT -1
+#define WLC_P__INDSTARTREPADAPT 100
 ! VARIABLE COMMENT: ! Time point to start replica adapting (only for adaptive parallel tempering spacing).
 ! DEFAULTS COMMENT: ! Never adapt
 ! TYPE: INTEGER
 
-#define WLC_P__INDENDREPADAPT -1
+#define WLC_P__INDENDREPADAPT 100
 ! VARIABLE COMMENT: ! Time point to end replica adapting (only for adaptive parallel tempering spacing).
 ! DEFAULTS COMMENT: ! Never adapt
 ! TYPE: INTEGER
