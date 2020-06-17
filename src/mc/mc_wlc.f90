@@ -56,7 +56,6 @@ end function E_SSWLC
 function E_SSWLCWT(R,RM1,U,UM1,V,VM1,EB,EPAR,EPERP,ETA,GAM,ETWIST)
 ! Energy between beads of Shearable-Stretchable Wormlike Chain With Twist
     use vector_utils, only: cross, axisAngle, rotateU, angle_between
-
     implicit none
     real(dp), intent(in), dimension(3) :: RM1 ! R of bead i-1
     real(dp), intent(in), dimension(3) :: R ! R of bead i

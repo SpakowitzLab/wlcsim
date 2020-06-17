@@ -252,7 +252,7 @@
 ! VARIABLE COMMENT: ! Number of beads in a polymer.  Note that NB = nMpP*nBpM.
 ! DEFAULTS COMMENT: ! 201 beads per polymer
 ! TYPE: INTEGER
- 
+
 #define WLC_P__NMPP WLC_P__NB/WLC_P__NBPM
 ! VARIABLE COMMENT: ! Number of monomers (NOT BEADS!) in a polymer.  Monomers only matter if chemical identities are specific.  Typically useful for block copolymers where each block is considered a monomer.
 ! DEFAULTS COMMENT: ! Set by default.
@@ -983,6 +983,7 @@
 #define WLC_P__PDESIRE_SPIDER 0.25_DP
 ! VARIABLE COMMENT: ! Desired Monte-Carlo acceptance probability for move.
 ! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
 
 #define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate

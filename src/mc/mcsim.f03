@@ -253,7 +253,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 goto 10 ! skip move, return RP to nan
             ENDif
           ENDif
-
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p)

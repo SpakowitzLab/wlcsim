@@ -16,7 +16,6 @@
       integer WR,TW ! writhe, twist
       integer I,J,IB,ibp1            ! Index holders
       real(dp) energy_change(4)
-    
 
       EELAS = 0.0_dp
       IB = 1

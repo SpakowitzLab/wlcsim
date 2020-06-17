@@ -1,11 +1,15 @@
 """Some spare stochastic integrators.
+
 Not currently used because if you pass a function as an argument you can't
 @numba.jit that.
+
 For rouse chains, Bruno (that's me) has tested the srk1 integrator and found it
 to work extremely well (see notes in wlcsim.bd.rouse on suggested dt).
+
 For WLC/ssWLC, Lena found it useful to use a scheme that was higher
 deterministic order in time, to resolve the high elastic energies involved.
 Bruno has not yet tested this explicitly.
+
 You can find Lena's algorithm (hold brownian force constant over an rk4 step)
 below. It is unlikely to be strongly convergent except if you subsample below
 the actual desired time resolution."""
@@ -17,7 +21,9 @@ import numpy as np
 ########
 def rk4_thermal_lena(f, D, t, x0):
     """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D
+
     x0 is x(t[0]).
+
     :math:`f: R^n x R -> R^n`
     """
     t = np.array(t)
@@ -50,7 +56,9 @@ def rk4_thermal_bruno(f, D, t, x0):
     """WARNING: does not converge strongly (autocorrelation function seems
     higher than should be for OU process...), as is...x'(t) = f(x(t), t) +
     Xi(t), where Xi is thermal, diffusivity D
+
     x0 is x(t[0]).
+
     :math:`f: R^n x R -> R^n`
     """
     t = np.array(t)
@@ -103,14 +111,21 @@ def euler_maruyama(f, D, t, x0):
 def srk1_roberts(f, D, t, x0):
     r"""From wiki, from A. J. Roberts. Modify the improved Euler scheme to
     integrate stochastic differential equations. [1], Oct 2012.
+
     If we have an Ito SDE given by
+
     .. math::
+
         d\vec{X} = \vec{a}(t, \vec{X}) + \vec{b}(t, \vec{X}) dW
+
     then
+
     .. math::
+
         \vec{K}_1 = h \vec{a}(t_k, \vec{X}_k) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_k, \vec{X}_k)
         \vec{K}_2 = h \vec{a}(t_{k+1}, \vec{X}_k + \vec{K}_1) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_{k+1}, \vec{X}_k + \vec{K}_1)
         \vec{X}_{k+1} = \vec{X}_k + \frac{1}{2}(\vec{K}_1 + \vec{K}_2)
+
     where :math:`\Delta W_k = \sqrt{h} Z_k` for a normal random :math:`Z_k \sim
     N(0,1)`, and :math:`S_k=\pm1`, with the sign chosen uniformly at random
     each time."""
@@ -175,6 +190,7 @@ def _get_vector_corr(X):
 @jit(nopython=True)
 def _get_bead_msd(X, k=None):
     """center bead by default
+
     for 1e4-long time arrays, this takes ~10-30s on my laptop"""
     num_t, num_beads, d = X.shape
     if k is None:
@@ -219,4 +235,5 @@ def test_ou_autocorr(method=srk1_roberts):
     x = np.linspace(-3, 3, 100)
     plt.plot(x, scipy.stats.norm(scale=np.sqrt(D/k_over_xi)).pdf(x))
     return X
+
 

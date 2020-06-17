@@ -3,7 +3,7 @@ black
 pytest
 sphinx
 sphinx-rtd-theme
-nbsphinx	
+nbsphinx
 ipykernel
 ipython
 -e git+https://github.com/VACUMM/sphinx-fortran.git#egg=sphinx-fortran
