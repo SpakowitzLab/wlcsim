@@ -10,12 +10,12 @@
 !--------------------------------------------------------------
 
 
-subroutine MC_sterics(collisions,left,right,netSterics)
+subroutine MC_sterics(collisions,netSterics)
 ! checks for steric collisons using the GJK algorithm, check under the 
 ! utils/sterics file for actual implentation of GJK. 
-use params, only: dp, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
+use params, only: dp, NAN, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
     wlc_R_GJK, wlc_nucleosomeWrap, wlc_nPointsMoved, wlc_bin, wlc_basepairs, &
-    wlc_basepairs_prop
+    wlc_basepairs_prop, wlc_pointsMoved
 use GJKAlgorithm, only: constructPolygonPrism
 use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 ! if using binning, uncomment the next line
@@ -23,7 +23,6 @@ use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 implicit none
 
 integer, intent(out) :: collisions ! number of steric collisions
-integer, intent(in) :: left, right ! leftmost and rightmost moved beads
 logical, intent(in) :: netSterics ! whether to check the sterics of the OG confiration
 real(dp) RALL(3,WLC_P__NT) ! all bead R
 real(dp) UALL(3,WLC_P__NT) ! all bead U
@@ -33,27 +32,16 @@ real(dp) RGJK(3,WLC_P__NT) ! all centers for GJK
 real(dp) distances(WLC_P__NT) ! Returned distances
 integer neighbors(WLC_P__NT) ! ID of neighboring beads
 integer nn ! number of neighbors
-integer i, offset1, offset2
+integer i, j, k, offset1, offset2
 integer IP ! chain index 
 real(dp) poly(WLC_P__GJK_POLYGON,3)
+integer ignore(WLC_P__NT)
 
 ! only if the MC move moved a bead
 ! i have commented out the quinn binning implementation. if switch back to quinn code, then you will 
 ! need to replace all of the instances of findNeighbors to his function and not mine (see EOF)
 if (wlc_nPointsMoved>0) then
-    IP = get_IP(left) ! can assume left and right are on the same chain
-    ! adjust extension to left
-    if (left == first_bead_of_chain(IP)) then
-        offset1 = 0
-    else
-        offset1 = -1
-    endif
-    ! adjust extension to right
-    if (right == last_bead_of_chain(IP)) then 
-        offset2 = -1
-    else
-        offset2 = 0
-    endif
+    IP = get_IP(wlc_pointsMoved(1)) ! assume all the moves are on same chain
     ! set up for collision searching
     RGJK = wlc_R_GJK
     SGJK = wlc_GJK
@@ -63,25 +51,50 @@ if (wlc_nPointsMoved>0) then
     collisions = 0
     if (netSterics) then 
         ! check for neighbors on old beads
-        do i = left+offset1, right+offset2
-        !nn = 0
-        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
-        ! check for collisions
-        call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,left+offset1,i,&
-                nn,neighbors(1:nn),distances(1:nn),.true.)
+        k = 1
+        ignore = NAN
+        do j = 1,wlc_nPointsMoved
+            i = wlc_pointsMoved(j)
+            ! check segment preceding bead
+            if ((ANY( ignore==i-1 ) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
+                ignore(k) = i-1
+                k = k+1
+                call findNeighbors(RGJK(:,i-1),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+                ! check for collisions
+                call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,ignore,i-1,&
+                        nn,neighbors(1:nn),distances(1:nn),.true.)
+            endif
+            ! check succeeding bead
+            if ((ANY( ignore==i ) .eqv. .false.) .AND. (i < last_bead_of_chain(IP))) then 
+                ignore(k) = i
+                k = k+1
+                call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+                ! check for collisions
+                call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs,ignore,i,&
+                        nn,neighbors(1:nn),distances(1:nn),.true.)
+            endif
         enddo
     endif
     ! replace old beads with new moved beads
-    do i = left, right
+    k = 1
+    ignore = NAN
+    do j = 1,wlc_nPointsMoved
+        i = wlc_pointsMoved(j)
         ! update real bead locations
         RALL(:,i) = wlc_RP(:,i)
         UALL(:,i) = wlc_UP(:,i)
         VALL(:,i) = wlc_VP(:,i)/norm2(wlc_VP(:,i))
-        ! if bead i moves, then remove virtual beads i-1 and i
-        ! add back in virtual beads i-1 and i for moved bead i
-        if (i > first_bead_of_chain(IP) .AND. i == left) then 
-            poly = constructPolygonPrism(wlc_R(:,i-1), wlc_RP(:,i), &
-                wlc_nucleosomeWrap(i-1), wlc_U(:,i-1), wlc_V(:,i-1),WLC_P__GJK_POLYGON)
+        ! check segment preceding bead
+        if ((i > first_bead_of_chain(IP)) .AND. (ANY( ignore==i-1 ) .eqv. .false.)) then 
+            ignore(k) = i-1
+            k = k+1
+            if (isnan(wlc_RP(1,i-1))) then 
+                poly = constructPolygonPrism(wlc_R(:,i-1), wlc_RP(:,i), &
+                    wlc_nucleosomeWrap(i-1), wlc_U(:,i-1), wlc_V(:,i-1),WLC_P__GJK_POLYGON)
+            else
+                poly = constructPolygonPrism(wlc_RP(:,i-1), wlc_RP(:,i), &
+                    wlc_nucleosomeWrap(i-1), wlc_UP(:,i-1), wlc_VP(:,i-1),WLC_P__GJK_POLYGON)
+            endif
             SGJK(:,:,i-1) = poly
             RGJK(1,i-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
             RGJK(2,i-1) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
@@ -91,11 +104,14 @@ if (wlc_nPointsMoved>0) then
             !   call addBead(wlc_bin,RGJK,WLC_P__NT-1,i-1)
             !endif
         endif
-        if (i < last_bead_of_chain(IP)) then 
-            if (i == right) then 
+        ! check succeeding bead
+        if ( (i < last_bead_of_chain(IP))  .AND. (ANY( ignore==i ) .eqv. .false.) ) then 
+            ignore(k) = i
+            k = k+1
+            if (isnan(wlc_RP(1,i+1))) then 
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_R(:,i+1), &
                     wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)),WLC_P__GJK_POLYGON)
-            else
+            else 
                 poly = constructPolygonPrism(wlc_RP(:,i), wlc_RP(:,i+1), &
                     wlc_nucleosomeWrap(i),wlc_UP(:,i), wlc_VP(:,i)/norm2(wlc_VP(:,i)),WLC_P__GJK_POLYGON)
             endif
@@ -111,21 +127,45 @@ if (wlc_nPointsMoved>0) then
     enddo
     collisions = -collisions
     ! check for neighbors on new beads
-    do i = left+offset1, right+offset2
-        !nn = 0
-        call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
-        ! check for collisions
-        call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,left+offset1,i,&
-                nn,neighbors(1:nn),distances(1:nn),netSterics)
+    k = 1
+    ignore = NAN
+    do j = 1,wlc_nPointsMoved
+        i = wlc_pointsMoved(j)
+        ! check segment preceding bead
+        if ((ANY( ignore==i-1 ) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
+            ignore(k) = i-1
+            k = k+1
+            call findNeighbors(RGJK(:,i-1),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+            ! check for collisions
+            call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,ignore,i-1,&
+                    nn,neighbors(1:nn),distances(1:nn),netSterics)
+        endif
+        ! check succeeding bead
+        if ((ANY( ignore==i ) .eqv. .false.) .AND. (i < last_bead_of_chain(IP))) then 
+            ignore(k) = i
+            k = k+1
+            call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
+            ! check for collisions
+            call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,ignore,i,&
+                    nn,neighbors(1:nn),distances(1:nn),netSterics)
+        endif
     enddo
     ! if (WLC_P__NEIGHBOR_BINS) then
-    !     ! add back in beads if move is rejected
-    !     do i = left,right
-    !         if (i > 1 .AND. i == left) then 
+    !     k = 1
+    !     ignore = NAN
+    !     do j = 1,wlc_nPointsMoved
+    !         i = wlc_pointsMoved(j)
+    !         ! check segment preceding bead
+    !         if (i > first_bead_of_chain(IP) .AND. (ANY( ignore==i-1 ) .eqv. .false.) ) then 
+    !             ignore(k) = i-1
+    !             k+1 = k
     !             call removeBead(wlc_bin,RGJK(:,i-1),i-1)
     !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i-1)
     !         endif
-    !         if (i < WLC_P__NT) then 
+    !         ! check succeeding bead
+    !         if ( i < last_bead_of_chain(IP) .AND. (ANY( ignore==i ) .eqv. .false.) ) then 
+    !             ignore(k) = i
+    !             k+1 = k
     !             call removeBead(wlc_bin,RGJK(:,i),i)
     !             call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT-1,i)
     !         endif
@@ -134,9 +174,9 @@ if (wlc_nPointsMoved>0) then
 endif
 END subroutine MC_sterics
 
+subroutine sterics_check(collisions,RALL,UALL,VALL,SGJK,basepairs,ignore,ii,nn,neighbors,distances,checkAll)
 ! sterics check subroutine to check for different types of collisions
-subroutine sterics_check(collisions,RALL,UALL,VALL,SGJK,basepairs,left,ii,nn,neighbors,distances,checkAll)
-! values from wlcsim_data
+! actually iterates through the chain to check for collisions
 use GJKAlgorithm, only: GJK, constructPolygonPrism
 use params, only: dp, wlc_basepairs, wlc_nucleosomeWrap, wlc_pointsMoved, wlc_nPointsMoved
 use nucleosome, only: nucleosomeProp
@@ -149,7 +189,7 @@ real(dp), intent(in) :: UALL(3,WLC_P__NT) ! all bead U
 real(dp), intent(in) :: VALL(3,WLC_P__NT) ! all bead V
 real(dp), intent(in) :: SGJK(WLC_P__GJK_POLYGON,3,WLC_P__NT) ! all vertices for GJK
 real(dp), intent(in) :: basepairs(WLC_P__NT) ! basepair discretization
-integer, intent(in) :: left ! leftmost check bead
+integer, intent(in) :: ignore(WLC_P__NT) ! beads that have already been checked, i.e. ignore
 integer, intent(in) :: ii ! index of moved bead
 integer, intent(in) :: nn ! number of neighbors
 integer, intent(in) :: neighbors(nn) ! ID of neighboring beads
@@ -181,8 +221,7 @@ poly1Plus = SGJK(:,:,ii)!constructPolygonPrism(RALL(:,ii), RALL(:,ii+1), wlc_nuc
 
 ! iterate through all possible collisions 
 do jj = 1, nn
-    if (neighbors(jj) >= left .and. neighbors(jj) <= ii &
-        .or. neighbors(jj) == last_bead_of_chain(get_IP(neighbors(jj))) ) cycle
+    if ( ANY( ignore==neighbors(jj) ) .or. (neighbors(jj) == last_bead_of_chain(get_IP(neighbors(jj)))) ) cycle
     ! determine identity of potentially collided bead
     if (wlc_nucleosomeWrap(neighbors(jj)) /= 1) then ! is nucleosome
         jjIsNucleosome = .TRUE.
@@ -231,8 +270,8 @@ do jj = 1, nn
     else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
         distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
         ! ignore 10bp nearest nuc
-        if ( (neighbors(jj)+1 <= ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) >= 10) .OR. &
-            (neighbors(jj)-1 >= ii+1 .AND. sum(basepairs(ii:neighbors(jj)-1)) >= 10) ) then 
+        if ( (neighbors(jj)+1 <= ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) > 10) .OR. &
+            (neighbors(jj)-1 >= ii+1 .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) ) then 
             ! check for collision of nucleosome i with DNA j,
             ! and for collision of exit DNA i with DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS
@@ -251,8 +290,8 @@ do jj = 1, nn
     else if ( (iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
         distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
         ! ignore 10bp nearest nuc
-        if ( (ii+1 <= neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) >= 10) .OR. &
-                (ii-1 >= neighbors(jj)+1 .AND. sum(basepairs(neighbors(jj):ii-1)) >= 10) ) then 
+        if ( (ii+1 <= neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) > 10) .OR. &
+                (ii-1 >= neighbors(jj)+1 .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) ) then 
             ! check for collision of DNA i with nucleosome j,
             ! and for collision DNA i with exit DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS

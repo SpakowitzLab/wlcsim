@@ -396,12 +396,6 @@ contains
                 stop
             endif
         endif
-        if  ((WLC_P__RING .AND. WLC_P__GJK_STERICS) .OR. (WLC_P__INTERNUCLEOSOME_ON .AND. WLC_P__RING)) then
-            print*, 'currently, the GJK sterics and internucleosome attraction calculations are not'
-            print*, 'compatible with ring simulations. internucleosome should be any easy fix and '
-            print*, 'adapting the GJK checking should not be too bad, but does not implementation.'
-            stop
-        endif
         if  ((WLC_P__INCLUDE_DISCRETIZE_LINKER .eqv. .false.) .AND. WLC_P__GJK_STERICS) then
             print*, 'GJK can only work on regular/unbent polygonal prisms. we need to be WAY'
             print*, 'below the persistence length to ensure we meet those criterions, so '

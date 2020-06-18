@@ -113,7 +113,7 @@ use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
            wlc_p%LK = LK
 
            !Run a monte carlo simulation for NSTEPS
-           call MCsim(wlc_p,.false.,WLC_P__STEPSPEREXCHANGE)
+           call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
          
            !Recalculate structural quantities and energies
            call writhe(wlc_R,WLC_P__NB, wlc_Wr)
@@ -145,7 +145,7 @@ use params, only: wlc_eelasREPLICAS, wlc_id, wlc_R, wlc_Wrs, wlc_nodeNUMBER&
   else
      !Run a MC simulation for nstepsPerExchange
 
-     call MCsim(wlc_p,.false.,WLC_P__STEPSPEREXCHANGE)
+     call MCsim(wlc_p,WLC_P__STEPSPEREXCHANGE)
 
      !Recalculate structural quantities and energies
      call writhe(wlc_R,WLC_P__NB, wlc_Wr)

@@ -27,6 +27,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     integer neighbors(WLC_P__NT) ! ID of neighboring beads
     integer nn ! number of neighbors
     integer collisions
+    integer ignore(WLC_P__NT)
     real(dp) delInt
 
     call set_all_dEnergy_to_zero()
@@ -111,11 +112,12 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
         collisions = 0
         ! check for neighbors on new beads
         do i = 1, WLC_P__NT
-            !nn = 0
+            ignore(i) = i
             call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT,&
                     WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
-            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,wlc_GJK,wlc_basepairs,1,i,nn,neighbors(1:nn),distances(1:nn),.true.)
+            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,wlc_GJK,wlc_basepairs,ignore,&
+                    i,nn,neighbors(1:nn),distances(1:nn),.true.)
         enddo
         ! ascribe collision penalty
         energyOf(sterics_)%dx = collisions

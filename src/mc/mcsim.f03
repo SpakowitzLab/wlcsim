@@ -1,5 +1,5 @@
 #include "../defines.inc"
-subroutine MCsim(wlc_p,netSterics)
+subroutine MCsim(wlc_p)
 !Perform Metropolis Hastings Monte Carlo moves on the system of polymers.
 !Loops over move types (crank shaft, slide,...) and calls each energy
 !function.  Accepts move by the Metropolis condition on the change in
@@ -79,7 +79,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) TwP        ! twist of the proposed configuration
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
-    logical, intent(in) :: netSterics
+    logical netSterics  ! whether or not there are current collisions
 
 ! -------------------------------------
 !
@@ -139,11 +139,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
         endif
 
          ! sterics check here !
-         ! this left-right convention assumes that we are not modeling a ring
-          left = minval(wlc_pointsMoved(1:wlc_nPointsMoved))
-          right = maxval(wlc_pointsMoved(1:wlc_nPointsMoved))
           if(WLC_P__GJK_STERICS) then
-            call MC_sterics(collisions,left,right,netSterics)
+            if (energyOf(sterics_)%E == 0) then 
+                netSterics = .false.
+            else
+                netSterics = .true.
+            endif
+            call MC_sterics(collisions,netSterics)
             ! ascribe collision penalty
             if (netSterics) then 
                 energyOf(sterics_)%dx = collisions 
@@ -303,16 +305,10 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 wlc_basepairs = wlc_basepairs_prop
             endif
              if(MCTYPE /= 7) then
-                if (WLC_P__GJK_STERICS) then 
-                    do I = left, right
-                        call updateR(I,left,right)
-                    enddo
-                else
-                    do I = 1,wlc_nPointsMoved
-                        J = wlc_pointsMoved(I)
-                        call updateR(J,0,0)
-                    enddo
-                endif
+                do I = 1,wlc_nPointsMoved
+                    J = wlc_pointsMoved(I)
+                    call updateR(J)
+                enddo
              endif
              if (energyOf(confine_)%dE.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
