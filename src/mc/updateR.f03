@@ -97,9 +97,6 @@ else if (WLC_P__GJK_STERICS) then
                 wlc_UP(:,I-1), wlc_VP(:,I-1),WLC_P__GJK_POLYGON)
         endif
         wlc_GJK(:,:,I-1) = poly
-        wlc_R_GJK(1,I-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
-        wlc_R_GJK(2,I-1) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
-        wlc_R_GJK(3,I-1) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
     endif
     if (I < last_bead_of_chain(get_IP(I)) ) then 
         if (isnan(wlc_RP(1,I+1))) then 
@@ -110,9 +107,6 @@ else if (WLC_P__GJK_STERICS) then
                 wlc_U(:,I), wlc_V(:,I),WLC_P__GJK_POLYGON)
         endif
         wlc_GJK(:,:,I) = poly
-        wlc_R_GJK(1,I) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
-        wlc_R_GJK(2,I) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
-        wlc_R_GJK(3,I) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
     endif
 endif
 
