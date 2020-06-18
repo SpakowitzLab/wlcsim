@@ -71,7 +71,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     logical collide
     logical success
     logical wlc_AlexanderP
-    integer collisions, left, right
+    integer collisions
 
     real(dp) delTw      ! change in twist
     real(dp) delWr      ! change in writhe
@@ -159,7 +159,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
           ! internucleosome check here !
             if (WLC_P__INTERNUCLEOSOME_ON) then
-                call mc_internucleosome(left,right)
+                call mc_internucleosome()
             endif
     
           call check_RP_for_NAN(success,MCTYPE)
