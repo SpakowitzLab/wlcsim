@@ -6,7 +6,7 @@
 !  Sets non-relivant dE's and dx's to zero
 ! -------------------------------------------------------------------
 subroutine CalculateEnergiesFromScratch(wlc_p)
-use params, only: wlc_METH, wlc_Cross, wlc_AB&
+use params, only: NAN, wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP, WLC_GJK &
     , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK, wlc_U, wlc_V
 use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
@@ -110,6 +110,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
 
     if(WLC_P__GJK_STERICS) then
         collisions = 0
+        ignore = NAN
         ! check for neighbors on new beads
         do i = 1, WLC_P__NT
             ignore(i) = i
