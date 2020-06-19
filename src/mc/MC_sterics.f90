@@ -41,7 +41,6 @@ integer ignore(WLC_P__NT)
 ! i have commented out the quinn binning implementation. if switch back to quinn code, then you will 
 ! need to replace all of the instances of findNeighbors to his function and not mine (see EOF)
 if (wlc_nPointsMoved>0) then
-    IP = get_IP(wlc_pointsMoved(1)) ! assume all the moves are on same chain
     ! set up for collision searching
     RGJK = wlc_R_GJK
     SGJK = wlc_GJK
@@ -55,6 +54,7 @@ if (wlc_nPointsMoved>0) then
         ignore = NAN
         do j = 1,wlc_nPointsMoved
             i = wlc_pointsMoved(j)
+            IP = get_IP(i) 
             ! check segment preceding bead
             if ((ANY( ignore==i-1 ) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
                 ignore(k) = i-1
@@ -80,6 +80,7 @@ if (wlc_nPointsMoved>0) then
     ignore = NAN
     do j = 1,wlc_nPointsMoved
         i = wlc_pointsMoved(j)
+        IP = get_IP(i) 
         ! update real bead locations
         RALL(:,i) = wlc_RP(:,i)
         UALL(:,i) = wlc_UP(:,i)
@@ -131,6 +132,7 @@ if (wlc_nPointsMoved>0) then
     ignore = NAN
     do j = 1,wlc_nPointsMoved
         i = wlc_pointsMoved(j)
+        IP = get_IP(i) 
         ! check segment preceding bead
         if ((ANY( ignore==i-1 ) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
             ignore(k) = i-1
@@ -155,6 +157,7 @@ if (wlc_nPointsMoved>0) then
     !     ignore = NAN
     !     do j = 1,wlc_nPointsMoved
     !         i = wlc_pointsMoved(j)
+    !         IP = get_IP(i) 
     !         ! check segment preceding bead
     !         if (i > first_bead_of_chain(IP) .AND. (ANY( ignore==i-1 ) .eqv. .false.) ) then 
     !             ignore(k) = i-1
@@ -175,8 +178,8 @@ endif
 END subroutine MC_sterics
 
 subroutine sterics_check(collisions,RALL,UALL,VALL,SGJK,basepairs,ignore,ii,nn,neighbors,distances,checkAll)
-! sterics check subroutine to check for different types of collisions
-! actually iterates through the chain to check for collisions
+! sterics check subroutine to check for different types of collisions (i.e. nuc vs nuc, nuc vs dna, dna vs dna)
+! iterates through the nearest neighbors of the specified bead to check for any collisions
 use GJKAlgorithm, only: GJK, constructPolygonPrism
 use params, only: dp, wlc_basepairs, wlc_nucleosomeWrap, wlc_pointsMoved, wlc_nPointsMoved
 use nucleosome, only: nucleosomeProp
