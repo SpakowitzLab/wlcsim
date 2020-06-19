@@ -52,7 +52,7 @@ if (save_ind == 1) then
     allocate(U0(3,WLC_P__NT))
 endif
 
-call MCsim(wlc_p, WLC_P__STEPSPERSAVE)
+call MCsim(wlc_p,WLC_P__STEPSPERSAVE)
 
 call VerifyEnergiesFromScratch(wlc_p)
 

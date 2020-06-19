@@ -6,21 +6,29 @@
 !  Sets non-relivant dE's and dx's to zero
 ! -------------------------------------------------------------------
 subroutine CalculateEnergiesFromScratch(wlc_p)
-use params, only: wlc_METH, wlc_Cross, wlc_AB&
-    , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP&
-    , wlc_R, wlc_ind_in_list, dp
-use params, only: wlcsim_params
+use params, only: NAN, wlc_METH, wlc_Cross, wlc_AB&
+    , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP, WLC_GJK &
+    , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK, wlc_U, wlc_V
+use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     use umbrella, only: umbrella_energy_from_scratch
     use linkingNumber, only: link_twist_writhe_from_scratch
+    use nucleosome, only: internucleosome_energy
     use iso_fortran_env
     use energies
+    ! if using binning, uncomment the next line
+    !use binning, only: findNeighbors
     implicit none
-    integer IT1, IT2, I
+    integer IT1, IT2, I,j
     real(dp) phiTot
     type(wlcsim_params), intent(in) :: wlc_p
     integer Delta !transh
     real(dp) EELAS(4) ! Elastic force
-
+    real(dp) distances(WLC_P__NT) ! Returned distances
+    integer neighbors(WLC_P__NT) ! ID of neighboring beads
+    integer nn ! number of neighbors
+    integer collisions
+    integer ignore(WLC_P__NT)
+    real(dp) delInt
 
     call set_all_dEnergy_to_zero()
 
@@ -95,13 +103,44 @@ use params, only: wlcsim_params
     endif
 
     ! ToDo: Put from scratch calculate of self_ and confine_ energy here
-
     if (WLC_P__NO_SELF_CROSSING) then
+
         call link_twist_writhe_from_scratch()
+    endif
+
+    if(WLC_P__GJK_STERICS) then
+        collisions = 0
+        ignore = NAN
+        ! check for neighbors on new beads
+        do i = 1, WLC_P__NT
+            ignore(i) = i
+            call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT,&
+                    WLC_P__NT,neighbors,distances,nn)
+            ! check for collisions
+            call sterics_check(collisions,wlc_R,wlc_U,wlc_V,wlc_GJK,wlc_basepairs,ignore,&
+                    i,nn,neighbors(1:nn),distances(1:nn),.true.)
+        enddo
+        ! ascribe collision penalty
+        energyOf(sterics_)%dx = collisions
+    endif
+
+    if (WLC_P__INTERNUCLEOSOME_ON) then 
+        delInt = 0
+        do i = 1,WLC_P__NT-1
+            if (wlc_nucleosomeWrap(i)==1) cycle
+            do j = i+1,WLC_P__NT
+                if (wlc_nucleosomeWrap(j)==1) cycle
+                delInt = delInt + internucleosome_energy(wlc_R(:,i),wlc_R(:,j),&
+                                                         wlc_U(:,i),wlc_U(:,j),&
+                                                         wlc_V(:,i),wlc_V(:,j))
+            enddo
+        enddo
+        energyOf(internucleosome_)%dx = delInt
     endif
 
     call apply_energy_isOn()
     call calc_all_dE_from_dx()
+
 end subroutine
 
 subroutine InitializeEnergiesForVerifier(wlc_p)

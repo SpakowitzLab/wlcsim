@@ -36,7 +36,8 @@ PEDANTICFLAGS = -ggdb -Jsrc ${INCLUDE_DIRS} -cpp -fcheck=all -Wall -pedantic -fa
 FCFLAGS = ${PEDANTICFLAGS}
 
 # link flags
-FLFLAGS = -L/usr/lib/lapack -llapack
+# FLFLAGS = -L/usr/lib/lapack -llapack
+FLFLAGS = -L/usr/local/lib/lapack -llapack
 
 # all non-legacy and non-test files should be compiled into wlcsim
 SRC := $(shell find "src" -type f -name '*.f*' \

@@ -12,7 +12,8 @@ tags
 .DS_Store
 *.mod
 vizualization/xyz/*
-vizualization/pdb/*
+vizualization/pymol/pdb/*
+analysis/data/*
 vizualization/pdb0/*
 vizualization/png/*
 par-run-dir
@@ -26,6 +27,7 @@ doc/_build
 *.toc
 *.out
 *.aux
+*.pdb
 input/params
 input/*loops*txt
 stdout.txt
@@ -39,3 +41,7 @@ input/meth
 input/_temp*
 input/polyLengths
 input/field_l2
+.vscode
+.vscode/*
+input/Voong_LL.txt
+input/Voong_LL_23to55.txt

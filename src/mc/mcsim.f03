@@ -13,7 +13,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     , wlc_RP, wlc_METH, wlc_DPHIA, wlc_PHIB, printEnergies&
     , wlcsim_params, wlc_PHIA, int_min, NAN, wlc_nBend, wlc_nPointsMoved&
     , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints&
-    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr
+    , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
+    , wlc_VP, wlc_U, wlc_V, wlc_R_GJK, wlc_nucleosomeWrap, &
+    wlc_basepairs, wlc_basepairs_prop
     use energies
     use umbrella, only: umbrella_energy
 
@@ -69,6 +71,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     logical collide
     logical success
     logical wlc_AlexanderP
+    integer collisions
 
     real(dp) delTw      ! change in twist
     real(dp) delWr      ! change in writhe
@@ -76,6 +79,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     real(dp) TwP        ! twist of the proposed configuration
     real(dp) WrP        ! writhe of the proposed configuration
     real(dp) LkP        ! linking number of the proposed configuration
+    logical netSterics  ! whether or not there are current collisions
 
 ! -------------------------------------
 !
@@ -129,6 +133,35 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               endif
           endif
 
+        ! set wlc_basepairs to prop if not slide move
+        if (MCTYPE/=13) then 
+            wlc_basepairs_prop = wlc_basepairs
+        endif
+
+         ! sterics check here !
+          if(WLC_P__GJK_STERICS) then
+            if (energyOf(sterics_)%E == 0) then 
+                netSterics = .false.
+            else
+                netSterics = .true.
+            endif
+            call MC_sterics(collisions,netSterics)
+            ! ascribe collision penalty
+            if (netSterics) then 
+                energyOf(sterics_)%dx = collisions 
+            else
+                if (collisions > 0) then 
+                    wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
+                    goto 10 ! skip move, return RP to nan
+                endif
+            endif
+          endif
+
+          ! internucleosome check here !
+            if (WLC_P__INTERNUCLEOSOME_ON) then
+                call mc_internucleosome()
+            endif
+    
           call check_RP_for_NAN(success,MCTYPE)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
@@ -156,8 +189,6 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 goto 10 ! skip move, return RP to nan
             ENDif
           ENDif
-
-
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
               call MC_eelas(wlc_p)
@@ -270,11 +301,14 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                       wlc_AB(I) = wlc_ABP(I)
                  ENDdo
              endif
+             if (MCTYPE==13) then 
+                wlc_basepairs = wlc_basepairs_prop
+            endif
              if(MCTYPE /= 7) then
-                 do I = 1,wlc_nPointsMoved
-                     J = wlc_pointsMoved(I)
-                     call updateR(J)
-                 enddo
+                do I = 1,wlc_nPointsMoved
+                    J = wlc_pointsMoved(I)
+                    call updateR(J)
+                enddo
              endif
              if (energyOf(confine_)%dE.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
@@ -334,6 +368,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               wlc_UP(1,I) = nan
               wlc_UP(2,I) = nan
               wlc_UP(3,I) = nan
+            if (WLC_P__LOCAL_TWIST) then 
+                wlc_VP(1,I) = nan
+                wlc_VP(2,I) = nan
+                wlc_VP(3,I) = nan
+            endif
               if (WLC_P__VARIABLE_CHEM_STATE) then
                   wlc_ABP(I) = INT_MIN
               endif
@@ -344,6 +383,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 I = wlc_bendPoints(J)
                 wlc_RP(:,I:I+1) = nan
                 wlc_UP(:,I:I+1) = nan
+                if (WLC_P__LOCAL_TWIST) wlc_VP(:,I:I+1) = nan
                 if (WLC_P__VARIABLE_CHEM_STATE) then
                     wlc_ABP(I:I+1) = INT_MIN
                 endif

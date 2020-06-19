@@ -224,7 +224,7 @@ function cof_path_by_energy_type(energy_type, s) result(cof)
     ! Initially s will range from 0 to WLC_P__INITIAL_MAX_S.  The upper bound
     ! can change if adaptation is turned on.
     use energies, only: energyOf, mu_, umbrella_, umbrellaQuadratic_, &
-        global_twistLiner_, global_twistQuadratic_
+        global_twistLiner_, global_twistQuadratic_, sterics_
     use umbrella, only: setUmbrellaCof, setUmbrellaQuadraticCof
     use params, only: dp, nan
     implicit none
@@ -242,6 +242,9 @@ function cof_path_by_energy_type(energy_type, s) result(cof)
             cof = setUmbrellaQuadraticCof(s)
         elseif (energy_type == mu_ ) then
             cof = s-2.5_dp ! set for Quinn's chromatin problem
+        elseif (energy_type == sterics_ ) then
+            ! set for nicole's chromatin sterics problem (keep default for now)
+            cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
         else
             ! Parallel temper from 0 to default value
             cof = energyOf(energy_type)%cof*s/WLC_P__INITIAL_MAX_S
@@ -291,6 +294,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
         call VerifyEnergiesFromScratch(wlc_p)
     endif
 
+
     ! ------------------------------
     !
     ! call main simulation code
@@ -336,6 +340,7 @@ subroutine onlyNode(wlc_p)
     else
         call VerifyEnergiesFromScratch(wlc_p)
     endif
+    ! mc sim
     call cpu_time(start)
     call MCsim(wlc_p)
     call cpu_time(finish)

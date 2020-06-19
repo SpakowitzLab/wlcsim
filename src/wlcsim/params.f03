@@ -19,14 +19,14 @@ module params
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
     use precalc_spider, only: spider, load_precalc_spiders, get_highestNumberOfLegs
-
+    use nucleosome, only: nucleosomeProp, multiParams
     implicit none
 
     public
 
     !!!     hardcoded params. will need to change if certain parts of code change
     ! number of wlc_p move types
-    integer, parameter :: nMoveTypes = 12
+    integer, parameter :: nMoveTypes = 13 ! NP added nuc slide
     integer, parameter :: nDim = 3
 
     !!!     arbitrary technical choices
@@ -47,7 +47,8 @@ module params
           'fullChainRotation   ','fullChianSlide      ',&
           'chem-identity       ','end-end filp        ',&
           'chain swap          ','reptation           ',&
-          'superReptation      ','spider              '/)
+          'superReptation      ','spider              ',&
+          'nucleosomeSlide     '/)
 
     !!!     universal constants
     ! fully accurate, adaptive precision
@@ -112,6 +113,8 @@ module params
 
     real(dp), allocatable, dimension(:,:):: wlc_R   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_R_period   ! Conformation of polymer chains subracted to first period with lower corner at the origin
+    real(dp), allocatable, dimension(:,:,:):: wlc_GJK   ! excluded volume of polymer chains (vertices)
+    real(dp), allocatable, dimension(:,:):: wlc_R_GJK   ! excluded volume of polymer chains (centers)
     real(dp), allocatable, dimension(:,:):: wlc_U   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_V   ! Conformation of polymer chains
     real(dp), allocatable, dimension(:,:):: wlc_RP !Test Bead positions - only valid from IT1 to IT2
@@ -186,8 +189,11 @@ module params
     real(dp) wlc_time
 
     !   nucleosomes
-    integer, allocatable, dimension(:) :: wlc_basepairs
+    real(dp), allocatable, dimension(:) :: wlc_basepairs
     integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
+    real(dp), allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
+    integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for breathing
+
 
     ! Linking number, Twist, and Writhe (only for one-chain simulation)
     ! These values are updated in MCsim, checked against and update to their values
@@ -239,6 +245,7 @@ contains
         wlc_p%PDESIRE(10) = WLC_P__PDESIRE_REPTATION
         wlc_p%PDESIRE(11) = WLC_P__PDESIRE_SUPER_REPTATION
         wlc_p%PDESIRE(12) = WLC_P__PDESIRE_SPIDER
+        wlc_p%PDESIRE(13) = WLC_P__PDESIRE_NUCLEOSOMESLIDE
         wlc_p%MAXWINDOW(1) = WLC_P__MAXWINDOW_CRANK_SHAFT
         wlc_p%MAXWINDOW(2) = WLC_P__MAXWINDOW_SLIDE_MOVE
         wlc_p%MAXWINDOW(3) = WLC_P__MAXWINDOW_PIVOT_MOVE
@@ -251,6 +258,7 @@ contains
         wlc_p%MAXWINDOW(10) = WLC_P__MAXWINDOW_REPTATION
         wlc_p%MAXWINDOW(11) = WLC_P__MAXWINDOW_SUPER_REPTATION
         wlc_p%MAXWINDOW(12) = NAN ! max window spider
+        wlc_p%MAXWINDOW(13) = NAN ! max window nucslide
         wlc_p%MINWINDOW(1) = WLC_P__MINWINDOW_CRANK_SHAFT
         wlc_p%MINWINDOW(2) = WLC_P__MINWINDOW_SLIDE_MOVE
         wlc_p%MINWINDOW(3) = WLC_P__MINWINDOW_PIVOT_MOVE
@@ -263,6 +271,7 @@ contains
         wlc_p%MINWINDOW(10) = WLC_P__MINWINDOW_REPTATION
         wlc_p%MINWINDOW(11) = WLC_P__MINWINDOW_SUPER_REPTATION
         wlc_p%MINWINDOW(12) = NAN ! min window spider
+        wlc_p%MINWINDOW(13) = NAN ! min window nucslide
         wlc_p%MINAMP(1) = WLC_P__MINAMP_CRANK_SHAFT
         wlc_p%MINAMP(2) = WLC_P__MINAMP_SLIDE_MOVE
         wlc_p%MINAMP(3) = WLC_P__MINAMP_PIVOT_MOVE
@@ -275,6 +284,7 @@ contains
         wlc_p%MINAMP(10) = WLC_P__MINAMP_REPTATION
         wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
         wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
+        wlc_p%MINAMP(13) = WLC_P__MINAMP_NUCLEOSOME_SLIDE
         wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
         wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
         wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -287,6 +297,7 @@ contains
         wlc_p%MAXAMP(10) = WLC_P__MAXAMP_REPTATION
         wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
         wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
+        wlc_p%MAXAMP(13) = WLC_P__MAXAMP_NUCLEOSOME_SLIDE
         wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
         wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
         wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -299,6 +310,7 @@ contains
         wlc_p%MOVEON(10) = WLC_P__MOVEON_REPTATION
         wlc_p%MOVEON(11) = WLC_P__MOVEON_SUPER_REPTATION
         wlc_p%MOVEON(12) = WLC_P__MOVEON_SPIDER
+        wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOMESLIDE
         wlc_p%WINTARGET(1) = WLC_P__WINTARGET_CRANK_SHAFT
         wlc_p%WINTARGET(2) = WLC_P__WINTARGET_SLIDE_MOVE
         wlc_p%WINTARGET(3) = WLC_P__WINTARGET_PIVOT_MOVE
@@ -311,6 +323,7 @@ contains
         wlc_p%WINTARGET(10) = WLC_P__WINTARGET_REPTATION
         wlc_p%WINTARGET(11) = WLC_P__WINTARGET_SUPER_REPTATION
         wlc_p%WINTARGET(12) = NAN
+        wlc_p%WINTARGET(13) = NAN
         wlc_p%NADAPT(1) = WLC_P__NADAPT_CRANK_SHAFT
         wlc_p%NADAPT(2) = WLC_P__NADAPT_SLIDE_MOVE
         wlc_p%NADAPT(3) = WLC_P__NADAPT_PIVOT_MOVE
@@ -323,6 +336,7 @@ contains
         wlc_p%NADAPT(10) = WLC_P__NADAPT_REPTATION
         wlc_p%NADAPT(11) = WLC_P__NADAPT_SUPER_REPTATION
         wlc_p%NADAPT(12) = WLC_P__NADAPT_SPIDER
+        wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOMESLIDE
         wlc_p%MOVESPERSTEP(1) = WLC_P__MOVESPERSTEP_CRANK_SHAFT
         wlc_p%MOVESPERSTEP(2) = WLC_P__MOVESPERSTEP_SLIDE_MOVE
         wlc_p%MOVESPERSTEP(3) = WLC_P__MOVESPERSTEP_PIVOT_MOVE
@@ -335,6 +349,7 @@ contains
         wlc_p%MOVESPERSTEP(10) = WLC_P__MOVESPERSTEP_REPTATION
         wlc_p%MOVESPERSTEP(11) = WLC_P__MOVESPERSTEP_SUPER_REPTATION
         wlc_p%MOVESPERSTEP(12) = WLC_P__MOVESPERSTEP_SPIDER
+        wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE
 
     end subroutine set_param_defaults
 
@@ -351,7 +366,7 @@ contains
         logical err
 
         if (WLC_P__NEIGHBOR_BINS .and. (WLC_P__CONFINETYPE .ne. 'excludedShpereInPeriodic')&
-            .and. (WLC_P__CONFINETYPE .ne. 'sphere')) then
+            .and. (WLC_P__CONFINETYPE .ne. 'sphere' ) .and. (WLC_P__CONFINETYPE .ne. 'cube' )) then
             print*, "The code is untested for Neighbor bins and other confinetypes"
             print*, "No confinement (e.g. infinite volume) should be OK.  As should a fixed confinement"
             print*, "However, if you want a different periodic confiment you should add it to places where R_period is used"
@@ -381,7 +396,15 @@ contains
                 stop
             endif
         endif
-
+        if  ((WLC_P__INCLUDE_DISCRETIZE_LINKER .eqv. .false.) .AND. WLC_P__GJK_STERICS .AND. &
+                WLC_P__FIELDINTERACTIONTYPE == 'chromatin') then
+            print*, 'GJK can only work on regular/unbent polygonal prisms. we need to be WAY'
+            print*, 'below the persistence length to ensure we meet those criterions, so '
+            print*, 'the linker needs to be explicitly modeled. this could be cleverly '
+            print*, 'updated one day to just make finite straight prisms to connect 2 beads.'
+            print*, 'but clearly needs to be implemented'
+            stop
+        endif
         err = WLC_P__NO_SELF_CROSSING .and. WLC_P__NP > 1
         call stop_if_err(err, "linking number calculation is implemented only for one chain.")
 
@@ -504,6 +527,8 @@ contains
 !        use savepointLinkingNumber, only: calcTwWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
+        use GJKAlgorithm, only: constructPolygonPrism
+        use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
 #if MPI_VERSION
         use mpi
 #endif
@@ -514,7 +539,7 @@ contains
         character(5) zonedum  ! trash
         integer seedvalues(8) ! clock readings
         integer NBin ! total number of bins
-        integer i, ii
+        integer i, j, ii
         integer irand
 #if MPI_VERSION
         integer ( kind = 4 ) dest   !destination id for messages
@@ -527,6 +552,7 @@ contains
         real(dp) setMinXYZ(3) ! location of corner of bin
         integer setBinShape(3)! Specify first level of binning
         integer len_file
+        real(dp) poly(WLC_P__GJK_POLYGON,3)
         nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -537,6 +563,10 @@ contains
         allocate(wlc_R(3,WLC_P__NT))
         if (WLC_P__NEIGHBOR_BINS .and. ((WLC_P__CONFINETYPE == 'excludedShpereInPeriodic') .or. WLC_P__CONFINETYPE == 'none')) then
             allocate(wlc_R_period(3,WLC_P__NT))
+        endif
+        if (WLC_P__GJK_STERICS) then
+            allocate(wlc_R_GJK(3,WLC_P__NT))
+            allocate(wlc_GJK(WLC_P__GJK_POLYGON,3,WLC_P__NT))
         endif
         allocate(wlc_U(3,WLC_P__NT))
         if (WLC_P__LOCAL_TWIST) then
@@ -595,6 +625,9 @@ contains
         if (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
             allocate(wlc_basepairs(WLC_P__NT))
             allocate(wlc_nucleosomeWrap(WLC_P__NT))
+            if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then
+                allocate(wlc_basepairs_prop(WLC_P__NT))
+            endif
         endif
         if (WLC_P__EXPLICIT_BINDING) then
             if (WLC_P__NETWORK) then
@@ -795,9 +828,41 @@ contains
                     call addBead(wlc_bin,wlc_R_period,WLC_P__NT,i)
                 elseif (WLC_P__CONFINETYPE == 'sphere') then
                     call addBead(wlc_bin,wlc_R,WLC_P__NT,i)
+                elseif (WLC_P__CONFINETYPE == 'cube') then
+                    if (WLC_P__GJK_STERICS) then 
+                        ! NP add center of segments as beads
+                        if (i < last_bead_of_chain(get_IP(i))) then 
+                            poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                                wlc_U(:,i), wlc_V(:,i),WLC_P__GJK_POLYGON)
+                            wlc_GJK(:,:,i) = poly
+                            wlc_R_GJK(1,i) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                            wlc_R_GJK(2,i) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                            wlc_R_GJK(3,i) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
+                            call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
+                        else
+                            wlc_R_GJK(:,i) = nan
+                            !call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
+                        endif
+                    else
+                        print*, "Not an option yet. See params"
+                    endif
                 else
                     print*, "Not an option yet.  See params."
                     stop 1
+                endif
+            enddo
+        else if (WLC_P__GJK_STERICS) then ! set up GJK vecotor
+            do i=1,WLC_P__NT
+                if (i < last_bead_of_chain(get_IP(i))) then 
+                    poly = constructPolygonPrism(wlc_R(:,i), wlc_R(:,i+1), wlc_nucleosomeWrap(i), &
+                    wlc_U(:,i), wlc_V(:,i),WLC_P__GJK_POLYGON)
+                    wlc_GJK(:,:,i) = poly
+                    wlc_R_GJK(1,i) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
+                    wlc_R_GJK(2,i) = sum(poly(:,2)/WLC_P__GJK_POLYGON)
+                    wlc_R_GJK(3,i) = sum(poly(:,3)/WLC_P__GJK_POLYGON)
+                else
+                    wlc_R_GJK(:,i) = nan
+                    wlc_GJK(:,:,i) = nan
                 endif
             enddo
         endif
@@ -910,6 +975,7 @@ contains
         wlc_MCAMP(8) = nan
         wlc_MCAMP(9) = nan
         wlc_MCAMP(10) = nan
+        wlc_MCAMP(13) = nan
 
         ! if we're not using field interactions
         ! energies, then this should never be on
@@ -1179,6 +1245,9 @@ contains
         character(MAXFILENAMELEN), intent(in) :: fileName
         character(MAXFILENAMELEN) fullName
         LOGICAL isfile
+        real(dp), dimension(3) :: Uout
+        real(dp), dimension(3) :: Vout
+        real(dp), dimension(3) :: Rout
         fullName = trim(fileName) // trim(wlc_repSuffix)
         fullName = trim(fullName)
         inquire(file = fullName, exist = isfile)
@@ -1252,6 +1321,23 @@ contains
             enddo
         endif
 
+        close(outFileUnit)
+    end subroutine
+
+    subroutine wlcsim_params_saveDISC(fileName,stat)
+    ! Saves U to ASCII file for analisys
+        !use nucleosome, only: wlc_nucleosomeWrap, wlc_basepairs
+        implicit none
+        integer ii ! counters
+        character(MAXFILENAMELEN), intent(in) :: fileName
+        character(MAXFILENAMELEN) fullName
+        character(len = *), intent(in) :: stat
+        fullName=  trim(fileName) // trim(wlc_repSuffix)
+        open (unit = outFileUnit, file = fullName, status = stat)
+        write(outFileUnit,*) wlc_nucleosomeWrap
+        do ii = 1,WLC_P__NT
+            call print_11char_float(outFileUnit,wlc_basepairs(ii))
+        enddo
         close(outFileUnit)
     end subroutine
 
@@ -1672,6 +1758,12 @@ contains
                 filename = trim(adjustL(outfile_base)) // 'r' // trim(adjustL(filename))
             endif
             call wlcsim_params_saveR(filename,.false.)
+        endif
+
+        if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then
+            write(filename,num2strFormatString) save_ind
+            filename = trim(adjustL(outfile_base)) // 'd' // trim(adjustL(filename))
+            call wlcsim_params_saveDISC(filename,stat)
         endif
 
         if (WLC_P__SAVEU) then

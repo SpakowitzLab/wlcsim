@@ -12,7 +12,7 @@ module energies
 
     implicit none
     public
-    integer, parameter :: NUMBER_OF_ENERGY_TYPES = 20
+    integer, parameter :: NUMBER_OF_ENERGY_TYPES = 22
 
     integer, parameter :: chi_ = 1 ! Flory-Huggins chi parameter
     integer, parameter :: mu_ = 2 ! Chemical potential (e.g. of HP1)
@@ -34,6 +34,8 @@ module energies
     integer, parameter :: umbrellaQuadratic_ = 18 ! Quadratic energy from umbrella
     integer, parameter :: global_twistLiner_ = 19 ! Global twist linear portion
     integer, parameter :: global_twistQuadratic_ = 20 ! Global twist quadratic portion
+    integer, parameter :: sterics_ = 21 ! Steric collision energy when using GJK
+    integer, parameter :: internucleosome_ = 22 ! Internucleosomal potential
 
     type MC_energy
         real(dp) E  ! Energy in units of kT
@@ -74,6 +76,8 @@ contains
         energyOf(18)%name_str='umbrell2'
         energyOf(19)%name_str='glbTwst1'
         energyOf(20)%name_str='glbTwst2'
+        energyOf(21)%name_str='sterics '
+        energyOf(22)%name_str='interNuc'
 
         energyOf(1)%parallel_temper = WLC_P__PT_CHI
         energyOf(2)%parallel_temper = WLC_P__PT_MU
@@ -95,6 +99,8 @@ contains
         energyOf(18)%parallel_temper = WLC_P__UMBRELLA  ! Todo: should this not be paralel tempered ?
         energyOf(19)%parallel_temper = .FALSE.
         energyOf(20)%parallel_temper = .FALSE.
+        energyOf(21)%parallel_temper = WLC_P__PT_STERICS
+        energyOf(22)%parallel_temper = WLC_P__PT_INTERNUCLEOSOME
 
         energyOf(chi_)%cof      = WLC_P__CHI
         energyOf(mu_)%cof       = WLC_P__MU
@@ -118,6 +124,8 @@ contains
         energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L
         ! We split global twist into a Wr**2 term and a Wr term
         ! (2*pi*(LK-Wr))**2*LT/(2L) = 2*pi**2*LT*Wr**2/L + 4*pi**2*LK*LT*WR/L
+        energyOf(sterics_)%cof = 3.0_dp
+        energyOf(internucleosome_)%cof = WLC_P__INTERNUCLEOSOME_ENERGY
 
         do ii = 1,NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%isOn = .TRUE.

@@ -90,7 +90,7 @@ if (FRMFILE)then
        open (UNIT = 5, FILE = 'input/v0', STATUS = 'OLD')
        Do I = 1,NT
           READ(5,*) wlc_V(1,I),wlc_V(2,I),wlc_V(3,I)
-           wlc_V = wlc_V/norm2(wlc_V)
+           wlc_V(:,I) = wlc_V(:,I)/norm2(wlc_V(:,I))
        enddo
    endif
    CLOSE(5)
@@ -445,9 +445,19 @@ elseif (WLC_P__INITCONDTYPE == 'multiRing') then
         IB=otherEnd+1
     enddo
 elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
-    R(1,1) = 0.0_dp
-    R(2,1) = 0.0_dp
-    R(3,1) = 0.0_dp
+    if (WLC_P__NEIGHBOR_BINS) then 
+        R(1,1) = WLC_P__LBOX_X/2
+        R(2,1) = WLC_P__LBOX_Y/2
+        R(3,1) = WLC_P__LBOX_Z/2
+    else if (WLC_P__CONFINETYPE=='sphere') then 
+        R(1,1) = 3*WLC_P__LBOX_X/4
+        R(2,1) = 3*WLC_P__LBOX_Y/4
+        R(3,1) = -WLC_P__LBOX_Z/4
+    else
+        R(1,1) = 0.0_dp
+        R(2,1) = 0.0_dp
+        R(3,1) = 0.0_dp
+    endif
     U(1,1) = 0.0_dp
     U(2,1) = 0.0_dp
     U(3,1) = 1.0_dp
@@ -455,13 +465,15 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
     wlc_V(2,1) = 0.0_dp
     wlc_V(3,1) = 0.0_dp
 
-    do IB=2,WLC_P__NT
+    ! NP EDIT : initialization is at odds with how energy is calculated 
+    ! (i.e i-1 rotation to i vs i rotation to i+1, intuitvely the same physics but not the same results)
+    do IB=1,WLC_P__NT-1
         ! Rotation (and translation) due to nucleosome
-        call nucleosomeProp(U(:,IB-1), wlc_V(:,IB-1), R(:,IB-1), &
+        call nucleosomeProp(U(:,IB), wlc_V(:,IB), R(:,IB), &
                             wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
-                            U(:,IB), wlc_V(:,IB), R(:,IB))
+                            U(:,IB+1), wlc_V(:,IB+1), R(:,IB+1))
         ! Translation due to zero-enery linker
-        R(:,IB) = R(:,IB) + U(:,IB)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB-1)
+        R(:,IB+1) = R(:,IB+1) + U(:,IB+1)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB)
     enddo
 else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
     call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)

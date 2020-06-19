@@ -6,7 +6,8 @@ subroutine MC_eelas(wlc_p)
 
 ! values from wlcsim_data
 use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V&
-    , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend
+    , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend, &
+    wlc_basepairs_prop
 
 use params, only: dp, wlcsim_params
 use MC_wlc, only: E_wlc, E_SSWLC, E_SSWLCWT, E_GAUSS
@@ -84,7 +85,7 @@ do ii=1,wlc_nBend
             energy_change = energy_change + nucleosome_energy(wlc_RP(:,IT2P1),wlc_RP(:,IT2)&
                                             ,wlc_UP(:,IT2P1),wlc_UP(:,IT2)&
                                             ,wlc_VP(:,IT2P1),wlc_VP(:,IT2)&
-                                            ,wlc_basepairs(IT2)&
+                                            ,wlc_basepairs_prop(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
             energy_change = energy_change - nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
                                             ,wlc_U(:,IT2P1),wlc_U(:,IT2)&
