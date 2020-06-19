@@ -396,7 +396,8 @@ contains
                 stop
             endif
         endif
-        if  ((WLC_P__INCLUDE_DISCRETIZE_LINKER .eqv. .false.) .AND. WLC_P__GJK_STERICS) then
+        if  ((WLC_P__INCLUDE_DISCRETIZE_LINKER .eqv. .false.) .AND. WLC_P__GJK_STERICS .AND. &
+                WLC_P__FIELDINTERACTIONTYPE == 'chromatin') then
             print*, 'GJK can only work on regular/unbent polygonal prisms. we need to be WAY'
             print*, 'below the persistence length to ensure we meet those criterions, so '
             print*, 'the linker needs to be explicitly modeled. this could be cleverly '
