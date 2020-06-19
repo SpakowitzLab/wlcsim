@@ -93,7 +93,7 @@ if (wlc_nPointsMoved>0) then
                     wlc_nucleosomeWrap(i-1), wlc_U(:,i-1), wlc_V(:,i-1),WLC_P__GJK_POLYGON)
             else
                 poly = constructPolygonPrism(wlc_RP(:,i-1), wlc_RP(:,i), &
-                    wlc_nucleosomeWrap(i-1), wlc_UP(:,i-1), wlc_VP(:,i-1),WLC_P__GJK_POLYGON)
+                    wlc_nucleosomeWrap(i-1), wlc_UP(:,i-1), wlc_VP(:,i-1)/norm2(wlc_VP(:,i-1)),WLC_P__GJK_POLYGON)
             endif
             SGJK(:,:,i-1) = poly
             RGJK(1,i-1) = sum(poly(:,1)/WLC_P__GJK_POLYGON)
@@ -216,8 +216,7 @@ else
 endif
 
 ! construct polygon for i to i+1 bead (should be on virtual bead, so i+1 is safe near end of chain)
-poly1Plus = SGJK(:,:,ii)!constructPolygonPrism(RALL(:,ii), RALL(:,ii+1), wlc_nucleosomeWrap(ii), &
-            !UALL(:,ii), VALL(:,ii), s)
+poly1Plus = SGJK(:,:,ii)
 
 ! iterate through all possible collisions 
 do jj = 1, nn
@@ -233,8 +232,7 @@ do jj = 1, nn
         jjIsNucleosome = .FALSE.
     endif
     ! construct forward polygon
-    poly2Plus = SGJK(:,:,neighbors(jj))!constructPolygonPrism(RALL(:,neighbors(jj)), RALL(:,neighbors(jj)+1), &
-            !wlc_nucleosomeWrap(neighbors(jj)), UALL(:,neighbors(jj)), VALL(:,neighbors(jj)), s)
+    poly2Plus = SGJK(:,:,neighbors(jj))
     ! figure out ordering, THIS IS IMPORTANT FOR CONSISTENT GJK CONVERSION
     if (neighbors(jj) > ii) then 
         jjGreaterThanii = .true.
@@ -250,7 +248,8 @@ do jj = 1, nn
             collisions = collisions + GJK(poly2Plus, poly1Plus, s)
         endif
         ! check for exit DNA collisions
-        if (distances(jj) <  (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then 
+        if (distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS .OR. &
+            distances(jj) < (2*basepairs(ii)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS ) then 
             ! check for collision of nucleosome i with exit DNA j ,
             ! collision of exit DNA i with nuclesome j, and
             ! colllision of exit DNA i and j
@@ -268,45 +267,33 @@ do jj = 1, nn
         endif
     ! moved bead nuc + DNA
     else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
-        distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
+        distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
         ! ignore 10bp nearest nuc
-        if ( (neighbors(jj)+1 <= ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) > 10) .OR. &
-            (neighbors(jj)-1 >= ii+1 .AND. sum(basepairs(ii:neighbors(jj)-1)) > 10) ) then 
+        if ( (neighbors(jj)+1 <= ii-1 .AND. sum(basepairs(neighbors(jj)+1:ii-1)) >= 10) .OR. &
+            (neighbors(jj)-1 >= ii+1 .AND. sum(basepairs(ii:neighbors(jj)-1)) >= 10) ) then 
             ! check for collision of nucleosome i with DNA j,
             ! and for collision of exit DNA i with DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS
                 collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-                if (ii+1 < neighbors(jj)) then
-                    collisions = collisions + GJK(poly1ExitDNA, poly2Plus, s)
-                endif
             else
                 collisions = collisions + GJK(poly2Plus, poly1Plus, s)
-                if (ii+1 < neighbors(jj)) then
-                    collisions = collisions + GJK(poly2Plus, poly1ExitDNA, s)
-                endif
             endif
         endif 
     ! moved bead DNA + nuc
     else if ( (iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
-        distances(jj) < (2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
+        distances(jj) < (2*basepairs(ii)*WLC_P__LENGTH_PER_BP)+WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
         ! ignore 10bp nearest nuc
-        if ( (ii+1 <= neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) > 10) .OR. &
-                (ii-1 >= neighbors(jj)+1 .AND. sum(basepairs(neighbors(jj):ii-1)) > 10) ) then 
+        if ( (ii+1 <= neighbors(jj)-1 .AND. sum(basepairs(ii+1:neighbors(jj)-1)) >= 10) .OR. &
+                (ii-1 >= neighbors(jj)+1 .AND. sum(basepairs(neighbors(jj):ii-1)) >= 10) ) then 
             ! check for collision of DNA i with nucleosome j,
             ! and for collision DNA i with exit DNA j
             if (jjGreaterThanii) then ! ORDER MATTERS
                 collisions = collisions + GJK(poly1Plus, poly2Plus, s)
-                if (neighbors(jj)+1 < ii) then 
-                    collisions = collisions + GJK(poly1Plus, poly2ExitDNA, s)
-                endif
             else
                 collisions = collisions + GJK(poly2Plus, poly1Plus, s)
-                if (neighbors(jj)+1 < ii) then 
-                    collisions = collisions + GJK(poly2ExitDNA, poly1Plus, s)
-                endif
             endif
         endif
-    else if (distances(jj) < 2*(basepairs(neighbors(jj))+basepairs(ii))*WLC_P__LENGTH_PER_BP) then ! DNA i  + DNA j
+    else if (distances(jj) < 1.5*max(basepairs(neighbors(jj)),basepairs(ii))*WLC_P__LENGTH_PER_BP) then ! DNA i  + DNA j
         if ((ii+1 < neighbors(jj)) .OR. (neighbors(jj)+1 < ii) ) then
             ! check for collision
             if (jjGreaterThanii) then ! ORDER MATTERS
