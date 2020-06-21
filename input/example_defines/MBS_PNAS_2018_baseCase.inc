@@ -16,6 +16,11 @@
 ! DEFAULTS COMMENT: ! This input is based on Quinn's code
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
+#define WLC_P__WARNING_LEVEL 1
+! VARIABLE COMMENT: ! Level of coded warnings to use.  0 = no warnings, 1 = moderate performance impact, 2 = considerable slowdown.
+! DEFAULTS COMMENT: ! Warning level 1 is recommended.
+! TYPE: INTEGER
+
 #define WLC_P__RING .FALSE.
 ! VARIABLE COMMENT: ! whether the polymer is a ring
 ! DEFAULTS COMMENT: ! not a ring by default
@@ -36,15 +41,20 @@
 ! DEFAULTS COMMENT: ! spherical nucleus
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
-#define WLC_P__INITCONDTYPE 'randomLineSphereBoundary'
-! VARIABLE COMMENT: ! initial condition type
-! DEFAULTS COMMENT: ! because it is easy
+#define WLC_P__BOUNDARY_TYPE "ExtendBinsPast"
+! VARIABLE COMMENT: ! How to handle boundaries for interpolated binned interaction choose from: "SolidEdgeBin", "ExtendBinsPast".  "ExtendBinsPast" treats all bins the same and requires bins to extend at least one bin beyond the confinement.  "SolidEdgeBin" adjusts boundary bins so that all density is maintained within the confinement.  "SolidEdgeBin" doesn’t work for curved boundaries.
+! DEFAULTS COMMENT: ! Treat all bins the same
 ! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__FRACTIONAL_BIN .FALSE.
 ! VARIABLE COMMENT: ! whether to use fractional bin volumes in field treatment
 ! DEFAULTS COMMENT: ! If in doubt make it false
 ! TYPE: LOGICAL
+
+#define WLC_P__INITCONDTYPE 'randomWalkWithBoundary'
+! VARIABLE COMMENT: ! Initial condition for bead positions.  Choices include: "lineInYFromOrigin", "lineInY", "randomLineSlitInZBoundary", "randomLineCubeBoundary", "randomLineOutsideOfSphere", "randomLineSphereBoundary", "randomlyDistributeBeadsInSphere", "ring", "multiRing"
+! DEFAULTS COMMENT: ! 'randomWalkWithBoundary' works for many boundary conditions.
+! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__INTRAPOLYMER_STICK_CROSSING_ENFORCED .FALSE.
 ! VARIABLE COMMENT: ! field-based self interactions on
@@ -116,6 +126,16 @@
 ! DEFAULTS COMMENT: ! We care about collisions
 ! TYPE: LOGICAL
 
+#define WLC_P__GJK_STERICS .FALSE.
+! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! Don't check for sterics via GJK by default.
+! TYPE: LOGICAL
+
+#define WLC_P__GJK_POLYGON 16
+! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
+! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
+! TYPE: INTEGER
+
 #define WLC_P__NEIGHBOR_BINS .FALSE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
@@ -126,9 +146,29 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__EXTERNAL_FIELD_TYPE "none"
+! VARIABLE COMMENT: ! Explicitly defined potential type to test various conditions.  Options: "nonSpecificToCubeSide",  "nonSpecificToSphere", "toExcludedSphereInPeriodic", "NSTCS_plus_binding".  Used, for example, for peripheral attraction.
+! DEFAULTS COMMENT: ! No external field by default.
+! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__APPLY_2body_potential .FALSE.
+! VARIABLE COMMENT: ! Explicit pairwise interaction potential between beads.
+! DEFAULTS COMMENT: ! No interactions by default.
+! TYPE: LOGICAL
+
 #define WLC_P__EXPLICIT_BINDING .FALSE.
 ! VARIABLE COMMENT: ! Include specific interactions between specified beads
 ! DEFAULTS COMMENT: ! Not included by default
+! TYPE: LOGICAL
+
+#define WLC_P__NETWORK .FALSE.
+! VARIABLE COMMENT: ! Pin pairs of beads together (to enforce the network).  For example, used for loop extrusion factors.
+! DEFAULTS COMMENT: ! Not included by default.
+! TYPE: LOGICAL
+
+#define WLC_P__NO_LEF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! No explicit binding (Loop Extrusion Factors) pairs can cross each other, e.g. 1-to-10 and 5-15.  This parameter only matters when loop extrusion factor positions are simulated rather than loaded explicitly.
+! DEFAULTS COMMENT: ! LEF’s not included so it doesn’t matter.
 ! TYPE: LOGICAL
 
 #define WLC_P__ELASTICITY_TYPE "constant"
@@ -141,9 +181,24 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__INCLUDE_DISCRETIZE_LINKER .FALSE.
+! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
+! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
+! TYPE: LOGICAL
+
 #define WLC_P__CHI_L2_ABLE .FALSE.
 ! VARIABLE COMMENT: ! Whether the l=2 component is ever calcualted
 ! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__UMBRELLA .FALSE.
+! VARIABLE COMMENT: ! Perfore umbrella sampling.
+! DEFAULTS COMMENT: ! No umbrella sampling by default.
+! TYPE: LOGICAL
+
+#define WLC_P__NO_SELF_CROSSING .FALSE.
+! VARIABLE COMMENT: ! Whether to prevent self-crossing of ring polymer by conserving the linking number.
+! DEFAULTS COMMENT: ! Allow self-crossing by default.
 ! TYPE: LOGICAL
 
 ! ----------------------------
@@ -182,6 +237,11 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
+#define WLC_P__SAVE_LK .FALSE.
+! VARIABLE COMMENT: ! Save linking number. Only for ring polymer.
+! DEFAULTS COMMENT: ! Does not save linking number.
+! TYPE: LOGICAL
+
 ! ----------------------------
 !
 !   Number / Chemical identity variables
@@ -213,9 +273,19 @@
 ! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
 ! TYPE: INTEGER
 
-#define WLC_P__FA 0.0_DP
-! VARIABLE COMMENT: ! Fraction of A beads
-! DEFAULTS COMMENT: ! Initial fraction methelated
+#define WLC_P__LINKING_NUMBER 0
+! VARIABLE COMMENT: ! Linking number of ring for global twist energy calculation.
+! DEFAULTS COMMENT: ! Not a ring so doesn't matter.
+! TYPE: REAL(DP)
+
+#define WLC_P__POLY_DISP_TYPE "None"
+! VARIABLE COMMENT: ! Whether to include chains of different lengths.  "None" for all the same length, "FromFile" for different lengths.
+! DEFAULTS COMMENT: ! None by default.
+! TYPE: CHARACTER(MAXPARAMLEN)
+
+#define WLC_P__FA 0.5_DP
+! VARIABLE COMMENT: ! Fraction of A beads.  For random copolymers.
+! DEFAULTS COMMENT: ! Half A, half B by default.
 ! TYPE: REAL(DP)
 
 #define WLC_P__LAM 0.0_DP
@@ -253,15 +323,46 @@
 ! DEFAULTS COMMENT: ! 203 linker + 147 wrap
 ! TYPE: INTEGER
 
+#define WLC_P__N_EXTERNAL_BIND_POINTS 10
+! VARIABLE COMMENT: ! Number of points bound to boundary (originally for Quinn's lamin project).
+! DEFAULTS COMMENT: ! 0 for off
+! TYPE: INTEGER
+
+#define WLC_P__TWIST_DENSITY 0.0_DP
+! VARIABLE COMMENT: ! Baseline twist density.  E.g. natural twist of DNA if not already subtracted out. 
+! DEFAULTS COMMENT: ! baseline twist density 0.0
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Length variables
+!   All lengths in simulations units unless otherwise state.
 !
 ! ---------------------------
+
+#define WLC_P__LENGTH_PER_BP 3.3_DP
+! VARIABLE COMMENT: ! Length along DNA per bace pair.  Currently not in use.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__LL 35.0_DP
+! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_TYPE 'phased'
+! VARIABLE COMMENT: ! linker length geometry type for initialization (i.e. phased array or sampled from a file)
+! DEFAULTS COMMENT: ! default to phased, i.e. set up a chain of constant linker length
+! TYPE: REAL(DP)
 
 #define WLC_P__L 226064.95_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
+! TYPE: REAL(DP)
+
+#define WLC_P__L0 (WLC_P__L/(WLC_P__NB-1.0_DP))
+! VARIABLE COMMENT: ! Bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
+! DEFAULTS COMMENT: ! Derive from L and NB.
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 1.742_DP
@@ -272,11 +373,6 @@
 #define WLC_P__LT 1.524_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
-! TYPE: REAL(DP)
-
-#define WLC_P__LENGTH_PER_BP 0.33
-! VARIABLE COMMENT: ! length along dna for one bace pair
-! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.02200_DP
@@ -374,10 +470,30 @@
 ! DEFAULTS COMMENT: Set to zero for no exclusion
 ! TYPE: REAL(DP)
 
+#define WLC_P__DNA_RADIUS 1.0_DP
+! VARIABLE COMMENT: Radius of DNA (GJK)
+! DEFAULTS COMMENT: 1 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
+! VARIABLE COMMENT: Radius of nuclelsome (GJK)
+! DEFAULTS COMMENT: 5.2 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
+! VARIABLE COMMENT: Height of nucleosome (GJK)
+! DEFAULTS COMMENT: 5.5. nm
+! TYPE: REAL(DP)
+
+#define WLC_P__GJK_RADIUS SQRT(WLC_P__NUCLEOSOME_RADIUS**2 + (WLC_P__NUCLEOSOME_HEIGHT/2)**2)
+! VARIABLE COMMENT: ! search radius for GJK alorithm checking
+! DEFAULTS COMMENT: ! set to hypotenuse of nuc rad + height
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
 !   Energy variables
+!   In kT’s unless otherwise stated.
 !
 ! ---------------------------
 
@@ -431,14 +547,46 @@
 ! DEFAULTS COMMENT: ! Not included by default
 ! TYPE: REAL(DP)
 
-#define WLC_P__AmplitudeExternalField 0.0_DP
-! VARIABLE COMMENT: ! For an extra potential I wanted to put in
-! DEFAULTS COMMENT: ! Not included by default
+#define WLC_P__AmplitudeExternalField -0.3_DP
+! VARIABLE COMMENT: ! Amplitude of external fields if used.  For example, non-specific attraction to the nuclear boundary in the corresponding paper.
+! DEFAULTS COMMENT: ! Strength of attachment to boundary.
+! TYPE: REAL(DP)
+
+#define WLC_P__Amplitude2beadPotential 0.0_DP
+! VARIABLE COMMENT: ! Amplitude of pairwise inter-bead potential.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__EXCLUDE_NEIGHBORS_IN_POTENTIAL 2
+! VARIABLE COMMENT: ! Number of neighbors on either side to exclude in pairwise interaction.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: INTERGER
+
+#define WLC_P__MAX_RXN_COORD 1.0_DP
+! VARIABLE COMMENT: ! Maximum of umbrella sampled reaction coordinate.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__MIN_RXN_COORD 0.0_DP
+! VARIABLE COMMENT: ! Minimum of umbrella sampled reaction coordinate.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
+! DEFAULTS COMMENT: ! toggle on or off
+! TYPE: REAL(DP)
+
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
+! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
 ! TYPE: REAL(DP)
 
 ! ----------------------------
 !
 !   Time / steps variables
+!   For example, the total number of crankshaft moves is: 
+!   NUMSAVEPOINTS*NREPLICAEXCHANGEPERSAVEPOINT*STEPSPEREXCHANGE*MOVESPERSTEP_CRANK_SHAFT
 !
 ! ---------------------------
 
@@ -482,9 +630,24 @@
 ! DEFAULTS COMMENT: ! turn on chi energy immediately
 ! TYPE: INTEGER
 
-#define WLC_P__NINITMCSTEPS 4000
-! VARIABLE COMMENT: ! number of mc steps before starting BD
-! DEFAULTS COMMENT: ! number of initilizing mc steps. 1000s x num polymers is good
+#define WLC_P__N_EXTERNAL_ON 10
+! VARIABLE COMMENT: ! Number of save points before turning on the external field.
+! DEFAULTS COMMENT: ! Try different values.  See sup. mat.
+! TYPE: INTEGER
+
+#define WLC_P__N_FIELD_ON 0
+! VARIABLE COMMENT: ! Number of save points before turning on the applied density external field. (Rarely used)
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: INTEGER
+
+#define WLC_P__N_UMBRELLA_ON 0
+! VARIABLE COMMENT: ! Number of save points before starting umbrella energy.
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: INTEGER
+
+#define WLC_P__NINITMCSTEPS 0
+! VARIABLE COMMENT: ! Number of mc steps before starting  brownian dynamics.
+! DEFAULTS COMMENT: ! Not in use. 
 ! TYPE: INTEGER
 
 
@@ -528,9 +691,9 @@
 ! DEFAULTS COMMENT: ! filp
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_CHAIN_EXCHANGE 5
-! VARIABLE COMMENT: ! how many times each move is done per step
-! DEFAULTS COMMENT: ! full chain swap < default 5>
+#define WLC_P__MOVESPERSTEP_CHAIN_EXCHANGE 0
+! VARIABLE COMMENT: ! How many times each move is done per step.
+! DEFAULTS COMMENT: ! Not in use.
 ! TYPE: INTEGER
 
 #define WLC_P__MOVESPERSTEP_REPTATION 10
@@ -546,6 +709,11 @@
 #define WLC_P__MOVESPERSTEP_SPIDER 3
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.25_dp
@@ -567,6 +735,11 @@
 ! TYPE: LOGICAL
 
 # define WLC_P__ENSEMBLE_BIND .FALSE.
+! VARIABLE COMMENT: ! set but not parrallel temered
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+# define WLC_P__ENSEMBLE_METH .FALSE.
 ! VARIABLE COMMENT: ! set but not parrallel temered
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
@@ -609,6 +782,21 @@
 #define WLC_P__PT_AEF .FALSE.
 ! VARIABLE COMMENT: ! parallel temper over external applied field
 ! DEFAULTS COMMENT: ! don't parallel temper h by default
+! TYPE: LOGICAL
+
+#define WLC_P__PT_A2B .FALSE.
+! VARIABLE COMMENT: ! Parallel temper two body interaction strength.
+! DEFAULTS COMMENT: ! don't parallel temper.
+! TYPE: LOGICAL
+
+#define WLC_P__PT_STERICS .FALSE.
+! VARIABLE COMMENT: ! parallel temper steric collision penalty
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_INTERNUCLEOSOME .FALSE.
+! VARIABLE COMMENT: ! parallel temper internucleosome attraction term
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000
@@ -727,6 +915,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -792,6 +984,12 @@
 #define WLC_P__PDESIRE_SPIDER 0.25_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
+
+#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
 
 #define WLC_P__MAXWINDOW_CRANK_SHAFT DBLE(MIN(150,WLC_P__NB))
 ! VARIABLE COMMENT: ! Max Size of window for bead selection
@@ -908,7 +1106,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*wlc_p%L0
+#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -928,7 +1126,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*wlc_p%L0
+#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -958,7 +1156,12 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SPIDER 1.0_dp*wlc_p%L0
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MINAMP_SPIDER 1.0_dp*WLC_P__L0
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -968,7 +1171,7 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*wlc_p%L0
+#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1018,7 +1221,12 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SPIDER 5.0_dp*wlc_p%L0
+#define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1138,6 +1346,11 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
+#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
 #define WLC_P__MIN_ACCEPT 0.05_DP
 ! VARIABLE COMMENT: ! threshold for deciding to usually not use a move
 ! DEFAULTS COMMENT: ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
@@ -1176,4 +1389,9 @@
 #define WLC_P__PROBABILITY_PRECALC_SPIDER 1.0_DP
 ! VARIABLE COMMENT: ! probability that we use precalculated spider
 ! DEFAULTS COMMENT: !
+! TYPE: REAL(DP)
+
+#define WLC_P__NO_CROSSING_CUTOFF 0.0_DP
+! VARIABLE COMMENT: ! Deviation from initial linking number allowed when WLC_P__NO_SELF_CROSSING is true.
+! DEFAULTS COMMENT: ! Not in use. 
 ! TYPE: REAL(DP)

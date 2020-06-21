@@ -134,6 +134,16 @@
 ! DEFAULTS COMMENT: ! No interactions by default.
 ! TYPE: LOGICAL
 
+#define WLC_P__GJK_STERICS .FALSE.
+! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! Don't check for sterics via GJK by default.
+! TYPE: LOGICAL
+
+#define WLC_P__GJK_POLYGON 16
+! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
+! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
+! TYPE: INTEGER
+
 #define WLC_P__NEIGHBOR_BINS .FALSE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning for pairwise interactions.  Not needed if interactions are accomplished via a field.
 ! DEFAULTS COMMENT: ! Set off because it is expensive.
@@ -177,6 +187,11 @@
 #define WLC_P__INCLUDE_NUC_TRANS .FALSE.
 ! VARIABLE COMMENT: ! Whether to include the translation from entry to exit position of the nucleosome.
 ! DEFAULTS COMMENT: ! Not used.
+! TYPE: LOGICAL
+
+#define WLC_P__INCLUDE_DISCRETIZE_LINKER .FALSE.
+! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
+! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
 ! TYPE: LOGICAL
 
 #define WLC_P__CHI_L2_ABLE .FALSE.
@@ -333,14 +348,19 @@
 !
 ! ---------------------------
 
-#define WLC_P__LENGTH_PER_BP 0.0_DP
+#define WLC_P__LENGTH_PER_BP 3.3_DP
 ! VARIABLE COMMENT: ! Length along DNA per bace pair.  Currently not in use.
 ! DEFAULTS COMMENT: ! Not in use.
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 0.0_DP
+#define WLC_P__LL 35.0_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
 ! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_TYPE 'none'
+! VARIABLE COMMENT: ! linker length geometry type for initialization (i.e. phased array or sampled from a file)
+! DEFAULTS COMMENT: ! Not in use
 ! TYPE: REAL(DP)
 
 #define WLC_P__L 224438.519_dp
@@ -458,6 +478,25 @@
 ! DEFAULTS COMMENT: Set to zero for no exclusion.
 ! TYPE: REAL(DP)
 
+#define WLC_P__DNA_RADIUS 1.0_DP
+! VARIABLE COMMENT: Radius of DNA (GJK)
+! DEFAULTS COMMENT: 1 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
+! VARIABLE COMMENT: Radius of nuclelsome (GJK)
+! DEFAULTS COMMENT: 5.2 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
+! VARIABLE COMMENT: Height of nucleosome (GJK)
+! DEFAULTS COMMENT: 5.5. nm
+! TYPE: REAL(DP)
+
+#define WLC_P__GJK_RADIUS SQRT(WLC_P__NUCLEOSOME_RADIUS**2 + (WLC_P__NUCLEOSOME_HEIGHT/2)**2)
+! VARIABLE COMMENT: ! search radius for GJK alorithm checking
+! DEFAULTS COMMENT: ! set to hypotenuse of nuc rad + height
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -541,6 +580,15 @@
 ! DEFAULTS COMMENT: ! Not in use.
 ! TYPE: REAL(DP)
 
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
+! DEFAULTS COMMENT: ! toggle on or off
+! TYPE: REAL(DP)
+
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
+! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -671,6 +719,11 @@
 ! DEFAULTS COMMENT: ! From experience.
 ! TYPE: INTEGER
 
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
+! TYPE: INTEGER
+
 #define WLC_P__PROBSINGLESWAP 0.25_dp
 ! VARIABLE COMMENT: ! For TWO_TAIL simulations, what fraction of the BINDING_STATE moves to change the binding state of only one tail.
 ! DEFAULTS COMMENT: ! 0< x  <1
@@ -742,6 +795,16 @@
 #define WLC_P__PT_A2B .FALSE.
 ! VARIABLE COMMENT: ! Parallel temper two body interaction strength.
 ! DEFAULTS COMMENT: ! don't parallel temper.
+! TYPE: LOGICAL
+
+#define WLC_P__PT_STERICS .FALSE.
+! VARIABLE COMMENT: ! parallel temper steric collision penalty
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_INTERNUCLEOSOME .FALSE.
+! VARIABLE COMMENT: ! parallel temper internucleosome attraction term
+! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
 #define WLC_P__NREPADAPT 1000
@@ -860,6 +923,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -924,6 +991,11 @@
 
 #define WLC_P__PDESIRE_SPIDER 0.25_DP
 ! VARIABLE COMMENT: ! Desired Monte-Carlo acceptance probability for move.
+! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
+
+#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
 
@@ -1097,15 +1169,18 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 2.0_DP*PI
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
-! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*WLC_P__L0
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
-! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
@@ -1156,6 +1231,11 @@
 
 #define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
@@ -1271,6 +1351,11 @@
 
 #define WLC_P__NADAPT_SPIDER 1000
 ! VARIABLE COMMENT: ! Number of steps (not moves) between adaptations for this move.
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 

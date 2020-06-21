@@ -43,6 +43,7 @@
 #define WLC_P__BOUNDARY_TYPE "SolidEdgeBin"
 ! VARIABLE COMMENT: ! how to handle boundary for binned interaction choose from: "SolidEdgeBin", "ExtendBinsPast"
 ! DEFAULTS COMMENT: ! based on geometery of current problem
+! TYPE: CHARACTER(MAXPARAMLEN)
 
 #define WLC_P__FRACTIONAL_BIN .FALSE.
 ! VARIABLE COMMENT: ! whether to use fractional bin volumes in field treatment
@@ -124,6 +125,16 @@
 ! DEFAULTS COMMENT: ! We care about collisions
 ! TYPE: LOGICAL
 
+#define WLC_P__GJK_STERICS .FALSE.
+! VARIABLE COMMENT: ! GJK algorithm to model DNA + nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! Don't check for sterics via GJK by default.
+! TYPE: LOGICAL
+
+#define WLC_P__GJK_POLYGON 16
+! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
+! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
+! TYPE: INTEGER
+
 #define WLC_P__NEIGHBOR_BINS .FALSE.
 ! VARIABLE COMMENT: ! Keep track of neighbors by recursive binning
 ! DEFAULTS COMMENT: ! Set off because expensive
@@ -167,6 +178,11 @@
 #define WLC_P__INCLUDE_NUC_TRANS .TRUE.
 ! VARIABLE COMMENT: ! Whether to include the translation across the nucleosome
 ! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__INCLUDE_DISCRETIZE_LINKER .FALSE.
+! VARIABLE COMMENT: ! Whether to discretize linker DNA and nucleosomes
+! DEFAULTS COMMENT: ! turn on for risca, i.e. meso-scale sims
 ! TYPE: LOGICAL
 
 #define WLC_P__CHI_L2_ABLE .FALSE.
@@ -316,21 +332,36 @@
 ! DEFAULTS COMMENT: ! baseline twist density 0.05
 ! TYPE: REAL(DP)
 
-
 ! ----------------------------
 !
 !   Length variables
+!   All lengths in simulations units unless otherwise state.
 !
 ! ---------------------------
+
+#define WLC_P__LENGTH_PER_BP 0.33
+! VARIABLE COMMENT: ! length along dna for one bace pair
+! DEFAULTS COMMENT: ! in nm
+! TYPE: REAL(DP)
+
+#define WLC_P__LL 38_DP
+! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
+! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_TYPE 'none'
+! VARIABLE COMMENT: ! linker length geometry type for initialization (i.e. phased array or sampled from a file)
+! DEFAULTS COMMENT: ! default to phased, i.e. set up a chain of constant linker length
+! TYPE: REAL(DP)
 
 #define WLC_P__L 1040.0_dp
 ! VARIABLE COMMENT: ! length of each polymer in simulation
 ! DEFAULTS COMMENT: ! chr 16 / Delta
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 38_DP
-! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
-! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+#define WLC_P__L0 (WLC_P__L/(WLC_P__NB))
+! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
+! DEFAULTS COMMENT: ! derive from L and NB
 ! TYPE: REAL(DP)
 
 #define WLC_P__LP 50.0_DP
@@ -341,16 +372,6 @@
 #define WLC_P__LT 100.0_DP
 ! VARIABLE COMMENT: ! twist persistence length
 ! DEFAULTS COMMENT: ! twist persistence length equals persistence length by default
-! TYPE: REAL(DP)
-
-#define WLC_P__L0 (WLC_P__L/(WLC_P__NB))
-! VARIABLE COMMENT: ! bead spacing, Remove the "-1.0_dp" if ring !TODO make #if
-! DEFAULTS COMMENT: ! derive from L and NB
-! TYPE: REAL(DP)
-
-#define WLC_P__LENGTH_PER_BP 0.33
-! VARIABLE COMMENT: ! length along dna for one bace pair
-! DEFAULTS COMMENT: ! in nm
 ! TYPE: REAL(DP)
 
 #define WLC_P__BEADVOLUME 0.02200_DP
@@ -423,14 +444,14 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_ECOLI_DIAMETER NAN
-! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
-! DEFAULTS COMMENT: ! Must set if in use
-! TYPE: REAL(DP)
-
 #define WLC_P__CONFINEMENT_ECOLI_LENGTH 0.0_dp
 ! VARIABLE COMMENT: !
 ! DEFAULTS COMMENT: ! zero for sphere
+! TYPE: REAL(DP)
+
+#define WLC_P__CONFINEMENT_ECOLI_DIAMETER NAN
+! VARIABLE COMMENT: ! Size of confinement. Set = LBOX - 2*DBIN if bin interaction on
+! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
 #define WLC_P__BINDING_R 1.0_DP
@@ -448,10 +469,30 @@
 ! DEFAULTS COMMENT: Set to zero for no exclusion
 ! TYPE: REAL(DP)
 
+#define WLC_P__DNA_RADIUS 1.0_DP
+! VARIABLE COMMENT: Radius of DNA (GJK)
+! DEFAULTS COMMENT: 1 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_RADIUS 5.2_DP
+! VARIABLE COMMENT: Radius of nuclelsome (GJK)
+! DEFAULTS COMMENT: 5.2 nm
+! TYPE: REAL(DP)
+
+#define WLC_P__NUCLEOSOME_HEIGHT 5.5_DP
+! VARIABLE COMMENT: Height of nucleosome (GJK)
+! DEFAULTS COMMENT: 5.5. nm
+! TYPE: REAL(DP)
+
+#define WLC_P__GJK_RADIUS SQRT(WLC_P__NUCLEOSOME_RADIUS**2 + (WLC_P__NUCLEOSOME_HEIGHT/2)**2)
+! VARIABLE COMMENT: ! search radius for GJK alorithm checking
+! DEFAULTS COMMENT: ! set to hypotenuse of nuc rad + height
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
 !   Energy variables
+!   In kT’s unless otherwise stated.
 !
 ! ---------------------------
 
@@ -530,10 +571,21 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
+#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
+! DEFAULTS COMMENT: ! toggle on or off
+! TYPE: REAL(DP)
+
+#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
+! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
 !   Time / steps variables
+!   For example, the total number of crankshaft moves is: 
+!   NUMSAVEPOINTS*NREPLICAEXCHANGEPERSAVEPOINT*STEPSPEREXCHANGE*MOVESPERSTEP_CRANK_SHAFT
 !
 ! ---------------------------
 
@@ -597,7 +649,6 @@
 ! DEFAULTS COMMENT: ! number of initilizing mc steps. 1000s x num polymers is good
 ! TYPE: INTEGER
 
-
 #define WLC_P__MOVESPERSTEP_CRANK_SHAFT 30
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! crank shaft <default 30>
@@ -656,6 +707,11 @@
 #define WLC_P__MOVESPERSTEP_SPIDER 3
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.25_dp
@@ -728,6 +784,16 @@
 
 #define WLC_P__PT_A2B .FALSE.
 ! VARIABLE COMMENT: ! parallel temper two body interaction
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_STERICS .FALSE.
+! VARIABLE COMMENT: ! parallel temper steric collision penalty
+! DEFAULTS COMMENT: !
+! TYPE: LOGICAL
+
+#define WLC_P__PT_INTERNUCLEOSOME .FALSE.
+! VARIABLE COMMENT: ! parallel temper internucleosome attraction term
 ! DEFAULTS COMMENT: !
 ! TYPE: LOGICAL
 
@@ -847,6 +913,10 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
 
 ! ----------------------------
 !
@@ -912,6 +982,12 @@
 #define WLC_P__PDESIRE_SPIDER 0.25_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
+
+#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+! TYPE: REAL(DP)
 
 #define WLC_P__MAXWINDOW_CRANK_SHAFT DBLE(MIN(150,WLC_P__NB))
 ! VARIABLE COMMENT: ! Max Size of window for bead selection
@@ -1083,6 +1159,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
@@ -1139,6 +1220,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1258,6 +1344,11 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
+#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
 #define WLC_P__MIN_ACCEPT 0.05_DP
 ! VARIABLE COMMENT: ! threshold for deciding to usually not use a move
 ! DEFAULTS COMMENT: ! if a move succeeds < 5% of the time, start using it only every reduce_move cycles
@@ -1300,6 +1391,5 @@
 
 #define WLC_P__NO_CROSSING_CUTOFF 0.5_DP
 ! VARIABLE COMMENT: ! deviation from initial linking number allowed when
-!   WLC_P__NO_SELF_CROSSING is true
 ! DEFAULTS COMMENT: ! 
 ! TYPE: REAL(DP)
