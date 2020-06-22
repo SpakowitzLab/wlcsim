@@ -1,4 +1,5 @@
-r"""Simulate Rouse polymers
+r"""
+Simulate Rouse polymers.
 
 
 Notes
@@ -67,6 +68,7 @@ length of about 1e6 megabase/base * 0.33 nm/base ~ 3e5 nm, and a Kuhn length of
 """
 from ..plot import PolymerViewer
 from .runge_kutta import *
+from ..tabulation import dsswlc_from_del
 
 from numba import jit
 import numpy as np
@@ -1053,3 +1055,239 @@ class HomologViewer(PolymerViewer):
         self.t = new_t
         self.update_drawing()
 
+
+def _init_circle(N, L):
+    # want circumference L
+    R = L/(2*np.pi)
+    r = np.zeros((N, 3))
+    r[:, 0] = R*np.cos(np.linspace(0, 2*np.pi, N))
+    r[:, 1] = R*np.sin(np.linspace(0, 2*np.pi, N))
+    u = np.zeros((N, 3))
+    u[:, 0] = -np.sin(np.linspace(0, 2*np.pi, N))
+    u[:, 1] = np.cos(np.linspace(0, 2*np.pi, N))
+    return r, u
+
+
+def _init_straight_x(N, L):
+    x0 = np.zeros((N, 3))
+    x0[:,0] = np.linspace(0, L, N)
+    return x0
+
+
+def sswlc(N, L, lp, t, t_save):
+    """
+    Simulate a stretchable-shearable WLC.
+
+    Parameters
+    ----------
+    N : int
+        The number of beads to use.
+    L : float
+        The length of the chain.
+    lp : float
+        The persistence length of the underlying WLC being approximated. (Must
+        be same units as *L*.
+    t : array_like
+        The times for which to simulate the polymer's motion.
+    t_save : (M, ) array_like
+        The subset of *t* for which we should save the output.
+
+    Returns
+    -------
+    r : (M, N, 3) array of float
+        The positions of each bead at each save time.
+    u : (M, N, 3) array of float
+        The tangent vectors to the underlying wormlike chain at each bead.
+    """
+    L0 = L / (N - 1)
+    delta = L0/lp
+    e_b, gam, e_par, e_perp, eta, xi_u, _ = dsswlc_from_del(delta)
+    # same normalization done in the fortran code for now
+    e_b = lp*e_b/(delta*lp)
+    e_par = e_par/(delta*lp*lp)
+    e_perp = e_perp/(delta*lp*lp)
+    gam = delta*lp*gam
+    eta = eta/lp
+    xi_u = xi_u*delta
+    xi_r = delta
+    # Lena's estimate of minimum dt possible
+    max_dt = (1/2)*xi_u/(e_perp*gam**2)
+    # e_twist = lt/(delta/lp)
+    if np.any(np.diff(t) > max_dt):
+        raise ValueError(f"Maximum recommended time step is {max_dt}")
+    return _jit_sswlc_lena(N, L, lp, t, t_save, e_b, gam, e_par, e_perp,
+                           eta, xi_u, xi_r)
+
+
+# @jit(nopython=True)
+def _jit_sswlc_lena(N, L, lp, t, t_save, e_b, gam, e_par, e_perp,
+                    eta, xi_u, xi_r):
+    """
+    TODO: test
+    """
+    rtol = 1e-5
+    # initial position
+    r0, u0 = _init_circle(N, L)
+    # pre-alloc output
+    if t_save is None:
+        t_save = t
+    r = np.zeros(t_save.shape + r0.shape)
+    u = np.zeros(t_save.shape + r0.shape)
+    # setup for saving only requested time points
+    save_i = 0
+    if t[0] == t_save[save_i]:
+        r[0] = r0
+        u[0] = u0
+        save_i += 1
+    # at each step i, we use data (r,t)[i-1] to create (r,t)[i]
+    # in order to make it easy to pull into a new functin later, we'll call
+    # t[i-1] "t0", old r (r[i-1]) "r0", and t[i]-t[i-1] "h".
+    for i in range(1, len(t)):
+        h = t[i] - t[i-1]
+        F_brown = np.sqrt(2*xi_r/h)*np.random.randn(*r0.shape)
+        T_brown = np.sqrt(2*xi_u/h)*np.random.randn(*u0.shape)
+
+        F_elas, T_elas = ft_elas_sswlc(r0, u0, e_b, gam, e_par, e_perp, eta,
+                                       xi_u, xi_r)
+        dr1 = (F_elas + F_brown)/xi_r  # slope at beginning of time step
+        du1 = (T_elas + T_brown)/xi_u
+        for j in range(N):
+            du1[j] -= (du1[j]@u0[j])*u0[j]
+        r_est = r0 + dr1*(h/2)  # first estimate at midpoint
+        u_est = u0 + du1*(h/2)
+        u_est = u_est/np.linalg.norm(u_est, axis=1)[:, None]
+
+        F_elas, T_elas = ft_elas_sswlc(r_est, u_est, e_b, gam, e_par, e_perp,
+                                       eta, xi_u, xi_r)
+        dr2 = (F_elas + F_brown)/xi_r  # first estimate slope at midpoint
+        du2 = (T_elas + T_brown)/xi_u
+        for j in range(N):
+            du2[j] -= (du2[j]@u_est[j])*u_est[j]
+        r_est = r0 + dr2*(h/2)  # second estimate at midpoint
+        u_est = u0 + du2*(h/2)
+        u_est = u_est/np.linalg.norm(u_est, axis=1)[:, None]
+
+        F_elas, T_elas = ft_elas_sswlc(r_est, u_est, e_b, gam, e_par, e_perp,
+                                       eta, xi_u, xi_r)
+        dr3 = (F_elas + F_brown)/xi_r  # second estimate slope at midpoint
+        du3 = (T_elas + T_brown)/xi_u
+        for j in range(N):
+            du3[j] -= (du3[j]@u_est[j])*u_est[j]
+        r_est = r0 + dr3*h  # estimate at endpoint
+        u_est = u0 + du3*h
+        u_est = u_est/np.linalg.norm(u_est, axis=1)[:, None]
+
+        F_elas, T_elas = ft_elas_sswlc(r_est, u_est, e_b, gam, e_par, e_perp,
+                                       eta, xi_u, xi_r)
+        dr4 = (F_elas + F_brown)/xi_r  # estimate slope at next time point
+        du4 = (T_elas + T_brown)/xi_u
+        for j in range(N):
+            du4[j] -= (du4[j]@u_est[j])*u_est[j]
+
+        # average the slope estimates
+        r0 = r0 + h * (dr1 + 2*dr2 + 2*dr3 + dr4)/6
+        u0 = u0 + h * (du1 + 2*du2 + 2*du3 + du4)/6
+        u0 = u0/np.linalg.norm(u0, axis=1)[:, None]
+
+        # save if at a time in t_save
+        if np.abs(t[i] - t_save[save_i]) < rtol*np.abs(t_save[save_i]):
+            r[save_i] = r0
+            u[save_i] = u0
+            save_i += 1
+            if save_i >= len(t_save):
+                break
+    return r, u
+
+
+# @jit(nopython=True)
+def _jit_sswlc_clean(N, L, lp, t, t_save, e_b, gam, e_par, e_perp,
+                     eta, xi_u, xi_r):
+    """
+    WARNING: known to be buggy...
+    """
+    rtol = 1e-5
+    # initial position
+    r0 = np.zeros((N, 3))
+    r0[:, 0] = np.linspace(0, L, N)
+    u0 = np.zeros((N, 3))
+    u0[:, 0] = 1
+    # pre-alloc output
+    if t_save is None:
+        t_save = t
+    r = np.zeros(t_save.shape + r0.shape)
+    u = np.zeros(t_save.shape + r0.shape)
+    # setup for saving only requested time points
+    save_i = 0
+    if t[0] == t_save[save_i]:
+        r[0] = r0
+        u[0] = u0
+        save_i += 1
+    # at each step i, we use data (r,t)[i-1] to create (r,t)[i]
+    # in order to make it easy to pull into a new functin later, we'll call
+    # t[i-1] "t0", old r (r[i-1]) "r0", and t[i]-t[i-1] "h".
+    for i in range(1, len(t)):
+        h = t[i] - t[i-1]
+        F_elas, T_elas = ft_elas_sswlc(r0, u0, e_b, gam, e_par, e_perp, eta,
+                                       xi_u, xi_r)
+        dW_r = np.random.randn(*r0.shape)
+        dW_u = np.random.randn(*u0.shape)
+        # -1 or 1, p=1/2
+        S_r = 2*(np.random.rand() < 0.5) - 1
+        S_u = 2*(np.random.rand() < 0.5) - 1
+        # D = sigma^2/2 ==> sigma = np.sqrt(2*D)
+        F_brown = np.sqrt(2*xi_r/h)*(dW_r - S_r)
+        T_brown = np.sqrt(2*xi_u/h)*(dW_u - S_u)
+        for j in range(N):
+            T_brown[j] -= (T_brown[j]@u0[j])*u0[j]
+        # estimate for slope at interval start
+        K1_r = (F_elas + F_brown)/xi_r
+        K1_u = (T_elas + T_brown)/xi_u
+        r1 = r0 + h*K1_r
+        u1 = u0 + h*K1_u
+        for j in range(N):
+            u1[j] = u1[j]/np.linalg.norm(u1[j])
+        # estimate for slope at interval end
+        F_brown = np.sqrt(2*xi_r/h)*(dW_r + S_r)
+        T_brown = np.sqrt(2*xi_u/h)*(dW_u + S_u)
+        for j in range(N):
+            T_brown[j] -= (T_brown[j]@u0[j])*u0[j]
+        F_elas, T_elas = ft_elas_sswlc(r1, u1, e_b, gam, e_par, e_perp, eta,
+                                       xi_u, xi_r)
+        K2_r = (F_elas + F_brown)/xi_r
+        K2_u = (T_elas + T_brown)/xi_u
+        # average the slope estimates
+        r0 = r0 + h * (K1_r + K2_r)/2
+        u0 = u0 + h * (K1_u + K2_u)/2
+        for j in range(N):
+            u0[j] = u0[j]/np.linalg.norm(u0[j])
+        if np.abs(t[i] - t_save[save_i]) < rtol*np.abs(t_save[save_i]):
+            r[save_i] = r0
+            u[save_i] = u0
+            save_i += 1
+            if save_i >= len(t_save):
+                break
+    return r, u
+
+
+@jit(nopython=True)
+def ft_elas_sswlc(r, u, e_b, gam, e_par, e_perp, eta, xi_u, xi_r):
+    """Compute spring forces and torques on each bead of dsswlc."""
+    N, _ = r.shape
+    f = np.zeros(r.shape)
+    t = np.zeros(r.shape)
+    for i in range(0, N - 1):
+        dr = r[i+1] - r[i]
+        dr_par = dr @ u[i]
+        dr_perp = dr - dr_par*u[i]
+        cos_u1_u2 = u[i+1]@u[i]
+
+        Gi = u[i+1] - cos_u1_u2*u[i] - eta*dr_perp
+        Fi = -eta*e_b*Gi + e_par*(dr_par - gam)*u[i] + e_perp*dr_perp
+        f[i] += Fi
+        f[i + 1] -= Fi
+
+        Gi = (u[i+1] - u[i]) - eta*dr_perp
+        t[i] += e_b*Gi - eta*e_b*dr_par*Gi + eta*e_b*(1 - cos_u1_u2)*dr \
+            - e_par*(dr_par - gam)*dr + e_perp*dr_par*dr_perp
+        t[i+1] -= e_b*Gi
+    return f, t
