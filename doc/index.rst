@@ -6,7 +6,6 @@
 Welcome to wlcsim's documentation!
 ==================================
 
-
 .. include:: ../README.rst
     :start-line: 3
 

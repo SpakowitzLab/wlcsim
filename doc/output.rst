@@ -1,9 +1,7 @@
 .. _output:
 
-About Simulation Output
-#######################
-
-
+Fortran Simulation Output
+#########################
 
 Bead positions and identity
 ===========================
@@ -30,7 +28,7 @@ For example
     ...
 
 
-Other files 
+Other files
 ===========
 
 If `WLC_P__SAVEU` is true then the orientation unit vectors for each bead will be stored as in files of a similar format to the positions.  For example `data/u100` or `data/u100v6`.   If `WLC_P__LOCAL_TWIST` is also true then there will be three additional columns in the `data/u100`.

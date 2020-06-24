@@ -1,7 +1,9 @@
 """
 Force fields used in our BD integrators.
 
-Our BD code can be summarized as typically looking like::
+Our BD code can be summarized as typically looking like:
+
+.. code-block:: python
 
     X = init_function()
     for t_i in requested_times:
@@ -9,18 +11,18 @@ Our BD code can be summarized as typically looking like::
         prev_t = t_i
 
 where ``f_all`` takes ``X`` (size ``N_beads`` by ``N_dimensions``) and ``t``
-and returns the force on each of the beads at time ``t``.
+and returns the total force on each of the beads at time ``t``.
 
 This module holds all the functions that can be used to construct ``f_all``.
 Broadly, they are named based on the source of the force:
 
 - ``f_elas_*`` are elastic forces, they define the physics of the polymer being
-simulated. Linear, ring, and different types of network polymers have their own
-independent implementations.
+  simulated. Linear, ring, and different types of network polymers have their
+  own independent implementations.
 - ``f_conf_*`` are confinement forces.
 - ``f_tether_*`` tether individual beads of the polymer to an external
   structure.
-- Others may be added in the future...
+- Others may be added in the future.
 
 Notes
 -----
