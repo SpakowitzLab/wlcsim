@@ -70,7 +70,7 @@ from .runge_kutta import rk4_thermal_lena
 from .init_beads import init_linear_rouse_conf
 from .forces import f_conf_ellipse, f_elas_linear_rouse
 
-from numba import jit
+from numba import njit
 import numpy as np
 
 
@@ -268,19 +268,27 @@ def with_integrator(N, L, b, D, t, x0=None, integrator=rk4_thermal_lena):
     k_over_xi = 3*Dhat/bhat**2
     if x0 is None:
         x0 = bhat/np.sqrt(3)*np.cumsum(np.random.normal(size=(N, 3)), axis=0)
-    zero = np.array([[0, 0, 0]])
+    # zero = np.array([[0, 0, 0]])
 
+    @njit
     def rouse_f(x, t):
-        dx = np.diff(x, axis=0)
-        return -k_over_xi*(
-            np.concatenate([zero, dx]) + np.concatenate([dx, zero])
-        )
+        N, _ = x.shape
+        f = np.zeros(x.shape)
+        for j in range(1, N):
+            for n in range(3):
+                f[j, n] += -k_over_xi*(x[j, n] - x[j-1, n])
+                f[j-1, n] += -k_over_xi*(x[j-1, n] - x[j, n])
+        return f
+        # dx = np.diff(x, axis=0)
+        # return -k_over_xi*(
+        #     np.concatenate([zero, dx]) + np.concatenate([dx, zero])
+        # )
 
     X = integrator(rouse_f, Dhat, t, x0)
     return X
 
 
-@jit(nopython=True)
+@njit
 def jit_srk1(N, L, b, D, t, t_save=None):
     r"""
     Faster version of `wlcsim.bd.rouse.rouse` using jit.
@@ -360,7 +368,7 @@ def jit_srk1(N, L, b, D, t, t_save=None):
     return x
 
 
-@jit(nopython=True)
+@njit
 def jit_confined_srk1(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     """
     Add an elliptical confinement.
@@ -455,7 +463,7 @@ def jit_confined_srk1(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     return x
 
 
-@jit(nopython=True)
+@njit
 def jit_confinement_clean(N, L, b, D, Aex, rx, ry, rz, t, t_save):
     """
     Unfortunately, by "cleaning up" this function, we also make it 2x slower.
