@@ -1,4 +1,5 @@
-"""Some spare stochastic integrators.
+"""
+Some spare stochastic integrators.
 
 Not currently used because if you pass a function as an argument you can't
 @numba.jit that.
@@ -12,15 +13,14 @@ Bruno has not yet tested this explicitly.
 
 You can find Lena's algorithm (hold brownian force constant over an rk4 step)
 below. It is unlikely to be strongly convergent except if you subsample below
-the actual desired time resolution."""
+the actual desired time resolution.
+"""
 from numba import jit
 import numpy as np
 
-########
-# other integrators
-########
+
 def rk4_thermal_lena(f, D, t, x0):
-    """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D
+    """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D.
 
     x0 is x(t[0]).
 
@@ -31,7 +31,7 @@ def rk4_thermal_lena(f, D, t, x0):
     x = np.zeros(t.shape + x0.shape)
     dts = np.diff(t)
     x[0] = x0
-    dxdt = np.zeros((4,) + x0.shape) # one for each RK step
+    dxdt = np.zeros((4,) + x0.shape)  # one for each RK step
     # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
     # in order to make it easy to pull into a new functin later, we'll call
     # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
@@ -41,19 +41,23 @@ def rk4_thermal_lena(f, D, t, x0):
         x0 = x[i-1]
         x_est = x0
         Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
-        dxdt[0] = f(x0, t0) + Fbrown # slope at beginning of time step
-        x_est = x0 + dxdt[0]*(h/2) # first estimate at midpoint
-        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown # estimated slope at midpoint
-        x_est = x0 + dxdt[1]*(h/2) # second estimate at midpoint
-        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown # second estimated slope at midpoint
-        x_est = x0 + dxdt[2]*h # first estimate at next time point
-        dxdt[3] = f(x_est, t0 + h) + Fbrown # slope at end of time step
+        dxdt[0] = f(x0, t0) + Fbrown  # slope at beginning of time step
+        x_est = x0 + dxdt[0]*(h/2)  # first estimate at midpoint
+        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown  # estimated slope at midpoint
+        x_est = x0 + dxdt[1]*(h/2)  # second estimate at midpoint
+        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown  # second slope at midpoint
+        x_est = x0 + dxdt[2]*h  # first estimate at next time point
+        dxdt[3] = f(x_est, t0 + h) + Fbrown  # slope at end of time step
         # final estimate is weighted average of slope estimates
         x[i] = x0 + h*(dxdt[0] + 2*dxdt[1] + 2*dxdt[2] + dxdt[3])/6
     return x
 
+
 def rk4_thermal_bruno(f, D, t, x0):
-    """WARNING: does not converge strongly (autocorrelation function seems
+    r"""
+    Test new method: Attempt to keep :math:`\omega` constant.
+
+    WARNING: does not converge strongly (autocorrelation function seems
     higher than should be for OU process...), as is...x'(t) = f(x(t), t) +
     Xi(t), where Xi is thermal, diffusivity D
 
@@ -63,10 +67,11 @@ def rk4_thermal_bruno(f, D, t, x0):
     """
     t = np.array(t)
     x0 = np.array(x0)
+    xsize = x0.shape
     x = np.zeros(t.shape + x0.shape)
     dts = np.diff(t)
     x[0] = x0
-    dxdt = np.zeros((4,) + x0.shape) # one for each RK step
+    dxdt = np.zeros((4,) + x0.shape)  # one for each RK step
     Fbrown = np.sqrt(2*D / ((t[1] - t[0])/2))
     # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
     # in order to make it easy to pull into a new functin later, we'll call
@@ -76,20 +81,21 @@ def rk4_thermal_bruno(f, D, t, x0):
         t0 = t[i-1]
         x0 = x[i-1]
         x_est = x0
-        dxdt[0] = f(x0, t0) + Fbrown # slope at beginning of time step
+        dxdt[0] = f(x0, t0) + Fbrown  # slope at beginning of time step
         # random force estimate at midpoint
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=x0.shape)
-        x_est = x0 + dxdt[0]*(h/2) # first estimate at midpoint
-        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown # estimated slope at midpoint
-        x_est = x0 + dxdt[1]*(h/2) # second estimate at midpoint
-        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown # second estimated slope at midpoint
-        x_est = x0 + dxdt[2]*h # first estimate at next time point
+        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=xsize)
+        x_est = x0 + dxdt[0]*(h/2)  # first estimate at midpoint
+        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown  # estimated slope at midpoint
+        x_est = x0 + dxdt[1]*(h/2)  # second estimate at midpoint
+        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown  # second slope at midpoint
+        x_est = x0 + dxdt[2]*h  # first estimate at next time point
         # random force estimate at endpoint (and next start point)
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=x0.shape)
-        dxdt[3] = f(x_est, t0 + h) + Fbrown # slope at end of time step
+        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=xsize)
+        dxdt[3] = f(x_est, t0 + h) + Fbrown  # slope at end of time step
         # final estimate is weighted average of slope estimates
         x[i] = x0 + h*(dxdt[0] + 2*dxdt[1] + 2*dxdt[2] + dxdt[3])/6
     return x
+
 
 def euler_maruyama(f, D, t, x0):
     t = np.array(t)
@@ -107,6 +113,7 @@ def euler_maruyama(f, D, t, x0):
         Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
         x[i] = x0 + h*(Fbrown + f(x0, t0))
     return x
+
 
 def srk1_roberts(f, D, t, x0):
     r"""From wiki, from A. J. Roberts. Modify the improved Euler scheme to
@@ -154,12 +161,14 @@ def srk1_roberts(f, D, t, x0):
         x[i] = x0 + h * (K1 + K2)/2
     return x
 
+
 # simple test case
 def ou(x0, t, k_over_xi, D, method=rk4_thermal_lena):
     "simulate ornstein uhlenbeck process with theta=k_over_xi and sigma^2/2=D"
     def f(x,t):
         return -k_over_xi*x
     return method(f, D=D, t=t, x0=x0)
+
 
 @jit(nopython=True)
 def _get_scalar_corr(X):
@@ -174,6 +183,7 @@ def _get_scalar_corr(X):
                 count[k-j] = count[k-j] + 1
     return corr, count
 
+
 @jit(nopython=True)
 def _get_vector_corr(X):
     "fast correlation calculation for testing"
@@ -186,6 +196,7 @@ def _get_vector_corr(X):
                 corr[k-j] = corr[k-j] + X[i,k]@X[i,j]
                 count[k-j] = count[k-j] + 1
     return corr, count
+
 
 @jit(nopython=True)
 def _get_bead_msd(X, k=None):
@@ -204,6 +215,7 @@ def _get_bead_msd(X, k=None):
             count[j-i] += 1
     return ta_msd, count
 
+
 @jit(nopython=True)
 def _msd(x):
     result = np.zeros_like(x)
@@ -213,10 +225,11 @@ def _msd(x):
         result[delta] = result[delta] / (len(x) - delta)
     return result
 
+
 # test different integrators below on simply OU process
-import scipy.stats
-import matplotlib.pyplot as plt
 def test_ou_autocorr(method=srk1_roberts):
+    import scipy.stats
+    import matplotlib.pyplot as plt
     k = 2
     xi = 4
     kbT = 1
@@ -235,5 +248,3 @@ def test_ou_autocorr(method=srk1_roberts):
     x = np.linspace(-3, 3, 100)
     plt.plot(x, scipy.stats.norm(scale=np.sqrt(D/k_over_xi)).pdf(x))
     return X
-
-
