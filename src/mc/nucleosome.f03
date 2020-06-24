@@ -129,7 +129,7 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     real(dp), dimension(4,3) :: faceDistList
     real(dp), dimension(4) :: distList
     real(dp), dimension(3) :: distS, distC, dist
-    real(dp) cospsi, costhetaS, costhetaC
+    real(dp) cospsi, costhetaI, costhetaJ, cosphiI, cosphiJ
     integer i, indList(1)
     real(dp) internucleosome_energy
 
@@ -170,34 +170,39 @@ function internucleosome_energy(RI,RJ,UI,UJ,VI,VJ)
     enddo
     indList = minloc(distList)
     distS = faceDistList(indList(1),:)
-    costhetaS = dot_product(distS/norm2(distS),faceJ/norm2(faceJ))!-cospsi*faceJ/(abs(cospsi)*norm2(faceJ)))
+    costhetaI = dot_product(distS/norm2(distS),faceI/norm2(faceI))
+    costhetaJ = dot_product(distS/norm2(distS),faceJ/norm2(faceJ))
+
     ! face-face (histone-histone attraction)
     if (norm2(distS) <= tau_faceface) then 
         internucleosome_energy = internucleosome_energy &
-                - e_faceface*abs(cospsi)*abs(costhetaS)/tau_faceface
+                - e_faceface*(costhetaI**2)*(costhetaJ**2)/tau_faceface
     else
         internucleosome_energy = internucleosome_energy &
-                - e_faceface*abs(cospsi)*abs(costhetaS)/norm2(distS)
+                - e_faceface*(costhetaI**2)*(costhetaJ**2)/norm2(distS)
     endif
     distC = polyI-polyJ
-    costhetaC = dot_product(distC/norm2(distC),faceJ/norm2(faceJ))!-cospsi*faceJ/(abs(cospsi)*norm2(faceJ)))
-    ! face-side (histone-DNA attraction)
+    cosphiI = dot_product(distC/norm2(distC),faceI/norm2(faceI))
+    cosphiJ = dot_product(distC/norm2(distC),faceJ/norm2(faceJ))
+
+    ! face-side (histone-DNA wrapping attraction)
     dist = norm2(distC)-WLC_P__NUCLEOSOME_HEIGHT/2-WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_faceside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-abs(cospsi))*abs(costhetaC)/tau_faceside
+                - e_faceside*(1-cospsi**2)*(cosphiI**2+cosphiJ**2)/tau_faceside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_faceside*(1-abs(cospsi))*abs(costhetaC)/norm2(dist)
+                - e_faceside*(1-cospsi**2)*(cosphiI**2+cosphiJ**2)/norm2(dist)
     endif
-    ! side-side (DNA-DNA attraction)
+
+    ! side-side (DNA wrapping-DNA wrapping attraction)
     dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
     if (norm2(dist) <= tau_sideside) then 
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(1-abs(costhetaC))/tau_sideside
+                - e_sideside*(1-cosphiI**2)*(1-cosphiJ**2)/tau_sideside
     else
         internucleosome_energy = internucleosome_energy &
-                - e_sideside*(1-abs(costhetaC))/norm2(dist)
+                - e_sideside*(1-cosphiI**2)*(1-cosphiJ**2)/norm2(dist)
     endif
 
 end function internucleosome_energy
@@ -295,9 +300,9 @@ end subroutine setup_nucleosome_constants
 
 subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 ! if WLC_P__INCLUDE_DISCRETIZE_LINKER is turn on, then this determines the 
-! discretization scheme of the beads throughout the chain. it defaults to trying
-! to set integer values for each bead discretization, but not has the capability to 
-! use real numbers. if WLC_P__INCLUDE_DISCRETIZE_LINKER is off, then each bead is 
+! discretization scheme of the beads throughout the chain. it sets a real
+! (can be non-integer) value for the discretization as a function of contour length
+! and WLC_P__NB. if WLC_P__INCLUDE_DISCRETIZE_LINKER is off, then each bead is 
 ! default assumed to be a nucleosome, so there are no additional beads used to model
 ! the fluctuations of the linker geometry with more detail. nucleosomes are intialized
 ! on the chain according to WLC_P__LINKER_TYPE, where the default is 'phased', i.e.
