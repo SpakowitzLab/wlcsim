@@ -9,179 +9,178 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine mc_crank(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
+subroutine mc_crank(IB1, IB2, IT1, IT2, MCAMP, WindoW, rand_stat, dib, success)
 ! values from wlcsim_data
-use params, only: wlc_VP, wlc_UP, wlc_V, wlc_RP, wlc_U, wlc_R, wlc_nBend, wlc_bendPoints, wlc_nPointsMoved, wlc_pointsMoved
+   use params, only: wlc_VP, wlc_UP, wlc_V, wlc_RP, wlc_U, wlc_R, wlc_nBend, wlc_bendPoints, wlc_nPointsMoved, wlc_pointsMoved
 
-use mersenne_twister
-use params, only: dp,  eps
-use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
-use windowTools, only: draw_window
-use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain, rightmost_from, leftmost_from
-use ringHelper, only: bend_points_left_ring, bend_points_right_ring, &
-    points_moved_left_ring, points_moved_right_ring
+   use mersenne_twister
+   use params, only: dp, eps
+   use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
+   use windowTools, only: draw_window
+   use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain, rightmost_from, leftmost_from
+   use ringHelper, only: bend_points_left_ring, bend_points_right_ring, &
+                         points_moved_left_ring, points_moved_right_ring
 
-implicit none
-integer, intent(out) :: IB1   ! Test bead position 1
-integer, intent(out) :: IT1   ! Index of test bead 1
-integer, intent(out) :: IB2   ! Test bead position 2
-integer, intent(out) :: IT2   ! Index of test bead 2
-integer, intent(out) :: dib   ! number of beads moved by move
-logical, intent(out) :: success
+   implicit none
+   integer, intent(out) :: IB1   ! Test bead position 1
+   integer, intent(out) :: IT1   ! Index of test bead 1
+   integer, intent(out) :: IB2   ! Test bead position 2
+   integer, intent(out) :: IT2   ! Index of test bead 2
+   integer, intent(out) :: dib   ! number of beads moved by move
+   logical, intent(out) :: success
 
-integer IP    ! Test polymer
-integer I,J  ! Test indices
+   integer IP    ! Test polymer
+   integer I, J  ! Test indices
 ! Things for random number generator
-type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
-real(dp) urnd(1) ! single random number
+   type(random_stat), intent(inout) :: rand_stat  ! status of random number generator
+   real(dp) urnd(1) ! single random number
 ! Variables for the crank-shaft move
 
-real(dp) TA(3)    ! Axis of rotation
-real(dp) P1(3)    ! Point on rotation line
-real(dp) ROT(3,4) ! Rotation matrix
+   real(dp) TA(3)    ! Axis of rotation
+   real(dp) P1(3)    ! Point on rotation line
+   real(dp) ROT(3, 4) ! Rotation matrix
 
-real(dp) ALPHA    ! Angle of move
+   real(dp) ALPHA    ! Angle of move
 
 !     MC adaptation variables
 
-real(dp), intent(in) :: MCAMP ! Amplitude of random change
+   real(dp), intent(in) :: MCAMP ! Amplitude of random change
 !integer, intent(in) :: winType
-real(dp), intent(in) :: WindoW ! Size of window for bead selection
+   real(dp), intent(in) :: WindoW ! Size of window for bead selection
 
 ! Variables for change of binding state move
-real(dp) d1,d2  !for testing
+   real(dp) d1, d2  !for testing
 
 !     Perform crank-shaft move (MCTYPE 1)
-call draw_window(window,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
-                IT1,IT2,IB1,IB2,IP,DIB,success)
-if (success .eqv. .false.) return
+   call draw_window(window, WLC_P__MAXWINDOW_CRANK_SHAFT, .true., rand_stat, &
+                    IT1, IT2, IB1, IB2, IP, DIB, success)
+   if (success .eqv. .false.) return
 
 !  Which elastic segments change
-if (.not. WLC_P__RING) then                 ! polymer is not a ring
-    if (IB1>1) then
-        wlc_nBend = wlc_nBend + 1
-        wlc_bendPoints(wlc_nBend)=IT1-1
-        I=IT1-1
-        wlc_RP(:,I)=wlc_R(:,I)
-        wlc_UP(:,I)=wlc_U(:,I)
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-        wlc_nPointsMoved=wlc_nPointsMoved+1
-        wlc_pointsMoved(wlc_nPointsMoved)=I
-    endif
-    if (IB2<length_of_chain(IP)) then
-        wlc_nBend = wlc_nBend + 1
-        wlc_bendPoints(wlc_nBend)=IT2
-        I=IT2+1
-        wlc_RP(:,I)=wlc_R(:,I)
-        wlc_UP(:,I)=wlc_U(:,I)
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = wlc_V(:,I)
-        wlc_nPointsMoved=wlc_nPointsMoved+1
-        wlc_pointsMoved(wlc_nPointsMoved)=I
-    endif
-else                                        ! polymer is a ring
-    if (length_of_chain(IP) - DIB > 2) then
-        call bend_points_left_ring(IT1)
-        call points_moved_left_ring(IT1)
-        call bend_points_right_ring(IT2)
-        call points_moved_right_ring(IT2)
-    elseif (length_of_chain(IP) - DIB == 2) then
-        call bend_points_left_ring(IT1)
-        call points_moved_left_ring(IT1)
-        call bend_points_right_ring(IT2)
-    elseif (length_of_chain(IP) - DIB == 1) then
-        call bend_points_left_ring(IT1)
-    else
-        print*, 'DIB should not take this value', DIB
-        stop 1
-    endif
-endif
-
-if (WLC_P__RING) then                    !Polymer is a ring
-   if (IB1 == IB2.AND.IB1 == 1) then
-      TA = wlc_R(:,IT1 + 1)-wlc_R(:,last_bead_of_chain(IP))
-   elseif (IB1 == IB2.AND.IT1 == last_bead_of_chain(IP)) then
-      TA = wlc_R(:,first_bead_of_chain(IP))-wlc_R(:,IT1-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= length_of_chain(IP)) then
-      TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1-1)
-   else
-      TA = wlc_R(:,IT2)-wlc_R(:,IT1)
+   if (.not. WLC_P__RING) then                 ! polymer is not a ring
+      if (IB1 > 1) then
+         wlc_nBend = wlc_nBend + 1
+         wlc_bendPoints(wlc_nBend) = IT1 - 1
+         I = IT1 - 1
+         wlc_RP(:, I) = wlc_R(:, I)
+         wlc_UP(:, I) = wlc_U(:, I)
+         if (WLC_P__LOCAL_TWIST) wlc_VP(:, I) = wlc_V(:, I)
+         wlc_nPointsMoved = wlc_nPointsMoved + 1
+         wlc_pointsMoved(wlc_nPointsMoved) = I
+      endif
+      if (IB2 < length_of_chain(IP)) then
+         wlc_nBend = wlc_nBend + 1
+         wlc_bendPoints(wlc_nBend) = IT2
+         I = IT2 + 1
+         wlc_RP(:, I) = wlc_R(:, I)
+         wlc_UP(:, I) = wlc_U(:, I)
+         if (WLC_P__LOCAL_TWIST) wlc_VP(:, I) = wlc_V(:, I)
+         wlc_nPointsMoved = wlc_nPointsMoved + 1
+         wlc_pointsMoved(wlc_nPointsMoved) = I
+      endif
+   else                                        ! polymer is a ring
+      if (length_of_chain(IP) - DIB > 2) then
+         call bend_points_left_ring(IT1)
+         call points_moved_left_ring(IT1)
+         call bend_points_right_ring(IT2)
+         call points_moved_right_ring(IT2)
+      elseif (length_of_chain(IP) - DIB == 2) then
+         call bend_points_left_ring(IT1)
+         call points_moved_left_ring(IT1)
+         call bend_points_right_ring(IT2)
+      elseif (length_of_chain(IP) - DIB == 1) then
+         call bend_points_left_ring(IT1)
+      else
+         print *, 'DIB should not take this value', DIB
+         stop 1
+      endif
    endif
-else                                 !Polymer is not a ring
-  if (IB1 == IB2.AND.IB1 == 1) then
-      TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1)
-   elseif (IB1 == IB2.AND.IT1 == last_bead_of_chain(IP)) then
-      TA = wlc_R(:,IT1)-wlc_R(:,IT1-1)
-   elseif (IB1 == IB2.AND.IB1 /= 1.AND.IB2 /= length_of_chain(IP)) then
-      TA = wlc_R(:,IT1 + 1)-wlc_R(:,IT1-1)
-   else
-      TA = wlc_R(:,IT2)-wlc_R(:,IT1)
+
+   if (WLC_P__RING) then                    !Polymer is a ring
+      if (IB1 == IB2 .AND. IB1 == 1) then
+         TA = wlc_R(:, IT1 + 1) - wlc_R(:, last_bead_of_chain(IP))
+      elseif (IB1 == IB2 .AND. IT1 == last_bead_of_chain(IP)) then
+         TA = wlc_R(:, first_bead_of_chain(IP)) - wlc_R(:, IT1 - 1)
+      elseif (IB1 == IB2 .AND. IB1 /= 1 .AND. IB2 /= length_of_chain(IP)) then
+         TA = wlc_R(:, IT1 + 1) - wlc_R(:, IT1 - 1)
+      else
+         TA = wlc_R(:, IT2) - wlc_R(:, IT1)
+      endif
+   else                                 !Polymer is not a ring
+      if (IB1 == IB2 .AND. IB1 == 1) then
+         TA = wlc_R(:, IT1 + 1) - wlc_R(:, IT1)
+      elseif (IB1 == IB2 .AND. IT1 == last_bead_of_chain(IP)) then
+         TA = wlc_R(:, IT1) - wlc_R(:, IT1 - 1)
+      elseif (IB1 == IB2 .AND. IB1 /= 1 .AND. IB2 /= length_of_chain(IP)) then
+         TA = wlc_R(:, IT1 + 1) - wlc_R(:, IT1 - 1)
+      else
+         TA = wlc_R(:, IT2) - wlc_R(:, IT1)
+      endif
    endif
-endif
-  if (norm2(TA)<eps) then
-      call randomUnitVec(TA,rand_stat)
-  endif
+   if (norm2(TA) < eps) then
+      call randomUnitVec(TA, rand_stat)
+   endif
 
-  P1 = wlc_R(:,IT1)
-  call random_number(urnd,rand_stat)
-  ALPHA = MCAMP*(urnd(1)-0.5_dp)
+   P1 = wlc_R(:, IT1)
+   call random_number(urnd, rand_stat)
+   ALPHA = MCAMP*(urnd(1) - 0.5_dp)
 
-  call axisAngle(ROT,alpha,TA,P1)
+   call axisAngle(ROT, alpha, TA, P1)
 
-  I = IT1
-    do J = 0,DIB
-        if (I > last_bead_of_chain(IP).and.WLC_P__RING) then
-            I = first_bead_of_chain(IP)
-        endif
-        wlc_RP(:,I) = rotateR(ROT,wlc_R(:,I))
-        wlc_UP(:,I) = rotateU(ROT,wlc_U(:,I))
-        if (WLC_P__LOCAL_TWIST) wlc_VP(:,I) = rotateU(ROT,wlc_V(:,I))
-        wlc_nPointsMoved=wlc_nPointsMoved+1
-        wlc_pointsMoved(wlc_nPointsMoved)=I
-        I = I + 1
-    enddo
+   I = IT1
+   do J = 0, DIB
+      if (I > last_bead_of_chain(IP) .and. WLC_P__RING) then
+         I = first_bead_of_chain(IP)
+      endif
+      wlc_RP(:, I) = rotateR(ROT, wlc_R(:, I))
+      wlc_UP(:, I) = rotateU(ROT, wlc_U(:, I))
+      if (WLC_P__LOCAL_TWIST) wlc_VP(:, I) = rotateU(ROT, wlc_V(:, I))
+      wlc_nPointsMoved = wlc_nPointsMoved + 1
+      wlc_pointsMoved(wlc_nPointsMoved) = I
+      I = I + 1
+   enddo
 
 !  ------begining testing---------
-if(.false.) then
-    ! This is a code block for testing
-    if (abs(wlc_RP(1,IT1)-wlc_R(1,IT1)).gt.0.000001_dp) then
-        print*, "error in crank-shaft move"
-        print*, wlc_RP(1,IT1), wlc_R(1,IT1)
-        stop 1
-    endif
-    if (abs(wlc_RP(1,IT2)-wlc_R(1,IT2)).gt.0.000001_dp) then
-        print*, "error in crank-shaft move"
-        print*, wlc_RP(1,IT1), wlc_R(1,IT1)
-        stop 1
-    endif
-    if(IT1.ne.IT2) then
-        d1 = (wlc_R(1,IT1 + 1)-wlc_R(1,IT1))**2 + &
-           (wlc_R(2,IT1 + 1)-wlc_R(2,IT1))**2 + &
-           (wlc_R(3,IT1 + 1)-wlc_R(3,IT1))**2
-        d2 = (wlc_RP(1,IT1 + 1)-wlc_RP(1,IT1))**2 + &
-           (wlc_RP(2,IT1 + 1)-wlc_RP(2,IT1))**2 + &
-           (wlc_RP(3,IT1 + 1)-wlc_RP(3,IT1))**2
-        if (abs(d1-d2).gt.0.000001_dp) then
-            print*, "error in crank-shaft move"
-            print*, "distance change in 1"
-            print*, "IT1",IT1," IT2",IT2
-            print*, d1,d2
+   if (.false.) then
+      ! This is a code block for testing
+      if (abs(wlc_RP(1, IT1) - wlc_R(1, IT1)) .gt. 0.000001_dp) then
+         print *, "error in crank-shaft move"
+         print *, wlc_RP(1, IT1), wlc_R(1, IT1)
+         stop 1
+      endif
+      if (abs(wlc_RP(1, IT2) - wlc_R(1, IT2)) .gt. 0.000001_dp) then
+         print *, "error in crank-shaft move"
+         print *, wlc_RP(1, IT1), wlc_R(1, IT1)
+         stop 1
+      endif
+      if (IT1 .ne. IT2) then
+         d1 = (wlc_R(1, IT1 + 1) - wlc_R(1, IT1))**2 + &
+              (wlc_R(2, IT1 + 1) - wlc_R(2, IT1))**2 + &
+              (wlc_R(3, IT1 + 1) - wlc_R(3, IT1))**2
+         d2 = (wlc_RP(1, IT1 + 1) - wlc_RP(1, IT1))**2 + &
+              (wlc_RP(2, IT1 + 1) - wlc_RP(2, IT1))**2 + &
+              (wlc_RP(3, IT1 + 1) - wlc_RP(3, IT1))**2
+         if (abs(d1 - d2) .gt. 0.000001_dp) then
+            print *, "error in crank-shaft move"
+            print *, "distance change in 1"
+            print *, "IT1", IT1, " IT2", IT2
+            print *, d1, d2
             stop 1
-        endif
-        d1 = (wlc_R(1,IT2-1)-wlc_R(1,IT2))**2 + &
-           (wlc_R(2,IT2-1)-wlc_R(2,IT2))**2 + &
-           (wlc_R(3,IT2-1)-wlc_R(3,IT2))**2
-        d2 = (wlc_RP(1,IT2-1)-wlc_RP(1,IT2))**2 + &
-           (wlc_RP(2,IT2-1)-wlc_RP(2,IT2))**2 + &
-           (wlc_RP(3,IT2-1)-wlc_RP(3,IT2))**2
-        if (abs(d1-d2).gt.0.000001_dp) then
-            print*, "error in crank-shaft move"
-            print*, "distance change in 2"
-            print*, d1,d2
+         endif
+         d1 = (wlc_R(1, IT2 - 1) - wlc_R(1, IT2))**2 + &
+              (wlc_R(2, IT2 - 1) - wlc_R(2, IT2))**2 + &
+              (wlc_R(3, IT2 - 1) - wlc_R(3, IT2))**2
+         d2 = (wlc_RP(1, IT2 - 1) - wlc_RP(1, IT2))**2 + &
+              (wlc_RP(2, IT2 - 1) - wlc_RP(2, IT2))**2 + &
+              (wlc_RP(3, IT2 - 1) - wlc_RP(3, IT2))**2
+         if (abs(d1 - d2) .gt. 0.000001_dp) then
+            print *, "error in crank-shaft move"
+            print *, "distance change in 2"
+            print *, d1, d2
             stop 1
-        endif
-    endif
-endif
+         endif
+      endif
+   endif
 ! --------end testing--------
 end subroutine
-
 

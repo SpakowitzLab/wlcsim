@@ -15,19 +15,19 @@
 !    4         |  Periodic, non-equal lengths
 
 subroutine mc_confine(RP, NT, IT1, IT2, ECon)
-use params, only: dp, HUGE_ENERGY, wlcsim_params
-implicit none
+   use params, only: dp, HUGE_ENERGY, wlcsim_params
+   implicit none
 
-integer NT     ! Total number of beads in simulation
-real(dp) RP(3,NT)  ! Bead positions
-integer IT1    ! Start test bead
-integer IT2    ! Final test bead
-real(dp) ECon
-logical in_confinement
+   integer NT     ! Total number of beads in simulation
+   real(dp) RP(3, NT)  ! Bead positions
+   integer IT1    ! Start test bead
+   integer IT2    ! Final test bead
+   real(dp) ECon
+   logical in_confinement
 
-ECon = 0.0_dp
-if (.not. in_confinement(RP, NT, IT1, IT2)) then
-    ECon = HUGE_ENERGY
-endif
+   ECon = 0.0_dp
+   if (.not. in_confinement(RP, NT, IT1, IT2)) then
+      ECon = HUGE_ENERGY
+   endif
 
 end
