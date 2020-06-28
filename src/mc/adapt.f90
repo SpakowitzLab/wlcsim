@@ -5,7 +5,7 @@
 !           Quinn MacPherson
 !
 
-Subroutine MC_adapt(wlc_p,MCTYPE)
+Subroutine mc_adapt(wlc_p,MCTYPE)
 ! values from wlcsim_data
 use params, only: wlc_SUCCESS, wlc_ATTEMPTS, wlc_WindoW, wlc_PHIT, wlc_MCAMP
 ! Run this after say 1000 move in order to improve performance

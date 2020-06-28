@@ -9,7 +9,7 @@
 ! Andrew Spakowitz
 ! Written 6-29-04
 
-      subroutine MC_ex(DEEX,R,NT,DR,I,RAD,VCAP)
+      subroutine mc_capsid_ex(DEEX,R,NT,DR,I,RAD,VCAP)
       use params, only : dp
       implicit none
       integer NT            ! Number of beads

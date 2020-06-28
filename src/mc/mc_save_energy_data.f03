@@ -1,6 +1,6 @@
 #include "../defines.inc"
 
-subroutine MC_save_energy_data(MCTYPE)
+subroutine mc_save_energy_data(MCTYPE)
 ! values from wlcsim_data
 use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
 implicit none
@@ -13,7 +13,7 @@ if (MCTYPE==12) then
 endif
 end subroutine
 
-subroutine MC_discribe_spider(spider_id,dr,PRINT_UNIT)
+subroutine mc_describe_spider(spider_id,dr,PRINT_UNIT)
 use params, only: wlc_R, wlc_spiders,dp
 implicit none
 integer spider_id

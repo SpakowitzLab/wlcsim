@@ -21,13 +21,13 @@ subroutine link_twist_writhe_from_scratch()
 use params, only: wlc_R, wlc_U, wlc_V, wlc_LkScratch, wlc_TwScratch,&
     wlc_WrScratch
 implicit none
-call calcTw(wlc_U, wlc_V, wlc_TwScratch)
+call calc_tw(wlc_U, wlc_V, wlc_TwScratch)
 call WRITHE(wlc_R, WLC_P__NB, wlc_WrScratch)
 wlc_LkScratch = wlc_TwScratch + wlc_WrScratch
 end subroutine
 
 ! Calculate change in twist, writhe, and linking number
-subroutine getdelTw_Wr_Lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
+subroutine get_del_tw_wr_lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
 implicit none
 integer, intent(in) :: IB1
 integer, intent(in) :: IB2
@@ -37,13 +37,13 @@ real(dp), intent(out) :: delWr
 real(dp), intent(out) :: delLk
 
 if (MCTYPE == 2) then
-    ! MC_slide doesn't change twist
+    ! mc_slide doesn't change twist
     delTw = 0.0_dp
 else
     delTw = getDelTw()
 endif
 if (MCTYPE == 4) then
-    ! MC_rotate doesn't change writhe
+    ! mc_rotate doesn't change writhe
     delWr = 0.0_dp
 else
     delWr = getDelWr(IB1, IB2, WLC_P__NB)
@@ -54,7 +54,7 @@ end subroutine
 ! ----------------- Helper functions/subroutine -----------------!
 ! Calculate twist of the whole ring using triad twist approach
 ! This is a helper subroutine of link_twist_writhe_from_scratch
-subroutine calcTw(U, V, Tw)
+subroutine calc_tw(U, V, Tw)
 implicit none
 real(dp), intent(in), dimension(:, :) :: U  ! tangent vectors
 real(dp), intent(in), dimension(:, :) :: V  ! binormal vectors
@@ -330,8 +330,8 @@ real(dp) oldTw
 real(dp) newTw
 real(dp) delTw
 
-call calcTw(wlc_U, wlc_V, oldTw)
-call calcTw(wlc_UP, wlc_VP, newTw)
+call calc_tw(wlc_U, wlc_V, oldTw)
+call calc_tw(wlc_UP, wlc_VP, newTw)
 delTw = newTw - oldTw
 end function
 

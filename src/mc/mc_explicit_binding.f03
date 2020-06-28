@@ -6,7 +6,7 @@
 !    represent the effect of things like Loop Extrusion Factors.
 !
 !---------------------------------------------------------------!
-subroutine MC_explicit_binding()
+subroutine mc_explicit_binding()
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_RP, &
     wlc_ExplicitBindingPair,  wlc_nPointsMoved, wlc_pointsMoved,&
@@ -70,7 +70,7 @@ RETURN
 END
 
 !---------------------------------------------------------------!
-subroutine MC_explicit_binding_from_scratch()
+subroutine mc_explicit_binding_from_scratch()
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_ExplicitBindingPair, wlc_network_start_index, &
                   wlc_other_beads

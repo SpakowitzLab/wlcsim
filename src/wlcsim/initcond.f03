@@ -19,7 +19,7 @@ use params, only: wlc_V, wlc_ExplicitBindingPair, wlc_basepairs, wlc_nucleosomeW
 use mersenne_twister
 use params, only: dp, pi, wlcsim_params,  nan
 use vector_utils, only: randomUnitVec, random_perp, cross
-use nucleosome, only: nucleosomeProp, multiParams
+use nucleosome, only: nucleosome_prop, multiParams
 use polydispersity, only: length_of_chain
 implicit none
 
@@ -469,7 +469,7 @@ elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
     ! (i.e i-1 rotation to i vs i rotation to i+1, intuitvely the same physics but not the same results)
     do IB=1,WLC_P__NT-1
         ! Rotation (and translation) due to nucleosome
-        call nucleosomeProp(U(:,IB), wlc_V(:,IB), R(:,IB), &
+        call nucleosome_prop(U(:,IB), wlc_V(:,IB), R(:,IB), &
                             wlc_basepairs(IB),wlc_nucleosomeWrap(IB), &
                             U(:,IB+1), wlc_V(:,IB+1), R(:,IB+1))
         ! Translation due to zero-enery linker

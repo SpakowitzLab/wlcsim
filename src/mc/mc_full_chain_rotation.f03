@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_fullChainRotation(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
+subroutine mc_full_chain_rotation(IB1,IB2,IT1,IT2,MCAMP,rand_stat)
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_V, wlc_RP, wlc_VP, wlc_UP, wlc_U &
     , wlc_nPointsMoved, wlc_pointsMoved

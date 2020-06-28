@@ -9,14 +9,14 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_chemMove(IB1,IB2,IT1,IT2,WindoW,rand_stat,success)
+subroutine mc_chem_move(IB1,IB2,IT1,IT2,WindoW,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_V, wlc_R, wlc_RP, wlc_AB, wlc_U&
     , wlc_UP, wlc_ABP, wlc_VP, wlc_pointsMoved, wlc_nPointsMoved
 
 use mersenne_twister
 use params, only: dp
-use windowTools, only: drawWindow
+use windowTools, only: draw_window
 use polydispersity, only: get_I
 
 implicit none
@@ -46,7 +46,7 @@ endif
 
 ! Change wlc_AB (a.k.a HP1 binding type fore section of polymer)
 
-call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
+call draw_window(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
 if (success .eqv.  .false.) return
 

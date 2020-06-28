@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_reptationMulti(IT1,IT2,IB1,IB2,rand_stat,forward,super,nsteps)
+subroutine mc_reptation_multi(IT1,IT2,IB1,IB2,rand_stat,forward,super,nsteps)
 ! values from wlcsim_data
 use params, only: wlc_U, wlc_RP, wlc_R, wlc_V, wlc_UP&
     , wlc_ABP, wlc_AB, wlc_VP

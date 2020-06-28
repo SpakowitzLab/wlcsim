@@ -9,7 +9,7 @@
 !  sign convention: WLC_P__EM and WLC_P__EU are more positive for favorable binding
 !  Typical Values: WLC_P__EU = -1.52 and WLC_P__EM = 0.01
 
-subroutine MC_bind(IT1,IT2,AB,ABP,METH)
+subroutine mc_bind(IT1,IT2,AB,ABP,METH)
 use params, only: dp,wlcsim_params
 use energies, only: energyOf, mu_, bind_
 implicit none

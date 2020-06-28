@@ -1,4 +1,4 @@
-Subroutine adaptCof(downSuccess,nPTReplicas,S_val,N_average,&
+Subroutine adapt_cof(downSuccess,nPTReplicas,S_val,N_average,&
                      lowerRepExe,upperRepExe,&
                      lowerRail,upperRail,&
                      repAnnealSpeed,replicaBounds)
@@ -37,7 +37,7 @@ endif
 do rep = 2,nPTReplicas
     successRate = dble(downSuccess(rep))/dble(N_average)
     if (S_val(rep).lt.S_val(rep-1)) then
-        print*, "Error in adaptCof!"
+        print*, "Error in adapt_cof!"
         print*, "S_val(", rep, ") = ", S_val(rep), " < S_val(", rep-1, ") = ", S_val(rep-1)
         print*, S_val
         stop 1

@@ -2,7 +2,7 @@
 !
 !     Written by Quinn MacPherson 8/4/17
 !---------------------------------------------------------------!
-subroutine Y2calc(u,Y2real)
+subroutine y2_calc(u,Y2real)
 use params, only: dp, pi
 implicit none
 

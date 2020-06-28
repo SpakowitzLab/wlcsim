@@ -20,7 +20,7 @@ end function exponential_random_int
 
 !Expand [IB1,IB2] and [IT1,IT2] regions to include bound pairs
 !Return success=False not able to do this
-subroutine enforceBinding(rand_stat,IB1,IB2,IT1,IT2,max_window,success)
+subroutine enforce_binding(rand_stat,IB1,IB2,IT1,IT2,max_window,success)
 ! values from wlcsim_data
 use params, only: wlc_ExplicitBindingPair, wlc_network_start_index, wlc_other_beads
 use params, only: dp
@@ -124,7 +124,7 @@ if (test_move) then
 endif
 end subroutine
 
-subroutine drawWindow(window,maxWindow,enforceBind,rand_stat,IT1,IT2,IB1,IB2,IP,DIB,success)
+subroutine draw_window(window,maxWindow,enforceBind,rand_stat,IT1,IT2,IB1,IB2,IP,DIB,success)
 use params, only: dp
 use mersenne_twister
 use polydispersity, only: get_IB, length_of_chain, get_IP, get_I
@@ -195,11 +195,11 @@ else
     IT2 = get_I(IB2,IP)
     IT1 = get_I(IB1,IP)
     if (WLC_P__EXPLICIT_BINDING .and. enforceBind) then
-        call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,maxWindow,success)
+        call enforce_binding(rand_stat,IB1,IB2,IT1,IT2,maxWindow,success)
         if (success .eqv. .False.) return
     endif
     DIB = IB2-IB1
 endif
-end subroutine drawWindow
+end subroutine draw_window
 
 end module windowTools

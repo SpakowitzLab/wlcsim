@@ -1,17 +1,17 @@
 #include "../defines.inc"
 !--------------------------------------------------------------
 !
-!     subroutine MC_cylinder
+!     subroutine mc_cylinder
 !
 !     Determine if moved beads intersect old beads.
 !     Written by Quinn MacPherson, Dec 2017
 !--------------------------------------------------------------
-subroutine MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
+subroutine mc_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
 ! values from wlcsim_data
 use params, only: wlc_R_period, wlc_R, wlc_bin, wlc_RP
 
 use params, only: dp, wlcsim_params
-use binning, only: binType, findNeighbors, countBeads
+use binning, only: binType, find_neighbors, countBeads
 use polydispersity, only: is_right_end, rightmost_from
 
 implicit none
@@ -136,7 +136,7 @@ do ii = left,right
                     R_test2(1)=R_test(1) + (real(ix,dp)*WLC_P__LBOX_X)
                     R_test2(2)=R_test(2) + (real(iy,dp)*WLC_P__LBOX_Y)
                     R_test2(3)=R_test(3) + (real(iz,dp)*WLC_P__LBOX_Z)
-                    call findNeighbors(wlc_bin,R_test2,radius,wlc_R_period,&
+                    call find_neighbors(wlc_bin,R_test2,radius,wlc_R_period,&
                         WLC_P__NT,maxNeighbors,neighbors,distances,nNeighbors)
 
                 enddo

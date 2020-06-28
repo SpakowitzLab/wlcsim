@@ -1,7 +1,7 @@
   !Calculate the Gauss integral between a pair of line segments (half the contribution to the writhe)
   !Based on methods by Klenin (2000)
 
-subroutine GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+subroutine gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
   use params, only : dp
   implicit none
 
@@ -78,6 +78,6 @@ subroutine GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
 
 
   RETURN
-END subroutine GAUSSPAIR
+END subroutine gauss_pair
 
 

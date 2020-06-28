@@ -190,7 +190,7 @@ use params, only: wlc_mc_ind, wlc_rand_stat
 
             if ((wlc_mc_ind.ge.WLC_P__INDSTARTREPADAPT).and. &
                 (wlc_mc_ind.lt.WLC_P__INDENDREPADAPT)) then ! insert input defined location here
-                call adaptCof(downSuccess,nPTReplicas,s_vals,N_average,&
+                call adapt_cof(downSuccess,nPTReplicas,s_vals,N_average,&
                                WLC_P__LOWERREPEXE,WLC_P__UPPERREPEXE,&
                                WLC_P__LOWERCOFRAIL,WLC_P__UPPERCOFRAIL,&
                                WLC_P__REPANNEALSPEED,WLC_P__REPLICABOUNDS)
@@ -285,13 +285,13 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     call schedule(wlc_p,system_has_been_changed)
 
     if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(wlc_p) ! Calculate dE and dx from scratch
+        call calculate_energies_from_scratch(wlc_p) ! Calculate dE and dx from scratch
         do ii = 1, NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%E = energyOf(ii)%dE
             energyOf(ii)%x = energyOf(ii)%dx
         enddo
     else
-        call VerifyEnergiesFromScratch(wlc_p)
+        call verify_energies_from_scratch(wlc_p)
     endif
 
 
@@ -305,7 +305,7 @@ use params, only: wlc_ind_exchange, wlc_mc_ind
     do i = 1,WLC_P__NREPLICAEXCHANGEPERSAVEPOINT
         wlc_ind_exchange=i
         !   * Perform a MC simulation *
-        call MCsim(wlc_p)
+        call mcsim(wlc_p)
 
         !   * Replica Exchange *
         call replicaExchange()
@@ -328,7 +328,7 @@ subroutine onlyNode(wlc_p)
     !   * Perform a MC simulation *
     call schedule(wlc_p,system_has_been_changed)
     if (system_has_been_changed) then
-        call CalculateEnergiesFromScratch(wlc_p)
+        call calculate_energies_from_scratch(wlc_p)
         do ii = 1, NUMBER_OF_ENERGY_TYPES
             energyOf(ii)%E = energyOf(ii)%dE
             energyOf(ii)%x = energyOf(ii)%dx
@@ -338,11 +338,11 @@ subroutine onlyNode(wlc_p)
         wlc_Wr = wlc_WrScratch
         wlc_Lk0 = wlc_Lk
     else
-        call VerifyEnergiesFromScratch(wlc_p)
+        call verify_energies_from_scratch(wlc_p)
     endif
     ! mc sim
     call cpu_time(start)
-    call MCsim(wlc_p)
+    call mcsim(wlc_p)
     call cpu_time(finish)
     print*, "Save Point time", finish-start, " seconds"
 end subroutine onlyNode

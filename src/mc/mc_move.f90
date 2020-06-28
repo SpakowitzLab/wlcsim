@@ -8,7 +8,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success)
+subroutine mc_move(IB1,IB2,IT1,IT2,IT3,IT4,MCTYPE,forward,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_Window, wlc_MCAMP
 use mersenne_twister, only: random_stat
@@ -26,35 +26,35 @@ type(random_stat), intent(inout) :: rand_stat  ! status of random number generat
 success = .TRUE.
 select case(MCTYPE) ! pick which keyword, case matchign string must be all uppercase
 case(1)
-call MC_crank(IB1,IB2,IT1,IT2 &
+call mc_crank(IB1,IB2,IT1,IT2 &
        ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
        ,dib,success)
 case(2)
-call MC_slide(IB1,IB2,IT1,IT2 &
+call mc_slide(IB1,IB2,IT1,IT2 &
        ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat &
        ,dib,success)
 case(3)
-call MC_pivot(IB1,IB2,IT1,IT2 &
+call mc_pivot(IB1,IB2,IT1,IT2 &
        ,wlc_MCAMP(MCTYPE),wlc_Window(MCTYPE),rand_stat,success)
 case(4)
-call MC_rotate(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
+call mc_rotate(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(5)
-call MC_fullChainRotation(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
+call mc_full_chain_rotation(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(6)
-call MC_fullChainSlide(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
+call mc_full_chain_slide(IB1,IB2,IT1,IT2,wlc_MCAMP(MCTYPE),rand_stat)
 case(7)
-call MC_chemMove(IB1,IB2,IT1,IT2,wlc_Window(MCTYPE),rand_stat,success)
+call mc_chem_move(IB1,IB2,IT1,IT2,wlc_Window(MCTYPE),rand_stat,success)
 case(8)
 case(9)
-call MC_chainSwap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
+call mc_chain_swap(IB1,IB2,IT1,IT2,rand_stat,IT3,IT4)
 case(10)
-call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
+call mc_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.False.)
 case(11)
-call MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
+call mc_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,.True.)
 case(12)
-call MC_spider(wlc_MCAMP,rand_stat,success)
+call mc_spider(wlc_MCAMP,rand_stat,success)
 case(13)
-call MC_nucleosomeSlide(IB1,IB2,IT1,IT2,rand_stat,success)
+call mc_nucleosome_slide(IB1,IB2,IT1,IT2,rand_stat,success)
 end select
 RETURN
 END

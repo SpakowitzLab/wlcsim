@@ -1,6 +1,6 @@
 #include "../defines.inc"
 
-subroutine MC_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,super)
+subroutine mc_reptation(IT1,IT2,IB1,IB2,rand_stat,forward,super)
 !--------------------------------------------------------------*
 !
 !           Makes Monti Carlo reptation move

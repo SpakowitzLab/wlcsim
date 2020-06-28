@@ -1,6 +1,6 @@
   !Calculate the writhe between segment that was moved and segment that was not moved using the method of Klenin (2000)
 
-subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,N,Wr)
+subroutine mc_writhe(R,RP,IB1,IB2,IT1,IT2,N,Wr)
   use params, only : dp, pi
   use precision, only : eps
   use vector_utils, only : cross
@@ -135,7 +135,7 @@ subroutine WRITHE_MOVE(R,RP,IB1,IB2,IT1,IT2,N,Wr)
   Wr = 2.*Wr
 
   RETURN
-END subroutine WRITHE_MOVE
+END subroutine mc_writhe
 
 
 

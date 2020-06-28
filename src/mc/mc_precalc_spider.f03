@@ -23,7 +23,7 @@ module precalc_spider
 
 contains
 
-    subroutine load_precalc_spiders(filename,spiders,numberOfSpiders)
+    subroutine load_precalc_spider(filename,spiders,numberOfSpiders)
     implicit none
     integer, parameter :: MAXFILENAMELEN = 500
     character(MAXFILENAMELEN) filename
@@ -88,7 +88,7 @@ contains
     enddo
     return
     end function
-    subroutine print_precalc_spiders(spiders,numberOfSpiders)
+    subroutine print_precalc_spider(spiders,numberOfSpiders)
     implicit none
     integer, intent(in) :: numberOfSpiders
     type(spider), intent(in) :: spiders(numberOfSpiders)

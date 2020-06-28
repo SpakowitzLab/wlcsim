@@ -22,7 +22,7 @@ subroutine check_rp_for_nan(success,MCTYPE)
             write(ERROR_UNIT,*) wlc_RP(:,wlc_pointsMoved(I))
         enddo
         if (MCTYPE == 12) then
-            call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
+            call mc_describe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
         endif
         write(ERROR_UNIT,*) "--------------------------------"
     endif

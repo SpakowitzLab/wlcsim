@@ -5,7 +5,7 @@
 !  Puts output in energyOf(*_)%dE and energyOf(*_)%dx
 !  Sets non-relivant dE's and dx's to zero
 ! -------------------------------------------------------------------
-subroutine CalculateEnergiesFromScratch(wlc_p)
+subroutine calculate_energies_from_scratch(wlc_p)
 use params, only: NAN, wlc_METH, wlc_Cross, wlc_AB&
     , wlc_NCross, wlc_PHIB, wlc_PHIA, wlc_CrossSize, wlc_ABP, WLC_GJK &
     , wlc_R, wlc_ind_in_list, dp, wlc_bin, wlc_R_GJK, wlc_U, wlc_V
@@ -16,7 +16,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     use iso_fortran_env
     use energies
     ! if using binning, uncomment the next line
-    !use binning, only: findNeighbors
+    !use binning, only: find_neighbors
     implicit none
     integer IT1, IT2, I,j
     real(dp) phiTot
@@ -41,7 +41,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
         wlc_ABP = 0 ! set entire array to zero
         !  Notide that ABP and AB are intensionally swapped below
         IT1 = 1; IT2 = WLC_P__NT
-        call MC_bind(IT1,IT2,wlc_ABP,wlc_AB,wlc_METH)
+        call mc_bind(IT1,IT2,wlc_ABP,wlc_AB,wlc_METH)
     endif
 
     call energy_elas(EELAS,wlc_p)
@@ -52,11 +52,11 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
 
     ! ---- External Field Energy ---
     if(WLC_P__APPLY_EXTERNAL_FIELD) then
-        call MC_external_field_from_scratch()
+        call mc_external_field_from_scratch()
     endif
     ! ---- 2Body potentials Field Energy ---
     if(WLC_P__APPLY_2body_potential) then
-        call MC_2bead_potential_from_scratch()
+        call mc_2bead_potential_from_scratch()
     endif
     ! --- Interaction Energy ---
     if (wlc_p%field_int_on_currently) then
@@ -72,7 +72,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
             endif
         enddo
         ! initialize phi
-        call MC_int_initialize(wlc_p)
+        call mc_int_intitialize(wlc_p)
         phiTot=0.0_dp
         do I = 1,wlc_p%NBIN
             phiTot = phiTot + (wlc_PHIA(I) + wlc_PHIB(I))*(WLC_P__DBIN**3)
@@ -81,7 +81,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
     endif
 
     if (WLC_P__EXPLICIT_BINDING) then
-        call MC_explicit_binding_from_scratch()
+        call mc_explicit_binding_from_scratch()
     endif
     if (WLC_P__RING) then
         if (WLC_P__TWIST) then
@@ -91,9 +91,9 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
             !     Get initial value of Alexander polynomial and Cross matrix
             CALL ALEXANDERP(wlc_R,WLC_P__NB,DELTA,wlc_Cross,wlc_CrossSize,wlc_NCross)
             !     Begin Monte Carlo simulation
-            print*, "Inside CalculateEnergiesFromScratch"
+            print*, "Inside calculate_energies_from_scratch"
             print*, "Did I do the correct thing with Delta, NCross, Wr, ...?"
-            print*, "Add the correct checks to VerifyEnergiesFromScratch"
+            print*, "Add the correct checks to verify_energies_from_scratch"
 !           stop 1
         endif
     ENDif
@@ -114,7 +114,7 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
         ! check for neighbors on new beads
         do i = 1, WLC_P__NT
             ignore(i) = i
-            call findNeighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT,&
+            call find_neighbors(wlc_R_GJK(:,i),2*WLC_P__GJK_RADIUS,wlc_R_GJK,WLC_P__NT,&
                     WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
             call sterics_check(collisions,wlc_R,wlc_U,wlc_V,wlc_GJK,wlc_basepairs,ignore,&
@@ -143,21 +143,21 @@ use params, only: wlcsim_params, wlc_nucleosomeWrap, wlc_basepairs
 
 end subroutine
 
-subroutine InitializeEnergiesForVerifier(wlc_p)
+subroutine initialize_energies_from_scratch(wlc_p)
     use params, only: wlcsim_params
     use energies, only: energyOf, NUMBER_OF_ENERGY_TYPES
     implicit none
     type(wlcsim_params), intent(in) :: wlc_p
     integer ii
-    ! identical to VerifyEnergiesFromScratch, but instead of checkign if they
+    ! identical to verify_energies_from_scratch, but instead of checkign if they
     ! match previous values, the values are simply updated into energyOf(*)%E
-    call CalculateEnergiesFromScratch(wlc_p)
+    call calculate_energies_from_scratch(wlc_p)
     do ii = 1,NUMBER_OF_ENERGY_TYPES
         energyOf(ii)%E = energyOf(ii)%dE
     enddo
 end subroutine
 
-subroutine VerifyEnergiesFromScratch(wlc_p)
+subroutine verify_energies_from_scratch(wlc_p)
 ! values from wlcsim_data
     use params, only : wlcsim_params,  epsapprox, ERROR_UNIT, wlc_mc_ind, &
         wlc_Lk, wlc_Tw, wlc_Wr, wlc_LkScratch, wlc_TwScratch, wlc_WrScratch
@@ -174,7 +174,7 @@ subroutine VerifyEnergiesFromScratch(wlc_p)
     ! to save RAM...
     ! after this call, the DE's will hold the true values of the energies
     ! currently. we can then compare these to the E's
-   call CalculateEnergiesFromScratch(wlc_p)
+   call calculate_energies_from_scratch(wlc_p)
 
    do ii = 1,NUMBER_OF_ENERGY_TYPES
        if(abs(energyOf(ii)%E-energyOf(ii)%dE) > epsapprox) then

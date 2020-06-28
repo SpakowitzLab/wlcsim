@@ -16,7 +16,7 @@
 !     chain is not calculated.
 
 
-subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
+subroutine de_self_crank(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
   use params, only : dp
 
   implicit none
@@ -327,7 +327,7 @@ subroutine DE_SELF_CRANK(DE,R,RP,NT,N,NP,PARA,RinG,IB1,IB2)
 
 
   RETURN
-ENDsubroutine DE_SELF_CRANK
+ENDsubroutine de_self_crank
 
 !---------------------------------------------------------------*
 

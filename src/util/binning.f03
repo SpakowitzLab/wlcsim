@@ -27,7 +27,7 @@
 !  real(dp) distances(maxN) ! Returned distances
 !  integer neighbors(maxN) ! ID of neighboring beads
 !  integer nn ! number of neighbors
-!  call findNeighbors(bin,coordinate,radius,R,NT,maxN,neighbors,distances,nn)
+!  call find_neighbors(bin,coordinate,radius,R,NT,maxN,neighbors,distances,nn)
 !
 ! ------------------------------------------------------
 module binning
@@ -319,7 +319,7 @@ contains
         binIndex = XYZ(3) + bin%binsShape(3)*((XYZ(2)-1) + bin%binsShape(2)*(XYZ(1)-1))
     end subroutine
 
-    recursive subroutine findNeighbors(bin,location,radius,R,NT,&
+    recursive subroutine find_neighbors(bin,location,radius,R,NT,&
                   maxNeighbors,neighbors,distances,nNeighbors)
         implicit none
         type(binType), intent(in) :: bin
@@ -356,7 +356,7 @@ contains
                 do yy = lower(2),upper(2)
                     do zz = lower(3),upper(3)
                         binIndex = zz + bin%binsShape(3)*((yy-1) + bin%binsShape(2)*(xx-1))
-                        call findNeighbors(bin%bins(binIndex),location,radius,R,NT,&
+                        call find_neighbors(bin%bins(binIndex),location,radius,R,NT,&
                             maxNeighbors,neighbors,distances,nNeighbors)
                     enddo
                 enddo

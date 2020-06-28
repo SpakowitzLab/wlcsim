@@ -17,7 +17,7 @@ module nucleosome
     private :: nucleosomeROT, nucleosomeTran
 contains
 
-subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
+subroutine nucleosome_prop(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
 !Calculates the final position and orientation
 !Rout,Uout,Vout
 !based on the the incomming position and orientation
@@ -55,7 +55,7 @@ subroutine nucleosomeProp(Uin,Vin,Rin,linkBP,wrapBP,Uout,Vout,Rout)
     Vout = mtrx(:,1)/norm2(mtrx(:,1))
     return
 
-end subroutine nucleosomeProp
+end subroutine nucleosome_prop
 
 function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
 !Caltulate the bending energy of a nucleosome
@@ -81,7 +81,7 @@ function nucleosome_energy(RP1,R,UP1,U,VP1,V,linkBP,wrapBP)
     real(dp) Vtemp(3)
 
 
-    call nucleosomeProp(U,V,R,linkBP,wrapBP,Utemp,Vtemp,Rtemp)
+    call nucleosome_prop(U,V,R,linkBP,wrapBP,Utemp,Vtemp,Rtemp)
 
     !  need to interpolate between basepairs if fractional
     call get_params(linkBP,EB,EPAR,EPERP,GAM,ETA,XIR,XIU,sigma,etwist,simtype)
@@ -293,7 +293,7 @@ subroutine setup_nucleosome_constants()
     endif
 end subroutine setup_nucleosome_constants
 
-subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+subroutine load_nucleosome_positions(wlc_nucleosomeWrap,wlc_basepairs)
 ! if WLC_P__INCLUDE_DISCRETIZE_LINKER is turn on, then this determines the 
 ! discretization scheme of the beads throughout the chain. it defaults to trying
 ! to set integer values for each bead discretization, but not has the capability to 
@@ -325,7 +325,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
         if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
             ! figure out main discretization scheme
             discretization = WLC_P__LL/((WLC_P__NB-2-nNucs)/(nNucs+1)+1)
-            call discretizationScheme(discretization, 1.0_DP*WLC_P__LL, num_link_beads, off_discretization)
+            call discretization_scheme(discretization, 1.0_DP*WLC_P__LL, num_link_beads, off_discretization)
             ! print for sanity check
             print*, discretization, num_link_beads, off_discretization
             if (WLC_P__LINKER_TYPE == 'phased' ) then
@@ -446,7 +446,7 @@ subroutine loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
 
 end subroutine
 
-subroutine discretizationScheme(discretization, linker, num_link_beads, off_discretization)
+subroutine discretization_scheme(discretization, linker, num_link_beads, off_discretization)
     implicit none
     real(dp), intent(inout) :: discretization
     real(dp), intent(in) :: linker 
@@ -483,6 +483,6 @@ subroutine discretizationScheme(discretization, linker, num_link_beads, off_disc
             print*, "lower discretization length or change linker/fragment length pairing"
             stop
         endif
-end subroutine discretizationScheme
+end subroutine discretization_scheme
 
 end module nucleosome

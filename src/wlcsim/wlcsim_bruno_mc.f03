@@ -47,14 +47,14 @@ endif
 if (save_ind == 1) then
     ! perform initialization mc if applicable
     !brown always true
-    call InitializeEnergiesForVerifier(wlc_p)
+    call initialize_energies_from_scratch(wlc_p)
     allocate(R0(3,WLC_P__NT))
     allocate(U0(3,WLC_P__NT))
 endif
 
-call MCsim(wlc_p,WLC_P__STEPSPERSAVE)
+call mcsim(wlc_p,WLC_P__STEPSPERSAVE)
 
-call VerifyEnergiesFromScratch(wlc_p)
+call verify_energies_from_scratch(wlc_p)
 
 call stress(SIG, wlc_R, wlc_U, &
             pack_as_para(wlc_p), WLC_P__INTERP_BEAD_LENNARD_JONES, wlc_p%SIMTYPE)

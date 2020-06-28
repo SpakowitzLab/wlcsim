@@ -14,7 +14,7 @@
 !    2         |  Cube of size LBox**3,  range: 0-LBox
 !    3         |  Circle of radius LBox/2 inside box of size LBox
 
-subroutine MC_calcVolume(dbin, LBox,Vol,rand_stat)
+subroutine mc_calc_volume(dbin, LBox,Vol,rand_stat)
 
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
@@ -48,15 +48,15 @@ endif
 
 
 if (WLC_P__CONFINETYPE == 'none') then
-    print*, "Don't call MC_calcVolume with this type of boundary"
+    print*, "Don't call mc_calc_volume with this type of boundary"
     STATUS = 1
     STOP 1
 elseif(WLC_P__CONFINETYPE == 'platesInZperiodicXY') then
-    print*, "Don't call MC_calcVolume with this type of boundary"
+    print*, "Don't call mc_calc_volume with this type of boundary"
     STATUS = 1
     STOP 1
 elseif(WLC_P__CONFINETYPE == 'cube') then
-    print*, "Don't call MC_calcVolume with this type of boundary"
+    print*, "Don't call mc_calc_volume with this type of boundary"
     STATUS = 1
     STOP 1
 elseif(WLC_P__CONFINETYPE == 'sphere') then

@@ -11,7 +11,7 @@
 !     Interaction is calculated for a repulsive lennard jones potential.
 !     Arbitrary pair-wise potentials may be substituted
 
-subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
+subroutine energy_self_chain(EPONP,R,NT,NB,PARA,RinG)
     !TOdo change so works with multiple chains
 
     use params, only: dp
@@ -164,7 +164,7 @@ subroutine ENERGY_SELF_CHAin(EPONP,R,NT,NB,PARA,RinG)
 
 
   RETURN
-END subroutine ENERGY_SELF_CHAin
+END subroutine energy_self_chain
 
 !---------------------------------------------------------------*
 

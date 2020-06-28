@@ -1,5 +1,5 @@
 #include "../defines.inc"
-subroutine MCsim(wlc_p)
+subroutine mcsim(wlc_p)
 !Perform Metropolis Hastings Monte Carlo moves on the system of polymers.
 !Loops over move types (crank shaft, slide,...) and calls each energy
 !function.  Accepts move by the Metropolis condition on the change in
@@ -22,9 +22,9 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
     !use mt19937, only : grnd, sgrnd, rnorm, mt, mti
     use mersenne_twister
     use binning, only: addBead, removeBead
-    use updateRU, only: updateR
+    use update_rU, only: update_r
     use polydispersity, only: length_of_chain, chain_ID, leftmost_from
-    use linkingNumber, only: getDelTw_Wr_Lk
+    use linkingNumber, only: get_del_tw_wr_lk
 
     implicit none
     interface
@@ -109,7 +109,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
               ((MCTYPE.eq.5).or.(MCTYPE.eq.6))) then
               goto 10 ! skip move, return RP to nan
           endif
-          call MC_move(IB1,IB2,IT1,IT2,IT3,IT4,&
+          call mc_move(IB1,IB2,IT1,IT2,IT3,IT4,&
                        MCTYPE,forward,wlc_rand_stat,dib,success)
           if (.not. success) then
               wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
@@ -126,7 +126,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           endif
 
           if(WLC_P__CYLINDRICAL_CHAIN_EXCLUSION) then
-              call MC_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
+              call mc_cylinder(collide,IB1,IB2,IT1,IT2,MCTYPE,forward)
               if (collide) then
                   wlc_ATTEMPTS(MCTYPE) = wlc_ATTEMPTS(MCTYPE) + 1
                   goto 10 ! skip move, return RP to nan
@@ -145,7 +145,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
             else
                 netSterics = .true.
             endif
-            call MC_sterics(collisions,netSterics)
+            call mc_sterics(collisions,netSterics)
             ! ascribe collision penalty
             if (netSterics) then 
                 energyOf(sterics_)%dx = collisions 
@@ -191,11 +191,11 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           ENDif
 !   Calculate the change in compression and bending energy
           if (wlc_nBend>0) then
-              call MC_eelas(wlc_p)
+              call mc_eelas(wlc_p)
               if (WLC_P__RING.AND.WLC_P__TWIST) then
                   print*, "Change this to new global twist energy!!!"
                   stop
-                  call MC_global_twist(IT1,IT2,MCTYPE)
+                  call mc_global_twist(IT1,IT2,MCTYPE)
               endif
           endif
 
@@ -205,8 +205,8 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           endif
 !   Calculate the change in the binding energy
           if (WLC_P__CHANGINGCHEMICALIDENTITY .and. MCTYPE == 7 .or. MCTYPE == 11) then
-              !print*, 'MCsim says EM:',EM,'EU',EU
-              call MC_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
+              !print*, 'mcsim says EM:',EM,'EU',EU
+              call mc_bind(IT1,IT2,wlc_AB,wlc_ABP,wlc_METH)
           endif
           if (WLC_P__INTERP_BEAD_LENNARD_JONES) then
               !TODO: unpack parameters in MC_elas
@@ -221,20 +221,20 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                 LHC=  PARA(9)
                 VHC=  PARA(10)
 
-              !call MC_self(DESELF,wlc_R,wlc_U,wlc_RP,wlc_UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+              !call mc_self(DESELF,wlc_R,wlc_U,wlc_RP,wlc_UP,WLC_P__NT,WLC_P__NB,WLC_P__NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
               if (MCTYPE == 1) then
-                  CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
+                  CALL de_self_crank(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
 
               elseif (MCTYPE == 2) then
-                  CALL ENERGY_SELF_SLIDE(energyOf(self_)%x,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
+                  CALL energy_self_slide(energyOf(self_)%x,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
-                  CALL ENERGY_SELF_SLIDE(ESELFP,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
+                  CALL energy_self_slide(ESELFP,wlc_R,WLC_P__NT,WLC_P__NB,WLC_P__NP, &
                       para,WLC_P__RING,IB1,IB2)
 
                   energyOf(self_)%dx = ESELFP-energyOf(self_)%x
               elseif (MCTYPE == 3) then
-                  CALL DE_SELF_CRANK(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
+                  CALL de_self_crank(energyOf(self_)%dx,wlc_R,wlc_RP,WLC_P__NT,WLC_P__NB,WLC_P__NP,&
                                      para,WLC_P__RING,IB1,IB2)
               endif
           endif
@@ -243,27 +243,27 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 !   interation energy, not just self?)
           if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
              if (MCTYPE == 7) then !
-                 call MC_int_chem(wlc_p,IT1,IT2)
+                 call mc_int_chem(wlc_p,IT1,IT2)
              elseif (MCTYPE == 10) then ! reptation move
-                 call MC_int_rep(wlc_p,IT1,IT2,forward)
+                 call mc_int_rep(wlc_p,IT1,IT2,forward)
              elseif (MCTYPE == 11) then ! super reptation move
-                 call MC_int_super_rep(wlc_p,IT1,IT2,forward)
+                 call mc_int_super_rep(wlc_p,IT1,IT2,forward)
              else ! motion of chain
-                 call MC_int_update(wlc_p)
+                 call mc_int_update(wlc_p)
              endif
           endif
 
           if (WLC_P__APPLY_EXTERNAL_FIELD .and. energyOf(external_)%isOn &
               .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
-              call MC_external_field()
+              call mc_external_field()
           endif
 
           if (WLC_P__APPLY_2body_potential .and. wlc_nPointsMoved>0) then
-              call MC_2bead_potential(MCTYPE)
+              call mc_2bead_potential(MCTYPE)
           endif
 
           if (WLC_P__EXPLICIT_BINDING .and. wlc_nPointsMoved>0 .and. MCTYPE .ne. 4 .and. (MCTYPE /= 7)) then
-              call MC_explicit_binding()
+              call mc_explicit_binding()
           endif
 
           if (WLC_P__UMBRELLA .and. energyOf(umbrella_)%isOn &
@@ -273,7 +273,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
 
           ! When self-crossing is not allowed, linking number must be conserved.
           if (WLC_P__NO_SELF_CROSSING) then
-              call getDelTw_Wr_Lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
+              call get_del_tw_wr_lk(IB1, IB2, MCTYPE, delTw, delWr, delLk)
               TwP = wlc_Tw + delTw
               WrP = wlc_Wr + delWr
               LkP = wlc_Lk + delLk
@@ -287,7 +287,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           call apply_energy_isOn()
           call calc_all_dE_from_dx()
           call sum_all_dEnergies(ENERGY)
-          !call MC_save_energy_data(MCTYPE)
+          !call mc_save_energy_data(MCTYPE)
           PROB = exp(-ENERGY)
           call random_number(urnd,wlc_rand_stat)
           TEST = urnd(1)
@@ -307,13 +307,13 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
              if(MCTYPE /= 7) then
                 do I = 1,wlc_nPointsMoved
                     J = wlc_pointsMoved(I)
-                    call updateR(J)
+                    call update_r(J)
                 enddo
              endif
              if (energyOf(confine_)%dE.gt.0.0_dp) then
                  print*, "MCTYPE", MCType
                  call printEnergies()
-                 print*, "error in MCsim, out of bounds "
+                 print*, "error in mcsim, out of bounds "
                  stop 1
              endif
              if (wlc_p%field_int_on_currently .and. WLC_P__FIELD_INT_ON) then
@@ -335,7 +335,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                        print*, "DPHIA ",wlc_DPHIA(I)," DPHIB",wlc_DPHIB(I)
                        print*, "PHIA(J) ", wlc_PHIA(J), " PHIB(J) ", wlc_PHIB(J)
                        print*, "I", I,"J",J
-                       print*, "Error in MCsim. Negative phi"
+                       print*, "Error in mcsim. Negative phi"
                        stop 1
                    endif
                 enddo

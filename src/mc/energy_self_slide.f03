@@ -19,7 +19,7 @@
 
 
 
-subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
+subroutine energy_self_slide(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
   use params, only : dp
 
   implicit none
@@ -990,7 +990,7 @@ subroutine ENERGY_SELF_SLIDE(EPONP,R,NT,N,NP,PARA,RinG,IB1,IB2)
 
 
   RETURN
-ENDsubroutine ENERGY_SELF_SLIDE
+ENDsubroutine energy_self_slide
 
 !---------------------------------------------------------------*
 

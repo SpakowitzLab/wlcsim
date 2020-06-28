@@ -1,5 +1,5 @@
 #include "../defines.inc"
-subroutine MC_eelas(wlc_p)
+subroutine mc_eelas(wlc_p)
 !Calculate the change in the polymer elastic energy
 !due to the displacement from a MC move.  Only calculate for
 !bonds that have been changed which are listed in wlc_bendPints.

@@ -1,6 +1,6 @@
   !Calculate the portion of the writhe that changes during a segment slide move
 
-subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
+subroutine writhe_slide(R,IT1,IT2,N,Wr)
   use params, only : dp
   implicit none
 
@@ -93,7 +93,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
            e2 = (R(:,JP1)-R(:,IO))/s2
            e1 = (R(:,IP1)-R(:,II))/s1
 
-           CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+           CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
            !Writhe = 0 between segments in plane (dWr = NaN)
            if (dWr /= dWr) then
               dWr = 0.
@@ -119,7 +119,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
               e2 = (R(:,JP1)-R(:,IO))/s2
               e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
-              CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+              CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
               !Writhe = 0 between segments in plane (dWr = NaN)
               if (dWr /= dWr) then
                  dWr = 0.
@@ -142,7 +142,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
               e2 = (R(:,JP1)-R(:,IO))/s2
               e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
-              CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+              CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
               !Writhe = 0 between segments in plane (dWr = NaN)
               if (dWr /= dWr) then
                  dWr = 0.
@@ -172,7 +172,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         e2 = (R(:,IP1)-R(:,II))/s2
         e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
-        CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+        CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
         if (dWr /= dWr) then
            dWr = 0.
@@ -195,7 +195,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         e2 = (R(:,IP1)-R(:,II))/s2
         e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
-        CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+        CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
         if (dWr /= dWr) then
            dWr = 0.
@@ -221,7 +221,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
   e2 = (R(:,IS2P1)-R(:,IS2))/s2
   e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
-  CALL  GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+  CALL  gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
   !Writhe = 0 between segments in plane (dWr = NaN)
   if (dWr /= dWr) then
      dWr = 0.
@@ -264,7 +264,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         e2 = (R(:,JP1)-R(:,IO))/s2
         e1 = (R(:,IS1P1)-R(:,IS1))/s1
 
-        CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+        CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
         if (dWr /= dWr) then
            dWr = 0.
@@ -288,7 +288,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
         e2 = (R(:,JP1)-R(:,IO))/s2
         e1 = (R(:,IS2P1)-R(:,IS2))/s1
 
-        CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+        CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
         !Writhe = 0 between segments in plane (dWr = NaN)
         if (dWr /= dWr) then
            dWr = 0.
@@ -308,7 +308,7 @@ subroutine WRITHESLIDE(R,IT1,IT2,N,Wr)
   Wr = 2.*Wr
 
   RETURN
-END subroutine WRITHESLIDE
+END subroutine writhe_slide
 
 
 

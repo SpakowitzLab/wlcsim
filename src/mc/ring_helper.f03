@@ -4,7 +4,7 @@ implicit none
 contains
 
 ! Add a bend point which is to the left of the selected segment
-subroutine bendPointsLeftRing(IT1)
+subroutine bend_points_left_ring(IT1)
 use polydispersity, only: is_left_end, rightmost_from
 use params, only: wlc_nBend, wlc_bendPoints
 implicit none
@@ -19,7 +19,7 @@ endif
 end subroutine
 
 ! Add a bend point which is to the right of the selected segment
-subroutine bendPointsRightRing(IT2)
+subroutine bend_points_right_ring(IT2)
 use params, only: wlc_nBend, wlc_bendPoints
 implicit none
 integer, intent(in) :: IT2
@@ -29,7 +29,7 @@ wlc_bendPoints(wlc_nBend) = IT2
 end subroutine
 
 ! Add a point moved which is to the left  of the selected segment
-subroutine pointsMovedLeftRing(IT1)
+subroutine points_moved_left_ring(IT1)
 use polydispersity, only: is_left_end, rightmost_from
 use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
     wlc_pointsMoved, wlc_nPointsMoved
@@ -51,7 +51,7 @@ endif
 end subroutine
 
 ! Add a point moved which is to the right of the selected segment
-subroutine pointsMovedRightRing(IT2)
+subroutine points_moved_right_ring(IT2)
 use polydispersity, only: is_right_end, leftmost_from
 use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
     wlc_pointsMoved, wlc_nPointsMoved

@@ -6,9 +6,9 @@
 !     chain identities change along with position so that middle
 !     beads appear not to change.
 !
-!     Created from MC_int_rep by Quinn on 8/10/17
+!     Created from mc_int_rep by Quinn on 8/10/17
 !---------------------------------------------------------------
-subroutine MC_int_super_rep(wlc_p,I1,I2,forward)
+subroutine mc_int_super_rep(wlc_p,I1,I2,forward)
 ! values from wlcsim_data
 use params, only: wlc_DPHIB, wlc_R, wlc_NPHI, wlc_DPHIA, wlc_inDPHI&
     , wlc_UP, wlc_ABP, wlc_U, wlc_AB, wlc_DPHI_l2, wlc_RP,wlc_ind_in_list
@@ -74,7 +74,7 @@ do II = 1,2
           rrdr = -1
       endif
   else
-      print*, "Error in MC_int_rep, II = {1,2}"
+      print*, "Error in mc_int_rep, II = {1,2}"
       stop 1
   endif
    ! subract current and add new
@@ -91,9 +91,9 @@ do II = 1,2
    endif
    if (energyOf(maierSaupe_)%isOn .and. isA) then
        if (rrdr == -1) then
-           call Y2calc(wlc_U(:,IB),phi2)
+           call y2_calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_UP(:,IB),phi2)
+           call y2_calc(wlc_UP(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted

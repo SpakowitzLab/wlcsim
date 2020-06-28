@@ -55,7 +55,7 @@ function random_to_cube(x,ii) result(energy)
 
 end function
 
-subroutine MC_external_field()
+subroutine mc_external_field()
 ! values from wlcsim_data
 use params, only: wlc_RP,  wlc_R, wlc_nPointsMoved, wlc_pointsMoved, nan
 use params, only: dp
@@ -139,7 +139,7 @@ enddo
 
 END
 
-subroutine MC_external_field_from_scratch()
+subroutine mc_external_field_from_scratch()
 ! values from wlcsim_data
 use params, only: wlc_R
 use params, only: dp, nan

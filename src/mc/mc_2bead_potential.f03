@@ -34,11 +34,11 @@ function two_bead_potential(x,bead1,bead2) result(potential)
     return
 end function
 
-subroutine MC_2bead_potential(MCTYPE)
+subroutine mc_2bead_potential(MCTYPE)
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_RP, dp, &
      wlc_nPointsMoved, wlc_pointsMoved, nMoveTypes, wlc_bin
-use binning, only: binType, findNeighbors, countBeads
+use binning, only: binType, find_neighbors, countBeads
 use energies, only: energyOf, twoBody_
 implicit none
 real(dp) two_bead_potential
@@ -59,7 +59,7 @@ do jj = 1,wlc_nPointsMoved
     !  ---   Energy between moved beads and unmoved beads ---
     ! plus new
     nNeighbors=0
-    call findNeighbors(wlc_bin, wlc_RP(:,ii), radius, wlc_R, &
+    call find_neighbors(wlc_bin, wlc_RP(:,ii), radius, wlc_R, &
         WLC_P__NT, maxNeighbors, neighbors, distances, nNeighbors)
     do kk = 1,nNeighbors
         otherBead=neighbors(kk)
@@ -89,7 +89,7 @@ do jj = 1,wlc_nPointsMoved
     enddo
     ! minus old
     nNeighbors=0
-    call findNeighbors(wlc_bin, wlc_R(:,ii), radius, wlc_R, &
+    call find_neighbors(wlc_bin, wlc_R(:,ii), radius, wlc_R, &
         WLC_P__NT, maxNeighbors, neighbors, distances, nNeighbors)
     do kk = 1,nNeighbors
         otherBead=neighbors(kk)
@@ -119,7 +119,7 @@ RETURN
 END
 
 !---------------------------------------------------------------!
-subroutine MC_2bead_potential_from_scratch()
+subroutine mc_2bead_potential_from_scratch()
 ! values from wlcsim_data
 use params, only: wlc_R
 use energies, only: energyOf, twoBody_

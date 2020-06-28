@@ -3,7 +3,7 @@
 !
 !     Written by Quinn 8/4/2017
 !--------------------------------------------------------------!
-subroutine MC_int_chem(wlc_p,I1,I2)
+subroutine mc_int_chem(wlc_p,I1,I2)
 ! values from wlcsim_data
 use params, only: wlc_inDPHI, wlc_DPHIA, wlc_DPHIB, wlc_U, wlc_AB&
     , wlc_ABP, wlc_R, wlc_DPHI_l2, wlc_NPHI
@@ -60,7 +60,7 @@ do IB = I1,I2
    !   I know that it looks bad to have this section of code twice but it
    !   makes it faster.
    if (energyOf(maierSaupe_)%isOn .and. WLC_P__CHI_L2_ABLE) then
-       call Y2calc(wlc_U(:,IB),phi2)
+       call y2_calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp

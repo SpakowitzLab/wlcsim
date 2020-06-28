@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_spider(MCAMP,rand_stat,success)
+subroutine mc_spider(MCAMP,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_UP, wlc_RP, wlc_explicitbindingpair, wlc_U, wlc_VP&
     , wlc_spiders, wlc_V, wlc_R, wlc_numberOfSpiders, wlc_nBend, wlc_bendPoints&
@@ -21,7 +21,7 @@ use precision, only: dp, eps
 use vector_utils, only: randomUnitVec, cross, distance, angle_of_triangle, &
                         round_into_pm1, rotateR, rotateU, axisAngle, &
                         rotateAintoB, random_perp
-use windowTools, only: drawWindow
+use windowTools, only: draw_window
 use polydispersity, only: are_on_same_chain
 
 implicit none
@@ -59,7 +59,7 @@ else
     if (WLC_P__NETWORK) then
         print*, "Netowrk only set up for precalced spider"
     endif
-    call drawWindow(WLC_P__SPIDER_WINDOW,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
+    call draw_window(WLC_P__SPIDER_WINDOW,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                     IT1,IT2,IB1,IB2,IP,DIB,success)
     if (success .eqv. .false.) return
 
@@ -429,7 +429,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
         write(ERROR_UNIT,*) "wlc_spider_id",wlc_spider_id,"wlc_spider_dr",wlc_spider_dr
         write(ERROR_UNIT,*) "leg_n",leg_n
         write(ERROR_UNIT,*) "value", distance(wlc_RP(:,toe),wlc_R(:,toe))
-        call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
+        call mc_describe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
         write(ERROR_UNIT,*) "---------------------"
     endif
     wlc_RP(:,toe) = wlc_R(:,toe) ! correct roundoff error, toe doesn't move
@@ -444,7 +444,7 @@ do leg_n = 1,wlc_spiders(wlc_spider_id)%nLegs
         write(ERROR_UNIT,*) "extent",extent
         write(ERROR_UNIT,*) "leg_n",leg_n
         write(ERROR_UNIT,*) "value", distance(wlc_RP(:,hip),extent)
-        call MC_discribe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
+        call mc_describe_spider(wlc_spider_id,wlc_spider_dr,ERROR_UNIT)
         write(ERROR_UNIT,*) "---------------------"
     endif
     wlc_RP(:,hip) = extent ! correct roundoff error
@@ -461,6 +461,6 @@ do section_n = 1,wlc_spiders(wlc_spider_id)%nSections
     enddo
 enddo
 
-!call MC_discribe_spider(wlc_spider_id,wlc_spider_dr)
+!call mc_describe_spider(wlc_spider_id,wlc_spider_dr)
 
 end subroutine

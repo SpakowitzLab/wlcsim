@@ -1,9 +1,9 @@
 #include "../defines.inc"
-module updateRU
-! use updateRU, only: updateR, checkR
+module update_rU
+! use update_rU, only: update_r, checkR
 contains
 
-subroutine updateR(I)
+subroutine update_r(I)
 ! values from wlcsim_data
 use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP&
     , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap
@@ -33,7 +33,7 @@ if (WLC_P__NEIGHBOR_BINS) then
             endif
         endif
     else
-        print*, "Not an option yet.  See MCsim."
+        print*, "Not an option yet.  See mcsim."
         stop 1
     endif
 endif
@@ -83,7 +83,7 @@ if (WLC_P__NEIGHBOR_BINS) then
             endif
         endif
     else
-        print*, "Not an option yet.  See MCsim."
+        print*, "Not an option yet.  See mcsim."
         stop 1
     endif
 else if (WLC_P__GJK_STERICS) then 
@@ -116,7 +116,7 @@ else if (WLC_P__GJK_STERICS) then
     endif
 endif
 
-end subroutine updateR
+end subroutine update_r
 
 
 function checkR(I,IT1,IT2)

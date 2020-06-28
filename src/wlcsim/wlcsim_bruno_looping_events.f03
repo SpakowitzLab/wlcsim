@@ -50,9 +50,9 @@ if (save_ind == 1) then
     ! perform initialization mc if applicable, save before and after
     !brown always true
     call save_simulation_state(-1, wlc_p, outfile_base, 'NEW')
-    call InitializeEnergiesForVerifier(wlc_p)
-    call MCsim(wlc_p, WLC_P__NINITMCSTEPS)
-    call VerifyEnergiesFromScratch(wlc_p)
+    call initialize_energies_from_scratch(wlc_p)
+    call mcsim(wlc_p, WLC_P__NINITMCSTEPS)
+    call verify_energies_from_scratch(wlc_p)
     call save_simulation_state(0, wlc_p, outfile_base, 'REPLACE')
     ! for BDsim
     allocate(R0(3,WLC_P__NT))

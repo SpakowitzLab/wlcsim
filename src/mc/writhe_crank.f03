@@ -1,6 +1,6 @@
   !Calculate the portion of the writhe that changes during a crankshaft move
 
-subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
+subroutine writhe_crank(R,IT1,IT2,N,Wr)
   use params, only : dp
   implicit none
 
@@ -80,7 +80,7 @@ subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
         e2 = (R(:,JP1)-R(:,IO))/s2
         e1 = (R(:,IP1)-R(:,II))/s1
 
-        CALL GAUSSPAIR(R1,R2,e1,e2,s1,s2,dWr)
+        CALL gauss_pair(R1,R2,e1,e2,s1,s2,dWr)
         !Wr = 0 for segments in plane (Wr = NaN)
         if (dWr /= dWr) then
            dWr = 0.
@@ -103,7 +103,7 @@ subroutine WRITHECRANK(R,IT1,IT2,N,Wr)
   Wr = 2.*Wr
 
   RETURN
-END subroutine WRITHECRANK
+END subroutine writhe_crank
 
 
 

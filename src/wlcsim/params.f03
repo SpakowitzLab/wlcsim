@@ -18,8 +18,8 @@ module params
     use precision, only: dp, eps, epsapprox, pi, nan
     use inputparams, only: MAXPARAMLEN
     use binning, only: constructBin, binType, addBead
-    use precalc_spider, only: spider, load_precalc_spiders, get_highestNumberOfLegs
-    use nucleosome, only: nucleosomeProp, multiParams
+    use precalc_spider, only: spider, load_precalc_spider, get_highestNumberOfLegs
+    use nucleosome, only: nucleosome_prop, multiParams
     implicit none
 
     public
@@ -196,7 +196,7 @@ module params
 
 
     ! Linking number, Twist, and Writhe (only for one-chain simulation)
-    ! These values are updated in MCsim, checked against and update to their values
+    ! These values are updated in mcsim, checked against and update to their values
     ! from scratch in verfyEnergiesFromScratch, and save to file at every save point.
     real(dp) wlc_Lk         ! Linking number
     real(dp) wlc_Tw         ! Twist
@@ -523,8 +523,8 @@ contains
 
 
     subroutine initialize_wlcsim_data( wlc_p)
-        use nucleosome, only: loadNucleosomePositions
-!        use savepointLinkingNumber, only: calcTwWrLk
+        use nucleosome, only: load_nucleosome_positions
+!        use savepointLinkingNumber, only: calc_twWrLk
         use polydispersity, only: max_chain_length, setup_polydispersity
         use energies, only: set_all_energy_to_zero
         use GJKAlgorithm, only: constructPolygonPrism
@@ -679,7 +679,7 @@ contains
         allocate(wlc_pointsMoved(WLC_P__NT))
         if (WLC_P__MOVEON_SPIDER .ne. 0) then
             iostr='input/spiders'
-            call load_precalc_spiders(iostr,wlc_spiders,wlc_numberOfSpiders)
+            call load_precalc_spider(iostr,wlc_spiders,wlc_numberOfSpiders)
             wlc_maxNBend = 2000 + 4*get_highestNumberOfLegs(wlc_spiders,wlc_numberOfSpiders)
         else
             wlc_maxNBend = 2000
@@ -757,7 +757,7 @@ contains
         call random_setseed(wlc_rand_seed, wlc_rand_stat)
 #endif
         if (WLC_P__ELASTICITY_TYPE=='nucleosomes') then
-            call loadNucleosomePositions(wlc_nucleosomeWrap,wlc_basepairs)
+            call load_nucleosome_positions(wlc_nucleosomeWrap,wlc_basepairs)
         endif
 
         call initcond(wlc_R, wlc_U, WLC_P__NT, &
@@ -806,7 +806,7 @@ contains
 
             ! calculate volumes of bins
             if (WLC_P__CONFINETYPE.eq.'sphere' .and. WLC_P__FRACTIONAL_BIN) then
-                call MC_calcVolume(WLC_P__DBIN, &
+                call mc_calc_volume(WLC_P__DBIN, &
                                 WLC_P__LBOX_X, wlc_Vol, wlc_rand_stat)
             endif
         endif

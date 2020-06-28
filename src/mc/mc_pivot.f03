@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_pivot(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,success)
+subroutine mc_pivot(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,success)
 ! values from wlcsim_data
 use params, only: wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_V&
     , wlc_VP, wlc_bendPoints, wlc_nBend, wlc_nPointsMoved, wlc_pointsMoved
@@ -17,7 +17,7 @@ use params, only: wlc_RP, wlc_R, wlc_UP, wlc_U, wlc_V&
 use mersenne_twister
 use params, only: dp
 use vector_utils, only: randomUnitVec, rotateR, rotateU, axisAngle
-use windowTools, only: exponential_random_int, enforceBinding
+use windowTools, only: exponential_random_int, enforce_binding
 use polydispersity, only: length_of_chain, get_I
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -67,7 +67,7 @@ endif
         IT1 = get_I(IB1,IP)
         IT2 = get_I(IB2,IP)
         if (WLC_P__EXPLICIT_BINDING) then
-            call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
+            call enforce_binding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
             if (success .eqv. .False.) return
         else
             success = .TRUE.
@@ -93,7 +93,7 @@ endif
         IT1 = get_I(IB1,IP)
         IT2 = get_I(IB2,IP)
         if (WLC_P__EXPLICIT_BINDING) then
-            call enforceBinding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
+            call enforce_binding(rand_stat,IB1,IB2,IT1,IT2,WLC_P__MAXWINDOW_PIVOT_MOVE,success)
             if (success .eqv. .False.) return
         else
             success = .TRUE.

@@ -12,7 +12,7 @@
 ! Should probably be update so that s1/s2 are outside of e.g. [0,d1], we need to check that the endpoints (the beads themselves)
 ! are not actually colliding.
 
-      subroutine MC_self(DESELF,R,U,RP,UP,NT,N,NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
+      subroutine mc_self(DESELF,R,U,RP,UP,NT,N,NP,IP,IB1,IB2,IT1,IT2,LHC,VHC,LBOX,GAM)
       use params, only : dp
       implicit none
       real(dp) R(3,NT)  ! Bead positions

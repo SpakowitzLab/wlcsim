@@ -9,7 +9,7 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_slide(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
+subroutine mc_slide(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
     wlc_nBend, wlc_bendPoints, wlc_pointsMoved, wlc_nPointsMoved, &
@@ -17,10 +17,10 @@ use params, only: wlc_RP, wlc_R, wlc_U, wlc_VP, wlc_V, wlc_UP, &
 
 use mersenne_twister
 use params, only: dp
-use windowTools, only: drawWindow
+use windowTools, only: draw_window
 use polydispersity, only: is_right_end, is_left_end, first_bead_of_chain, last_bead_of_chain, length_of_chain
-use ringHelper, only: bendPointsLeftRing, bendPointsRightRing, &
-    pointsMovedLeftRing, pointsMovedRightRing
+use ringHelper, only: bend_points_left_ring, bend_points_right_ring, &
+    points_moved_left_ring, points_moved_right_ring
 
 
 implicit none
@@ -46,7 +46,7 @@ integer indx
 logical duplicates
 
 !     Perform slide move (MCTYPE 2)
-call drawWindow(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
+call draw_window(window,WLC_P__MAXWINDOW_SLIDE_MOVE,.false.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
 
 call random_number(urand,rand_stat)
@@ -79,16 +79,16 @@ if (.not. WLC_P__RING) then                 ! polymer is not a ring
     endif
 else                                        ! polymer is a ring
     if (length_of_chain(IP) - DIB > 2) then
-        call bendPointsLeftRing(IT1)
-        call pointsMovedLeftRing(IT1)
-        call bendPointsRightRing(IT2)
-        call pointsMovedRightRing(IT2)
+        call bend_points_left_ring(IT1)
+        call points_moved_left_ring(IT1)
+        call bend_points_right_ring(IT2)
+        call points_moved_right_ring(IT2)
     elseif (length_of_chain(IP) - DIB == 2) then
-        call bendPointsLeftRing(IT1)
-        call pointsMovedLeftRing(IT1)
-        call bendPointsRightRing(IT2)
+        call bend_points_left_ring(IT1)
+        call points_moved_left_ring(IT1)
+        call bend_points_right_ring(IT2)
     elseif (length_of_chain(IP) - DIB == 1) then
-        call bendPointsLeftRing(IT1)
+        call bend_points_left_ring(IT1)
     else
         print*, 'DIB should not take this value', DIB
         stop 1

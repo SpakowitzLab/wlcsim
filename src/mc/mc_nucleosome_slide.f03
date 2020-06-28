@@ -7,7 +7,7 @@
 !
 !---------------------------------------------------------------
 
-subroutine MC_nucleosomeSlide(IB1,IB2,IT1,IT2,rand_stat,success)
+subroutine mc_nucleosome_slide(IB1,IB2,IT1,IT2,rand_stat,success)
 ! this move will "slide" a nucleosome bead some fractional basepair 
 ! this is implemented by changed the discretization of the neighboring beads
 ! i.e. if you move a nucleosome +1bp along the chain, then the discretization to
@@ -25,7 +25,7 @@ use mersenne_twister
 use params, only: dp
 use windowTools, only: exponential_random_int
 use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
-use nucleosome, only: nucleosomeProp
+use nucleosome, only: nucleosome_prop
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1

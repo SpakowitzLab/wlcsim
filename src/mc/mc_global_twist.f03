@@ -5,7 +5,7 @@
 !          from writh.  From Brad's Code
 !
 !--------------------------------------------------------------
-subroutine MC_global_twist(IT1,IT2,MCTYPE)
+subroutine mc_global_twist(IT1,IT2,MCTYPE)
 ! values from wlcsim_data
 use params, only: wlc_R, wlc_RP
 use energies, only: energyOf, global_twistLiner_, global_twistquadratic_
@@ -26,12 +26,12 @@ integer MCTYPE            ! MC move type
 ! Setup parameters
 
     if (MCTYPE == 1) then
-        CALL WRITHECRANK(wlc_R,IT1,IT2,WLC_P__NB,WRM)
-        CALL WRITHECRANK(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
+        CALL writhe_crank(wlc_R,IT1,IT2,WLC_P__NB,WRM)
+        CALL writhe_crank(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
         DWR = WRMP-WRM
     elseif (MCTYPE == 2) then
-        CALL WRITHESLIDE(wlc_R,IT1,IT2,WLC_P__NB,WRM)
-        CALL WRITHESLIDE(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
+        CALL writhe_slide(wlc_R,IT1,IT2,WLC_P__NB,WRM)
+        CALL writhe_slide(wlc_RP,IT1,IT2,WLC_P__NB,WRMP)
         DWR = WRMP-WRM
     else
         DWR = 0.0_dp

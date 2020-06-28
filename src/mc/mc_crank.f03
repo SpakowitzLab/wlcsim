@@ -9,17 +9,17 @@
 
 ! variables that need to be allocated only on certain branches moved into MD to prevent segfaults
 ! please move other variables in as you see fit
-subroutine MC_crank(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
+subroutine mc_crank(IB1,IB2,IT1,IT2,MCAMP,WindoW,rand_stat,dib,success)
 ! values from wlcsim_data
 use params, only: wlc_VP, wlc_UP, wlc_V, wlc_RP, wlc_U, wlc_R, wlc_nBend, wlc_bendPoints, wlc_nPointsMoved, wlc_pointsMoved
 
 use mersenne_twister
 use params, only: dp,  eps
 use vector_utils, only: rotateR, rotateU, axisAngle, randomUnitVec
-use windowTools, only: drawWindow
+use windowTools, only: draw_window
 use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain, rightmost_from, leftmost_from
-use ringHelper, only: bendPointsLeftRing, bendPointsRightRing, &
-    pointsMovedLeftRing, pointsMovedRightRing
+use ringHelper, only: bend_points_left_ring, bend_points_right_ring, &
+    points_moved_left_ring, points_moved_right_ring
 
 implicit none
 integer, intent(out) :: IB1   ! Test bead position 1
@@ -52,7 +52,7 @@ real(dp), intent(in) :: WindoW ! Size of window for bead selection
 real(dp) d1,d2  !for testing
 
 !     Perform crank-shaft move (MCTYPE 1)
-call drawWindow(window,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
+call draw_window(window,WLC_P__MAXWINDOW_CRANK_SHAFT,.true.,rand_stat,&
                 IT1,IT2,IB1,IB2,IP,DIB,success)
 if (success .eqv. .false.) return
 
@@ -80,16 +80,16 @@ if (.not. WLC_P__RING) then                 ! polymer is not a ring
     endif
 else                                        ! polymer is a ring
     if (length_of_chain(IP) - DIB > 2) then
-        call bendPointsLeftRing(IT1)
-        call pointsMovedLeftRing(IT1)
-        call bendPointsRightRing(IT2)
-        call pointsMovedRightRing(IT2)
+        call bend_points_left_ring(IT1)
+        call points_moved_left_ring(IT1)
+        call bend_points_right_ring(IT2)
+        call points_moved_right_ring(IT2)
     elseif (length_of_chain(IP) - DIB == 2) then
-        call bendPointsLeftRing(IT1)
-        call pointsMovedLeftRing(IT1)
-        call bendPointsRightRing(IT2)
+        call bend_points_left_ring(IT1)
+        call points_moved_left_ring(IT1)
+        call bend_points_right_ring(IT2)
     elseif (length_of_chain(IP) - DIB == 1) then
-        call bendPointsLeftRing(IT1)
+        call bend_points_left_ring(IT1)
     else
         print*, 'DIB should not take this value', DIB
         stop 1

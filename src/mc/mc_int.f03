@@ -1,5 +1,5 @@
 #include "../defines.inc"
-subroutine MC_int_initialize(wlc_p)
+subroutine mc_int_intitialize(wlc_p)
 !This subroutine calculates the field energy from scratch based
 !on the positions and types of the beads as described in
 !the hamiltonian.
@@ -53,7 +53,7 @@ do IB = 1,WLC_P__NT
 
    if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn .and.&
        wlc_AB(IB).eq.1 ) then
-       call Y2calc(wlc_U(:,IB),phi2)
+       call y2_calc(wlc_U(:,IB),phi2)
    else
        ! You could give some MS parameter to B as well if you wanted
        phi2=0.0_dp
@@ -127,7 +127,7 @@ call hamiltonian(wlc_p,initialize)
 RETURN
 END
 
-subroutine MC_int_update(wlc_p)
+subroutine mc_int_update(wlc_p)
 !This subroutine calculates the change in the field energy after
 !a Monte Carlo move.  Calculation only performed for bins containing
 !moved (or changed) beads.
@@ -143,16 +143,16 @@ integer I,J
 wlc_NPHI = 0
 do I = 1,wlc_nPointsMoved
     J = wlc_pointsMoved(I)
-    call CalcDphi(wlc_p,J)
+    call calc_dphi(wlc_p,J)
 enddo
 do I = 1,wlc_NPHI
    J = wlc_inDPHI(I)
    wlc_ind_in_list(J) = -1
 enddo
 call hamiltonian(wlc_p,initialize) ! calculate change in energy based on density change
-end subroutine MC_int_update
+end subroutine mc_int_update
 
-subroutine CalcDphi(wlc_p,IB)
+subroutine calc_dphi(wlc_p,IB)
 !This subroutine calculated the change in volume fraction in various bins
 !assocated with the motion of bead IB.  The old positon is taken from wlc_R
 !while the new position is taken from wlc_RP.
@@ -219,9 +219,9 @@ integer ind_Z_temp, ind_ZY_temp
    !   makes it faster.
    if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn .and. wlc_AB(IB).eq.1) then
        if (rrdr == -1) then
-           call Y2calc(wlc_U(:,IB),phi2)
+           call y2_calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_UP(:,IB),phi2)
+           call y2_calc(wlc_UP(:,IB),phi2)
        endif
    elseif (WLC_P__CHI_L2_ABLE) then
        ! You could give some MS parameter to B as well if you wanted

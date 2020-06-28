@@ -12,7 +12,7 @@
 !
 !     Edited by Quinn in 2016
 
-subroutine MC_int_rep(wlc_p,I1,I2,forward)
+subroutine mc_int_rep(wlc_p,I1,I2,forward)
 ! values from wlcsim_data
 use params, only: wlc_DPHI_l2, wlc_U, wlc_UP, wlc_DPHIA, wlc_R&
     , wlc_NPHI, wlc_RP, wlc_DPHIB, wlc_inDPHI, wlc_AB, wlc_ind_in_list
@@ -71,7 +71,7 @@ do II = 1,2
           rrdr = -1
       endif
   else
-      print*, "Error in MC_int_rep, II = {1,2}"
+      print*, "Error in mc_int_rep, II = {1,2}"
       stop 1
   endif
    ! subract current and add new
@@ -91,9 +91,9 @@ do II = 1,2
    endif
    if (energyOf(maierSaupe_)%isOn .and. isA) then
        if (rrdr == -1) then
-           call Y2calc(wlc_U(:,IB),phi2)
+           call y2_calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_UP(:,IB),phi2)
+           call y2_calc(wlc_UP(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -212,9 +212,9 @@ do IB = I1,I2-1
 
    if (energyOf(maierSaupe_)%isOn) then
        if (forward) then
-           call Y2calc(wlc_UP(:,IB),phi2)
+           call y2_calc(wlc_UP(:,IB),phi2)
        else
-           call Y2calc(wlc_U(:,IB),phi2)
+           call y2_calc(wlc_U(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted

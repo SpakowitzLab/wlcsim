@@ -14,7 +14,7 @@
 !    3         |  Circle of radius LBox, centered at LBox/2
 !    4         |  Periodic, non-equal lengths
 
-subroutine MC_confine(RP, NT, IT1, IT2, ECon)
+subroutine mc_confine(RP, NT, IT1, IT2, ECon)
 use params, only: dp, HUGE_ENERGY, wlcsim_params
 implicit none
 
