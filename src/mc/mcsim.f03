@@ -134,7 +134,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
           endif
 
         ! set wlc_basepairs to prop if not slide move
-        if (MCTYPE/=13) then 
+        if (MCTYPE/=13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then 
             wlc_basepairs_prop = wlc_basepairs
         endif
 
@@ -301,7 +301,7 @@ use params, only: wlc_PHit, wlc_CrossP, wlc_ABP &
                       wlc_AB(I) = wlc_ABP(I)
                  ENDdo
              endif
-             if (MCTYPE==13) then 
+             if (MCTYPE==13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then 
                 wlc_basepairs = wlc_basepairs_prop
             endif
              if(MCTYPE /= 7) then

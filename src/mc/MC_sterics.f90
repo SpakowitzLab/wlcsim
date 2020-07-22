@@ -29,6 +29,7 @@ real(dp) UALL(3,WLC_P__NT) ! all bead U
 real(dp) VALL(3,WLC_P__NT) ! all bead V
 real(dp) SGJK(WLC_P__GJK_POLYGON,3,WLC_P__NT) ! all vertices for GJK
 real(dp) RGJK(3,WLC_P__NT) ! all centers for GJK
+real(dp) basepairs(WLC_P__NT) ! basepairs
 real(dp) distances(WLC_P__NT) ! Returned distances
 integer neighbors(WLC_P__NT) ! ID of neighboring beads
 integer nn ! number of neighbors
@@ -74,6 +75,12 @@ if (wlc_nPointsMoved>0) then
                         nn,neighbors(1:nn),distances(1:nn),.true.)
             endif
         enddo
+    endif
+    ! set basepairs vector
+    if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then 
+        basepairs = wlc_basepairs_prop
+    else
+        basepairs = wlc_basepairs
     endif
     ! replace old beads with new moved beads
     k = 1
@@ -139,7 +146,7 @@ if (wlc_nPointsMoved>0) then
             k = k+1
             call findNeighbors(RGJK(:,i-1),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
-            call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,ignore,i-1,&
+            call sterics_check(collisions,RALL,UALL,VALL,SGJK,basepairs,ignore,i-1,&
                     nn,neighbors(1:nn),distances(1:nn),netSterics)
         endif
         ! check succeeding bead
@@ -148,7 +155,7 @@ if (wlc_nPointsMoved>0) then
             k = k+1
             call findNeighbors(RGJK(:,i),2*WLC_P__GJK_RADIUS,RGJK,WLC_P__NT,WLC_P__NT,neighbors,distances,nn)
             ! check for collisions
-            call sterics_check(collisions,RALL,UALL,VALL,SGJK,wlc_basepairs_prop,ignore,i,&
+            call sterics_check(collisions,RALL,UALL,VALL,SGJK,basepairs,ignore,i,&
                     nn,neighbors(1:nn),distances(1:nn),netSterics)
         endif
     enddo

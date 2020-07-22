@@ -24,10 +24,18 @@ integer IT2
 integer IT2P1
 integer IT2M1
 real(dp) energy_change(4)
+real(dp) basepairs(WLC_P__NT)
 integer ii
 
 ! Setup parameters
 energy_change = 0.0_dp
+
+! set basepairs vector
+if (WLC_P__MOVEON_NUCLEOSOMESLIDE==1) then 
+    basepairs = wlc_basepairs_prop
+else
+    basepairs = wlc_basepairs
+endif
 
 !     Calculate the change in the energy
 do ii=1,wlc_nBend
@@ -85,7 +93,7 @@ do ii=1,wlc_nBend
             energy_change = energy_change + nucleosome_energy(wlc_RP(:,IT2P1),wlc_RP(:,IT2)&
                                             ,wlc_UP(:,IT2P1),wlc_UP(:,IT2)&
                                             ,wlc_VP(:,IT2P1),wlc_VP(:,IT2)&
-                                            ,wlc_basepairs_prop(IT2)&
+                                            ,basepairs(IT2)&
                                             ,wlc_nucleosomeWrap(IT2))
             energy_change = energy_change - nucleosome_energy(wlc_R(:,IT2P1),wlc_R(:,IT2)&
                                             ,wlc_U(:,IT2P1),wlc_U(:,IT2)&

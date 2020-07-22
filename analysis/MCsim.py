@@ -1,5 +1,15 @@
 #/usr/bin/python 
-# npagane | python object to store MC data with tools to perform simple analyses
+"""Simulation objects to help read in wlcsim data and perform simple analyses/vizualizations.
+
+--------------
+EXAMPLE USAGES
+--------------
+
+dat = Simulation(time_max=10) # read in data
+dat.trials[''].trajectories[''].playCoarseMovie(pymol=PATH_TO_PYMOL) # vizualize trajectory
+dat.trials[''].trajectories[''].snapshots[1].end_to_end # get end-to-end distance
+
+"""
 
 import sys
 import pathlib
@@ -16,6 +26,9 @@ from scipy.ndimage import gaussian_filter
 import pickle
 
 class Simulation:
+    """Simulation object to store all your data. You should only directly interface with THIS object when
+    loading data. Assumes you are in the top level folder of this entire (wlcsim) repo. Must specify the 
+    amount of snapshots to read in by setting time_max."""
     def __init__(self,path_to_data=defaultDirectory+'data/',trials=[''],trajectories=[''],
                  time_min=0,time_max=110,channel=0):
         # path to data directory
@@ -30,13 +43,16 @@ class Simulation:
         # remove intermediary data structures if they do not exist
         self.unnest()
     def returnTrials(self):
+        """Return a list of the trial keys"""
         return self.trials.keys()
     def returnTrajectories(self):
+        """Return a dictionary with all of the trajectory keys of all trials"""
         tempDict = {}
         for i in self.trials.keys():
             tempDict[i] = self.trials[i].trajectories.keys()
         return tempDict
     def returnSnapshots(self):
+        """Return a dictionary with all of the snapshot keys of all trajectories of all trials"""
         tempDict = {}
         for i in self.trials.keys():
             tempDict[i] = {}
@@ -44,6 +60,8 @@ class Simulation:
                 tempDict[i][j] = self.trials[i].trajectories[j].snapshots.keys()
         return tempDict
     def linearizeSnapshots(self):
+        """Append all snapshots from all trajectories and trials into this Simulation object to 
+        gather metrics"""
         self.linearized_snapshots = []
         snapshots=self.returnSnapshots()
         for i in snapshots.keys():
@@ -51,6 +69,8 @@ class Simulation:
                 for k in snapshots[i][j]:
                     self.linearized_snapshots.append(self.trials[i].trajectories[j].snapshots[k])
     def unnest(self):
+        """Remove unnecessary nesting of objects, i.e. if there are 0 trials but 2 trajectories, have
+        the trajectories objects reachable from this main Simulation object"""
         trials=self.returnTrials()
         trajectories=self.returnTrajectories()
         snapshots=self.returnSnapshots()
@@ -67,6 +87,7 @@ class Simulation:
                 if '' in trajectories[i]:
                     self.trials[i] = self.trials[i].trajectories['']
     def getCenterBeads(self):
+        """"""
         #mulitprocessing does not work with class methods GRRR >:|
         for i in self.linearized_snapshots:
             i.centerBeads()
@@ -185,8 +206,12 @@ class Snapshot:
         else:
             self.v = None
         # load discretization data
-        disc = np.loadtxt('%sd%sv%s' %(self.path_to_data,self.time,self.channel), dtype='float')
-        self.wrap = np.asarray(disc[0],dtype='int'); self.basepairs = disc[1]
+        try: 
+            disc = np.loadtxt('%sd%sv%s' %(self.path_to_data,self.time,self.channel), dtype='float')
+            self.wrap = np.asarray(disc[0],dtype='int'); self.basepairs = disc[1]
+        except:
+            self.basepairs = np.array([10.5]*len(self.r))
+            self.wrap = np.array([1]*len(self.r))
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
