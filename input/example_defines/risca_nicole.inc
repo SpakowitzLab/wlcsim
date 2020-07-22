@@ -248,7 +248,7 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 52
+#define WLC_P__NB 118
 ! VARIABLE COMMENT: ! Number of beads in a polymer.  Note that NB = nMpP*nBpM.
 ! DEFAULTS COMMENT: ! 201 beads per polymer
 ! TYPE: INTEGER
@@ -346,7 +346,7 @@
 ! DEFAULTS COMMENT: ! known value in nm
 ! TYPE: REAL(DP)
 
-#define WLC_P__LL 45_DP
+#define WLC_P__LL 45.0_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
