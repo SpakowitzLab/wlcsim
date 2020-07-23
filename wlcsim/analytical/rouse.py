@@ -297,7 +297,7 @@ def ring_mscd(t, D, Ndel, N, num_modes=1000):
     DEL is fraction of way along the loop, so N is actually half the length of
     the ring (hence the "1/2"'s).
 
-    .. code-block:: matlab
+    .. code-block :: matlab
 
         % number of P modes
         PMAX=10000;

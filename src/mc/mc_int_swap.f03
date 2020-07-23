@@ -9,7 +9,7 @@
 !     Written by Quinn in 2016 based on code from Andrew Spakowitz and Shifan
 !
 !---------------------------------------------------------------!
-subroutine MC_int_swap(wlc_p,I1,I2,I3,I4)
+subroutine mc_int_swap(wlc_p,I1,I2,I3,I4)
 ! values from wlcsim_data
 use params, only: wlc_UP, wlc_DPHIA, wlc_RP, wlc_NPHI&
     , wlc_AB, wlc_R, wlc_dPHI_l2, wlc_U, wlc_DPHIB, wlc_inDPHI&
@@ -49,11 +49,11 @@ if (WLC_P__TWO_TAIL) then
     stop 1
 endif
 if (I2-I1 + 1.ne.length_of_chain_containing(I1)) then
-    print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
+    print*, "Error in mc_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
 if (I4-I3 + 1.ne.length_of_chain_containing(I3)) then
-    print*, "Error in MC_int_swap. I2-I1 + 1.ne.NB"
+    print*, "Error in mc_int_swap. I2-I1 + 1.ne.NB"
     stop 1
 endif
 if (length_of_chain_containing(I1).ne.length_of_chain_containing(I3)) then
@@ -61,7 +61,7 @@ if (length_of_chain_containing(I1).ne.length_of_chain_containing(I3)) then
     stop 1
 endif
 if (.not.(min(I1,I2)>max(I3,I4) .or. min(I3,I4)>max(I1,I2))) then
-    print*, "Error in MC_int_swap. Overlappling regions"
+    print*, "Error in mc_int_swap. Overlappling regions"
     print*, I1,I2,"|",I3,I4
 endif
 if (WLC_P__FIELDINTERACTIONTYPE == 'chromatin2') then
@@ -96,9 +96,9 @@ do IB = I1,I2
    AminusB = -1+2*wlc_AB(IB) ! -1 if B and +1 if A
    if (WLC_P__CHI_L2_ABLE .and. energyOf(maierSaupe_)%isOn) then
        if (rrdr == -1) then
-           call Y2calc(wlc_U(:,IB),phi2)
+           call y2_calc(wlc_U(:,IB),phi2)
        else
-           call Y2calc(wlc_UP(:,IB),phi2)
+           call y2_calc(wlc_UP(:,IB),phi2)
        endif
    else
        ! You could give some MS parameter to B as well if you wanted
@@ -162,7 +162,7 @@ enddo
 call hamiltonian(wlc_p,.false.)
 
 if (abs(energyOf(kap_)%dx).gt.0.0001_dp) then
-    print*, "Error in MC_int_swap.  Kappa energy shouldn't change on move 9"
+    print*, "Error in mc_int_swap.  Kappa energy shouldn't change on move 9"
     print*, "DEKap", energyOf(kap_)%dx
     stop 1
 endif

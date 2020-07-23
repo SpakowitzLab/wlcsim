@@ -38,3 +38,7 @@ before_script:
 script:
     - make clean && make FC='mpif90'
     - make clean && make FC='gfortran-5'
+    - make clean && cp input/example_defines/LAM_attraction_base.inc src/defines && make FC='mpif90'
+    - make clean && cp input/example_defines/MBS_PNAS_2018_baseCase.inc src/defines && make FC='mpif90'
+    - make clean && cp input/example_defines/sedona_base.inc src/defines && make FC='mpif90'
+    - make clean && cp input/example_defines/simple_DNA.inc src/defines && make FC='gfortran-5'

@@ -8,30 +8,48 @@ WormLike Chain SIMulator
     :target: https://wlcsim.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-What wlcsim is
---------------
+What is *wlcsim*?
+-------------------
 
-This is a project started by the Spakowitz lab to make varioius polymer physics
-simulations / calulations.  The bulk of the codebalse is built around a FORTRAN
-code that is designed to efficiently simulate various systems of wormlike
-chain polymer(s) using various coarse-grainings where applicable.  This code
-performs Monte Carlo or Brownian dynamics simulations.
+A project started by the Spakowitz lab for carrying out various polymer physics
+calculations, especially multi-scale, coarse-grained simulation and theory
+relating to semiflexible polymers. The library has been applied largely to
+simulate DNA, and to compare results from polymer field theory to measurements
+of biological polymer systems, but our `universal coarse graining procedure
+<https://journals.aps.org/pre/abstract/10.1103/PhysRevE.90.013304>`_ and our
+`field <https://pubs.acs.org/doi/abs/10.1021/acs.macromol.5b02639>`_ `theoretic
+<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.067802>`_
+`results <https://pubs.acs.org/doi/abs/10.1021/acsmacrolett.7b00638>`_ should be
+broadly applicable to any semiflexible polymer system.
 
-The wlcsim projects also contains various related code in Python  These include
-a more modern Browning dynamics simulation as well as a number of analytical
-calculations.  For more details on these see :ref:`wlcsimpy`.
+For example, combining our coarse graining procedure with `field theoretic
+simulations
+<https://pubs.rsc.org/ko/content/articlelanding/2017/sm/c7sm00164a/unauth#!divAbstract>`_,
+we were `able to simulate <https://www.pnas.org/content/115/50/12739>`_ the
+phase segregation of an entire chromosome due to H3K9 methylation.
 
-The remainder of this section focusus on the FORTRAN code.
-The features of this codebase are described in :ref:`features`.
 
-More details on how the code is structured see :ref:`wlcsimf`
+There are two largely independent codebases that are each called *wlcsim*.
+One is a Fortran program that implements our universal coarse graining procedure
+to allow Monte Carlo and Brownian dynamics simulations of semiflexible polymers
+with high discretization lengths (i.e. with a very small number of beads). The
+Monte Carlo routines in this codebase are highly optimized, and integrated with
+our field theoretic simulations. For details see :ref:`wlcsimf`.
 
-Setting up a simulation
------------------------
+There is an associated Python package, :mod:`wlcsim`, which can be used to help
+process the output of our Fortran code, but also contains much easier to use
+Monte Carlo and Brownian dynamics routines. For more details on this package,
+see the :ref:`wlcsimpy` docs.
+
+The remainder of this section focusus on the FORTRAN code. The features of this
+codebase are described in :ref:`features`.
+
+Setting up a Fortran simulation
+-------------------------------
 
 To define the system you would like to simulate, set the approparte values
-``src\defines.inc``.  Discriptions of each parameter are found along with their
-definitions in ``src\defines.inc``.  In pracatice, the best approach is often to
+``src/defines.inc``.  Discriptions of each parameter are found along with their
+definitions in ``src/defines.inc``.  In pracatice, the best approach is often to
 start from examples provided in ``input/example_defines/``.
 
 Some parameters that MUST be set are given default values that prevent the code
@@ -41,23 +59,22 @@ persistence length, etc).
 
 For tips on setting up and running simulations see :ref:`tips`.
 
-To Run
-------
+Running the Fortran code
+------------------------
 
+Simply typing ``make`` in the top level directory will build the simulator from
+source. The executable created (``wlcsim.exe``) will data from the ``input/``
+directoyr and write its output to the ``data`` directory.  To force a rerun
+without having to manually delete all the old output files, you can also simply
+type ``make run`` at any time.
 
-Simply typing ``make`` in the top level directory will build the simulator
-from source. The executable created (``wlcsim.exe``) will data from the ``input/``
-directoyr and write its output to the ``data`` directory.
-To force a rerun without having to manually delete all the old output files, you
-can also simply type ``make run`` at any time.
+By default, specifying multiple polymers just simulates them in parallel in the
+same reaction volume, no interactions are assumed.
 
-By default, specifying multiple polymers just simulates them in parallel in the same
-reaction volume, no interactions are assumed.
-
-To scan parameters, the Python script ``scan_wlcsim.py`` should be used. It takes
-care of saving the current git commit\_hash, all inputs, etc. into a unique
-directory, and preventing race conditions even on shared filesystems, among
-other things.
+To scan parameters, the Python script ``scan_wlcsim.py`` should be used. It
+takes care of saving the current git commit\_hash, all inputs, etc. into a
+unique directory, and preventing race conditions even on shared filesystems,
+among other things.
 
 To perform parallel tempering using MPI for multiprocessing using 10 threads
 first compile using ``make`` then type ``mpirun -np 10 wlcsim.exe``.  For more

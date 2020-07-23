@@ -7,14 +7,44 @@ wlcsim Python Module
     :members:
     :private-members:
 
+wlcsim.bd
+=========
+.. automodule:: wlcsim.bd
+    :members:
+    :private-members:
+
 wlcsim.bd.rouse
 ---------------
 .. automodule:: wlcsim.bd.rouse
     :members:
     :private-members:
 
-wlcsim.analytical
+wlcsim.bd.homolog
 -----------------
+.. automodule:: wlcsim.bd.homolog
+    :members:
+    :private-members:
+
+wlcsim.bd.forces
+----------------
+.. automodule:: wlcsim.bd.forces
+    :members:
+    :private-members:
+
+wlcsim.bd.runge_kutta
+---------------------
+.. automodule:: wlcsim.bd.runge_kutta
+    :members:
+    :private-members:
+
+wlcsim.bd.tsswlc
+----------------
+.. automodule:: wlcsim.bd.tsswlc
+    :members:
+    :private-members:
+
+wlcsim.analytical
+=================
 .. automodule:: wlcsim.analytical
     :members:
     :private-members:
@@ -28,21 +58,21 @@ wlcsim.analytical
     :private-members:
 
 wlcsim.data
------------
+===========
 .. automodule:: wlcsim.data
     :members:
     :private-members:
 
 wlcsim.input
-------------
+============
 .. automodule:: wlcsim.input
     :members:
     :private-members:
 
 wlcsim.FrankElastic
--------------------
+===================
 The calculation of Frank elastic constants occures in the function
-`get_Frank_values`.  
+`get_Frank_values`.
 
 .. automodule:: wlcsim.FrankElastic.frank
     :members:
