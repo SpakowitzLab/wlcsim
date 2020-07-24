@@ -14,8 +14,7 @@ dat.trials[''].trajectories[''].snapshots[1].end_to_end # get end-to-end distanc
 import sys
 import pathlib
 from .utility import *
-sys.path.append(defaultDirectory+'../vizualization/pymol')
-import vizualization.pymol.r2pdb as r2pdb
+from .r2pdb import *
 import numpy as np
 import pandas as pd
 import os
@@ -171,19 +170,19 @@ class Trajectory:
             self.reduced_pair_nucs.append(self.snapshots[time].reduced_pair_nucs)
         nnuc = self.snapshots[time].n_nucs # assume all snapshots have the same number of nucleosomes
         self.reduced_pair_nucs = np.asarray(self.reduced_pair_nucs).reshape([self.time_max-self.equilibrium_time,nnuc-1])
-    def playFineMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
+    def playFineMovie(self,path=defaultDirectory+'analysis/pdb/',topo='linear',pymol='pymol'):
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo)
-        os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieFine.py -- " 
+        os.system(pymol + " -r "+defaultDirectory+"analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + path)
-    def playCoarseMovie(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear',pymol='~/Applications/pymol/pymol'):
+    def playCoarseMovie(self,path=defaultDirectory+'analysis/pdb/',topo='linear',pymol='pymol'):
         for i,time in enumerate(range(self.time_min,self.time_max)):
             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
         if (self.temperature != None):
-            os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieCoarse.py -- " 
+            os.system(pymol + " -r "+defaultDirectory+"analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " + path + " " + self.path_to_data)
         else:
-            os.system(pymol + " -r "+defaultDirectory+'vizualization/pymol/'+"movieCoarse.py -- " 
+            os.system(pymol + " -r "+defaultDirectory+"analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " " + str(self.channel[i]) + " 1 "  
                         + path + " " + self.path_to_data)
 
@@ -402,12 +401,12 @@ class Snapshot:
                 chainNum += 1
             else:
                 connect.append((i,i+1))
-        dna = r2pdb.mkpdb(self.r,topology=topo,chain=chain,connect=connect)
-        r2pdb.save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
+        dna = mkpdb(self.r,topology=topo,chain=chain,connect=connect)
+        save_pdb('%scoarse%0.3d.pdb' %(path,self.time),dna)
     def saveFineGrainedPDB(self,path=defaultDirectory+'vizualization/pymol/pdb/',topo='linear'):
         chain = self.interpolate()
-        dna = r2pdb.mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)#,connect=connect)
-        r2pdb.save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
+        dna = mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)#,connect=connect)
+        save_pdb('%sfine%0.3d.pdb' %(path,self.time),dna)
     def saveRICCbreak(self,path=defaultDirectory+'analysis/data'):
         self.RICCbreak()
         tempDict = {'strand1': [self.break_length_s1, self.break_location_s1],

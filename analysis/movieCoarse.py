@@ -100,5 +100,5 @@ for ind in file_inds:
             (re, g, b) = colorsys.hsv_to_rgb(float(i)/(len(r)-1), 1.0, 1.0)
             x2,y2,z2 = np.mean(poly[int(side/2):,0]), np.mean(poly[int(side/2):,1]), np.mean(poly[int(side/2):,2])
             cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1))
-cmd.mplay()
+#cmd.mplay()
 cmd.orient('snap')
