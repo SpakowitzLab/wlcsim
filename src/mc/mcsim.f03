@@ -145,7 +145,7 @@ subroutine mcsim(wlc_p)
                else
                   netSterics = .true.
                endif
-               call mc_sterics(collisions, netSterics)
+               call mc_sterics(collisions, netSterics, MCTYPE)
                ! ascribe collision penalty
                if (netSterics) then
                   energyOf(sterics_)%dx = collisions

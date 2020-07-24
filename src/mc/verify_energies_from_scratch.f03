@@ -15,8 +15,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
    use nucleosome, only: internucleosome_energy
    use iso_fortran_env
    use energies
-   ! if using binning, uncomment the next line
-   !use binning, only: find_neighbors
+   use binning, only: find_neighbors
    implicit none
    integer IT1, IT2, I, j
    real(dp) phiTot
@@ -114,8 +113,14 @@ subroutine calculate_energies_from_scratch(wlc_p)
       ! check for neighbors on new beads
       do i = 1, WLC_P__NT
          ignore(i) = i
-         call findNeighbors(wlc_R_GJK(:, i), 2*WLC_P__GJK_RADIUS, wlc_R_GJK, WLC_P__NT, &
-                             WLC_P__NT, neighbors, distances, nn)
+         if (WLC_P__NEIGHBOR_BINS) then
+            nn = 0
+            call find_neighbors(wlc_bin, wlc_R_GJK(:, i), 2*WLC_P__GJK_RADIUS, wlc_R_GJK, WLC_P__NT, &
+                                WLC_P__NT, neighbors, distances, nn)
+         else
+            call findNeighbors(wlc_R_GJK(:, i), 2*WLC_P__GJK_RADIUS, wlc_R_GJK, WLC_P__NT, &
+                               WLC_P__NT, neighbors, distances, nn)
+         endif
          ! check for collisions
          call sterics_check(collisions, wlc_R, wlc_U, wlc_V, wlc_GJK, wlc_basepairs, ignore, &
                             i, nn, neighbors(1:nn), distances(1:nn), .true.)

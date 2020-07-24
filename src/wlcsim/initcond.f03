@@ -16,6 +16,23 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
                      wlc_network_start_index
 
 !use mt19937, only : grnd, init_genrand, rnorm, mt, mti
+   use mersenne_twister
+   use params, only: dp, pi, wlcsim_params, nan
+   use vector_utils, only: randomUnitVec, random_perp, cross
+   use nucleosome, only: nucleosome_prop, multiParams
+   use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain
+   implicit none
+
+   type(wlcsim_params), intent(in) :: wlc_p
+
+   integer NP, NT           ! Number of beads
+   real(dp) R(3, NT)  ! Bead positions
+   real(dp) U(3, NT)  ! Tangent vectors
+   real(dp) LBOX(3)  ! Box edge length
+   integer I, J, IB            ! Index Holders
+   LOGICAL FRMFILE           ! Is conformation in file?
+!real(dp) RMin
+   real(dp) R0(3)
 
 !     Varibles for type 2
 
@@ -31,6 +48,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
    integer ii !for testing
 
 !   temporary variables
+   real(dp) mag    ! magnitude of U for reload, or of U when smoothing
 
 !      Random number generator initiation
    type(random_stat) rand_stat
@@ -44,6 +62,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
    integer length
    integer otherEnd
    real(dp) nloops
+   integer IP
 
    LBOX(1) = WLC_P__LBOX_X
    LBOX(2) = WLC_P__LBOX_Y
@@ -427,14 +446,14 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
          IB = otherEnd + 1
       enddo
    elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
-      if (WLC_P__NEIGHBOR_BINS) then 
-         R(1, 1) = WLC_P__LBOX_X/2
-         R(2, 1) = WLC_P__LBOX_Y/2
-         R(3, 1) = WLC_P__LBOX_Z/2
-      else
+      if (WLC_P__CONFINETYPE == 'none') then 
          R(1, 1) = 0.0_dp
          R(2, 1) = 0.0_dp
          R(3, 1) = 0.0_dp
+      else
+         R(1, 1) = WLC_P__LBOX_X/2
+         R(2, 1) = WLC_P__LBOX_Y/2
+         R(3, 1) = WLC_P__LBOX_Z/2
       endif
       U(1, 1) = 0.0_dp
       U(2, 1) = 0.0_dp
@@ -449,14 +468,13 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
          R = WLC_P__CONFINEMENT_SPHERE_DIAMETER
          do IP = 1, WLC_P__NP
             IB = first_bead_of_chain(IP)
-            do while (ANY(R(:, IB:last_bead_of_chain(IP)) < (-range*WLC_P__CONFINEMENT_SPHERE_DIAMETER)) &
-                      .OR. ANY(R(:, IB:last_bead_of_chain(IP)) > (range*WLC_P__CONFINEMENT_SPHERE_DIAMETER)) &
+            do while (in_confinement(R, WLC_P__NB, IB, last_bead_of_chain(IP)) .eqv. .false. & 
                       .OR. ANY(isnan(R(:, IB:last_bead_of_chain(IP)))))  
                IB = first_bead_of_chain(IP) ! in case you need to do again
                call random_number(urand,rand_stat)
-               R(1, IB) = (urand(1) - 0.5)*(0.5*WLC_P__CONFINEMENT_SPHERE_DIAMETER)
-               R(2, IB) = (urand(2) - 0.5)*(0.5*WLC_P__CONFINEMENT_SPHERE_DIAMETER)
-               R(3, IB) = (urand(3) - 0.5)*(0.5*WLC_P__CONFINEMENT_SPHERE_DIAMETER)
+               R(1, IB) = urand(1)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(2, IB) = urand(2)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(3, IB) = urand(3)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
                call random_number(urand,rand_stat)
                U(1, IB) = nint(urand(1))
                U(2, IB) = nint(urand(2))
@@ -480,7 +498,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
                wlc_V(:, IB) = wlc_V(:, IB)/norm2(wlc_V(:, IB))
                do while (IB < last_bead_of_chain(IP))  
                   ! Rotation (and translation) due to nucleosome
-                  call nucleosomeProp(U(:, IB), wlc_V(:, IB), R(:, IB), &
+                  call nucleosome_prop(U(:, IB), wlc_V(:, IB), R(:, IB), &
                                       wlc_basepairs(IB), wlc_nucleosomeWrap(IB), &
                                       U(:, IB + 1), wlc_V(:, IB + 1), R(:, IB + 1))
                   ! Translation due to zero-enery linker
