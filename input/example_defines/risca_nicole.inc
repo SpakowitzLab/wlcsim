@@ -248,9 +248,14 @@
 !
 ! ---------------------------
 
-#define WLC_P__NB 118
-! VARIABLE COMMENT: ! Number of beads in a polymer.  Note that NB = nMpP*nBpM.
-! DEFAULTS COMMENT: ! 201 beads per polymer
+#define WLC_P__NBPL 5
+! VARIABLE COMMENT: ! Number of beads per linker segement, this determines discretization
+! DEFAULTS COMMENT: ! discretization is WLC_P__LL/WLC_P__NBPL, aim for a discretization above 5bp but lower than 15bp
+! TYPE: INTEGER
+
+#define WLC_P__NB ((WLC_P__NUM_NUCLEOSOMES + 1)*WLC_P__NBPL + 1)
+! VARIABLE COMMENT: ! Number of beads in a polymer.  DETERMINE THIS AFTER SETTING THE NEXT SECTION!
+! DEFAULTS COMMENT: ! INT((WLC_P__NUM_NUCLEOSOMES + 1)*(WLC_P__LL/WLC_P__LINKER_DISCRETIZATION) + 1)
 ! TYPE: INTEGER
  
 #define WLC_P__NMPP WLC_P__NB/WLC_P__NBPM
@@ -349,16 +354,26 @@
 #define WLC_P__LL 45.0_DP
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes.  For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome" i.e. with nucleosome genometry included.
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
+! TYPE: INTEGER
+
+#define WLC_P__LINKER_DISCRETIZATION WLC_P__LL/WLC_P__NBPL
+! VARIABLE COMMENT: ! Discretization of computational beads 
+! DEFAULTS COMMENT: ! try not to go lower than 5bp discretization or higher than 15bp discretization
 ! TYPE: REAL(DP)
 
+#define WLC_P__NUM_NUCLEOSOMES 12
+! VARIABLE COMMENT: ! how many nucleosomes per chain
+! DEFAULTS COMMENT: ! default to 12 for general chromatin simulations 
+! TYPE: INTEGER
+
 #define WLC_P__LINKER_TYPE 'phased'
-! VARIABLE COMMENT: ! linker length geometry type for initialization
+! VARIABLE COMMENT: ! linker length geometry type for initialization, either phased or sampled from some defined distribution
 ! DEFAULTS COMMENT: ! phased is constant linker length
 ! TYPE: REAL(DP)
 
-#define WLC_P__L 775.17
-! VARIABLE COMMENT: ! Length of each polymer in simulation.
-! DEFAULTS COMMENT: ! By default, constant linker lengths of LL assumed.
+#define WLC_P__L (WLC_P__LL*(WLC_P__NUM_NUCLEOSOMES + 1))*WLC_P__LENGTH_PER_BP
+! VARIABLE COMMENT: ! Length of each polymer in simulation (NOT INCLUDING DNA WRAPPING NUCLEOSOMES)
+! DEFAULTS COMMENT: ! By default, constant linker lengths of LL assumed WITH linkers coming in/out of first and last nucleosome
 ! TYPE: REAL(DP)
 
 #define WLC_P__L0 (WLC_P__L/(WLC_P__NB-1.0_DP))

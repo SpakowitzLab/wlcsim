@@ -272,6 +272,11 @@
 ! DEFAULTS COMMENT: ! assuming same number of beads on each polymer
 ! TYPE: INTEGER
 
+#define WLC_P__NBPL 0
+! VARIABLE COMMENT: ! Number of beads per linker segement, this determines discretization (only relevant for risca chromatin sims)
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: INTEGER
+
 #define WLC_P__LINKING_NUMBER 0
 ! VARIABLE COMMENT: ! Linking number for global twist energy calculation
 ! DEFAULTS COMMENT: ! Simple loop
@@ -348,6 +353,16 @@
 ! VARIABLE COMMENT: ! linker length in bp between adjacent nucleosomes, For modeling DNA and using WLC_P__ELASTICITY_TYPE="nucleosome"
 ! DEFAULTS COMMENT: ! 38bp is like mouse-ish
 ! TYPE: REAL(DP)
+
+#define WLC_P__LINKER_DISCRETIZATION 0
+! VARIABLE COMMENT: ! Discretization of computational beads (only relevant for risca chromatin sims)
+! DEFAULTS COMMENT: ! Not in use.
+! TYPE: REAL(DP)
+
+#define WLC_P__NUM_NUCLEOSOMES 0
+! VARIABLE COMMENT: ! how many nucleosomes per chain (only relevant for risca chromatin sims)
+! DEFAULTS COMMENT: ! Note in use.
+! TYPE: INTEGER
 
 #define WLC_P__LINKER_TYPE 'none'
 ! VARIABLE COMMENT: ! linker length geometry type for initialization (i.e. phased array or sampled from a file)

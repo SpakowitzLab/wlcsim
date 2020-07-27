@@ -318,22 +318,17 @@ contains
       implicit none
       integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
       real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
-      real(dp), parameter :: L_in_bp = WLC_P__L/WLC_P__LENGTH_PER_BP
-      integer, parameter :: nNucs = nint((L_in_bp - WLC_P__LL)/(147 + WLC_P__LL)) ! assuming all octasomes
-      real(dp) discretization, off_discretization, num_link_beads
+      real(dp) discretization, num_link_beads
       real(dp), dimension(2, 33) :: LL_dist
       real(dp) cumlinker, linker
       real(dp) urand(3)  ! random vector
       integer iter, i, j, k
 
-      print*, WLC_P__L0
-      print*, nNucs, WLC_P__NB, WLC_P__LL
       if (WLC_P__INCLUDE_NUC_TRANS) then
          if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
             ! figure out main discretization scheme
-            discretization = WLC_P__LL*(NNucs + 1)/(WLC_P__NB - 1)
-            num_link_beads = WLC_P__LL/discretization
-            print*, discretization, num_link_beads
+            discretization = WLC_P__LINKER_DISCRETIZATION
+            num_link_beads = WLC_P__NBPL
             if (WLC_P__LINKER_TYPE == 'phased' ) then
                do i = 1, WLC_P__NP
                   ! initialize
@@ -341,7 +336,7 @@ contains
                   ! set first linker later
                   iter = iter + num_link_beads
                   ! set middle linkers 
-                  do j = 2, nNucs ! hanging linker off nucleosomes
+                  do j = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
                      wlc_nucleosomeWrap(iter) = 147
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
@@ -379,7 +374,7 @@ contains
                      ! set first linker later
                      iter = iter + num_link_beads
                      ! set middle linkers 
-                     do i = 2, nNucs ! hanging linker off nucleosomes
+                     do i = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
                         call random_number(urand)
                         do j = 1, 33
                            if (LL_dist(2, j) >= urand(1)) then 
@@ -400,7 +395,7 @@ contains
                         cumlinker = cumlinker + linker
                      enddo
                      ! set last (and first) linker to conserve contour length
-                     linker = (WLC_P__LL*(1 + nNucs) - cumlinker)/2
+                     linker = (WLC_P__LL*(1 + WLC_P__NUM_NUCLEOSOMES) - cumlinker)/2
                      print*, 'attempted to sample from linker distribution for chain'
                   enddo
                   discretization = linker/num_link_beads
