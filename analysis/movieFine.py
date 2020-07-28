@@ -1,7 +1,7 @@
 from pymol import cmd
 from sys import argv
 
-# this script is run automatically by NPrun.py and will need to be changed for someone else's use
+# this script is run automatically by MCsim and will need to be changed for someone else's use
 
 numFrames = int(argv[1])
 pathPDB = argv[2]

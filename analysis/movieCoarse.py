@@ -3,10 +3,10 @@ from sys import argv
 import numpy as np
 import colorsys
 import sys
-sys.path.append('../../analysis/')
+sys.path.append('../analysis/')
 from analysis.utility import *
 
-# this script is run automatically by NPrun.py and will need to be changed for someone else's use
+# this script is run automatically by MCsim and will need to be changed for someone else's use
 
 numFrames = int(argv[1])
 channel = argv[2]
@@ -30,10 +30,10 @@ cmd.color('gray80', 'snap')
 file_inds = range(0,numFrames)
 for ind in file_inds:
     #load file r and u data
-    r = np.loadtxt('%s/r%sv%s' %(input_folder,ind,channel[ind]))
-    u = np.loadtxt('%s/u%sv%s' %(input_folder,ind,channel[ind]))
+    r = np.loadtxt('/%sr%sv%s' %(input_folder,ind,channel[ind]))
+    u = np.loadtxt('/%su%sv%s' %(input_folder,ind,channel[ind]))
     # load discretization data
-    disc = np.loadtxt('%s/d%sv%s' %(input_folder,ind,channel[ind]))
+    disc = np.loadtxt('/%sd%sv%s' %(input_folder,ind,channel[ind]))
     wrap = disc[0]; bps = disc[1]
     for i in range(len(r)):
         if bps[i] != 0:
@@ -63,7 +63,7 @@ for ind in file_inds:
                 cmd.load_cgo( [ 25.0, 0.25, 9.0, x1, y1, z1, x2, y2, z2, radius, re, g, b, re, g, b ], "seg"+str(i+1)+'nuc')
                 # add extruding linker
                 space = 2*np.pi/side
-                tempU, tempV, tempR = rotateBead(uin,vin,r[i,:],int(bps[i]),int(wrap[i]))
+                tempU, tempV, tempR = rotate_bead(uin,vin,r[i,:],int(bps[i]),int(wrap[i]))
                 height = np.sqrt(np.dot(r[i+1,:]-tempR, r[i+1,:]-tempR))
                 radius = 1.0
                 center = np.zeros(3)

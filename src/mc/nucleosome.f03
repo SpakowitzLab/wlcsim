@@ -418,7 +418,7 @@ contains
             endif
             ! testing sterics here !
             if (WLC_P__GJK_STERICS) then
-               do iter = 1, 10000 ! check to make sure GJK is not stochastic
+               do iter = 1, 10000 ! check to make sure GJK checkng is not stochastic
                   call sameShapeTest()
                   call noIntersectX()
                   call intersectX()

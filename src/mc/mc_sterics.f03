@@ -38,8 +38,6 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
    integer ignore(WLC_P__NT), ignore_bin(WLC_P__NT)
 
 ! only if the MC move moved a bead
-! i have commented out the quinn binning implementation. if switch back to quinn code, then you will 
-! need to replace all of the instances of findNeighbors to his function and not mine (see EOF)
    if (wlc_nPointsMoved > 0) then
       ! set up for collision searching
       RGJK = wlc_R_GJK
@@ -255,7 +253,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
          else
             collisions = collisions + GJK(poly2Plus, poly1Plus, s)
          endif
-         ! check for exit DNA collisions
+         ! check for exit DNA collisions within relevant distance cutoff
          if (distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS .OR. &
              distances(jj) < (2*basepairs(ii)*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS ) then 
             ! check for collision of nucleosome i with exit DNA j ,
@@ -273,10 +271,10 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
                endif
             endif
          endif
-      ! moved bead nuc + DNA
+      ! check for moved bead nuc + DNA within relevant distance cutoff
       else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
                distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
-         ! ignore 10bp nearest nuc
+         ! ignore 10bp nearest nuc, this is inspired from what elena koslover did in fibermodel
          if ((neighbors(jj) + 1 <= ii - 1 .AND. sum(basepairs(neighbors(jj) + 1:ii - 1)) > 10) .OR. &
              (neighbors(jj) - 1 >= ii + 1 .AND. sum(basepairs(ii:neighbors(jj) - 1)) > 10)) then 
             ! check for collision of nucleosome i with DNA j,
@@ -289,10 +287,10 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
                collisions = collisions + GJK(poly2Plus, poly1ExitDNA, s)
             endif
          endif 
-      ! moved bead DNA + nuc
+      ! check for moved bead DNA + nuc within relevant cutoff distance
       else if ((iiIsNucleosome .EQV. .FALSE.) .AND. jjIsNucleosome .AND. &
                 distances(jj) < (2*basepairs(ii)*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS) then ! DNA i  + nuc j
-         ! ignore 10bp nearest nuc
+         ! ignore 10bp nearest nuc, this is inspired from what elena koslover did in fibermodel
          if ((ii + 1 <= neighbors(jj) - 1 .AND. sum(basepairs(ii + 1:neighbors(jj) - 1)) > 10) .OR. &
              (ii - 1 >= neighbors(jj) + 1 .AND. sum(basepairs(neighbors(jj):ii - 1)) > 10)) then 
             ! check for collision of DNA i with nucleosome j,
@@ -305,7 +303,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
                collisions = collisions + GJK(poly2ExitDNA, poly1Plus, s)
             endif
          endif
-      ! moved dna and dna
+      ! check for moved dna and dna within relevant cutoff distance
       else if (distances(jj) < 1.5*max(basepairs(neighbors(jj)), basepairs(ii))*WLC_P__LENGTH_PER_BP) then ! DNA i  + DNA j
          if ((ii + 1 < neighbors(jj)) .OR. (neighbors(jj) + 1 < ii)) then
             ! check for collision
@@ -316,25 +314,29 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
             endif
          endif
       endif
-      if (collisions > 0 .and. (netSterics .eqv. .false.)) return 
+      ! return early if collision found and there no preexisting clashes
+      if (collisions > 0 .and. (netSterics .eqv. .false.)) return
    enddo
 END subroutine sterics_check 
 
-! using this instead of quinn's binning code
 subroutine findNeighbors(pos, radius, beads, nBeads, neighboringMax, neighbors, distances, nn)
+! default to this instead of quinn's binning find_neighbors if binning is turned off
+! rather than using recursive binning, this functon checks pairwise distances between beads.
+! this will be SLOW for very many beads, but if you are under 1000-ish then it shouldn't be 
+! terrible; otherwise, turn WLC_P__NEIGHBOR_BINS on
    use params, only: dp
    use vector_utils, only: distance
    implicit none
 
-   real(dp), intent(in) :: pos(3)
-   real(dp), intent(in) :: radius
-   integer, intent(in) :: nBeads
-   real(dp), intent(in) :: beads(3, nBeads)
-   integer, intent(in) :: neighboringMax
-   integer, intent(out) :: neighbors(neighboringMax)
-   real(dp), intent(out) :: distances(neighboringMax)
-   integer, intent(out) :: nn
-   integer i
+   real(dp), intent(in) :: pos(3) ! position of interest
+   real(dp), intent(in) :: radius ! cutoff distance for relevant collisions
+   integer, intent(in) :: nBeads ! total number of beads in simulation
+   real(dp), intent(in) :: beads(3, nBeads) ! positions of all other beads
+   integer, intent(in) :: neighboringMax ! max number of neighbors that could be found
+   integer, intent(out) :: neighbors(neighboringMax) ! list of neighbors within cutoff distance
+   real(dp), intent(out) :: distances(neighboringMax) ! list of distances of found neighbors
+   integer, intent(out) :: nn ! total number of neighbors found within cutoff distance
+   integer i 
    real(dp) dist
 
    nn = 0

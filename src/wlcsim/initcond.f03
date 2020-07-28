@@ -465,7 +465,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
       ! NP EDIT : initialization is at odds with how energy is calculated 
       ! (i.e i-1 rotation to i vs i rotation to i+1, intuitvely the same physics but not the same results)
       if (WLC_P__NP > 1 .AND. WLC_P__CONFINETYPE /= 'none') then 
-         R = WLC_P__CONFINEMENT_SPHERE_DIAMETER
+         R = 2*WLC_P__CONFINEMENT_SPHERE_DIAMETER
          do IP = 1, WLC_P__NP
             IB = first_bead_of_chain(IP)
             do while (in_confinement(R, WLC_P__NB, IB, last_bead_of_chain(IP)) .eqv. .false. & 
