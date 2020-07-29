@@ -35,7 +35,7 @@ subroutine mc_internucleosome()
    UALL = wlc_U
    VALL = wlc_V
 
-   ! check old beads
+   ! check energetics of old beads
    ignore = NAN
    do k = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(k)
@@ -59,36 +59,16 @@ subroutine mc_internucleosome()
       enddo
    enddo
    ! replace old beads with new moved beads
-   k = 1
-   ignore = NAN
    do j = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(j)
+      if (wlc_nucleosomeWrap(i) == 1) cycle ! only nucs
       IP = get_IP(i) 
       ! update real bead locations
       RALL(:, i) = wlc_RP(:, i)
       UALL(:, i) = wlc_UP(:, i)
       VALL(:, i) = wlc_VP(:, i)/norm2(wlc_VP(:, i))
-      ! check segment preceding bead
-      if ((i > first_bead_of_chain(IP)) .AND. (ANY(ignore == i - 1) .eqv. .false.)) then
-         ignore(k) = i - 1
-         k = k + 1
-         if (isnan(wlc_RP(1, i - 1))) then 
-            poly = constructPolygonPrism(wlc_R(:, i - 1), wlc_RP(:, i), &
-                                          wlc_nucleosomeWrap(i - 1), wlc_U(:, i - 1), &
-                                          wlc_V(:, i - 1), WLC_P__GJK_POLYGON)
-         else
-            poly = constructPolygonPrism(wlc_RP(:, i - 1), wlc_RP(:, i), &
-                                          wlc_nucleosomeWrap(i - 1), wlc_UP(:, i - 1), &
-                                          wlc_VP(:, i - 1)/norm2(wlc_VP(:, i - 1)), WLC_P__GJK_POLYGON)
-         endif
-         RGJK(1, i - 1) = sum(poly(:, 1)/WLC_P__GJK_POLYGON)
-         RGJK(2, i - 1) = sum(poly(:, 2)/WLC_P__GJK_POLYGON)
-         RGJK(3, i - 1) = sum(poly(:, 3)/WLC_P__GJK_POLYGON)
-      endif
-      ! check succeeding bead
-      if ((i < last_bead_of_chain(IP)) .AND. (ANY(ignore == i) .eqv. .false.)) then 
-         ignore(k) = i
-         k = k + 1
+      ! set center of nuc bead
+      if ((i < last_bead_of_chain(IP))) then 
          if (isnan(wlc_RP(1, i + 1))) then 
             poly = constructPolygonPrism(wlc_RP(:, i), wlc_R(:, i + 1), &
                                           wlc_nucleosomeWrap(i), wlc_UP(:, i), &
@@ -103,7 +83,7 @@ subroutine mc_internucleosome()
          RGJK(3, i) = sum(poly(:, 3)/WLC_P__GJK_POLYGON)
       endif
    enddo
-   ! check new beads
+   ! check energetics of new beads
    ignore = NAN
    do k = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(k)
