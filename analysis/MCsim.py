@@ -20,8 +20,8 @@ trajectories are different "temperatures". The snapshots are wlcsim outputs thro
 
 Therefore the hierarchy of these classes are nested as follows:
 Simulation
-    Trajectory*
-        Trial*
+    Trial*
+        Trajectory*
             Snapshot*
 * can have multiple instances
 
