@@ -456,7 +456,7 @@
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
 
-#define WLC_P__CONFINEMENT_SPHERE_DIAMETER WLC_P__LBOX_X - 2*WLC_P__DBIN
+#define WLC_P__CONFINEMENT_SPHERE_DIAMETER (WLC_P__LBOX_X - 2*WLC_P__DBIN)
 ! VARIABLE COMMENT: ! Size of confinement. Often set to: LBOX.  Set to: LBOX - 2*DBIN if WLC_P__BOUNDARY_TYPE == "ExtendbinsPast".
 ! DEFAULTS COMMENT: ! Must set if in use
 ! TYPE: REAL(DP)
