@@ -88,11 +88,11 @@ class Simulation:
         
         Parameters
         ----------
-        path_to_data : string
+        path_to_data : string, optional
             path to either the wlcsim/data directory or the top level directory above the nested `trials`
         trials : list of strings
             list of the subdirectories in `path_to_data` that specify the different trials of the simulations 
-        trajectories : list 
+        trajectories : list, optional
             list of the "channel"/thread values of the simulation replicas, i.e. [1,2,3,4]
         time_min : int, optional
             default : 0
@@ -100,7 +100,7 @@ class Simulation:
         time_max : int, optional
             default : 110
             maximum "time point" that you want to end reading in the data from. 
-        channel : int
+        channel : int, optional
             "channel"/thread value of a specific replica you want to read in  
         """
         # path to data directory
@@ -220,11 +220,9 @@ class Trial:
             path to either the wlcsim/data directory or the top level directory above the nested `trials`
         trajectories : list 
             list of the "channel"/thread values of the simulation replicas, i.e. [1,2,3,4]
-        time_min : int, optional
-            default : 0
+        time_min : int
             minimum "time point" that you want to start reading in the data from
-        time_max : int, optional
-            default : 110
+        time_max : int
             maximum "time point" that you want to end reading in the data from. 
         channel : int
             "channel"/thread value of a specific replica throughout the simulation "timecouse"
@@ -274,11 +272,9 @@ class Trajectory:
         ----------
         path_to_data : string
             path to either the wlcsim/data directory or the top level directory above the nested `trials`
-        time_min : int, optional
-            default : 0
+        time_min : int
             minimum "time point" that you want to start reading in the data from
-        time_max : int, optional
-            default : 110
+        time_max : int
             maximum "time point" that you want to end reading in the data from. 
         channel : int
             "channel"/thread value of a specific replica throughout the simulation "timecouse"
@@ -357,7 +353,7 @@ class Trajectory:
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + path)
                     
-    def playCoarseMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol'):
+    def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" visualizing the excluded volume of the chain. 
         See the saveCoarseGrainedPDB method in the `Snapshot` class for more informtion on the calculation.
 
@@ -374,17 +370,23 @@ class Trajectory:
         pymol : string, optional
             default : 'pymol'
             exectable command to initiaite PyMol, i.e. "~/Applications/pymol/pymol" 
+        sphere_radius : float, optional
+            default : 0
+            set what size radius to visualize a confining sphere, where 0 equates to no confinement
+        show_hull : boolean, optional
+            default : True
+            whether to construct the hulls of the excluded volume of the fiber or not
         """
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
         if (self.temperature != None):
             os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
-                        + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " + path + " " + self.path_to_data)
+                        + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " 
+                        + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
         else:
             os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " 1 "  
-                        + path + " " + self.path_to_data)
-
+                        + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
 class Snapshot:
     """
     `Snapshot` object to store all the positions and orientations of the computational beads for a given snapshot. 
@@ -423,7 +425,7 @@ class Snapshot:
         ----------
         path_to_data : string
             path to either the wlcsim/data directory or the top level directory above the nested `trials`
-        time : int, optional
+        time : int
             "time point" of the current wlcsim output structure
         channel : int
             "channel"/thread value of the current wlcsim output structure

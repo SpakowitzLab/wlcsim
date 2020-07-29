@@ -1,3 +1,14 @@
 this folder contains parser/helper files for wlcsim analysis
 
 it was written for the use of the risca lab, but anyone else is free to use/edit it!
+
+main code is MCsim which is a wlcsim output parser with some analysis methods, such as:
+    * visualize trajectory in pymol
+    * end-to-end distance
+    * pairwise nucleosome distances
+    * interpolate basepair resolution DNA structure between coarse-graied wlcsim beads
+    * determine ricc-seq break patterns from interpolated fiber structure
+    
+some minimal helper functions also exist in utility, such as:
+    * apply rotation/translation of linker DNA into and out of nucleosome
+    * parametrize DNA as two offset helices to build a phosphate-base-phosphate representation of B-DNA
