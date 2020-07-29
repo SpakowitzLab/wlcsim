@@ -17,7 +17,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
                      wlc_basepairs_prop, wlc_pointsMoved
    use GJKAlgorithm, only: constructPolygonPrism
    use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
-   use binning, only: addBead, removeBead, find_neighbors
+   use binning, only: find_neighbors
    implicit none
 
    integer, intent(out) :: collisions ! number of steric collisions

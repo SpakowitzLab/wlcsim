@@ -17,7 +17,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
    use energies
    use binning, only: find_neighbors
    implicit none
-   integer IT1, IT2, I, j
+   integer IT1, IT2, I, j, k
    real(dp) phiTot
    type(wlcsim_params), intent(in) :: wlc_p
    integer Delta !transh
@@ -27,6 +27,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
    integer nn ! number of neighbors
    integer collisions
    integer ignore(WLC_P__NT)
+   real(dp), parameter :: cutoff = 25.0 ! nm (cutoff for internuc attraction)
    real(dp) delInt
 
    call set_all_dEnergy_to_zero()
@@ -131,13 +132,25 @@ subroutine calculate_energies_from_scratch(wlc_p)
 
    if (WLC_P__INTERNUCLEOSOME_ON) then
       delInt = 0
-      do i = 1, WLC_P__NT - 1
+      ignore = NAN
+      k = 1
+      do i = 1, WLC_P__NT
          if (wlc_nucleosomeWrap(i) == 1) cycle
-         do j = i + 1, WLC_P__NT
-            if (wlc_nucleosomeWrap(j) == 1) cycle
-            delInt = delInt + internucleosome_energy(wlc_R(:, i), wlc_R(:, j), &
-                                                     wlc_U(:, i), wlc_U(:, j), &
-                                                     wlc_V(:, i), wlc_V(:, j))
+         ignore(k) = i
+         k = k + 1
+         if (WLC_P__NEIGHBOR_BINS) then
+            nn = 0
+            call find_neighbors(wlc_bin, wlc_R_GJK(:, i), cutoff, wlc_R_GJK, WLC_P__NT, &
+                                WLC_P__NT, neighbors, distances, nn)
+         else
+            call findNeighbors(wlc_R_GJK(:, i), cutoff, wlc_R_GJK, WLC_P__NT, &
+                               WLC_P__NT, neighbors, distances, nn)
+         endif
+         do j = 1, nn
+            if (wlc_nucleosomeWrap(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
+             delInt = delInt + internucleosome_energy(wlc_R(:, i), wlc_R(:, neighbors(j)), &
+                                                     wlc_U(:, i), wlc_U(:, neighbors(j)), &
+                                                     wlc_V(:, i), wlc_V(:, neighbors(j)))
          enddo
       enddo
       energyOf(internucleosome_)%dx = delInt
