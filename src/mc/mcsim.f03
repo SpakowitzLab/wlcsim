@@ -134,7 +134,7 @@ subroutine mcsim(wlc_p)
             endif
 
             ! set wlc_basepairs to prop if not slide move
-            if (MCTYPE /= 13) then
+            if (MCTYPE /= 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
                wlc_basepairs_prop = wlc_basepairs
             endif
 
@@ -145,7 +145,7 @@ subroutine mcsim(wlc_p)
                else
                   netSterics = .true.
                endif
-               call mc_sterics(collisions, netSterics)
+               call mc_sterics(collisions, netSterics, MCTYPE)
                ! ascribe collision penalty
                if (netSterics) then
                   energyOf(sterics_)%dx = collisions
@@ -301,7 +301,7 @@ subroutine mcsim(wlc_p)
                      wlc_AB(I) = wlc_ABP(I)
                   ENDdo
                endif
-               if (MCTYPE == 13) then
+               if (MCTYPE == 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
                   wlc_basepairs = wlc_basepairs_prop
                endif
                if (MCTYPE /= 7) then

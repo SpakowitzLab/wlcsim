@@ -20,7 +20,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
    use params, only: dp, pi, wlcsim_params, nan
    use vector_utils, only: randomUnitVec, random_perp, cross
    use nucleosome, only: nucleosome_prop, multiParams
-   use polydispersity, only: length_of_chain
+   use polydispersity, only: length_of_chain, first_bead_of_chain, last_bead_of_chain
    implicit none
 
    type(wlcsim_params), intent(in) :: wlc_p
@@ -62,6 +62,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
    integer length
    integer otherEnd
    real(dp) nloops
+   integer IP
 
    LBOX(1) = WLC_P__LBOX_X
    LBOX(2) = WLC_P__LBOX_Y
@@ -421,42 +422,38 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
             otherEnd = otherEnd + 1
          enddo
 
-         call randomUnitVec(RloopVec, rand_stat)
+         call randomUnitVec(RloopVec,rand_stat)
          !if (otherEnd == IB) then
          !    R(:,I) = center
          !    U(:,I) = RloopVec
          !    if (WLC_P__LOCAL_TWIST) call random_perp(U(:,I),wlc_V(:,I),trash,rand_stat)
          !endif
-         call random_perp(RloopVec, perpVec, trash, rand_stat)
+         call random_perp(RloopVec,perpVec,trash,rand_stat)
 
          length = ((otherEnd - IB)*wlc_p%GAM/(2.0_dp*PI))
          nloops = real(ceiling(length/(WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.25_dp)), dp)
          length = length/nloops
 
-         do I = IB, otherEnd
-            R(:, I) = center + length*( &
-                      +cos(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*RloopVec &
-                      + sin(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*perpVec &
-                      - RloopVec)
-            U(:, I) = cos(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*perpVec &
-                      - sin(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*RloopVec
-            if (WLC_P__LOCAL_TWIST) wlc_V(:, I) = trash
+         do I = IB,otherEnd
+            R(:,I) = center + length*( &
+                     + cos(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*RloopVec &
+                     + sin(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*perpVec &
+                     - RloopVec)
+            U(:,I) = cos(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*perpVec &
+                     -sin(2.0_dp*PI*nloops*(I - IB)/real(otherEnd - IB, dp))*RloopVec
+            if (WLC_P__LOCAL_TWIST) wlc_V(:,I) = trash
          enddo
          IB = otherEnd + 1
       enddo
    elseif (WLC_P__INITCONDTYPE == 'nucleosome') then
-      if (WLC_P__NEIGHBOR_BINS) then
-         R(1, 1) = WLC_P__LBOX_X/2
-         R(2, 1) = WLC_P__LBOX_Y/2
-         R(3, 1) = WLC_P__LBOX_Z/2
-      else if (WLC_P__CONFINETYPE == 'sphere') then
-         R(1, 1) = 3*WLC_P__LBOX_X/4
-         R(2, 1) = 3*WLC_P__LBOX_Y/4
-         R(3, 1) = -WLC_P__LBOX_Z/4
-      else
+      if (WLC_P__CONFINETYPE == 'none') then 
          R(1, 1) = 0.0_dp
          R(2, 1) = 0.0_dp
          R(3, 1) = 0.0_dp
+      else
+         R(1, 1) = WLC_P__LBOX_X/2
+         R(2, 1) = WLC_P__LBOX_Y/2
+         R(3, 1) = WLC_P__LBOX_Z/2
       endif
       U(1, 1) = 0.0_dp
       U(2, 1) = 0.0_dp
@@ -465,26 +462,71 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
       wlc_V(2, 1) = 0.0_dp
       wlc_V(3, 1) = 0.0_dp
 
-      ! NP EDIT : initialization is at odds with how energy is calculated
+      ! NP EDIT : initialization is at odds with how energy is calculated 
       ! (i.e i-1 rotation to i vs i rotation to i+1, intuitvely the same physics but not the same results)
-      do IB = 1, WLC_P__NT - 1
-         ! Rotation (and translation) due to nucleosome
-         call nucleosome_prop(U(:, IB), wlc_V(:, IB), R(:, IB), &
-                              wlc_basepairs(IB), wlc_nucleosomeWrap(IB), &
-                              U(:, IB + 1), wlc_V(:, IB + 1), R(:, IB + 1))
-         ! Translation due to zero-enery linker
-         R(:, IB + 1) = R(:, IB + 1) + U(:, IB + 1)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB)
-      enddo
+      if (WLC_P__NP > 1 .AND. WLC_P__CONFINETYPE /= 'none') then 
+         R = 2*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+         do IP = 1, WLC_P__NP
+            IB = first_bead_of_chain(IP)
+            do while (in_confinement(R, WLC_P__NB, IB, last_bead_of_chain(IP)) .eqv. .false. & 
+                      .OR. ANY(isnan(R(:, IB:last_bead_of_chain(IP)))))  
+               IB = first_bead_of_chain(IP) ! in case you need to do again
+               call random_number(urand,rand_stat)
+               R(1, IB) = urand(1)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(2, IB) = urand(2)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(3, IB) = urand(3)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               call random_number(urand,rand_stat)
+               U(1, IB) = nint(urand(1))
+               U(2, IB) = nint(urand(2))
+               U(3, IB) = nint(urand(3))
+               U(:, IB) = U(:, IB)/norm2(U(:, IB))
+               if (nint(urand(1)) == 1) then 
+                  wlc_V(1, IB) = 0
+               else
+                  wlc_V(1, IB) = 1
+               endif
+               if (nint(urand(2)) == 1) then 
+                  wlc_V(2, IB) = 0
+               else
+                  wlc_V(2, IB) = 1
+               endif
+               if (nint(urand(3)) == 1) then 
+                  wlc_V(3, IB) = 0
+               else
+                  wlc_V(3, IB) = 1
+               endif
+               wlc_V(:, IB) = wlc_V(:, IB)/norm2(wlc_V(:, IB))
+               do while (IB < last_bead_of_chain(IP))  
+                  ! Rotation (and translation) due to nucleosome
+                  call nucleosome_prop(U(:, IB), wlc_V(:, IB), R(:, IB), &
+                                      wlc_basepairs(IB), wlc_nucleosomeWrap(IB), &
+                                      U(:, IB + 1), wlc_V(:, IB + 1), R(:, IB + 1))
+                  ! Translation due to zero-enery linker
+                  R(:, IB + 1) = R(:, IB + 1) + U(:, IB + 1)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB)
+                  IB = IB + 1
+               enddo
+            enddo
+         enddo
+      else
+         do IB = 1, WLC_P__NT - 1
+            ! Rotation (and translation) due to nucleosome
+            call nucleosome_prop(U(:, IB), wlc_V(:, IB), R(:, IB), &
+                                 wlc_basepairs(IB), wlc_nucleosomeWrap(IB), &
+                                 U(:, IB + 1), wlc_V(:, IB + 1), R(:, IB + 1))
+            ! Translation due to zero-enery linker
+            R(:, IB + 1) = R(:, IB + 1) + U(:, IB + 1)*WLC_P__LENGTH_PER_BP*wlc_basepairs(IB)
+         enddo
+      endif
    else if (WLC_P__INITCONDTYPE == 'WormlikeChain') then
       call effective_wormlike_chain_init(R, U, NT, wlc_p, rand_stat)
    else if (WLC_P__INITCONDTYPE == 'randomWalkWithBoundary') then
       call gaus_init(R, U, NT, wlc_p, rand_stat)
    else
-      print *, "Unknown version of chain initialization WLC_P__INITCONDTYPE....."
+      print*, "Unknown version of chain initialization WLC_P__INITCONDTYPE....."
       stop 1
    endif
 
-   RETURN
+RETURN
 END
 
 subroutine wlc_init(R, U, NB, EPS, l0, rand_stat)

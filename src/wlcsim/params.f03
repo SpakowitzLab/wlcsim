@@ -815,7 +815,23 @@ contains
                 .or. WLC_P__CONFINETYPE == 'none') then
                call addBead(wlc_bin, wlc_R_period, WLC_P__NT, i)
             elseif (WLC_P__CONFINETYPE == 'sphere') then
-               call addBead(wlc_bin, wlc_R, WLC_P__NT, i)
+               if (WLC_P__GJK_STERICS) then
+                  ! NP add center of segments as beads
+                  if (i < last_bead_of_chain(get_IP(i))) then
+                     poly = constructPolygonPrism(wlc_R(:, i), wlc_R(:, i + 1), wlc_nucleosomeWrap(i), &
+                                                  wlc_U(:, i), wlc_V(:, i), WLC_P__GJK_POLYGON)
+                     wlc_GJK(:, :, i) = poly
+                     wlc_R_GJK(1, i) = sum(poly(:, 1)/WLC_P__GJK_POLYGON)
+                     wlc_R_GJK(2, i) = sum(poly(:, 2)/WLC_P__GJK_POLYGON)
+                     wlc_R_GJK(3, i) = sum(poly(:, 3)/WLC_P__GJK_POLYGON)
+                     call addBead(wlc_bin, wlc_R_GJK, WLC_P__NT, i)
+                  else
+                     wlc_R_GJK(:, i) = nan
+                     wlc_GJK(:, :, i) = nan
+                  endif
+               else
+                  call addBead(wlc_bin, wlc_R, WLC_P__NT, i)
+               endif
             elseif (WLC_P__CONFINETYPE == 'cube') then
                if (WLC_P__GJK_STERICS) then
                   ! NP add center of segments as beads
@@ -829,7 +845,7 @@ contains
                      call addBead(wlc_bin, wlc_R_GJK, WLC_P__NT, i)
                   else
                      wlc_R_GJK(:, i) = nan
-                     !call addBead(wlc_bin,wlc_R_GJK,WLC_P__NT,i)
+                     wlc_GJK(:, :, i) = nan
                   endif
                else
                   print *, "Not an option yet. See params"
