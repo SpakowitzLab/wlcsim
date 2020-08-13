@@ -472,9 +472,9 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
                       .OR. ANY(isnan(R(:, IB:last_bead_of_chain(IP)))))  
                IB = first_bead_of_chain(IP) ! in case you need to do again
                call random_number(urand,rand_stat)
-               R(1, IB) = urand(1)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
-               R(2, IB) = urand(2)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
-               R(3, IB) = urand(3)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(1, IB) = WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.2+0.6*urand(1)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(2, IB) = WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.2+0.6*urand(2)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
+               R(3, IB) = WLC_P__CONFINEMENT_SPHERE_DIAMETER*0.2+0.6*urand(3)*WLC_P__CONFINEMENT_SPHERE_DIAMETER
                call random_number(urand,rand_stat)
                U(1, IB) = nint(urand(1))
                U(2, IB) = nint(urand(2))
