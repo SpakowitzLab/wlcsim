@@ -541,6 +541,7 @@ contains
       integer setBinShape(3)! Specify first level of binning
       integer len_file
       real(dp) poly(WLC_P__GJK_POLYGON, 3)
+      real(dp), parameter :: bin_offset = 2*WLC_P__GJK_RADIUS ! offset to ensure "center" beads are in bin
       nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -806,8 +807,8 @@ contains
       ! ------------------------------------------
       if (WLC_P__NEIGHBOR_BINS) then
          !  Set up binning object
-         setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-         setMinXYZ = [0.0_dp, 0.0_dp, 0.0_dp]  ! location of corner of bin
+         setBinSize = [WLC_P__LBOX_X + bin_offset, WLC_P__LBOX_Y + bin_offset, WLC_P__LBOX_Z + bin_offset] ! size of bin
+         setMinXYZ = [-bin_offset, -bin_offset, -bin_offset]  ! location of corner of bin
          setBinShape = [10, 10, 10]   ! Specify first level of binning
          call constructBin(wlc_bin, setBinShape, setMinXYZ, setBinSize)
          do i = 1, WLC_P__NT
