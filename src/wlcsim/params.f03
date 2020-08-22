@@ -807,7 +807,7 @@ contains
       ! ------------------------------------------
       if (WLC_P__NEIGHBOR_BINS) then
          !  Set up binning object
-         setBinSize = [WLC_P__LBOX_X + bin_offset, WLC_P__LBOX_Y + bin_offset, WLC_P__LBOX_Z + bin_offset] ! size of bin
+         setBinSize = [WLC_P__LBOX_X + 2*bin_offset, WLC_P__LBOX_Y + 2*bin_offset, WLC_P__LBOX_Z + 2*bin_offset] ! size of bin
          setMinXYZ = [-bin_offset, -bin_offset, -bin_offset]  ! location of corner of bin
          setBinShape = [10, 10, 10]   ! Specify first level of binning
          call constructBin(wlc_bin, setBinShape, setMinXYZ, setBinSize)
