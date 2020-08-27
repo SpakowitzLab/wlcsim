@@ -455,7 +455,7 @@ class Snapshot:
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.round(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1])))
+        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # energies
         with open('%senergiesv%s' %(self.path_to_data,self.channel)) as fp:
@@ -577,6 +577,9 @@ class Snapshot:
         ---------
         bps : location of each phosphate-sugar-phosphate basepair throughout the chain
         """
+        cushion = 1e-5
+        nucFrac = 1
+        dnaFrac = 1
         # rotate DNA strand into material frame
         self.bps = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
         indR = 0
@@ -608,7 +611,7 @@ class Snapshot:
                         chain.extend([str(chainNum)]*3)
                         if (indR == self.n_bps): break
                     # add the extruding linker from the nucleosome
-                    for j in range(int(np.round(maxBp))):
+                    for j in range(int(np.round(maxBp + cushion*(-1)**(nucFrac)))):
                         row = np.zeros(3*3).reshape([3,3])
                         strand1, base, strand2 = DNAhelix(j)#,omega=0,v=v)
                         # strand 1 backbone
@@ -622,8 +625,9 @@ class Snapshot:
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                         if (indR == self.n_bps): break
+                    nucFrac += 1
                 else: # dna bead
-                    for j in range(int(np.round(maxBp))):
+                    for j in range(int(np.round(maxBp + cushion*(-1)**(dnaFrac)))):
                         row = np.zeros(3*3).reshape([3,3])
                         strand1, base, strand2 = DNAhelix(j)#,omega=omega,v=v)
                         # strand 1 backbone
@@ -637,6 +641,7 @@ class Snapshot:
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                         if (indR == self.n_bps): break
+                    dnaFrac += 1
             else:
                 chainNum +=1
         return chain
