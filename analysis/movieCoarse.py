@@ -26,7 +26,7 @@ input_folder = pathData
 side = 16
 incr = 2*np.pi/(side/2.0)
 
-for idx in range(0,numFrames): cmd.load(pathPDB+"coarse%03d.pdb"%idx,"snap")
+for idx in range(0,numFrames): cmd.load(pathPDB+"coarse%03dv%s.pdb"%(idx,channel[idx]),"snap")
 cmd.mset("1 -%d" % numFrames)
 cmd.color('gray80', 'snap')
 
