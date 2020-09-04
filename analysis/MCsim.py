@@ -403,9 +403,10 @@ class Chain:
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None
+        self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        self.ff_dist = np.zeros(self.n_pair_dist); self.fs_dist = np.zeros(self.n_pair_dist); self.ss_dist = np.zeros(self.n_pair_dist)
         # interpolation/ricc-seq stuff
         self.bps = None
-        self.n_pair_bps = int(scipy.special.comb(self.n_nucs,2))
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
@@ -490,7 +491,7 @@ class Chain:
             self.reduced_pair_dist[i] /= (self.n_nucs-i-1)
 
     # determine nucleosome-nucleosome orientation 
-    def pairwiseNucleosomeOrientation(self, cutoff=25, centerNuc=np.array([4.8455, -2.4445, 0.6694])):
+    def pairwiseNucleosomeOrientation(self, cutoff=25):
         """Get the pairwise orientation between the center of each nucleosome on the chain, i.e. n choose k
         
         Generates
@@ -500,18 +501,55 @@ class Chain:
         try:
             if (self.pair_dist == None):
                 self.pairwiseNucleosomeDistance()
-        # figure out cutoff
+        except:
+            # do nothing
+            pass
+        # check orientation if within cutoff
         nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>1],dtype='int')
         ind = 0
         for i in range(len(nucLocs)):
             for j in range(i+1,len(nucLocs)):
-                if self.pair_dist[ind <= cutoff]:
+                if self.pair_dist[ind] <= cutoff:
                     # create rotation matrices
                     matI = np.matrix([self.v[nucLocs[i],:], np.cross(self.u[nucLocs[i],:], self.v[nucLocs[i],:]), self.u[nucLocs[i],:]]).T
                     matJ = np.matrix([self.v[nucLocs[j],:], np.cross(self.u[nucLocs[j],:], self.v[nucLocs[j],:]), self.u[nucLocs[j],:]]).T
                     # find center of nucs
-                    polyI = self.r[nucLocs[i],:] + np.matmul(matI, centerNuc)
-                    polyJ = self.r[nucLocs[j],:] + np.matmul(matJ, centerNuc)
+                    polyI = self.r[nucLocs[i],:] + np.squeeze(np.asarray(np.matmul(matI, nucleosome_center)))
+                    polyJ = self.r[nucLocs[j],:] + np.squeeze(np.asarray(np.matmul(matJ, nucleosome_center)))
+                    # construct face I normal vector (pointing up through face)
+                    faceItop = self.r[nucLocs[i],:] + np.squeeze(np.asarray(np.matmul(matI, nucleosome_center + np.array([0, nucleosome_height/2, 0]))))
+                    faceIbot = self.r[nucLocs[i],:] + np.squeeze(np.asarray(np.matmul(matI, nucleosome_center + np.array([0, -nucleosome_height/2, 0]))))
+                    faceI = faceItop - faceIbot
+                    # construct face J normal vector (pointing up through face)
+                    faceJtop = self.r[nucLocs[j],:] + np.squeeze(np.asarray(np.matmul(matJ, nucleosome_center + np.array([0, nucleosome_height/2, 0]))))
+                    faceJbot = self.r[nucLocs[j],:] + np.squeeze(np.asarray(np.matmul(matJ, nucleosome_center + np.array([0, -nucleosome_height/2, 0]))))
+                    faceJ = faceJtop - faceJbot
+                    cospsi = np.dot(faceI/np.linalg.norm(faceI), faceJ/np.linalg.norm(faceJ))
+                    # list of combinatorial face attractions
+                    faceDistList = np.zeros([4,3])
+                    faceDistList[0, :] = faceItop - faceJbot 
+                    faceDistList[1, :] = faceItop - faceJtop 
+                    faceDistList[2, :] = faceIbot - faceJbot 
+                    faceDistList[3, :] = faceIbot - faceJtop 
+                    # find the closest faces to define the face oritentation vector
+                    indDist = np.argmin(np.linalg.norm(faceDistList, axis=1))
+                    distS = faceDistList[indDist, :]
+                    costhetaI = np.dot(distS/np.linalg.norm(distS), faceI/np.linalg.norm(faceI))
+                    costhetaJ = np.dot(distS/np.linalg.norm(distS), faceJ/np.linalg.norm(faceJ))
+                    # determine frequency of face-face (histone-histone interaction)
+                    self.ff_coeff[ind] = np.sqrt((costhetaI**2)*(costhetaJ**2))
+                    self.ff_dist[ind] = np.linalg.norm(distS)
+                    # determine other charactestic angls other than theta
+                    distC = polyI - polyJ
+                    cosphiI = np.dot(distC/np.linalg.norm(distC), faceI/np.linalg.norm(faceI))
+                    cosphiJ = np.dot(distC/np.linalg.norm(distC), faceJ/np.linalg.norm(faceJ))
+                    # determine frequency of face-side (histone-DNA wrapping interaction)
+                    self.fs_coeff[ind] = np.sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))
+                    self.fs_dist[ind] = np.linalg.norm(np.linalg.norm(distC) - nucleosome_height/2 - nucleosome_radius)
+                    # determine frequency of face-side (histone-DNA wrapping interaction)
+                    self.ss_coeff[ind] = np.sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))
+                    self.ss_dist[ind] = np.linalg.norm(np.linalg.norm(distC) - 2*nucleosome_radius)
+                # increment index
                 ind += 1
 
     # interpolate atoms into coarse grained chain
@@ -825,6 +863,14 @@ class Snapshot(Chain):
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
+        # centered beads 
+        self.center_r = None
+        # pairwise nucleosomes
+        self.n_nucs = np.sum(self.wrap>1)
+        self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
+        self.pair_dist = None
+        self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        self.ff_dist = np.zeros(self.n_pair_dist); self.fs_dist = np.zeros(self.n_pair_dist); self.ss_dist = np.zeros(self.n_pair_dist)
         # energies
         with open('%senergiesv%s' %(path_to_data,self.channel)) as fp:
             for i, line in enumerate(fp):

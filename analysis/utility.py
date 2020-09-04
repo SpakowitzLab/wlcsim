@@ -8,6 +8,9 @@ import numpy as np
 length_per_bp = 0.332 # length in nm of 1 bp
 default_omega = 2*np.pi/10.5 # default twist of DNA
 max_bp_wrapped = 147
+nucleosome_height = 5.5 # nm
+nucleosome_radius = 5.2 # nm
+nucleosome_center = np.array([4.8455, -2.4445, 0.6694])
 default_dir = str(Path(__file__).parent / Path('..'))
 
 # read in translation and rotation files
