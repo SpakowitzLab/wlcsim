@@ -404,7 +404,7 @@ class Chain:
         self.pair_dist = None
         self.reduced_pair_dist = None
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
-        self.ff_dist = np.zeros(self.n_pair_dist); self.fs_dist = np.zeros(self.n_pair_dist); self.ss_dist = np.zeros(self.n_pair_dist)
+        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
         # interpolation/ricc-seq stuff
         self.bps = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
@@ -491,7 +491,7 @@ class Chain:
             self.reduced_pair_dist[i] /= (self.n_nucs-i-1)
 
     # determine nucleosome-nucleosome orientation 
-    def pairwiseNucleosomeOrientation(self, cutoff=25):
+    def pairwiseNucleosomeOrientation(self, cutoff=20):
         """Get the pairwise orientation between the center of each nucleosome on the chain, i.e. n choose k
         
         Generates
@@ -862,15 +862,22 @@ class Snapshot(Chain):
             self.wrap = np.array([1]*len(self.r))
         # assign constants from postion data
         self.n_beads = len(self.r)
+        self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
         self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
+        self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
         # pairwise nucleosomes
         self.n_nucs = np.sum(self.wrap>1)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
+        self.reduced_pair_dist = None
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
-        self.ff_dist = np.zeros(self.n_pair_dist); self.fs_dist = np.zeros(self.n_pair_dist); self.ss_dist = np.zeros(self.n_pair_dist)
+        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
+        self.bps = None
+        self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
+        self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
+        self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
         # energies
         with open('%senergiesv%s' %(path_to_data,self.channel)) as fp:
             for i, line in enumerate(fp):
