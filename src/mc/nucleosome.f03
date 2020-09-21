@@ -174,10 +174,10 @@ contains
       ! face-face (histone-histone attraction)
       if (norm2(distS) <= tau_faceface) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*(costhetaI**2)*(costhetaJ**2)/tau_faceface
+                                  - e_faceface*sqrt((costhetaI**2)*(costhetaJ**2))/tau_faceface
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*(costhetaI**2)*(costhetaJ**2)/norm2(distS)
+                                  - e_faceface*sqrt((costhetaI**2)*(costhetaJ**2))/norm2(distS)
       endif
       distC = polyI - polyJ
       cosphiI = dot_product(distC/norm2(distC), faceI/norm2(faceI))
@@ -187,20 +187,20 @@ contains
       dist = norm2(distC) - WLC_P__NUCLEOSOME_HEIGHT/2 - WLC_P__NUCLEOSOME_RADIUS
       if (norm2(dist) <= tau_faceside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*(1 - cospsi**2)*(cosphiI**2 + cosphiJ**2)/tau_faceside
+                                  - e_faceside*sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))/tau_faceside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*(1 - cospsi**2)*(cosphiI**2 + cosphiJ**2)/norm2(dist)
+                                  - e_faceside*sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))/norm2(dist)
       endif
 
       ! side-side (DNA wrapping-DNA wrapping attraction)
       dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
       if (norm2(dist) <= tau_sideside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*(1 - cosphiI**2)*(1 - cosphiJ**2)/tau_sideside
+                                  - e_sideside*sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))/tau_sideside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*(1 - cosphiI**2)*(1 - cosphiJ**2)/norm2(dist)
+                                  - e_sideside*sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))/norm2(dist)
       endif
 
    end function internucleosome_energy
