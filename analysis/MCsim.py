@@ -537,17 +537,20 @@ class Chain:
                     costhetaI = np.dot(distS/np.linalg.norm(distS), faceI/np.linalg.norm(faceI))
                     costhetaJ = np.dot(distS/np.linalg.norm(distS), faceJ/np.linalg.norm(faceJ))
                     # determine frequency of face-face (histone-histone interaction)
-                    self.ff_coeff[ind] = np.sqrt((costhetaI**2)*(costhetaJ**2))
+                    self.ff_coeff[ind] = np.abs(costhetaI)*np.abs(costhetaJ)
                     self.ff_dist[ind] = np.linalg.norm(distS)
                     # determine other charactestic angls other than theta
                     distC = polyI - polyJ
                     cosphiI = np.dot(distC/np.linalg.norm(distC), faceI/np.linalg.norm(faceI))
                     cosphiJ = np.dot(distC/np.linalg.norm(distC), faceJ/np.linalg.norm(faceJ))
                     # determine frequency of face-side (histone-DNA wrapping interaction)
-                    self.fs_coeff[ind] = np.sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))
+                    temp = np.abs(cosphiI) + np.abs(cosphiJ)
+                    if temp > 1:
+                        temp = 2 - temp
+                    self.fs_coeff[ind] = (1 - np.abs(cospsi))*temp #np.sqrt(cosphiI**2 + cosphiJ**2)
                     self.fs_dist[ind] = np.linalg.norm(np.linalg.norm(distC) - nucleosome_height/2 - nucleosome_radius)
                     # determine frequency of face-side (histone-DNA wrapping interaction)
-                    self.ss_coeff[ind] = np.sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))
+                    self.ss_coeff[ind] = (1 - np.abs(cosphiI))*(1 - np.abs(cosphiJ))
                     self.ss_dist[ind] = np.linalg.norm(np.linalg.norm(distC) - 2*nucleosome_radius)
                 # increment index
                 ind += 1
@@ -904,7 +907,7 @@ class Snapshot(Chain):
             nbeads = int(self.n_beads/self.n_chains)
             ind = 0
             for i in range(self.n_chains):
-                self.chains[i+1] = Chain(i+1, self.time, self.channel,
+                self.chains[i] = Chain(i, self.time, self.channel,
                                 self.r[ind:ind+nbeads,:], self.u[ind:ind+nbeads,:], self.v[ind:ind+nbeads,:],
                                 self.basepairs[ind:ind+nbeads], self.wrap[ind:ind+nbeads])
                 ind += nbeads

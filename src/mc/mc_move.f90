@@ -55,6 +55,8 @@ case(12)
 call mc_spider(wlc_MCAMP,rand_stat,success)
 case(13)
 call mc_nucleosome_slide(IB1,IB2,IT1,IT2,rand_stat,success)
+case(14)
+!call mc_nucleosome_wrap(IB1,IB2,IT1,IT2,rand_stat,success)
 end select
 RETURN
 END

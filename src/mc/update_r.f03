@@ -66,7 +66,8 @@ contains
    subroutine GJK_removeBead(I)
    ! helper function to remove beads with binning
       use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP &
-                        , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap
+                        , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap, &
+                        wlc_nucleosomeWrap_prop
       use params, only: dp, NAN
       use binning, only: removeBead
       use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
@@ -85,8 +86,9 @@ contains
 
    subroutine GJK_update(I, binningBool)
    ! helper routine to update R in GJK simulations
-      use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP &
-                        , wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap
+      use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP, &
+                        wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap, &
+                        wlc_nucleosomeWrap_prop
       use params, only: dp, NAN
       use GJKAlgorithm, only: constructPolygonPrism
       use binning, only: addBead
@@ -102,7 +104,7 @@ contains
             poly = constructPolygonPrism(wlc_R(:, I - 1), wlc_R(:, I), wlc_nucleosomeWrap(I - 1), &
                                           wlc_U(:, I - 1), wlc_V(:, I - 1), WLC_P__GJK_POLYGON)
          else
-            poly = constructPolygonPrism(wlc_RP(:, I - 1), wlc_R(:, I), wlc_nucleosomeWrap(I - 1), &
+            poly = constructPolygonPrism(wlc_RP(:, I - 1), wlc_R(:, I), wlc_nucleosomeWrap_prop(I - 1), &
                                           wlc_UP(:, I - 1), wlc_VP(:, I - 1)/norm2(wlc_VP(:, I - 1)), WLC_P__GJK_POLYGON)
          endif
          wlc_GJK(:, :, I - 1) = poly

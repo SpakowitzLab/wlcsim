@@ -26,7 +26,7 @@ module params
 
     !!!     hardcoded params. will need to change if certain parts of code change
    ! number of wlc_p move types
-   integer, parameter :: nMoveTypes = 13 ! NP added nuc slide
+   integer, parameter :: nMoveTypes = 14 
    integer, parameter :: nDim = 3
 
     !!!     arbitrary technical choices
@@ -48,7 +48,7 @@ module params
                                                             'chem-identity       ', 'end-end filp        ', &
                                                             'chain swap          ', 'reptation           ', &
                                                             'superReptation      ', 'spider              ', &
-                                                            'nucleosomeSlide     '/)
+                                                            'nucleosomeSlide     ', 'nucleosomeWrap      '/)
 
     !!!     universal constants
    ! fully accurate, adaptive precision
@@ -190,7 +190,8 @@ module params
    real(dp), allocatable, dimension(:) :: wlc_basepairs
    integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
    real(dp), allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
-   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for breathing
+   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for unwrapping (NEEDS TO BE IMPLEMENTED)
+
 
    ! Linking number, Twist, and Writhe (only for one-chain simulation)
    ! These values are updated in mcsim, checked against and update to their values
@@ -281,6 +282,7 @@ contains
       wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
       wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
       wlc_p%MINAMP(13) = WLC_P__MINAMP_NUCLEOSOME_SLIDE
+      wlc_p%MINAMP(14) = WLC_P__MINAMP_NUCLEOSOME_WRAP
       wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
       wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
       wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -294,6 +296,7 @@ contains
       wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
       wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
       wlc_p%MAXAMP(13) = WLC_P__MAXAMP_NUCLEOSOME_SLIDE
+      wlc_p%MAXAMP(14) = WLC_P__MAXAMP_NUCLEOSOME_WRAP
       wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
       wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
       wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -307,6 +310,7 @@ contains
       wlc_p%MOVEON(11) = WLC_P__MOVEON_SUPER_REPTATION
       wlc_p%MOVEON(12) = WLC_P__MOVEON_SPIDER
       wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOMESLIDE
+      wlc_p%MOVEON(14) = WLC_P__MOVEON_NUCLEOSOMEWRAP
       wlc_p%WINTARGET(1) = WLC_P__WINTARGET_CRANK_SHAFT
       wlc_p%WINTARGET(2) = WLC_P__WINTARGET_SLIDE_MOVE
       wlc_p%WINTARGET(3) = WLC_P__WINTARGET_PIVOT_MOVE
@@ -333,6 +337,7 @@ contains
       wlc_p%NADAPT(11) = WLC_P__NADAPT_SUPER_REPTATION
       wlc_p%NADAPT(12) = WLC_P__NADAPT_SPIDER
       wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOMESLIDE
+      wlc_p%NADAPT(14) = WLC_P__NADAPT_NUCLEOSOMEWRAP
       wlc_p%MOVESPERSTEP(1) = WLC_P__MOVESPERSTEP_CRANK_SHAFT
       wlc_p%MOVESPERSTEP(2) = WLC_P__MOVESPERSTEP_SLIDE_MOVE
       wlc_p%MOVESPERSTEP(3) = WLC_P__MOVESPERSTEP_PIVOT_MOVE
@@ -346,6 +351,7 @@ contains
       wlc_p%MOVESPERSTEP(11) = WLC_P__MOVESPERSTEP_SUPER_REPTATION
       wlc_p%MOVESPERSTEP(12) = WLC_P__MOVESPERSTEP_SPIDER
       wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE
+      wlc_p%MOVESPERSTEP(14) = WLC_P__MOVESPERSTEP_NUCLEOSOMEWRAP
 
    end subroutine set_param_defaults
 
@@ -616,6 +622,10 @@ contains
          allocate (wlc_nucleosomeWrap(WLC_P__NT))
          if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
             allocate (wlc_basepairs_prop(WLC_P__NT))
+         endif
+         if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+            allocate (wlc_basepairs_prop(WLC_P__NT))
+            allocate (wlc_nucleosomeWrap_prop(WLC_P__NT))
          endif
       endif
       if (WLC_P__EXPLICIT_BINDING) then

@@ -64,6 +64,7 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
    real(dp) nloops
    integer IP
 
+
    LBOX(1) = WLC_P__LBOX_X
    LBOX(2) = WLC_P__LBOX_Y
    LBOX(3) = WLC_P__LBOX_Z
@@ -509,6 +510,11 @@ subroutine initcond(R, U, NT, NP, FRMFILE, rand_stat, wlc_p)
          enddo
       else
          do IB = 1, WLC_P__NT - 1
+            if (wlc_nucleosomeWrap(IB) /= 1 .AND. WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
+               call random_gauss(urand, rand_stat)
+               urand = nint(urand(1))
+               wlc_nucleosomeWrap(IB) = wlc_nucleosomeWrap(IB) + urand(1)
+            endif
             ! Rotation (and translation) due to nucleosome
             call nucleosome_prop(U(:, IB), wlc_V(:, IB), R(:, IB), &
                                  wlc_basepairs(IB), wlc_nucleosomeWrap(IB), &

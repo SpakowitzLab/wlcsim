@@ -15,7 +15,7 @@ subroutine mcsim(wlc_p)
                      , pack_as_para, nMoveTypes, wlc_pointsMoved, wlc_bendPoints &
                      , wlcsim_params_recenter, wlc_Lk0, wlc_Lk, wlc_Tw, wlc_Wr &
                      , wlc_VP, wlc_U, wlc_V, wlc_R_GJK, wlc_nucleosomeWrap, &
-                     wlc_basepairs, wlc_basepairs_prop
+                     wlc_basepairs, wlc_basepairs_prop, wlc_nucleosomeWrap_prop
    use energies
    use umbrella, only: umbrella_energy
 
@@ -136,6 +136,11 @@ subroutine mcsim(wlc_p)
             ! set wlc_basepairs to prop if not slide move
             if (MCTYPE /= 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
                wlc_basepairs_prop = wlc_basepairs
+            endif
+            ! set wlc_basepairs to prop if not slide move
+            if (MCTYPE /= 14 .AND. WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+               wlc_basepairs_prop = wlc_basepairs
+               wlc_nucleosomeWrap_prop = wlc_nucleosomeWrap
             endif
 
             ! sterics check here !
@@ -303,6 +308,10 @@ subroutine mcsim(wlc_p)
                endif
                if (MCTYPE == 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
                   wlc_basepairs = wlc_basepairs_prop
+               endif
+               if (MCTYPE == 14 .AND. WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+                  wlc_basepairs = wlc_basepairs_prop
+                  wlc_nucleosomeWrap = wlc_nucleosomeWrap_prop
                endif
                if (MCTYPE /= 7) then
                   do I = 1, wlc_nPointsMoved

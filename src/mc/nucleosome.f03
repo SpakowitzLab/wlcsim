@@ -11,8 +11,8 @@ module nucleosome
    implicit none
    real(dp), parameter :: basePairsPerTurn = 10.5_dp
    real(dp), dimension(10, WLC_P__MAX_BACEPAIRS_PER_BEAD) :: multiParams
-   real(dp), dimension(3, 3, 147) :: nucleosomeROT
-   real(dp), dimension(3, 147) :: nucleosomeTran
+   real(dp), dimension(3, 3, 160) :: nucleosomeROT
+   real(dp), dimension(3, 160) :: nucleosomeTran
 
    private :: nucleosomeROT, nucleosomeTran
 contains
@@ -253,6 +253,7 @@ contains
       integer i, j, simtype
       real(dp) DEL
       real(dp) EB, EPAR, EPERP, GAM, ETA, XIR, XIU, sigma, etwist, dt
+      integer num_bps
 
       multiParams = nan
       do i = 2, WLC_P__MAX_BACEPAIRS_PER_BEAD
@@ -277,18 +278,30 @@ contains
 
       enddo
 
-      open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
-      do i = 1, 147
+      if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 0) then 
+         open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
+         num_bps = 147
+      else
+         open (UNIT=5, FILE="input/nucleosomeR_extended", STATUS="OLD")
+         num_bps = 160
+      endif
+      do i = 1, num_bps
          do j = 1, 3
-            read (5, *) nucleosomeROT(j, :, 148 - i)
+            read (5, *) nucleosomeROT(j, :, (num_bps + 1) - i)
          enddo
       enddo
       close (5)
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
-         open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
-         do i = 1, 147
-            read (5, *) nucleosomeTran(:, 148 - i)
+         if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 0) then 
+            open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
+            num_bps = 147
+         else
+            open (UNIT=5, FILE="input/nucleosomeT_extended", STATUS="OLD")
+            num_bps = 160
+         endif
+         do i = 1, num_bps
+            read (5, *) nucleosomeTran(:, (num_bps + 1) - i)
          enddo
          close (5)
       else
