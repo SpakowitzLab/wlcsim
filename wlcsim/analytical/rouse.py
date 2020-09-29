@@ -265,26 +265,26 @@ def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
 confined_G.zl_n = None
 
 
-def ring_mscd(t, D, Ndel, N, num_modes=1000):
+def ring_mscd(t, D, Ndel, N, b=1, num_modes=1000):
     """
     Compute mscd for two points on a ring.
 
     Parameters
     ----------
-    t : (N,) float, array_like
+    t : (M,) float, array_like
         Times at which to evaluate the MSCD
     D : float
         Diffusion coefficient
     Ndel : float
-        (1/2)*separation between the loci on loop
+        (1/2)*separation between the loci on loop (in Kuhn lengths)
     N : float
-        (1/2)*size of loop (in Kuhn lengths)
+        full length of the loop (in Kuhn lengths)
     num_modes : int
         how many Rouse modes to include in the sum
 
     Returns
     -------
-    mscd : (N,) np.array<float>
+    mscd : (M,) np.array<float>
         result
 
     Notes
@@ -366,12 +366,82 @@ def ring_mscd(t, D, Ndel, N, num_modes=1000):
         loglog(T,10*power(T,0.25),'k--','LineWidth',4)
         %loglog(T,10*power(T,0.5),'k--','LineWidth',4)
 
+
+    .. code-block:: matlab
+
+        MSCD = MSCD + abs(exp(1i*2*pi*P*NDEL/N)-1)^2 \
+                            * (1-exp(-D*T*P^2/N^2)) \
+                            * 4*N/P^2/(2*pi)^2;
     """
     mscd = np.zeros_like(t)
+    # 24*kbT / k_p, omitting the "p^2"
+    sum_coeff =  2*N*b**2 / np.pi**2
+    # k_p / (N*xi), omitting the "p^2"
+    exp_coeff = 12*np.pi**2*D / (N*b)**2
+    sin_coeff = 2*np.pi*Ndel/N
     for p in range(1, num_modes+1):
-        mscd += np.real(np.abs(np.exp(1j*2*np.pi*p*Ndel/N) - 1)**2 \
-              * (1 - np.exp(-D*t*p**2/N**2)) \
-              * 4*N/((2*np.pi*p)**2))
-    return mscd
+        mscd += (1/p**2) * (1 - np.exp(-exp_coeff*p**2*t)) \
+                * np.sin(sin_coeff*p)**2
+        # mscd += np.real(np.abs(np.exp(1j*2*np.pi*p*Ndel/N) - 1)**2 \
+        #       * (1 - np.exp(-D*t*p**2/N**2)) \
+        #       * 2*N/((2*np.pi*p)**2))
+    return sum_coeff*mscd
 
 
+def linear_mscd(t, D, Ndel, N, b=1, num_modes=10000):
+    """
+    Compute mscd for two points on a linear polymer.
+
+    Parameters
+    ----------
+    t : (M,) float, array_like
+        Times at which to evaluate the MSCD
+    D : float
+        Diffusion coefficient
+    Ndel : float
+        Distance from the last linkage site to the measured site. This ends up
+        being (1/2)*separation between the loci (in Kuhn lengths).
+    N : float
+        The full lengh of the linear polymer (in Kuhn lengths).
+    num_modes : int
+        how many Rouse modes to include in the sum
+
+    Returns
+    -------
+    mscd : (M,) np.array<float>
+        result
+
+    From Andy's formula:
+
+    .. code-block:: matlab
+
+        MSCD=MSCD+16*NS/pi^2*(1/(2*P+1)^2)
+                  *sin((2*P+1)*pi*DEL/(2*NS))^2 ...
+                  *(1-exp(-(2*P+1)^2*T/NS^2));
+
+    """
+    mscd = np.zeros_like(t)
+    # 24*kbT/k_p, omitting the p^2
+    sum_coeff = 8*b**2*N / np.pi**2
+    # kp/(N*xi), omitting the p**2
+    exp_coeff = 3*np.pi**2*D / (N*b)**2
+    sin_coeff = np.pi*Ndel/N
+    for p in range(1, num_modes+1, 2):
+        mscd += (1/p**2) * (1 - np.exp(-exp_coeff*p**2*t)) \
+                * np.sin(sin_coeff*p)**2
+        # mscd += 16*N/np.pi**2*(1/(2*p + 1)**2) \
+        #         * np.sin((2*p + 1)*np.pi*(Ndel/N)/2)**2 \
+        #         * (1 - np.exp(-t*(2*p + 1)**2/N**2))
+        # mscd += np.real(np.abs(np.exp(1j*np.pi*p/N) - 1)**2 \
+        #       * (1 - np.exp(-D*t*p**2/N**2)) \
+        #       * 2*N**3/(2*N - 1)/((np.pi*p)**2))
+    return sum_coeff*mscd
+
+
+def end_to_end_corr(t, D, N, num_modes=10000):
+    """Doi and Edwards, Eq. 4.35"""
+    mscd = np.zeros_like(t)
+    tau1 = N**2/(3*np.pi*np.pi*D)
+    for p in range(1, num_modes+1, 2):
+        mscd += 8/p/p/np.pi/np.pi * np.exp(-t*p**2 / tau1)
+    return N*mscd
