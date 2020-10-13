@@ -46,12 +46,11 @@ subroutine mc_nucleosome_wrap(IB1, IB2, IT1, IT2, rand_stat, success)
    integer prevNuc, nextNuc, linkerSum
    integer nNucs
    integer nucArray(WLC_P__NT)
-   real(dp) tempR(3)
+   real(dp) tempR(3), tempU(3), tempV(3)
    real(dp), parameter :: eps = 0.00001 ! rescale to avoid urand vals of 0
 
 ! initialize
    success = .false.
-   max_bp = 15
 
 ! find nucs
    KK = 1
@@ -110,57 +109,37 @@ subroutine mc_nucleosome_wrap(IB1, IB2, IT1, IT2, rand_stat, success)
 !    enddo outer1
 
 ! change JUST entry-exit angle
-wlc_nucleosomeWrap_prop(I) = wlc_nucleosomeWrap(I) + DR
-success = .true.
+if (wlc_nucleosomeWrap_prop(I) + DR <= 150 .and. wlc_nucleosomeWrap_prop(I) + DR >= 144 &
+   .and. wlc_basepairs_prop(I) + DR <= 15 .and. wlc_basepairs_prop(I) + DR >= 3 ) then 
+   wlc_nucleosomeWrap_prop(I) = wlc_nucleosomeWrap(I) + DR
+   wlc_basepairs_prop(I) = wlc_basepairs(I) - DR
+   success = .true.
+endif
 
    if (success) then
-      IB1 = I !- II
-      IB2 = I !+ JJ
-      IT1 = IB1 + 1
-      IT2 = IB2 !- 1
-      ! if (IB1 >= 1) then
-      !    wlc_nBend = wlc_nBend + 1
-      !    wlc_bendPoints(wlc_nBend) = IB1
-      !    J = IB1
-      !    wlc_RP(:, J) = wlc_R(:, J)
-      !    wlc_UP(:, J) = wlc_U(:, J)
-      !    wlc_VP(:, J) = wlc_V(:, J)
-      !    wlc_nPointsMoved = wlc_nPointsMoved + 1
-      !    wlc_pointsMoved(wlc_nPointsMoved) = J
-      ! endif
-      ! if (IB2 < WLC_P__NT) then
-      !    wlc_nBend = wlc_nBend + 1
-      !    wlc_bendPoints(wlc_nBend) = IB2
-      !    do J = IB2, IB2 + 1
-      !       wlc_RP(:, J) = wlc_R(:, J)
-      !       wlc_UP(:, J) = wlc_U(:, J)
-      !       wlc_VP(:, J) = wlc_V(:, J)
-      !       wlc_nPointsMoved = wlc_nPointsMoved + 1
-      !       wlc_pointsMoved(wlc_nPointsMoved) = J
-      !    enddo
-      ! endif
-      ! do KK = IT1, IT2
-      !    ! only change wrapping to the right, will this be an issue?
-      !    !if (KK == I) then 
-      !    !   call nucleosome_prop(wlc_UP(:, KK), wlc_VP(:, KK), wlc_RP(:, KK), &
-      !    !                        wlc_basepairs_prop(KK), wlc_nucleosomeWrap_prop(KK), &
-      !    !                        wlc_UP(:, KK + 1), wlc_VP(:, KK + 1), wlc_RP(:, KK + 1))
-      !    !   wlc_RP(:, KK + 1) = wlc_RP(:, KK + 1) + wlc_U(:, KK + 1)*WLC_P__LENGTH_PER_BP*wlc_basepairs_prop(KK)
-      !    !endif
-      !    wlc_RP(:, KK) = wlc_R(:, KK) + wlc_U(:, KK)*WLC_P__LENGTH_PER_BP*(wlc_basepairs_prop(KK) - wlc_basepairs(KK))
-      !    wlc_UP(:, KK) = wlc_U(:, KK)
-      !    wlc_VP(:, KK) = wlc_V(:, KK)
-      !    wlc_nPointsMoved = wlc_nPointsMoved + 1
-      !    wlc_pointsMoved(wlc_nPointsMoved) = KK
-      ! enddo
-      call nucleosome_prop(wlc_U(:, KK), wlc_V(:, KK), wlc_R(:, KK), &
-                           wlc_basepairs_prop(KK), wlc_nucleosomeWrap_prop(KK), &
-                           wlc_UP(:, KK + 1), wlc_VP(:, KK + 1), tempR)
-      wlc_RP(:, KK + 1) = wlc_R(:, KK + 1)
+      IB1 = I !- 2 !- II
+      IB2 = I + 1!+ 2 !+ JJ
+      IT1 = IB1
+      IT2 = IB2 
+      ! update nuc
+      wlc_RP(:, I) = wlc_R(:, I)
+      wlc_UP(:, I) = wlc_U(:, I)
+      wlc_VP(:, I) = wlc_V(:, I)
       wlc_nPointsMoved = wlc_nPointsMoved + 1
-      wlc_pointsMoved(wlc_nPointsMoved) = KK
+      wlc_pointsMoved(wlc_nPointsMoved) = I
+      ! rotate
+      call nucleosome_prop(wlc_U(:, I), wlc_V(:, I), wlc_R(:, I), &
+                          wlc_basepairs(I), wlc_nucleosomeWrap(I), &
+                          tempU, tempV, wlc_RP(:, I + 1))
+      call nucleosome_prop(wlc_U(:, I), wlc_V(:, I), wlc_R(:, I), &
+                          wlc_basepairs_prop(I), wlc_nucleosomeWrap_prop(I), &
+                          wlc_UP(:, I + 1), wlc_VP(:, I + 1), tempR)
+      ! after nuc 
+      wlc_RP(:, I + 1) = wlc_RP(:, I + 1) + WLC_P__LENGTH_PER_BP*tempU*wlc_basepairs_prop(I)
+      !wlc_UP(:, I + 1) = wlc_U(:, I + 1)
+      !wlc_VP(:, I + 1) = wlc_V(:, I + 1)
       wlc_nPointsMoved = wlc_nPointsMoved + 1
-      wlc_pointsMoved(wlc_nPointsMoved) = KK + 1
+      wlc_pointsMoved(wlc_nPointsMoved) = I + 1
    else
       wlc_basepairs_prop = wlc_basepairs
       wlc_nucleosomeWrap_prop = wlc_nucleosomeWrap

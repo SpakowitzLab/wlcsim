@@ -731,6 +731,11 @@
 ! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
 
+#define WLC_P__MOVESPERSTEP_NUCLEOSOMEWRAP 10
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
+! TYPE: INTEGER
+
 #define WLC_P__PROBSINGLESWAP 0.5_dp
 ! VARIABLE COMMENT: ! For TWO_TAIL simulations, what fraction of the BINDING_STATE moves to change the binding state of only one tail.
 ! DEFAULTS COMMENT: ! 0< x  <1
@@ -935,6 +940,11 @@
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER
 
+#define WLC_P__MOVEON_NUCLEOSOMEWRAP 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome angle
+! TYPE: INTEGER
+
 ! ----------------------------
 !
 !   MC Optimization
@@ -1001,6 +1011,10 @@
 ! DEFAULTS COMMENT: ! Target
 
 #define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+
+#define WLC_P__PDESIRE_NUCLEOSOMEWRAP 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 
@@ -1179,6 +1193,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_WRAP NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
@@ -1240,6 +1259,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_WRAP NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1360,6 +1384,11 @@
 ! TYPE: INTEGER
 
 #define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_NUCLEOSOMEWRAP 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER

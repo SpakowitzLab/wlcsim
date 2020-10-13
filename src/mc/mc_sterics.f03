@@ -110,7 +110,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
                                             wlc_V(:, i - 1), WLC_P__GJK_POLYGON)
             else
                poly = constructPolygonPrism(wlc_RP(:, i - 1), wlc_RP(:, i), &
-                                            wlc_nucleosomeWrap_prop(i - 1), wlc_UP(:, i - 1), &
+                                            wrapping(i - 1), wlc_UP(:, i - 1), &
                                             wlc_VP(:, i - 1)/norm2(wlc_VP(:, i - 1)), WLC_P__GJK_POLYGON)
             endif
             SGJK(:, :, i - 1) = poly
@@ -124,11 +124,11 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
             k = k + 1
             if (isnan(wlc_RP(1, i + 1))) then 
                poly = constructPolygonPrism(wlc_RP(:, i), wlc_R(:, i + 1), &
-                                            wlc_nucleosomeWrap_prop(i), wlc_UP(:, i), &
+                                            wrapping(i), wlc_UP(:, i), &
                                             wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
             else 
                poly = constructPolygonPrism(wlc_RP(:, i), wlc_RP(:, i + 1), &
-                                            wlc_nucleosomeWrap_prop(i), wlc_UP(:, i), &
+                                            wrapping(i), wlc_UP(:, i), &
                                             wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
             endif
             SGJK(:, :, i) = poly

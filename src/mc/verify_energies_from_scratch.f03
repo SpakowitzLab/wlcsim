@@ -123,7 +123,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
                                WLC_P__NT, neighbors, distances, nn)
          endif
          ! check for collisions
-         call sterics_check(collisions, wlc_R, wlc_U, wlc_V, wlc_GJK, wlc_basepairs, ignore, &
+         call sterics_check(collisions, wlc_R, wlc_U, wlc_V, wlc_GJK, wlc_basepairs, wlc_nucleosomeWrap, ignore, &
                             i, nn, neighbors(1:nn), distances(1:nn), .true.)
       enddo
       ! ascribe collision penalty

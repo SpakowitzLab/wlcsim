@@ -115,11 +115,11 @@ contains
       real(dp), intent(in), dimension(3) :: VI ! V of nuc i
       real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
       real(dp), parameter :: tau_faceface = 1.38_dp
-      real(dp), parameter :: e_faceface = 3.712_dp
+      real(dp), parameter :: e_faceface = 3.712_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
       real(dp), parameter :: tau_faceside = 0.82_dp
-      real(dp), parameter :: e_faceside = 1.476_dp
+      real(dp), parameter :: e_faceside = 1.476_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
       real(dp), parameter :: tau_sideside = 2.0_dp
-      real(dp), parameter :: e_sideside = 1.64_dp
+      real(dp), parameter :: e_sideside = 1.64_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
       real(dp), dimension(3), parameter :: center = [4.8455_dp, -2.4445_dp, 0.6694_dp]
       real(dp), dimension(3, 3) :: mtrxI, mtrxJ
       real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
@@ -127,7 +127,7 @@ contains
       real(dp), dimension(4, 3) :: faceDistList
       real(dp), dimension(4) :: distList
       real(dp), dimension(3) :: distS, distC, dist
-      real(dp) cospsi, costhetaI, costhetaJ, cosphiI, cosphiJ
+      real(dp) cospsi, costhetaI, costhetaJ, cosphiI, cosphiJ, tempAngle
       integer i, indList(1)
       real(dp) internucleosome_energy
 
@@ -174,10 +174,10 @@ contains
       ! face-face (histone-histone attraction)
       if (norm2(distS) <= tau_faceface) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*sqrt((costhetaI**2)*(costhetaJ**2))/tau_faceface
+                                  - e_faceface*abs(costhetaI)*abs(costhetaJ)/tau_faceface
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*sqrt((costhetaI**2)*(costhetaJ**2))/norm2(distS)
+                                  - e_faceface*abs(costhetaI)*abs(costhetaJ)/norm2(distS)
       endif
       distC = polyI - polyJ
       cosphiI = dot_product(distC/norm2(distC), faceI/norm2(faceI))
@@ -185,22 +185,26 @@ contains
 
       ! face-side (histone-DNA wrapping attraction)
       dist = norm2(distC) - WLC_P__NUCLEOSOME_HEIGHT/2 - WLC_P__NUCLEOSOME_RADIUS
+      tempAngle = abs(cosphiI) + abs(cosphiJ)
+      if (tempAngle > 1) then
+         tempAngle = 2 - tempAngle
+      endif
       if (norm2(dist) <= tau_faceside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))/tau_faceside
+                                  - e_faceside*(1 - abs(cospsi))*tempAngle/tau_faceside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*sqrt((1 - cospsi**2)*(cosphiI**2 + cosphiJ**2))/norm2(dist)
+                                  - e_faceside*(1 - abs(cospsi))*tempAngle/norm2(dist)
       endif
 
       ! side-side (DNA wrapping-DNA wrapping attraction)
       dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
       if (norm2(dist) <= tau_sideside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))/tau_sideside
+                                  - e_sideside*(1 - abs(cosphiI))*(1 - abs(cosphiJ))/tau_sideside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*sqrt((1 - cosphiI**2)*(1 - cosphiJ**2))/norm2(dist)
+                                  - e_sideside*(1 - abs(cosphiI))*(1 - abs(cosphiJ))/norm2(dist)
       endif
 
    end function internucleosome_energy
@@ -323,6 +327,7 @@ contains
 ! on the chain according to WLC_P__LINKER_TYPE, where the default is 'phased', i.e.
 ! the nuclesomes are separated by a constant linker length throughout the chain
       use precision, only: nan
+      use mersenne_twister
       ! sterics testing !
       use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, runtimeTest5, runtimeTest6, &
                               noIntersectY, intersectY, tangentY, runtimeTest1, runtimeTest3, &
@@ -333,9 +338,13 @@ contains
       real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
       real(dp) discretization, num_link_beads
       real(dp), dimension(2, 33) :: LL_dist
+      type(random_stat) rand_stat
       real(dp) cumlinker, linker
       real(dp) urand(3)  ! random vector
+      integer octasome
       integer iter, i, j, k
+
+      octasome = 147
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
          if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
@@ -350,7 +359,13 @@ contains
                   iter = iter + num_link_beads
                   ! set middle linkers 
                   do j = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
-                     wlc_nucleosomeWrap(iter) = 147
+                     if ( WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
+                        call random_gauss(urand, rand_stat)
+                        urand = nint(urand(1))
+                     else
+                        urand = 0
+                     endif
+                     wlc_nucleosomeWrap(iter) = octasome  + urand(1)
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
                      if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
@@ -363,8 +378,14 @@ contains
                   wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 1
                   wlc_basepairs(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = discretization
                   ! last linker
+                  if ( WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
+                     call random_gauss(urand, rand_stat)
+                     urand = nint(urand(1))
+                  else
+                     urand = 0
+                  endif
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = 147
+                  wlc_nucleosomeWrap(iter) = octasome + urand(1)
                   iter = iter + 1
                   wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
@@ -453,7 +474,7 @@ contains
             endif
          endif
       else
-         wlc_nucleosomeWrap = 147
+         wlc_nucleosomeWrap = octasome
          wlc_basepairs = WLC_P__LL
       endif
       print*, wlc_basepairs
