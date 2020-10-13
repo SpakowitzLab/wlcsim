@@ -50,7 +50,7 @@ def kp_over_kbt(p : float, b : float, N : float):
     return (3*np.pi*np.pi)/(N*b*b) * p*p
 
 @jit(nopython=True)
-def rouse_mid_msd(t, b, N, D, num_modes=1000):
+def linear_mid_msd(t, b, N, D, num_modes=1000):
     """
     modified from Weber Phys Rev E 2010, Eq. 24.
     """
@@ -265,131 +265,8 @@ def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
 confined_G.zl_n = None
 
 
-def ring_mscd(t, D, Ndel, N, b=1, num_modes=1000):
-    """
-    Compute mscd for two points on a ring.
-
-    Parameters
-    ----------
-    t : (M,) float, array_like
-        Times at which to evaluate the MSCD
-    D : float
-        Diffusion coefficient
-    Ndel : float
-        (1/2)*separation between the loci on loop (in Kuhn lengths)
-    N : float
-        full length of the loop (in Kuhn lengths)
-    num_modes : int
-        how many Rouse modes to include in the sum
-
-    Returns
-    -------
-    mscd : (M,) np.array<float>
-        result
-
-    Notes
-    -----
-    Adapted from Andy's code, for calculating MSCD curve of synaptonemal
-    complex model. Computes NPT mscd curves for homologous loci on rings of
-    length N at some distance NDEL from each other. D is chosen exp-randomly
-    manually sets a constant value R2S1=.25 (limit of detection) for the MSCD
-    curve with probability 0.1 (but never actually does it) for some reason....
-    DEL is fraction of way along the loop, so N is actually half the length of
-    the ring (hence the "1/2"'s).
-
-    .. code-block :: matlab
-
-        % number of P modes
-        PMAX=10000;
-        % time
-        T=transpose(logspace(-2,6,100));
-        % fraction of beads that will be bound
-        F=0.1;
-        % length of chain
-        L0=1;
-        % pre-allocate
-        MSCDAVE=zeros(length(T),1);
-        NPT=1e3;
-        for I=1:NPT
-            % exponentially distributed index
-            N=2*L0*ceil(log(1-rand())/log(1-F));
-            %     R=randi(2)-1;
-            %     N=10*R+100*(1-R);
-            NDEL=rand()*N;
-
-            MSCD=zeros(length(T),1);
-            % exponentially distributed diffusivity
-            D=-log(rand());
-            %    D=1/N;
-            %    D=1;
-            R=rand();
-            P=0.9;
-            STATE=heaviside(R-P)+1;
-            % two state system, either plateau'd at R2S1, or diffusing
-            R2S1=0.25;
-            if STATE==1
-                for P=1:PMAX
-                    MSCD = MSCD + abs(exp(1i*2*pi*P*NDEL/N)-1)^2 \
-                            * (1-exp(-D*T*P^2/N^2)) \
-                            * 4*N/P^2/(2*pi)^2;
-                end
-            else
-                MSCD=MSCD+R2S1;
-            end
-            % accumulate the average sofar
-            MSCDAVE=MSCDAVE+MSCD/NPT;
-            % draw the first ten curves
-            if I <= 10
-                COL=(I-1)/(10-1);
-                figure(1)
-                loglog(T,MSCD,'-','LineWidth',2,'Color',[COL 0 1-COL])
-                hold on
-                loglog(T,(2/(1/NDEL+1/(N-NDEL)))*power(T,0),'--','LineWidth',2,'Color',[COL 0 1-COL])
-            end
-        end
-        NPROB=1e6;
-        R2=zeros(NPROB,1);
-        for I=1:NPROB
-            N=2*L0*ceil(log(1-rand())/log(1-F));
-            NDEL=rand()*N;
-            R2(I)=1/(1/NDEL+1/(N-NDEL));
-        end
-        figure(1)
-        loglog(T,MSCDAVE,'k-','LineWidth',4)
-        loglog(T,10*power(T,0.25),'k--','LineWidth',4)
-        figure(2)
-        Y=hist(R2,100);
-        plot(Y,'ko-','LineWidth',2)
-        figure(3)
-        loglog(T,MSCDAVE,'k-','LineWidth',4)
-        hold on
-        loglog(T,10*power(T,0.25),'k--','LineWidth',4)
-        %loglog(T,10*power(T,0.5),'k--','LineWidth',4)
-
-
-    .. code-block:: matlab
-
-        MSCD = MSCD + abs(exp(1i*2*pi*P*NDEL/N)-1)^2 \
-                            * (1-exp(-D*T*P^2/N^2)) \
-                            * 4*N/P^2/(2*pi)^2;
-    """
-    mscd = np.zeros_like(t)
-    # 24*kbT / k_p, omitting the "p^2"
-    sum_coeff =  2*N*b**2 / np.pi**2
-    # k_p / (N*xi), omitting the "p^2"
-    exp_coeff = 12*np.pi**2*D / (N*b)**2
-    sin_coeff = 2*np.pi*Ndel/N
-    for p in range(1, num_modes+1):
-        mscd += (1/p**2) * (1 - np.exp(-exp_coeff*p**2*t)) \
-                * np.sin(sin_coeff*p)**2
-        # mscd += np.real(np.abs(np.exp(1j*2*np.pi*p*Ndel/N) - 1)**2 \
-        #       * (1 - np.exp(-D*t*p**2/N**2)) \
-        #       * 2*N/((2*np.pi*p)**2))
-    return sum_coeff*mscd
-
-
-def linear_mscd(t, D, Ndel, N, b=1, num_modes=10000):
-    """
+def linear_mscd(t, D, Ndel, N, b=1, num_modes=20000):
+    r"""
     Compute mscd for two points on a linear polymer.
 
     Parameters
@@ -397,12 +274,15 @@ def linear_mscd(t, D, Ndel, N, b=1, num_modes=10000):
     t : (M,) float, array_like
         Times at which to evaluate the MSCD
     D : float
-        Diffusion coefficient
+        Diffusion coefficient, (in desired output length units). Equal to
+        :math:`k_BT/\xi` for :math:`\xi` in units of "per Kuhn length".
     Ndel : float
         Distance from the last linkage site to the measured site. This ends up
         being (1/2)*separation between the loci (in Kuhn lengths).
     N : float
         The full lengh of the linear polymer (in Kuhn lengths).
+    b : float
+        The Kuhn length (in desired length units).
     num_modes : int
         how many Rouse modes to include in the sum
 
@@ -410,32 +290,58 @@ def linear_mscd(t, D, Ndel, N, b=1, num_modes=10000):
     -------
     mscd : (M,) np.array<float>
         result
-
-    From Andy's formula:
-
-    .. code-block:: matlab
-
-        MSCD=MSCD+16*NS/pi^2*(1/(2*P+1)^2)
-                  *sin((2*P+1)*pi*DEL/(2*NS))^2 ...
-                  *(1-exp(-(2*P+1)^2*T/NS^2));
-
     """
     mscd = np.zeros_like(t)
-    # 24*kbT/k_p, omitting the p^2
-    sum_coeff = 8*b**2*N / np.pi**2
-    # kp/(N*xi), omitting the p**2
-    exp_coeff = 3*np.pi**2*D / (N*b)**2
-    sin_coeff = np.pi*Ndel/N
+
+    k1 = 3 * np.pi ** 2 / (N * (b ** 2))
+    sum_coeff = 48 / k1
+    exp_coeff = k1 * D / N
+    sin_coeff = np.pi * Ndel / N
+
     for p in range(1, num_modes+1, 2):
-        mscd += (1/p**2) * (1 - np.exp(-exp_coeff*p**2*t)) \
+        mscd += (1/p**2) * (1 - np.exp(-exp_coeff * (p ** 2) * t)) \
                 * np.sin(sin_coeff*p)**2
-        # mscd += 16*N/np.pi**2*(1/(2*p + 1)**2) \
-        #         * np.sin((2*p + 1)*np.pi*(Ndel/N)/2)**2 \
-        #         * (1 - np.exp(-t*(2*p + 1)**2/N**2))
-        # mscd += np.real(np.abs(np.exp(1j*np.pi*p/N) - 1)**2 \
-        #       * (1 - np.exp(-D*t*p**2/N**2)) \
-        #       * 2*N**3/(2*N - 1)/((np.pi*p)**2))
-    return sum_coeff*mscd
+
+    return sum_coeff * mscd
+
+
+def ring_mscd(t, D, Ndel, N, b=1, num_modes=20000):
+    r"""
+    Compute mscd for two points on a ring.
+
+    Parameters
+    ----------
+    t : (M,) float, array_like
+        Times at which to evaluate the MSCD.
+    D : float
+        Diffusion coefficient, (in desired output length units). Equal to
+        :math:`k_BT/\xi` for :math:`\xi` in units of "per Kuhn length".
+    Ndel : float
+        (1/2)*separation between the loci on loop (in Kuhn lengths)
+    N : float
+        full length of the loop (in Kuhn lengths)
+    b : float
+        The Kuhn length, in desired output length units.
+    num_modes : int
+        How many Rouse modes to include in the sum.
+
+    Returns
+    -------
+    mscd : (M,) np.array<float>
+        result
+    """
+    mscd = np.zeros_like(t)
+
+    k1 = 12 * np.pi ** 2 / (N * (b ** 2))
+    sum_coeff = 48 / k1
+    exp_coeff = k1 * D / N
+    sin_coeff = 2 * np.pi * Ndel / N
+
+    for p in range(1, num_modes+1):
+        mscd += (1 / p ** 2) * (1 - np.exp(-exp_coeff * p ** 2 * t)) \
+                * np.sin(sin_coeff * p) ** 2
+    return sum_coeff * mscd
+
 
 
 def end_to_end_corr(t, D, N, num_modes=10000):
