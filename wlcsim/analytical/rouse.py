@@ -23,6 +23,7 @@ from functools import lru_cache
 from pathlib import Path
 import os
 
+_default_modes = 10000
 
 @jit
 def rouse_mode(p, n, N=1):
@@ -50,7 +51,7 @@ def kp_over_kbt(p : float, b : float, N : float):
     return (3*np.pi*np.pi)/(N*b*b) * p*p
 
 @jit(nopython=True)
-def linear_mid_msd(t, b, N, D, num_modes=1000):
+def linear_mid_msd(t, b, N, D, num_modes=_default_modes):
     """
     modified from Weber Phys Rev E 2010, Eq. 24.
     """
@@ -265,7 +266,7 @@ def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
 confined_G.zl_n = None
 
 
-def linear_mscd(t, D, Ndel, N, b=1, num_modes=20000):
+def linear_mscd(t, D, Ndel, N, b=1, num_modes=_default_modes):
     r"""
     Compute mscd for two points on a linear polymer.
 
@@ -305,7 +306,7 @@ def linear_mscd(t, D, Ndel, N, b=1, num_modes=20000):
     return sum_coeff * mscd
 
 
-def ring_mscd(t, D, Ndel, N, b=1, num_modes=20000):
+def ring_mscd(t, D, Ndel, N, b=1, num_modes=_default_modes):
     r"""
     Compute mscd for two points on a ring.
 
@@ -344,7 +345,7 @@ def ring_mscd(t, D, Ndel, N, b=1, num_modes=20000):
 
 
 
-def end_to_end_corr(t, D, N, num_modes=10000):
+def end_to_end_corr(t, D, N, num_modes=_default_modes):
     """Doi and Edwards, Eq. 4.35"""
     mscd = np.zeros_like(t)
     tau1 = N**2/(3*np.pi*np.pi*D)
