@@ -59,21 +59,21 @@ def mscd(t, linkages, label_loc, chr_size, nuc_radius, b, D,
 
     # Evaluate the MSCD if there are no linkages
     if len(linkages) == 0:
-        mscd_model = 2 * linear_mid_msd(t, b, chr_size, D, num_modes)
+        mscd_model = 2 * rouse.linear_mid_msd(t, b, chr_size, D, num_modes)
         return np.minimum(mscd_model, nuc_radius)
 
     # Evaluate the MSCD if there are linkages between the chromosomes
     i = np.searchsorted(linkages, label_loc)
     if i == 0:
-        mscd_func = linear_mscd
+        mscd_func = rouse.linear_mscd
         Ndel = linkages[0] - label_loc
         N = 2 * linkages[0]
     elif i == len(linkages):
-        mscd_func = linear_mscd
+        mscd_func = rouse.linear_mscd
         Ndel = label_loc - linkages[-1]
         N = 2 * (chr_size - linkages[-1])
     else:
-        mscd_func = ring_mscd
+        mscd_func = rouse.ring_mscd
         Ndel = linkages[i] - label_loc
         N = 2*(linkages[i] - linkages[i - 1])
 
@@ -82,7 +82,7 @@ def mscd(t, linkages, label_loc, chr_size, nuc_radius, b, D,
     return np.minimum(nuc_radius, mscd_model)
 
 
-def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b):
+def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b=1):
     r"""
     Evaluate the plateau values in the MSCD
 
@@ -102,7 +102,8 @@ def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b):
     Returns
     -------
     mscd_plateau : float
-        Plateau value of the MSCD in the long-time asymptotic limit (microns ** 2)
+        Plateau value of the MSCD in the long-time asymptotic limit
+        (microns ** 2).
 
     """
     chr_size /= b
