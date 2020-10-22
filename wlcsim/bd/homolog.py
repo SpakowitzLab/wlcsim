@@ -210,7 +210,7 @@ def sim_loc(i, N, loop_list):
     return iloc
 
 
-def rouse_homologs(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
+def rouse(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
                    tether_list=None):
     r"""
     BD simulation of two homologous yeast chromosomes in meiosis.
