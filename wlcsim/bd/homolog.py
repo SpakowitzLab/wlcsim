@@ -210,8 +210,7 @@ def sim_loc(i, N, loop_list):
     return iloc
 
 
-def rouse(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
-                   tether_list=None):
+def rouse(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None, tether_list=None):
     r"""
     BD simulation of two homologous yeast chromosomes in meiosis.
 
@@ -284,10 +283,10 @@ def rouse(N, FP, L, b, D, Aex, rx, ry, rz, t, t_save=None,
     N_tot, loop_list = points_to_loops_list(N, homolog_points)
 
     # homolog points aren't in the simulation array for the second polymer
-    tethered_p2 = set(tether_list) - set(loop_list[1:, 0])
+    tethered_p2 = np.setdiff1d(tether_list, loop_list[1:,0])
     # calculate their actual positions in the simulation array
     tether_list = list(tether_list) + list(sim_loc(tethered_p2, N, loop_list))
-    tether_list = np.sort(np.array(tether_list))
+    tether_list = np.sort(np.array(tether_list)).astype(int)
 
     x = _jit_rouse_homologs(int(N), int(N_tot), tether_list, loop_list, L, b, D, Aex, rx, ry, rz, t, t_save)
     return tether_list, loop_list, x

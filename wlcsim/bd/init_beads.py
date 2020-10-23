@@ -105,7 +105,7 @@ def init_homolog_rouse_conf(N, N_tot, loop_list, bhat, rx, ry, rz):
                 x0[i2] = x0[i1] + bhat/np.sqrt(3)*np.random.randn(3)
         # then subtract off the correct amount from each step to make the
         # brownian bridge. This guy is no longer guaranteed to be in the
-        # confinement....but prevents being catastrophically far outside
+        # confinement....but will typically not be catastrophically far outside
         bridge = x0[k1r] - x0[k1l]  # target end-to-end vector
         # center bridge temporarily about zero
         for jj in range(k2l, k2r+1):
