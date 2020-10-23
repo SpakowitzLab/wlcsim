@@ -128,4 +128,4 @@ def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b=1):
         N = 2*(linkages[i] - linkages[i - 1])
         mscd_plateau = 2 * b ** 2 / (1 / (2 * Ndel) + 1 / (N - 2 * Ndel))
 
-    return mscd_plateau
+    return np.minimum(mscd_plateau, nuc_radius**2)
