@@ -60,7 +60,7 @@ def mscd(t, linkages, label_loc, chr_size, nuc_radius, b, D,
     # Evaluate the MSCD if there are no linkages
     if len(linkages) == 0:
         mscd_model = 2 * rouse.linear_mid_msd(t, b, chr_size, D, num_modes)
-        return np.minimum(mscd_model, nuc_radius)
+        return np.minimum(mscd_model, nuc_radius**2)
 
     # Evaluate the MSCD if there are linkages between the chromosomes
     i = np.searchsorted(linkages, label_loc)
@@ -79,7 +79,7 @@ def mscd(t, linkages, label_loc, chr_size, nuc_radius, b, D,
 
     mscd_model = mscd_func(t, D=D, Ndel=Ndel, N=N, b=b, num_modes=num_modes)
 
-    return np.minimum(nuc_radius, mscd_model)
+    return np.minimum(nuc_radius**2, mscd_model)
 
 
 def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b=1):
