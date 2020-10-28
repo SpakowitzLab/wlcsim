@@ -48,7 +48,7 @@ module params
                                                             'chem-identity       ', 'end-end filp        ', &
                                                             'chain swap          ', 'reptation           ', &
                                                             'superReptation      ', 'spider              ', &
-                                                            'nucleosomeSlide     ', 'nucleosomeWrap      '/)
+                                                            'nucleosomeSlide     ', 'nucleosomeBreathe   '/)
 
     !!!     universal constants
    ! fully accurate, adaptive precision
@@ -188,9 +188,9 @@ module params
 
    !   nucleosomes
    real(dp), allocatable, dimension(:) :: wlc_basepairs
-   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
+   real(dp), allocatable, dimension(:) :: wlc_nucleosomeWrap
    real(dp), allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
-   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for unwrapping (NEEDS TO BE IMPLEMENTED)
+   real(dp), allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for unwrapping (NEEDS TO BE IMPLEMENTED)
 
 
    ! Linking number, Twist, and Writhe (only for one-chain simulation)
@@ -242,7 +242,8 @@ contains
       wlc_p%PDESIRE(10) = WLC_P__PDESIRE_REPTATION
       wlc_p%PDESIRE(11) = WLC_P__PDESIRE_SUPER_REPTATION
       wlc_p%PDESIRE(12) = WLC_P__PDESIRE_SPIDER
-      wlc_p%PDESIRE(13) = WLC_P__PDESIRE_NUCLEOSOMESLIDE
+      wlc_p%PDESIRE(13) = WLC_P__PDESIRE_NUCLEOSOME_SLIDE
+      wlc_p%PDESIRE(14) = WLC_P__PDESIRE_NUCLEOSOME_BREATHE
       wlc_p%MAXWINDOW(1) = WLC_P__MAXWINDOW_CRANK_SHAFT
       wlc_p%MAXWINDOW(2) = WLC_P__MAXWINDOW_SLIDE_MOVE
       wlc_p%MAXWINDOW(3) = WLC_P__MAXWINDOW_PIVOT_MOVE
@@ -282,7 +283,7 @@ contains
       wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
       wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
       wlc_p%MINAMP(13) = WLC_P__MINAMP_NUCLEOSOME_SLIDE
-      wlc_p%MINAMP(14) = WLC_P__MINAMP_NUCLEOSOME_WRAP
+      wlc_p%MINAMP(14) = WLC_P__MINAMP_NUCLEOSOME_BREATHE
       wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
       wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
       wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -296,7 +297,7 @@ contains
       wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
       wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
       wlc_p%MAXAMP(13) = WLC_P__MAXAMP_NUCLEOSOME_SLIDE
-      wlc_p%MAXAMP(14) = WLC_P__MAXAMP_NUCLEOSOME_WRAP
+      wlc_p%MAXAMP(14) = WLC_P__MAXAMP_NUCLEOSOME_BREATHE
       wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
       wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
       wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -309,8 +310,8 @@ contains
       wlc_p%MOVEON(10) = WLC_P__MOVEON_REPTATION
       wlc_p%MOVEON(11) = WLC_P__MOVEON_SUPER_REPTATION
       wlc_p%MOVEON(12) = WLC_P__MOVEON_SPIDER
-      wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOMESLIDE
-      wlc_p%MOVEON(14) = WLC_P__MOVEON_NUCLEOSOMEWRAP
+      wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOME_SLIDE
+      wlc_p%MOVEON(14) = WLC_P__MOVEON_NUCLEOSOME_BREATHE
       wlc_p%WINTARGET(1) = WLC_P__WINTARGET_CRANK_SHAFT
       wlc_p%WINTARGET(2) = WLC_P__WINTARGET_SLIDE_MOVE
       wlc_p%WINTARGET(3) = WLC_P__WINTARGET_PIVOT_MOVE
@@ -336,8 +337,8 @@ contains
       wlc_p%NADAPT(10) = WLC_P__NADAPT_REPTATION
       wlc_p%NADAPT(11) = WLC_P__NADAPT_SUPER_REPTATION
       wlc_p%NADAPT(12) = WLC_P__NADAPT_SPIDER
-      wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOMESLIDE
-      wlc_p%NADAPT(14) = WLC_P__NADAPT_NUCLEOSOMEWRAP
+      wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOME_SLIDE
+      wlc_p%NADAPT(14) = WLC_P__NADAPT_NUCLEOSOME_BREATHE
       wlc_p%MOVESPERSTEP(1) = WLC_P__MOVESPERSTEP_CRANK_SHAFT
       wlc_p%MOVESPERSTEP(2) = WLC_P__MOVESPERSTEP_SLIDE_MOVE
       wlc_p%MOVESPERSTEP(3) = WLC_P__MOVESPERSTEP_PIVOT_MOVE
@@ -350,8 +351,8 @@ contains
       wlc_p%MOVESPERSTEP(10) = WLC_P__MOVESPERSTEP_REPTATION
       wlc_p%MOVESPERSTEP(11) = WLC_P__MOVESPERSTEP_SUPER_REPTATION
       wlc_p%MOVESPERSTEP(12) = WLC_P__MOVESPERSTEP_SPIDER
-      wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE
-      wlc_p%MOVESPERSTEP(14) = WLC_P__MOVESPERSTEP_NUCLEOSOMEWRAP
+      wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOME_SLIDE
+      wlc_p%MOVESPERSTEP(14) = WLC_P__MOVESPERSTEP_NUCLEOSOME_BREATHE
 
    end subroutine set_param_defaults
 
@@ -620,10 +621,10 @@ contains
       if (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
          allocate (wlc_basepairs(WLC_P__NT))
          allocate (wlc_nucleosomeWrap(WLC_P__NT))
-         if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
+         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then
             allocate (wlc_basepairs_prop(WLC_P__NT))
          endif
-         if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+         if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then
             allocate (wlc_basepairs_prop(WLC_P__NT))
             allocate (wlc_nucleosomeWrap_prop(WLC_P__NT))
          endif

@@ -1,12 +1,11 @@
 #include "../defines.inc"
 !--------------------------------------------------------------
 !
-!     subroutine MC_sterics
-!
+!               subroutine MC_sterics
 !     Determine if moved beads intersect old beads.
-!     Written by Nicole Pagane, Mar 2020
-!     Inspired from Quinn's cylinder collision code
-!     GJK algorithm used for collision detection
+!
+!              Written by NP, Mar 2020
+!   
 !--------------------------------------------------------------
 
 subroutine MC_sterics(collisions, netSterics, MCTYPE)
@@ -29,7 +28,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
    real(dp) SGJK(WLC_P__GJK_POLYGON, 3, WLC_P__NT) ! all vertices for GJK
    real(dp) RGJK(3, WLC_P__NT) ! all centers for GJK
    real(dp) basepairs(WLC_P__NT) ! basepairs
-   integer wrapping(WLC_P__NT) ! wrapping
+   real(dp) wrapping(WLC_P__NT) ! wrapping
    real(dp) distances(WLC_P__NT) ! Returned distances
    integer neighbors(WLC_P__NT) ! ID of neighboring beads
    integer nn ! number of neighbors
@@ -76,20 +75,16 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
             endif
          enddo
       endif
-      ! set basepairs vector
-      if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1 .AND. MCTYPE == 13) then 
+      ! set basepairs and wrapping vector
+      basepairs = wlc_basepairs
+      wrapping = wlc_nucleosomeWrap
+      if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then 
          basepairs = wlc_basepairs_prop
-      else
-         basepairs = wlc_basepairs
-      endif
-      ! set wrapping vector
-      if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 1 .AND. MCTYPE == 14) then 
+      endif 
+      if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+         basepairs = wlc_basepairs_prop
          wrapping = wlc_nucleosomeWrap_prop
-         basepairs = wlc_basepairs_prop
-      else
-         wrapping = wlc_nucleosomeWrap
-         basepairs = wlc_basepairs
-      endif
+      endif 
       ! replace old beads with new moved beads
       k = 1
       ignore = NAN
@@ -106,7 +101,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
             k = k + 1
             if (isnan(wlc_RP(1, i - 1))) then 
                poly = constructPolygonPrism(wlc_R(:, i - 1), wlc_RP(:, i), &
-                                            wlc_nucleosomeWrap(i - 1), wlc_U(:, i - 1), &
+                                            wrapping(i - 1), wlc_U(:, i - 1), &
                                             wlc_V(:, i - 1), WLC_P__GJK_POLYGON)
             else
                poly = constructPolygonPrism(wlc_RP(:, i - 1), wlc_RP(:, i), &
@@ -206,7 +201,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
    real(dp), intent(in) :: VALL(3, WLC_P__NT) ! all bead V
    real(dp), intent(in) :: SGJK(WLC_P__GJK_POLYGON, 3, WLC_P__NT) ! all vertices for GJK
    real(dp), intent(in) :: basepairs(WLC_P__NT) ! basepair discretization
-   integer, intent(in) :: wrapping(WLC_P__NT) ! bp wrapping of beads
+   real(dp), intent(in) :: wrapping(WLC_P__NT) ! bp wrapping of beads
    integer, intent(in) :: ignore(WLC_P__NT) ! beads that have already been checked, i.e. ignore
    integer, intent(in) :: ii ! index of moved bead
    integer, intent(in) :: nn ! number of neighbors
@@ -227,7 +222,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
       iiIsNucleosome = .TRUE.
       call nucleosome_prop(UALL(:, ii), VALL(:, ii), RALL(:, ii), basepairs(ii), wrapping(ii), &
                           tempU, tempV, tempR)
-      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 1, tempU, tempV, s)
+      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 1.0_dp, tempU, tempV, s)
    else
       iiIsNucleosome = .FALSE.
    endif
@@ -243,7 +238,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
          jjIsNucleosome = .TRUE.
          call nucleosome_prop(UALL(:, neighbors(jj)), VALL(:, neighbors(jj)), RALL(:, neighbors(jj)), &
                              basepairs(neighbors(jj)), wrapping(neighbors(jj)), tempU, tempV, tempR)
-         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 1, tempU, tempV, s)
+         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 1.0_dp, tempU, tempV, s)
       else
          jjIsNucleosome = .FALSE.
       endif

@@ -239,7 +239,7 @@ MODULE GJKAlgorithm
         implicit none
         real(dp), dimension(3), intent(in) :: pos1 ! first bead position
         real(dp), dimension(3), intent(in) :: pos2 ! second bead position
-        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), intent(in) :: wrap ! num of basepairs wrapped
         real(dp), dimension(3), intent(in) :: u ! u angle of bead 1
         real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
         integer, intent(in) :: s ! num sides of desired polygon
@@ -319,7 +319,7 @@ MODULE GJKAlgorithm
         implicit none
         real(dp), dimension(3), intent(in) :: pos1 ! first bead position
         real(dp), dimension(3), intent(in) :: pos2 ! second bead position
-        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), intent(in) :: wrap ! num of basepairs wrapped
         real(dp), dimension(3), intent(in) :: u ! u angle of bead 1
         real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
         real(dp), dimension(3,3) :: mtrx

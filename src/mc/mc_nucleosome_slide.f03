@@ -1,9 +1,9 @@
 #include "../defines.inc"
 !--------------------------------------------------------------*
 !
-!           Slides nucleosomes in MC move
+!              Slides nucleosomes in MC move
 !
-!    inspired by Quinn (chemMove/crank), implemented by NP 2020
+!               implemented by NP may 2020
 !
 !---------------------------------------------------------------
 
@@ -24,7 +24,8 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
    use mersenne_twister
    use params, only: dp
    use windowTools, only: exponential_random_int
-   use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
+   use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain, &
+                             get_IB, length_of_chain
    use nucleosome, only: nucleosome_prop
 
    implicit none
@@ -39,18 +40,17 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
    real(dp) urand(1) ! single random number
    real(dp) :: MCAMP ! Amplitude of random change
    real(dp) DR    ! Displacement for slide move (integer BPs)
-   real(dp), parameter :: optRatio = 0.25 ! max ratio of average discretization to allow for bp slide
    integer I ! test bead
    integer II, JJ, KK, J ! test indices
-   integer max_bp
    integer prevNuc, nextNuc, linkerSum
    integer nNucs
    integer nucArray(WLC_P__NT)
    real(dp), parameter :: eps = 0.00001 ! rescale to avoid urand vals of 0
+   integer, parameter :: min_base = 3
+   integer, parameter :: max_base = 15
 
 ! initialize
    success = .false.
-   max_bp = 15
 
 ! find nucs
    KK = 1
@@ -68,16 +68,13 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
 
 ! select distance to move (in bp)
    DR = 0.0_dp
-   MCAMP = max(nint(optRatio*sum(wlc_basepairs)/WLC_P__NT), 3)
+   MCAMP = max(nint(0.25*WLC_P__LL/WLC_P__NBPL), 1)
 
-!call random_number(urand,rand_stat)
-!if (urand(1)>=0.5) then ! 10 bp slide (half of moves)
-!    call random_number(urand,rand_stat)
-!    DR = 10*(-1)**nint(urand(1))
-!else ! few bp slide
+
+do while (DR == 0.0_dp)
    call random_number(urand, rand_stat)
    DR = MCAMP*(urand(1) - 0.5_dp)
-!endif
+enddo
 
 ! find neighboring nuclesomes
    prevNuc = KK - 1
@@ -103,8 +100,8 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
 ! change distance between beads
    outer1: do II = 1, I - prevNuc ! explore the previous linker space
       inner1: do JJ = 0, (nextNuc - 1) - I ! explore the next linker space
-         if ((wlc_basepairs(I - II) + DR > 3) .AND. (wlc_basepairs(I - II) + DR < max_bp) .AND. &
-             (wlc_basepairs(I + JJ) - DR > 3) .AND. (wlc_basepairs(I + JJ) - DR < max_bp)) then
+         if ((wlc_basepairs(I - II) + DR > min_base) .AND. (wlc_basepairs(I - II) + DR < max_base) .AND. &
+             (wlc_basepairs(I + JJ) - DR > min_base) .AND. (wlc_basepairs(I + JJ) - DR < max_base)) then
             wlc_basepairs_prop(I - II) = wlc_basepairs(I - II) + DR
             wlc_basepairs_prop(I + JJ) = wlc_basepairs(I + JJ) - DR
             success = .true.
@@ -113,54 +110,32 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
       enddo inner1
    enddo outer1
 
-! piece-wise movement of linker rather than just on one bead
-   linkerSum = 0
-!if (success .eqv. .false.) then
-!    outer2: do II = 1, I-prevNuc ! explore the previous linker space
-!        inner2: do JJ = 0, (nextNuc-1)-I ! explore the next linker space
-!            if ((wlc_basepairs(I-II)+DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I-II)+DR/(I-prevNuc) < max_bp) .AND. &
-!            (wlc_basepairs(I+JJ)-DR/(I-prevNuc) > 3) .AND. (wlc_basepairs(I+JJ)-DR/(I-prevNuc) < max_bp) ) then
-!                wlc_basepairs_prop(I-II) = wlc_basepairs(I-II) + DR/(I-prevNuc)
-!                wlc_basepairs_prop(I+JJ) = wlc_basepairs(I+JJ) - DR/(I-prevNuc)
-!                linkerSum = linkerSum + abs(DR/(I-prevNuc))
-!                if (linkerSum>=10) then
-!                    success = .true.
-!                    !print*, 'WOO'
-!                    exit outer2
-!                endif
-!            endif
-!        enddo inner2
-!    enddo outer2
-!endif
-
    if (success) then
-      IB1 = I - II
-      IB2 = I + JJ
-      IT1 = IB1 + 1
-      IT2 = IB2 - 1
-      if (IB1 >= 1) then
+      IT1 = I - II
+      IT2 = I + JJ
+      IB1 = get_IB(IT1)
+      IB2 = get_IB(IT2)
+      if (IB1 > 1) then
          wlc_nBend = wlc_nBend + 1
-         wlc_bendPoints(wlc_nBend) = IB1
-         J = IB1
+         wlc_bendPoints(wlc_nBend) = IT1
+         wlc_RP(:, IT1) = wlc_R(:, IT1)
+         wlc_UP(:, IT1) = wlc_U(:, IT1)
+         wlc_VP(:, IT1) = wlc_V(:, IT1)
+         wlc_nPointsMoved = wlc_nPointsMoved + 1
+         wlc_pointsMoved(wlc_nPointsMoved) = IT1
+      endif
+      if (IB2 < length_of_chain(get_IP(IT2))) then
+         wlc_nBend = wlc_nBend + 1
+         wlc_bendPoints(wlc_nBend) = IT2
+         J = IT2 + 1
          wlc_RP(:, J) = wlc_R(:, J)
          wlc_UP(:, J) = wlc_U(:, J)
          wlc_VP(:, J) = wlc_V(:, J)
          wlc_nPointsMoved = wlc_nPointsMoved + 1
          wlc_pointsMoved(wlc_nPointsMoved) = J
       endif
-      if (IB2 < WLC_P__NT) then
-         wlc_nBend = wlc_nBend + 1
-         wlc_bendPoints(wlc_nBend) = IB2
-         do J = IB2, IB2 + 1
-            wlc_RP(:, J) = wlc_R(:, J)
-            wlc_UP(:, J) = wlc_U(:, J)
-            wlc_VP(:, J) = wlc_V(:, J)
-            wlc_nPointsMoved = wlc_nPointsMoved + 1
-            wlc_pointsMoved(wlc_nPointsMoved) = J
-         enddo
-      endif
-      do KK = IT1, IT2
-         wlc_RP(:, KK) = wlc_R(:, KK) + wlc_U(:, KK)*WLC_P__LENGTH_PER_BP*(wlc_basepairs_prop(KK) - wlc_basepairs(KK))
+      do KK = IT1 + 1, IT2
+         wlc_RP(:, KK) = wlc_R(:, KK) + (wlc_U(:, KK - 1)+wlc_U(:, KK))*WLC_P__LENGTH_PER_BP*DR
          wlc_UP(:, KK) = wlc_U(:, KK)
          wlc_VP(:, KK) = wlc_V(:, KK)
          wlc_nPointsMoved = wlc_nPointsMoved + 1

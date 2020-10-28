@@ -7,7 +7,7 @@ subroutine mc_internucleosome()
 ! values from wlcsim_data
    use params, only: dp, NAN, wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V&
                      , wlc_R, wlc_UP, wlc_RP, wlc_nPointsMoved, wlc_pointsMoved, &
-                     wlc_bin, wlc_R_GJK
+                     wlc_bin, wlc_R_GJK, wlc_nucleosomeWrap_prop
    use GJKAlgorithm, only: constructPolygonPrism
    use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
    use nucleosome, only: internucleosome_energy
@@ -23,6 +23,7 @@ subroutine mc_internucleosome()
    real(dp) RALL(3, WLC_P__NT) ! all bead R
    real(dp) UALL(3, WLC_P__NT) ! all bead U
    real(dp) VALL(3, WLC_P__NT) ! all bead V
+   real(dp) wrapping(WLC_P__NT)
    real(dp) distances(WLC_P__NT) ! Returned distances
    real(dp) poly(WLC_P__GJK_POLYGON, 3)
    integer neighbors(WLC_P__NT) ! ID of neighboring beads
@@ -34,6 +35,11 @@ subroutine mc_internucleosome()
    RALL = wlc_R
    UALL = wlc_U
    VALL = wlc_V
+
+   wrapping = wlc_nucleosomeWrap
+   if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+      wrapping = wlc_nucleosomeWrap_prop
+   endif 
 
    ! check energetics of old beads
    ignore = NAN
@@ -71,11 +77,11 @@ subroutine mc_internucleosome()
       if ((i < last_bead_of_chain(IP))) then 
          if (isnan(wlc_RP(1, i + 1))) then 
             poly = constructPolygonPrism(wlc_RP(:, i), wlc_R(:, i + 1), &
-                                          wlc_nucleosomeWrap(i), wlc_UP(:, i), &
+                                          wrapping(i), wlc_UP(:, i), &
                                           wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
          else 
             poly = constructPolygonPrism(wlc_RP(:, i), wlc_RP(:, i + 1), &
-                                          wlc_nucleosomeWrap(i), wlc_UP(:, i), &
+                                          wrapping(i), wlc_UP(:, i), &
                                           wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
          endif
          RGJK(1, i) = sum(poly(:, 1)/WLC_P__GJK_POLYGON)
@@ -87,7 +93,7 @@ subroutine mc_internucleosome()
    ignore = NAN
    do k = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(k)
-      if (wlc_nucleosomeWrap(i) == 1) cycle
+      if (wrapping(i) == 1) cycle
       ignore(k) = i
       ! only check beads within cutoff distance, since n choose k grows quick
       if (WLC_P__NEIGHBOR_BINS) then
@@ -99,7 +105,7 @@ subroutine mc_internucleosome()
                               WLC_P__NT, neighbors, distances, nn)
       endif
       do j = 1, nn
-         if (wlc_nucleosomeWrap(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
+         if (wrapping(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
          ! new config
          delInt = delInt + internucleosome_energy(RALL(:, i), RALL(:, neighbors(j)), &
                                                   UALL(:, i), UALL(:, neighbors(j)), &

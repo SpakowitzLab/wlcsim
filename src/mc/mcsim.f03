@@ -134,11 +134,11 @@ subroutine mcsim(wlc_p)
             endif
 
             ! set wlc_basepairs to prop if not slide move
-            if (MCTYPE /= 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
+            if (MCTYPE /= 13 .AND. WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then
                wlc_basepairs_prop = wlc_basepairs
             endif
             ! set wlc_basepairs to prop if not slide move
-            if (MCTYPE /= 14 .AND. WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+            if (MCTYPE /= 14 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then
                wlc_basepairs_prop = wlc_basepairs
                wlc_nucleosomeWrap_prop = wlc_nucleosomeWrap
             endif
@@ -306,10 +306,10 @@ subroutine mcsim(wlc_p)
                      wlc_AB(I) = wlc_ABP(I)
                   ENDdo
                endif
-               if (MCTYPE == 13 .AND. WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
+               if (MCTYPE == 13 .AND. WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then
                   wlc_basepairs = wlc_basepairs_prop
                endif
-               if (MCTYPE == 14 .AND. WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then
+               if (MCTYPE == 14 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then
                   wlc_basepairs = wlc_basepairs_prop
                   wlc_nucleosomeWrap = wlc_nucleosomeWrap_prop
                endif

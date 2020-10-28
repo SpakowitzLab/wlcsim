@@ -30,7 +30,7 @@ contains
       real(dp), intent(in), dimension(3) :: Vin ! Entry tangent vector
       real(dp), intent(in), dimension(3) :: Rin ! Position of entry
       real(dp), intent(in) :: linkBP
-      integer, intent(in) :: wrapBP
+      real(dp), intent(in) :: wrapBP
       real(dp), intent(out), dimension(3) :: Uout ! Exit position
       real(dp), intent(out), dimension(3) :: Vout ! Exit tangent vector
       real(dp), intent(out), dimension(3) :: Rout ! Exit position
@@ -38,18 +38,30 @@ contains
       real(dp), dimension(3, 3) :: linkRot
       real(dp), dimension(3, 3) :: mtrx
       real(dp), parameter :: angle = 2*pi/basePairsPerTurn ! intrinsic rotation/bp
+      real(dp) interTran(3)
+      real(dp) interRot(3, 3)
+      integer indUp, indDown
+      real(dp) ratio, offratio
 
       mtrx(:, 1) = Vin
       mtrx(:, 2) = cross(Uin, Vin)
       mtrx(:, 3) = Uin
 
-      Rout = Rin + MATMUL(mtrx, nucleosomeTran(:, wrapBP))
+      ! interpolate for wrapBP
+      indDown = floor(wrapBP)
+      indUp = ceiling(wrapBP)
+      ratio = wrapBP/indUp
+      offratio = 1 - ratio
+      interTran = ratio*nucleosomeTran(:, indUp) + offratio*nucleosomeTran(:, indDown)
+      interRot = ratio*nucleosomeRot(:, :, indUp) + offratio*nucleosomeRot(:, :, indDown)
+
+      Rout = Rin + MATMUL(mtrx, interTran)
 
       linkRot(1, :) = [cos(angle*linkBP), -sin(angle*linkBP), 0.0_dp]
       linkRot(2, :) = [sin(angle*linkBP), cos(angle*linkBP), 0.0_dp]
       linkRot(3, :) = [0.0_dp, 0.0_dp, 1.0_dp]
 
-      mtrx = MATMUL(MATMUL(mtrx, nucleosomeROT(:, :, wrapBP)), linkRot)
+      mtrx = MATMUL(MATMUL(mtrx, interRot), linkRot)
 
       Uout = mtrx(:, 3)/norm2(mtrx(:, 3))
       Vout = mtrx(:, 1)/norm2(mtrx(:, 1))
@@ -71,7 +83,7 @@ contains
       real(dp), intent(in), dimension(3) :: V ! V of bead i
       real(dp), intent(in), dimension(3) :: VP1 ! V of bead i+1
       real(dp), intent(in) :: linkBP
-      integer, intent(in) :: wrapBP
+      real(dp), intent(in) :: wrapBP
       real(dp) nucleosome_energy(4)
       real(dp) EB, EPAR, EPERP, GAM, ETA, XIR, XIU, sigma, etwist, simtype
 
@@ -282,7 +294,7 @@ contains
 
       enddo
 
-      if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 0) then 
+      if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
          open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
          num_bps = 147
       else
@@ -297,7 +309,7 @@ contains
       close (5)
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
-         if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 0) then 
+         if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
             open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
             num_bps = 147
          else
@@ -334,17 +346,17 @@ contains
                               noIntersectZ, intersectZ, tangentZ, runtimeTest2, runtimeTest4
       use polydispersity, only: first_bead_of_chain, last_bead_of_chain
       implicit none
-      integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
+      real(dp), intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
       real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
       real(dp) discretization, num_link_beads
       real(dp), dimension(2, 33) :: LL_dist
       type(random_stat) rand_stat
       real(dp) cumlinker, linker
       real(dp) urand(3)  ! random vector
-      integer octasome
+      real(dp) octasome
       integer iter, i, j, k
 
-      octasome = 147
+      octasome = 147.0_dp
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
          if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
@@ -359,13 +371,12 @@ contains
                   iter = iter + num_link_beads
                   ! set middle linkers 
                   do j = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
-                     if ( WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
+                     if ( WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
                         call random_gauss(urand, rand_stat)
-                        urand = nint(urand(1))
                      else
                         urand = 0
                      endif
-                     wlc_nucleosomeWrap(iter) = octasome  + urand(1)
+                     wlc_nucleosomeWrap(iter) = octasome !+ urand(1)
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
                      if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
@@ -378,14 +389,13 @@ contains
                   wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 1
                   wlc_basepairs(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = discretization
                   ! last linker
-                  if ( WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
+                  if ( WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
                      call random_gauss(urand, rand_stat)
-                     urand = nint(urand(1))
                   else
                      urand = 0
                   endif
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = octasome + urand(1)
+                  wlc_nucleosomeWrap(iter) = octasome !+ urand(1)
                   iter = iter + 1
                   wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
@@ -477,8 +487,6 @@ contains
          wlc_nucleosomeWrap = octasome
          wlc_basepairs = WLC_P__LL
       endif
-      print*, wlc_basepairs
-      print*, wlc_nucleosomeWrap
 
    end subroutine
 

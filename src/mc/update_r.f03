@@ -86,8 +86,7 @@ contains
    subroutine GJK_update(I, binningBool)
    ! helper routine to update R in GJK simulations
       use params, only: wlc_bin, wlc_R_period, wlc_R, wlc_UP, wlc_VP, &
-                        wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap, &
-                        wlc_nucleosomeWrap_prop
+                        wlc_U, wlc_V, wlc_RP, wlc_R_GJK, wlc_GJK, wlc_nucleosomeWrap
       use params, only: dp, NAN
       use GJKAlgorithm, only: constructPolygonPrism
       use binning, only: addBead
@@ -96,21 +95,14 @@ contains
       integer, intent(in) :: I
       logical, intent(in) :: binningBool
       real(dp) poly(WLC_P__GJK_POLYGON, 3)
-      integer wrapping(WLC_P__NT) ! wrapping
-
-      if (WLC_P__MOVEON_NUCLEOSOMEWRAP == 1) then 
-         wrapping = wlc_nucleosomeWrap_prop
-      else
-         wrapping = wlc_nucleosomeWrap
-      endif
 
       ! add back in virtual beads i-1 and i for moved bead i
       if (I > first_bead_of_chain(get_IP(I))) then
          if (isnan(wlc_RP(1, I - 1))) then
-            poly = constructPolygonPrism(wlc_R(:, I - 1), wlc_R(:, I), wrapping(I - 1), &
+            poly = constructPolygonPrism(wlc_R(:, I - 1), wlc_R(:, I), wlc_nucleosomeWrap(I - 1), &
                                           wlc_U(:, I - 1), wlc_V(:, I - 1), WLC_P__GJK_POLYGON)
          else
-            poly = constructPolygonPrism(wlc_RP(:, I - 1), wlc_R(:, I), wrapping(I - 1), &
+            poly = constructPolygonPrism(wlc_RP(:, I - 1), wlc_R(:, I), wlc_nucleosomeWrap(I - 1), &
                                           wlc_UP(:, I - 1), wlc_VP(:, I - 1)/norm2(wlc_VP(:, I - 1)), WLC_P__GJK_POLYGON)
          endif
          wlc_GJK(:, :, I - 1) = poly
@@ -123,10 +115,10 @@ contains
       endif
       if (I < last_bead_of_chain(get_IP(I))) then
          if (isnan(wlc_RP(1, I + 1))) then
-            poly = constructPolygonPrism(wlc_R(:, I), wlc_R(:, I + 1), wrapping(I), &
+            poly = constructPolygonPrism(wlc_R(:, I), wlc_R(:, I + 1), wlc_nucleosomeWrap(I), &
                                           wlc_U(:, I), wlc_V(:, I), WLC_P__GJK_POLYGON)
          else
-            poly = constructPolygonPrism(wlc_R(:, I), wlc_RP(:, I + 1), wrapping(I), &
+            poly = constructPolygonPrism(wlc_R(:, I), wlc_RP(:, I + 1), wlc_nucleosomeWrap(I), &
                                           wlc_U(:, I), wlc_V(:, I), WLC_P__GJK_POLYGON)
          endif
          wlc_GJK(:, :, I) = poly
