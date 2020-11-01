@@ -112,8 +112,7 @@ def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b=1):
 
     # Evaluate the MSCD if there are no linkages
     if len(linkages) == 0:
-        mscd_plateau = nuc_radius ** 2
-        return mscd_plateau
+        return nuc_radius ** 2
 
     # Evaluate the MSCD if there are linkages between the chromosomes
     i = np.searchsorted(linkages, label_loc)
@@ -129,3 +128,55 @@ def mscd_plateau(linkages, label_loc, chr_size, nuc_radius, b=1):
         mscd_plateau = 2 * b ** 2 / (1 / (2 * Ndel) + 1 / (N - 2 * Ndel))
 
     return np.minimum(mscd_plateau, nuc_radius**2)
+
+def mscd_plateau_ensemble(mu, label_loc, L, b, nuc_radius):
+    """
+    Fully analytical computation of average plateau value over population.
+
+    All parameters should be specified in the same units (of length).
+
+    Parameters
+    ----------
+    mu : float
+        Average number of linkages across entire chromosome.
+    label_loc : float
+        The location along the chromosome where the label being tracked is.
+    L : float
+        The full length of each of the two homologous chromosomes.
+    b : float
+        The Kuhn length of the polymer.
+    nuc_radius : float
+        The radius of the spherical confinement.
+
+    """
+    def lower(Ndel):
+        return 2*Ndel
+    def upper(Ndel):
+        return 2*(Ndel + L - label_loc)
+    def ring_plateau_f(N, Ndel, b, nuc_radius, *args):
+        return np.minimum(
+            nuc_radius**2,
+            2 * b**2 / (1 / (2 * Ndel) + 1 / (N - 2*Ndel))
+        ) * P_N_joint_Ndel_ring(N, Ndel, *args)
+    def right_linear_plateau(Ndel, b, nuc_radius, *args):
+        return np.minimum(4 * b**2 * Ndel, nuc_radius**2) \
+                * P_Ndel_linear_right_(Ndel, *args)
+    def left_linear_plateau(Ndel, b, nuc_radius, *args):
+        return np.minimum(4 * b**2 * Ndel, nuc_radius**2) \
+                * P_Ndel_linear_left_(Ndel, *args)
+    ring_ave = scipy.integrate.dblquad(
+        ring_plateau_f, 0, label_loc, lower, upper,
+        args=(b, nuc_radius, mu, label_loc, L)
+    )[0]  # throw away error estimate
+    left_linear_ave = scipy.integrate.quad(
+        left_linear_plateau, 0, label_loc,
+        args=(b, nuc_radius, label_loc, mu/L)
+    )[0]
+    right_linear_ave = scipy.integrate.quad(
+        right_linear_plateau, 0, L - label_loc,
+        args=(b, nuc_radius, label_loc, mu/L)
+    )[0]
+    return nuc_radius**2 * P_is_linkless(mu) \
+        + ring_ave * P_is_ring(mu, label_loc, L) \
+        + left_linear_ave * P_has_left_only(mu, label_loc, L) \
+        + right_linear_ave * P_has_right_only(mu, label_loc, L)
