@@ -767,7 +767,10 @@ class Chain:
             topology of polymer structure (for the risca lab, it will almost always be 'linear')
         """
         chain = self.interpolate()
-        dna = mkpdb(np.asarray(self.interp[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+        if (base != 3):
+            dna = mkpdb(np.asarray(self.interp[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+        else:
+            dna = mkpdb(np.asarray(self.interp).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
             filename = '%sfine%0.3dv%sf%s.pdb' %(path,self.time,self.channel,self.number)
         else:
