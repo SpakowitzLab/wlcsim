@@ -56,8 +56,8 @@ dat.trials['trial2'].trajectories[2].snapshots[9].end_to_end # get end-to-end di
 ----
 TODO
 ----
-fix interpolate function for fractional basepairs
-rethink the nesting object structure, espeically for Chain and Snapshot
+micro C analysis? 
+more analysis functions for interaction geoemetry
 """
 import sys
 from .utility import *
@@ -283,7 +283,7 @@ class Trajectory:
         for time in range(self.equilibrium_time+1,self.time_max):
             self.energies = self.energies.append(self.snapshots[time].energies)
 
-    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol'):
+    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol',base=3):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" after interpolating into a more fine-grained
         structure. See the saveFineGrainedPDB and interpolate methods in the `Snapshot` class for more informtion on the calculations.
 
@@ -302,7 +302,7 @@ class Trajectory:
             exectable command to initiaite PyMol, i.e. "~/Applications/pymol/pymol" 
         """
         for time in range(self.time_min,self.time_max):
-            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo)
+            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base)
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + path)
                     
@@ -361,10 +361,10 @@ class Chain:
         `n_nucs` : number of nucleosomes on the specific chain
         `pair_dist` : nucleosome pairwise distances, i.e. all combinatorics of n choose k, for the specific chain
         `reduced_pair_dist` : reduced nucleosome pairwise distances, i.e. n & n+1, n & n+2, etc. 
-        `bps` : location of each interpolated phosphate-sugar-phosphate basepair throughout the specific chain
-        `break_length_s1`, `break_length_b`, `break_length_2` : RICC-seq pairwise fragment lengths using `bps`
-        `break_location_s1`, `break_location_b`, `break_location_s2` : RICC-seq pairwise break locations using `bps`
-        `break_distance_s1`, `break_distance_b`, `break_distance_s2` : RICC-seq pairwise break distances using `bps`
+        `interp` : location of each interpolated phosphate-sugar-phosphate basepair throughout the specific chain
+        `break_length_s1`, `break_length_b`, `break_length_2` : RICC-seq pairwise fragment lengths using `interp`
+        `break_location_s1`, `break_location_b`, `break_location_s2` : RICC-seq pairwise break locations using `interp`
+        `break_distance_s1`, `break_distance_b`, `break_distance_s2` : RICC-seq pairwise break distances using `interp`
 
     """
     def __init__(self,number,time,channel,r,u,v,basepairs,wrap):
@@ -406,7 +406,7 @@ class Chain:
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
         # interpolation/ricc-seq stuff
-        self.bps = None
+        self.interp = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
@@ -491,7 +491,7 @@ class Chain:
             self.reduced_pair_dist[i] /= (self.n_nucs-i-1)
 
     # determine nucleosome-nucleosome orientation 
-    def pairwiseNucleosomeOrientation(self, cutoff=20):
+    def pairwiseNucleosomeOrientation(self, cutoff=12):
         """Get the pairwise orientation between the center of each nucleosome on the chain, i.e. n choose k
         
         Generates
@@ -562,29 +562,25 @@ class Chain:
         
         Generates
         ---------
-        bps : location of each phosphate-sugar-phosphate basepair throughout the chain
+        interp : location of each phosphate-sugar-phosphate basepair throughout the chain
         """
-        cushion = 1e-5
-        nucFrac = 1
-        dnaFrac = 1
         # rotate DNA strand into material frame
-        self.bps = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
-        indR = 0
-        connect = []; chain = []
-        chainNum = 1
+        self.interp = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
+        row = np.zeros(3*3).reshape([3,3])
+        indR = 0; leftOver = 0; summedLeftOver = 0
+        chain = []; chainNum = 1
         for i in range(self.n_beads):
             if self.basepairs[i] != 0:
-                maxBp = self.basepairs[i]
-                omega = default_omega + (get_uv_angle(self.v[i,:], self.v[i+1,:])%(2*np.pi) - (maxBp*default_omega)%(2*np.pi))
-                v = omega/default_omega*length_per_bp
+                # NOT ACTUALLY DETERMINING PROPER TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TWIST
+                #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.basepairs[i] % 10.5)
+                #v = omega/default_omega*length_per_bp
                 Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.basepairs[i], self.wrap[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
                 if (self.wrap[i] > 1): # nucleosome
-                    for j in range(len(nucleosome_tran)):
-                        row = np.zeros(3*3).reshape([3,3])
+                    for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrap[i])+summedLeftOver, int(np.floor(self.wrap[i])))):
                         strand1, base, strand2 = DNAhelix(j,v=0)
-                        Rin = np.asarray(nucleosome_tran[len(nucleosome_tran)-1-j,:])
+                        Rin = np.asarray(nucleosome_tran[len(nucleosome_tran)-1-n_wrap,:])
                         # strand 1 backbone
                         row[0,:] = self.r[i,:] + np.matmul(matIn,Rin+strand1)
                         # strand 2 backbone
@@ -592,15 +588,14 @@ class Chain:
                         # base
                         row[1,:] = self.r[i,:] + np.matmul(matIn,Rin+base)
                         # save atoms
-                        self.bps[indR,:,:] = row
+                        self.interp[indR,:,:] = row
                         indR = indR + 1                    
-                        #connect.append((indR,indR+1))
                         chain.extend([str(chainNum)]*3)
-                        if (indR == self.n_bps): break
-                    # add the extruding linker from the nucleosome
-                    for j in range(int(np.round(maxBp + cushion*(-1)**(nucFrac)))):
-                        row = np.zeros(3*3).reshape([3,3])
-                        strand1, base, strand2 = DNAhelix(j)#,omega=0,v=v)
+                    # add left over basepairs
+                    leftOver = self.wrap[i] - np.floor(self.wrap[i])
+                    # take care of the leftover basepairs
+                    if (summedLeftOver == 0 and leftOver > 0):
+                        strand1, base, strand2 = DNAhelix(j + 1)
                         # strand 1 backbone
                         row[0,:] = Rout + np.matmul(mat, strand1)
                         # strand 2 backbone
@@ -608,15 +603,44 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.bps[indR,:,:] = row
+                        self.interp[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
-                        if (indR == self.n_bps): break
-                    nucFrac += 1
+                    # cumulative sum of left over basepairs
+                    summedLeftOver = (summedLeftOver + leftOver) % 1
+                    # add the exiting linker from the nucleosome
+                    for j in np.linspace(leftOver, np.floor(self.basepairs[i])+leftOver-1, int(np.floor(self.basepairs[i]))):
+                        strand1, base, strand2 = DNAhelix(j)
+                        # strand 1 backbone
+                        row[0,:] = Rout + np.matmul(mat, strand1)
+                        # strand 2 backbone
+                        row[2,:] = Rout + np.matmul(mat, strand2)
+                        # base
+                        row[1,:] = Rout + np.matmul(mat, base)
+                        # save atoms
+                        self.interp[indR,:,:] = row
+                        indR = indR + 1
+                        chain.extend([str(chainNum)]*3)
+                    # add left over basepairs
+                    leftOver  = self.basepairs[i] - np.floor(self.basepairs[i])
+                    # take care of the leftover basepairs
+                    if (summedLeftOver == 0 and leftOver > 0):
+                        strand1, base, strand2 = DNAhelix(j + 1)
+                        # strand 1 backbone
+                        row[0,:] = Rout + np.matmul(mat, strand1)
+                        # strand 2 backbone
+                        row[2,:] = Rout + np.matmul(mat, strand2)
+                        # base
+                        row[1,:] = Rout + np.matmul(mat, base)
+                        # save atoms
+                        self.interp[indR,:,:] = row
+                        indR = indR + 1
+                        chain.extend([str(chainNum)]*3)
+                    # cumulative sum of left over basepairs
+                    summedLeftOver = (summedLeftOver + leftOver) % 1
                 else: # dna bead
-                    for j in range(int(np.round(maxBp + cushion*(-1)**(dnaFrac)))):
-                        row = np.zeros(3*3).reshape([3,3])
-                        strand1, base, strand2 = DNAhelix(j)#,omega=omega,v=v)
+                    for j in np.linspace(leftOver, np.floor(self.basepairs[i])+leftOver-1, int(np.floor(self.basepairs[i]))):
+                        strand1, base, strand2 = DNAhelix(j)
                         # strand 1 backbone
                         row[0,:] = Rout + np.matmul(mat, strand1)
                         # strand 2 backbone
@@ -624,11 +648,26 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.bps[indR,:,:] = row
+                        self.interp[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
-                        if (indR == self.n_bps): break
-                    dnaFrac += 1
+                    # add left over basepairs
+                    leftOver = self.basepairs[i] - np.floor(self.basepairs[i])
+                    # take care of the leftover basepairs
+                    if (summedLeftOver == 0 and leftOver > 0):
+                        strand1, base, strand2 = DNAhelix(j + 1)
+                        # strand 1 backbone
+                        row[0,:] = Rout + np.matmul(mat, strand1)
+                        # strand 2 backbone
+                        row[2,:] = Rout + np.matmul(mat, strand2)
+                        # base
+                        row[1,:] = Rout + np.matmul(mat, base)
+                        # save atoms
+                        self.interp[indR,:,:] = row
+                        indR = indR + 1
+                        chain.extend([str(chainNum)]*3)
+                    # cumulative sum of left over basepairs
+                    summedLeftOver = (summedLeftOver + leftOver) % 1
             else:
                 chainNum +=1
         return chain
@@ -648,12 +687,12 @@ class Chain:
 
         Generates
         ---------
-        break_length_s1, break_length_b, break_length_2 : RICC-seq pairwise fragment lengths using `bps`
-        break_location_s1, break_location_b, break_location_s2 : RICC-seq pairwise break locations using `bps`
-        break_distance_s1, break_distance_b, break_distance_s2 : RICC-seq pairwise break distances using `bps`
+        break_length_s1, break_length_b, break_length_2 : RICC-seq pairwise fragment lengths using `interp`
+        break_location_s1, break_location_b, break_location_s2 : RICC-seq pairwise break locations using `interp`
+        break_distance_s1, break_distance_b, break_distance_s2 : RICC-seq pairwise break distances using `interp`
         """
         try :
-            if (self.bps == None):
+            if (self.interp == None):
                 self.interpolate()
         except:
             pass
@@ -673,9 +712,9 @@ class Chain:
             indPair[ind:ind+extension,1] = np.linspace(i+1,i+extension, extension, dtype='int')
             ind += extension
         # find 3d distance on both strands and base
-        pairS1 = scipy.spatial.distance.pdist(self.bps[:,0,:])
-        pairB = scipy.spatial.distance.pdist(self.bps[:,1,:])
-        pairS2 = scipy.spatial.distance.pdist(self.bps[:,2,:])
+        pairS1 = scipy.spatial.distance.pdist(self.interp[:,0,:])
+        pairB = scipy.spatial.distance.pdist(self.interp[:,1,:])
+        pairS2 = scipy.spatial.distance.pdist(self.interp[:,2,:])
         cutIndS1 = pairS1 <= cutoff; cutIndB = pairB <= cutoff; cutIndS2 = pairS2 <= cutoff
         indBreakS1 = np.linspace(0,nPair-1,nPair,dtype='int')[cutIndS1]
         indBreakB = np.linspace(0,nPair-1,nPair,dtype='int')[cutIndB]
@@ -715,7 +754,7 @@ class Chain:
             filename = '%scoarse%0.3dv%s.pdb' %(path,self.time,self.channel)
         save_pdb(filename,dna)
     
-    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear'):
+    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear',base=3):
         """Save the interpolated fine-grained wlcsim structure in a PDB format.
         
         Parameters
@@ -728,7 +767,7 @@ class Chain:
             topology of polymer structure (for the risca lab, it will almost always be 'linear')
         """
         chain = self.interpolate()
-        dna = mkpdb(np.asarray(self.bps).reshape([3*self.n_bps,3]),topology=topo,chain=chain)#,connect=connect)
+        dna = mkpdb(np.asarray(self.interp[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
             filename = '%sfine%0.3dv%sf%s.pdb' %(path,self.time,self.channel,self.number)
         else:
@@ -877,7 +916,7 @@ class Snapshot(Chain):
         self.reduced_pair_dist = None
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
-        self.bps = None
+        self.interp = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
