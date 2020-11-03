@@ -374,6 +374,10 @@ def mscd_plateau_ensemble(mu, label_loc, L, b, nuc_radius):
         The radius of the spherical confinement.
 
     """
+    if mu < 0:
+        return np.nan
+    if np.isclose(mu, 0):
+        return nuc_radius**2
     def lower(Ndel):
         return 2*Ndel
     def upper(Ndel):
