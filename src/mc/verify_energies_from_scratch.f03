@@ -135,7 +135,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
       ignore = NAN
       k = 1
       do i = 1, WLC_P__NT
-         if (wlc_nucleosomeWrap(i) == 1) cycle
+         if (wlc_nucleosomeWrap(i) == 0) cycle
          ignore(k) = i
          k = k + 1
          if (WLC_P__NEIGHBOR_BINS) then
@@ -147,7 +147,7 @@ subroutine calculate_energies_from_scratch(wlc_p)
                                WLC_P__NT, neighbors, distances, nn)
          endif
          do j = 1, nn
-            if (wlc_nucleosomeWrap(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
+            if (wlc_nucleosomeWrap(neighbors(j)) == 0 .or. ANY(ignore == neighbors(j))) cycle
              delInt = delInt + internucleosome_energy(wlc_R(:, i), wlc_R(:, neighbors(j)), &
                                                      wlc_U(:, i), wlc_U(:, neighbors(j)), &
                                                      wlc_V(:, i), wlc_V(:, neighbors(j)))

@@ -45,7 +45,7 @@ subroutine mc_internucleosome()
    ignore = NAN
    do k = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(k)
-      if (wlc_nucleosomeWrap(i) == 1) cycle
+      if (wlc_nucleosomeWrap(i) == 0) cycle
       ignore(k) = i
       ! only check beads within cutoff distance, since n choose k grows quick
       if (WLC_P__NEIGHBOR_BINS) then
@@ -57,7 +57,7 @@ subroutine mc_internucleosome()
                               WLC_P__NT, neighbors, distances, nn)
       endif
       do j = 1, nn
-         if (wlc_nucleosomeWrap(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
+         if (wlc_nucleosomeWrap(neighbors(j)) == 0 .or. ANY(ignore == neighbors(j))) cycle
          ! old config
          delInt = delInt - internucleosome_energy(RALL(:, i), RALL(:, neighbors(j)), &
                                                   UALL(:, i), UALL(:, neighbors(j)), &
@@ -67,7 +67,7 @@ subroutine mc_internucleosome()
    ! replace old beads with new moved beads
    do j = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(j)
-      if (wlc_nucleosomeWrap(i) == 1) cycle ! only nucs
+      if (wlc_nucleosomeWrap(i) == 0) cycle ! only nucs
       IP = get_IP(i) 
       ! update real bead locations
       RALL(:, i) = wlc_RP(:, i)
@@ -93,7 +93,7 @@ subroutine mc_internucleosome()
    ignore = NAN
    do k = 1, wlc_nPointsMoved
       i = wlc_pointsMoved(k)
-      if (wrapping(i) == 1) cycle
+      if (wrapping(i) == 0) cycle
       ignore(k) = i
       ! only check beads within cutoff distance, since n choose k grows quick
       if (WLC_P__NEIGHBOR_BINS) then
@@ -105,7 +105,7 @@ subroutine mc_internucleosome()
                               WLC_P__NT, neighbors, distances, nn)
       endif
       do j = 1, nn
-         if (wrapping(neighbors(j)) == 1 .or. ANY(ignore == neighbors(j))) cycle
+         if (wrapping(neighbors(j)) == 0 .or. ANY(ignore == neighbors(j))) cycle
          ! new config
          delInt = delInt + internucleosome_energy(RALL(:, i), RALL(:, neighbors(j)), &
                                                   UALL(:, i), UALL(:, neighbors(j)), &

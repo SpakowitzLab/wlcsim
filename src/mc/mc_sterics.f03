@@ -78,7 +78,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
       ! set basepairs and wrapping vector
       basepairs = wlc_basepairs
       wrapping = wlc_nucleosomeWrap
-      if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then 
+      if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
          basepairs = wlc_basepairs_prop
       endif 
       if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
@@ -133,8 +133,9 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
          endif
       enddo
       collisions = -collisions
-      ! set up ignore beads
-      if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+      ! set up ignore beads for normal MC moves where there are no expected collisions within
+      ! moved beads. this is the case for all EXCEPT nucleosome sliding and breathing
+      if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
          ignore_bin = NAN
          ignore_bin(1:wlc_nPointsMoved) = wlc_pointsMoved(1:wlc_nPointsMoved)
       endif
@@ -148,7 +149,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
          if ((ANY(ignore == i - 1) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
             ignore(k) = i - 1
             k = k + 1
-            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
                nn = 0
                call find_neighbors(wlc_bin, RGJK(:, i - 1), 2*WLC_P__GJK_RADIUS, &
                                    wlc_R_GJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
@@ -167,7 +168,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
          if ((ANY(ignore == i) .eqv. .false.) .AND. (i < last_bead_of_chain(IP))) then 
             ignore(k) = i
             k = k + 1
-            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
                nn = 0
                call find_neighbors(wlc_bin, RGJK(:, i), 2*WLC_P__GJK_RADIUS, &
                                    wlc_R_GJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
@@ -218,11 +219,11 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
    if (ii == last_bead_of_chain(get_IP(ii))) return
 
    ! determine identity of moving bead
-   if (wrapping(ii) /= 1) then ! is nucleosome
+   if (wrapping(ii) /= 0) then ! is nucleosome
       iiIsNucleosome = .TRUE.
       call nucleosome_prop(UALL(:, ii), VALL(:, ii), RALL(:, ii), basepairs(ii), wrapping(ii), &
                           tempU, tempV, tempR)
-      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 1.0_dp, tempU, tempV, s)
+      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 0.0_dp, tempU, tempV, s)
    else
       iiIsNucleosome = .FALSE.
    endif
@@ -234,11 +235,11 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
    do jj = 1, nn
       if (ANY(ignore == neighbors(jj)) .or. (neighbors(jj) == last_bead_of_chain(get_IP(neighbors(jj))))) cycle
       ! determine identity of potentially collided bead
-      if (wrapping(neighbors(jj)) /= 1) then ! is nucleosome
+      if (wrapping(neighbors(jj)) /= 0) then ! is nucleosome
          jjIsNucleosome = .TRUE.
          call nucleosome_prop(UALL(:, neighbors(jj)), VALL(:, neighbors(jj)), RALL(:, neighbors(jj)), &
                              basepairs(neighbors(jj)), wrapping(neighbors(jj)), tempU, tempV, tempR)
-         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 1.0_dp, tempU, tempV, s)
+         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 0.0_dp, tempU, tempV, s)
       else
          jjIsNucleosome = .FALSE.
       endif

@@ -48,7 +48,7 @@ subroutine mc_nucleosome_breathe(IB1, IB2, IT1, IT2, rand_stat, success)
 ! find nucs
    K = 1
    do I = 1, WLC_P__NT
-      if (wlc_nucleosomeWrap(I) == 1) cycle
+      if (wlc_nucleosomeWrap(I) == 0) cycle
       nucArray(K) = I
       K = K + 1
    enddo

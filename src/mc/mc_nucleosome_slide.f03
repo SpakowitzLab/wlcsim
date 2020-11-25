@@ -55,7 +55,7 @@ subroutine mc_nucleosome_slide(IB1, IB2, IT1, IT2, rand_stat, success)
 ! find nucs
    KK = 1
    do II = 1, WLC_P__NT
-      if (wlc_nucleosomeWrap(II) == 1) cycle
+      if (wlc_nucleosomeWrap(II) == 0) cycle
       nucArray(KK) = II
       KK = KK + 1
    enddo

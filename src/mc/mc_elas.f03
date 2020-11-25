@@ -87,7 +87,7 @@ subroutine mc_eelas(wlc_p)
          ! set basepairs and wrapping vector
          basepairs = wlc_basepairs
          wrapping = wlc_nucleosomeWrap
-         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then 
+         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
             basepairs = wlc_basepairs_prop
          endif 
          if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 

@@ -258,7 +258,7 @@ MODULE GJKAlgorithm
         mtrx(:,3) = u
 
         ! determine if nucleosome or not
-        if (wrap /= 1) then 
+        if (wrap /= 0) then 
             center = [4.84550_DP, -2.44450_DP, 0.66940_DP]
             pos = pos1
             h = WLC_P__NUCLEOSOME_HEIGHT ! nm height
@@ -327,7 +327,7 @@ MODULE GJKAlgorithm
         real(dp), dimension(3) :: findCenterPolygonPrism
 
         ! determine if nucleosome or not
-        if (wrap /= 1) then 
+        if (wrap /= 0) then 
             ! construct material rotation matrix
             mtrx(:,1) = v
             mtrx(:,2) = cross(u,v)

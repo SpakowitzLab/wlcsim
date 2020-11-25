@@ -394,7 +394,7 @@ class Chain:
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
+        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>0]))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
@@ -433,7 +433,7 @@ class Chain:
             return 0
         self.center_r = np.zeros((self.n_beads-1)*3).reshape([self.n_beads-1,3])
         for i in range(self.n_beads-1):
-            if (self.wrap[i]>1): # nucleosome
+            if (self.wrap[i]>0): # nucleosome
                 # make rotation matrix
                 uin = np.asarray(self.u[i,:]); vin = np.asarray(self.v[i,:]); cross = np.cross(uin, vin)
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
@@ -460,7 +460,7 @@ class Chain:
         except:
             print('warning: this has already been run')
             return
-        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>1],dtype='int')
+        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>0],dtype='int')
         self.pair_dist = scipy.spatial.distance.pdist(self.center_r[nucLocs,:])
 
     # determine the reduced pairwise distances between nucleosomes
@@ -505,7 +505,7 @@ class Chain:
             # do nothing
             pass
         # check orientation if within cutoff
-        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>1],dtype='int')
+        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>0],dtype='int')
         ind = 0
         for i in range(len(nucLocs)):
             for j in range(i+1,len(nucLocs)):
@@ -577,7 +577,7 @@ class Chain:
                 Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.basepairs[i], self.wrap[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
-                if (self.wrap[i] > 1): # nucleosome
+                if (self.wrap[i] > 0): # nucleosome
                     for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrap[i])+summedLeftOver, int(np.floor(self.wrap[i])))):
                         strand1, base, strand2 = DNAhelix(j,v=0)
                         Rin = np.asarray(nucleosome_tran[len(nucleosome_tran)-1-n_wrap,:])
@@ -908,12 +908,12 @@ class Snapshot(Chain):
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>1]))
+        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>0]))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
         # pairwise nucleosomes
-        self.n_nucs = np.sum(self.wrap>1)
+        self.n_nucs = np.sum(self.wrap>0)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None

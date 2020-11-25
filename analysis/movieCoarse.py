@@ -44,7 +44,7 @@ for ind in file_inds:
                 poly = np.zeros(side*3).reshape([side,3])
                 uin = np.asarray(u[i,0:3]); vin = np.asarray(u[i,3:6]); cross = np.cross(uin, vin)
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
-                if (wrap[i]>1):
+                if (wrap[i]>0):
                     space = 0
                     height = 5.5
                     radius = 5.2

@@ -14,8 +14,8 @@ nucleosome_center = np.array([4.8455, -2.4445, 0.6694])
 default_dir = str(Path(__file__).parent / Path('..'))
 
 # read in translation and rotation files
-nucleosome_tran = np.loadtxt('%s/input/nucleosomeT_extended' %(default_dir))
-nucleosome_rot = np.loadtxt('%s/input/nucleosomeR_extended' %(default_dir))
+nucleosome_tran = np.loadtxt('%s/input/nucleosomeT' %(default_dir))
+nucleosome_rot = np.loadtxt('%s/input/nucleosomeR' %(default_dir))
 
 def rotate_bead(Uin, Vin, Rin, link_bp, wrap_bp):
     """

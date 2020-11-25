@@ -6,7 +6,7 @@ from sys import argv
 numFrames = int(argv[1])
 pathPDB = argv[2]
 
-for idx in range(0,numFrames): cmd.load(pathPDB+"fine%03d.pdb"%idx,"snap")
+for idx in range(0,numFrames): cmd.load(pathPDB+"fine%03dv0.pdb"%idx,"snap")
 cmd.intra_fit("snap")
 cmd.mset("1 -%d" % numFrames)
 cmd.show('spheres', 'resn DNA')

@@ -11,8 +11,8 @@ module nucleosome
    implicit none
    real(dp), parameter :: basePairsPerTurn = 10.5_dp
    real(dp), dimension(10, WLC_P__MAX_BACEPAIRS_PER_BEAD) :: multiParams
-   real(dp), dimension(3, 3, 160) :: nucleosomeROT
-   real(dp), dimension(3, 160) :: nucleosomeTran
+   real(dp), dimension(3, 3, 0:160) :: nucleosomeROT
+   real(dp), dimension(3, 0:160) :: nucleosomeTran
 
    private :: nucleosomeROT, nucleosomeTran
 contains
@@ -50,7 +50,11 @@ contains
       ! interpolate for wrapBP
       indDown = floor(wrapBP)
       indUp = ceiling(wrapBP)
-      ratio = wrapBP/indUp
+      if (indUp == 0) then 
+         ratio = 0
+      else
+         ratio = wrapBP/indUp
+      endif
       offratio = 1 - ratio
       interTran = ratio*nucleosomeTran(:, indUp) + offratio*nucleosomeTran(:, indDown)
       interRot = ratio*nucleosomeRot(:, :, indUp) + offratio*nucleosomeRot(:, :, indDown)
@@ -127,11 +131,11 @@ contains
       real(dp), intent(in), dimension(3) :: VI ! V of nuc i
       real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
       real(dp), parameter :: tau_faceface = 1.38_dp
-      real(dp), parameter :: e_faceface = 3.712_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
+      real(dp), parameter :: e_faceface = 3.712_dp ! scaling in params file
       real(dp), parameter :: tau_faceside = 0.82_dp
-      real(dp), parameter :: e_faceside = 1.476_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
+      real(dp), parameter :: e_faceside = 1.476_dp ! scaling in params file
       real(dp), parameter :: tau_sideside = 2.0_dp
-      real(dp), parameter :: e_sideside = 1.64_dp*0.5_dp*(WLC_P__NB/WLC_P__NUM_NUCLEOSOMES)
+      real(dp), parameter :: e_sideside = 1.64_dp ! scaling in params file
       real(dp), dimension(3), parameter :: center = [4.8455_dp, -2.4445_dp, 0.6694_dp]
       real(dp), dimension(3, 3) :: mtrxI, mtrxJ
       real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
@@ -269,7 +273,6 @@ contains
       integer i, j, simtype
       real(dp) DEL
       real(dp) EB, EPAR, EPERP, GAM, ETA, XIR, XIU, sigma, etwist, dt
-      integer num_bps
 
       multiParams = nan
       do i = 2, WLC_P__MAX_BACEPAIRS_PER_BEAD
@@ -294,30 +297,18 @@ contains
 
       enddo
 
-      if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
-         open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
-         num_bps = 147
-      else
-         open (UNIT=5, FILE="input/nucleosomeR_extended", STATUS="OLD")
-         num_bps = 160
-      endif
-      do i = 1, num_bps
+      open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
+      do i = 0, 160
          do j = 1, 3
-            read (5, *) nucleosomeROT(j, :, (num_bps + 1) - i)
+            read (5, *) nucleosomeROT(j, :, 160 - i)
          enddo
       enddo
       close (5)
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
-         if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
-            open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
-            num_bps = 147
-         else
-            open (UNIT=5, FILE="input/nucleosomeT_extended", STATUS="OLD")
-            num_bps = 160
-         endif
-         do i = 1, num_bps
-            read (5, *) nucleosomeTran(:, (num_bps + 1) - i)
+         open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
+         do i = 0, 160
+            read (5, *) nucleosomeTran(:, 160 - i)
          enddo
          close (5)
       else
@@ -376,17 +367,17 @@ contains
                      else
                         urand = 0
                      endif
-                     wlc_nucleosomeWrap(iter) = octasome !+ urand(1)
+                     wlc_nucleosomeWrap(iter) = octasome + urand(1)
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
                      if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
                         wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
-                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 1 
+                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
                         iter = iter + num_link_beads - 1
                      endif
                   enddo
                   ! first linker
-                  wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 0
                   wlc_basepairs(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = discretization
                   ! last linker
                   if ( WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
@@ -395,9 +386,9 @@ contains
                      urand = 0
                   endif
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = octasome !+ urand(1)
+                  wlc_nucleosomeWrap(iter) = octasome + urand(1)
                   iter = iter + 1
-                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(i)) = 0
@@ -433,7 +424,7 @@ contains
                         iter = iter + 1
                         if (iter + num_link_beads - 2 <= last_bead_of_chain(k) - num_link_beads) then
                            wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
-                           wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 1 
+                           wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
                            iter = iter + num_link_beads - 1
                         endif
                         cumlinker = cumlinker + linker
@@ -445,13 +436,13 @@ contains
                   discretization = linker/num_link_beads
                   print*, linker, discretization, num_link_beads
                   ! first linker
-                  wlc_nucleosomeWrap(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = 0
                   wlc_basepairs(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = discretization
                   ! last linker
                   wlc_basepairs(iter) = discretization
                   wlc_nucleosomeWrap(iter) = 147
                   iter = iter + 1
-                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(k)) = 0

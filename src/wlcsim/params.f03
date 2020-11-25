@@ -621,7 +621,7 @@ contains
       if (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
          allocate (wlc_basepairs(WLC_P__NT))
          allocate (wlc_nucleosomeWrap(WLC_P__NT))
-         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) then
+         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then
             allocate (wlc_basepairs_prop(WLC_P__NT))
          endif
          if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then
