@@ -658,9 +658,9 @@
 ! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
-#define WLC_P__NINITMCSTEPS 0
-! VARIABLE COMMENT: ! number of mc steps before starting BD
-! DEFAULTS COMMENT: ! number of initilizing mc steps. 1000s x num polymers is good
+#define WLC_P__N_UMBRELLA_ON 0
+! VARIABLE COMMENT: ! Number of save points before starting umbrella energy.
+! DEFAULTS COMMENT: ! turn on immediately
 ! TYPE: INTEGER
 
 #define WLC_P__NINITMCSTEPS 4000
