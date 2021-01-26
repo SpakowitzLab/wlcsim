@@ -438,7 +438,7 @@
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
 
-#define WLC_P__LBOX_Z WLC_P__LBOX_X_dp
+#define WLC_P__LBOX_Z WLC_P__LBOX_X
 ! VARIABLE COMMENT: ! monte carlo field bin total box length (approximate)<<<change>>>
 ! DEFAULTS COMMENT: ! box size/confinment, *MUST* be set by user
 ! TYPE: REAL(DP)
@@ -1172,12 +1172,12 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
-! VARIABLE COMMENT: ! minium amplitude
+#define WLC_P__MINAMP_SPIDER 1.0_dp*WLC_P__L0
+! VARIABLE COMMENT: ! Minimum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SPIDER 1.0_dp*wlc_p%L0
+#define WLC_P__MINAMP_NUCLEOSOME_SLIDE NAN
 ! VARIABLE COMMENT: ! minium amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
