@@ -1122,8 +1122,8 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*wlc_p%L0
-! VARIABLE COMMENT: ! minium amplitude
+#define WLC_P__MINAMP_SLIDE_MOVE 0.2_DP*WLC_P__L0
+! VARIABLE COMMENT: ! Minimum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
@@ -1142,8 +1142,8 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*wlc_p%L0
-! VARIABLE COMMENT: ! minium amplitude
+#define WLC_P__MINAMP_FULL_CHAIN_SLIDE 0.2_DP*WLC_P__L0
+! VARIABLE COMMENT: ! Minimum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
@@ -1187,8 +1187,8 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*wlc_p%L0
-! VARIABLE COMMENT: ! maximum amplitude
+#define WLC_P__MAXAMP_SLIDE_MOVE 1.0_DP*WLC_P__L0
+! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
@@ -1237,8 +1237,8 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
-#define WLC_P__MAXAMP_SPIDER 5.0_dp*wlc_p%L0
-! VARIABLE COMMENT: ! maximum amplitude
+#define WLC_P__MAXAMP_SPIDER 5.0_dp*WLC_P__L0
+! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
