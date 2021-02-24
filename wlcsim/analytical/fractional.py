@@ -2,7 +2,7 @@
 
 For the case alpha=1, these formulas should reduce to the analogous ones in
 :mod:`wlcsim.analytical.rouse`."""
-from .rouse import kp_over_kbt, rouse_mode, rouse_mid_msd
+from .rouse import kp_over_kbt, rouse_mode, linear_mid_msd
 from ..tabulation import frac_vel_corr
 
 from bruno_util.mittag_leffler import ml as mittag_leffler
@@ -71,7 +71,7 @@ def frac_rouse_mid_msd(t, alpha, b, N, D, num_modes=1000):
     Weber Phys Rev E 2010, Eq. 24.
     """
     if alpha == 1:
-        return rouse_mid_msd(t, b, N, D, num_modes)
+        return linear_mid_msd(t, b, N, D, num_modes)
     rouse_corr = 0
     for p in range(1, num_modes+1):
         # k2p = rouse_mode_coef(2*p, b, N, kbT)

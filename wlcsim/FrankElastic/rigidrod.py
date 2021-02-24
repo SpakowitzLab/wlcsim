@@ -13,6 +13,12 @@ lmax = 50
 
 
 def getM2(m):
+    """Calculate the matrix \ind Y_{l_1,m}(u) Y_{2,0}(u) Y(l_2,m) du
+    This matrix is referred to as J in the paper.  The rows and colums correspond to l_1,l_2.
+    
+    Args:
+        m (int): z-component eignvalue
+    """
     M = np.zeros((lmax+1, lmax+1))
 
     for l in range(abs(m)+2, lmax+1):
@@ -30,6 +36,11 @@ for m in [-2, -1, 0, 1, 2]:
 
 
 def rodFun(m_1, m_2, m_k_1, m_k_2, eM):
+    """Calculate Rigid Rod Frank Elastic constants  K*(A/(L*phi_00)) for approprite m values.
+    K_bend*(A/(L*phi_00)) = rodFun(1, 1, 0, 0, eM)
+    K_twist*(A/(L*phi_00)) = rodFun(-1, -1, 1, 1, eM)
+    K_splay*(A/(L*phi_00)) = rodFun(1, 1, 1, 1, eM)    
+    """
     const = (2*np.pi/3.0)*(eM[0][0,2]**2)/(eM[m_1][2,2]*eM[m_2][2,2]*eM[0][0,0])
     summ = 0.0
 

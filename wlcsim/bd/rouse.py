@@ -49,8 +49,7 @@ To compare these results to the :mod:`rouse.analytical.rouse` module, use
 >>> plt.plot(t_save, 6*Dhat*t_save)
 >>> plt.plot(t_save, 6*(Dhat/N)*t_save)  # or 6*(D/Nhat)*t_save
 >>> # constant prefactor determined empirically...
->>> # otherwise, ~6*Dhat*np.sqrt(t_R * t_save)/N, where t_R is the terminal
->>> # relaxation time of the polymer, t_R = b**2 * N**2 / Dhat
+>>> # no, using the value of 6*(Dhat/N)*t_R doesn't work...
 >>> plt.plot(t_save, 1.9544100*b*np.sqrt(D)*np.sqrt(t_save))
 
 where cutting off the number of modes corresponds to ensuring that the rouse
@@ -80,13 +79,18 @@ def recommended_dt(N, L, b, D):
 
     Currently set to :math:`\frac{1}{10}\frac{b^2}{6D}`.
 
-    See the :func:`jit_rouse` docstring for source of this time scale.
+    See the :func:`jit_srk1` docstring for source of this time scale.
     """
     Nhat = L/b
     L0 = L/(N-1)
     Dhat = D*N/Nhat
     bhat = np.sqrt(L0*b)
     return (1/10)*bhat**2/(6*Dhat)
+
+
+def terminal_relaxation(N, L, b, D):
+    Nhat = L/b
+    return b**2 * Nhat**2 / D
 
 
 def measured_D_to_rouse(Dapp, d, N, bhat=None, regime='rouse'):
