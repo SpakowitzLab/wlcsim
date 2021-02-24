@@ -337,6 +337,11 @@
 ! DEFAULTS COMMENT: ! baseline twist density 0.05
 ! TYPE: REAL(DP)
 
+#define WLC_P__NUCLEOSOME_WRAPPING 147
+! VARIABLE COMMENT: ! How many basepairs wrap a nucleosome (this then defines the entry-exit geometry of the nucleosome)
+! DEFAULTS COMMENT: ! 147 bp wrapping
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Length variables
