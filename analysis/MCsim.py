@@ -56,6 +56,7 @@ dat.trials['trial2'].trajectories[2].snapshots[9].end_to_end # get end-to-end di
 ----
 TODO
 ----
+fix interpolation code, it works reasonably but still not perfect for fractional basepairs
 micro C analysis? 
 more analysis functions for interaction geoemetry
 """
@@ -304,7 +305,7 @@ class Trajectory:
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base)
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
-                    + str(self.time_max-self.time_min) + " " + path)
+                    + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path)
                     
     def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" visualizing the excluded volume of the chain. 
@@ -351,8 +352,8 @@ class Chain:
         `r` : computational bead positions for the specific chain
         `u` : computational bead U orientation vectors for the specific chain
         `v` : computational bead V orientation vectors for the specific chain
-        `basepairs` : discreitzation (in bp) of each computational bead for the specific chain
-        `wrap` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
+        `discretization` : discreitzation (in bp) of each computational bead for the specific chain
+        `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in the specific chain
         `end_to_end` : end-to-end distance of the specific chain
         `n_bps` : number of DNA basepairs throughout the specific chain (including DNA wrapped around nucleosomes)
@@ -361,13 +362,13 @@ class Chain:
         `n_nucs` : number of nucleosomes on the specific chain
         `pair_dist` : nucleosome pairwise distances, i.e. all combinatorics of n choose k, for the specific chain
         `reduced_pair_dist` : reduced nucleosome pairwise distances, i.e. n & n+1, n & n+2, etc. 
-        `interp` : location of each interpolated phosphate-sugar-phosphate basepair throughout the specific chain
-        `break_length_s1`, `break_length_b`, `break_length_2` : RICC-seq pairwise fragment lengths using `interp`
-        `break_location_s1`, `break_location_b`, `break_location_s2` : RICC-seq pairwise break locations using `interp`
-        `break_distance_s1`, `break_distance_b`, `break_distance_s2` : RICC-seq pairwise break distances using `interp`
+        `interpolated` : location of each interpolated phosphate-sugar-phosphate basepair throughout the specific chain
+        `break_length_s1`, `break_length_b`, `break_length_2` : RICC-seq pairwise fragment lengths using `interpolated`
+        `break_location_s1`, `break_location_b`, `break_location_s2` : RICC-seq pairwise break locations using `interpolated`
+        `break_likelihood_s1`, `break_likelihood_b`, `break_likelihood_s2` : RICC-seq pairwise break likelihood using `interpolated`
 
     """
-    def __init__(self,number,time,channel,r,u,v,basepairs,wrap):
+    def __init__(self,number,time,channel,r,u,v,discretization,wrapped):
         """
         `Chain` constructor to read in chain (bead positions and orientations) data from a snapshot. 
 
@@ -389,27 +390,27 @@ class Chain:
         self.r = r
         self.u = u
         self.v = v
-        self.basepairs = basepairs
-        self.wrap = wrap
+        self.discretization = discretization
+        self.wrapped = wrapped
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>0]))
+        self.n_bps = int(np.sum(self.discretization)+np.sum(self.wrapped))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
         # pairwise nucleosomes
-        self.n_nucs = np.sum(self.wrap>1)
+        self.n_nucs = np.sum(self.wrapped>1)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
-        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
+        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist) 
         # interpolation/ricc-seq stuff
-        self.interp = None
-        self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
-        self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
-        self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
+        self.interpolated = None
+        self.break_length_s1 = None; self.break_location_s1 = None; self.break_likelihood_s1 = None
+        self.break_length_b = None; self.break_location_b = None;  self.break_likelihood_b = None
+        self.break_length_s2 = None; self.break_location_s2 = None;  self.break_likelihood_s2 = None
 
     # determine center of beads from regular polygons
     def centerBeads(self,nside=16,type='regular'):
@@ -433,7 +434,7 @@ class Chain:
             return 0
         self.center_r = np.zeros((self.n_beads-1)*3).reshape([self.n_beads-1,3])
         for i in range(self.n_beads-1):
-            if (self.wrap[i]>0): # nucleosome
+            if (self.wrapped[i]>0): # nucleosome
                 # make rotation matrix
                 uin = np.asarray(self.u[i,:]); vin = np.asarray(self.v[i,:]); cross = np.cross(uin, vin)
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
@@ -458,9 +459,8 @@ class Chain:
             if (self.center_r == None):
                 self.centerBeads()    
         except:
-            print('warning: this has already been run')
-            return
-        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>0],dtype='int')
+            pass # centerbeads has already been run
+        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrapped>0],dtype='int')
         self.pair_dist = scipy.spatial.distance.pdist(self.center_r[nucLocs,:])
 
     # determine the reduced pairwise distances between nucleosomes
@@ -477,8 +477,7 @@ class Chain:
             if (self.pair_dist == None):
                 self.pairwiseNucleosomeDistance()
         except:
-            print('warning: this has already been run')
-            return
+            pass # pairwiseNucleosomeDistance has already been run
         self.reduced_pair_dist = np.zeros((self.n_nucs-1)).reshape([self.n_nucs-1])
         # sum up distances
         iterTemp = 0
@@ -502,10 +501,9 @@ class Chain:
             if (self.pair_dist == None):
                 self.pairwiseNucleosomeDistance()
         except:
-            # do nothing
-            pass
+            pass # pairwiseNucleosomeDistance has already been run
         # check orientation if within cutoff
-        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrap>0],dtype='int')
+        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrapped>0],dtype='int')
         ind = 0
         for i in range(len(nucLocs)):
             for j in range(i+1,len(nucLocs)):
@@ -562,23 +560,23 @@ class Chain:
         
         Generates
         ---------
-        interp : location of each phosphate-sugar-phosphate basepair throughout the chain
+        interpolated : location of each phosphate-sugar-phosphate basepair throughout the chain
         """
         # rotate DNA strand into material frame
-        self.interp = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
+        self.interpolated = np.zeros(self.n_bps*3*3).reshape([self.n_bps,3,3])
         row = np.zeros(3*3).reshape([3,3])
         indR = 0; leftOver = 0; summedLeftOver = 0
         chain = []; chainNum = 1
         for i in range(self.n_beads):
-            if self.basepairs[i] != 0:
+            if self.discretization[i] != 0:
                 # NOT ACTUALLY DETERMINING PROPER TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TWIST
-                #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.basepairs[i] % 10.5)
+                #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.discretization[i] % 10.5)
                 #v = omega/default_omega*length_per_bp
-                Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.basepairs[i], self.wrap[i])
+                Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrap[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
-                if (self.wrap[i] > 0): # nucleosome
-                    for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrap[i])+summedLeftOver, int(np.floor(self.wrap[i])))):
+                if (self.wrapped[i] > 0): # nucleosome
+                    for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrapped[i])+summedLeftOver, int(np.floor(self.wrapped[i])))):
                         strand1, base, strand2 = DNAhelix(j,v=0)
                         Rin = np.asarray(nucleosome_tran[len(nucleosome_tran)-1-n_wrap,:])
                         # strand 1 backbone
@@ -588,11 +586,11 @@ class Chain:
                         # base
                         row[1,:] = self.r[i,:] + np.matmul(matIn,Rin+base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1                    
                         chain.extend([str(chainNum)]*3)
                     # add left over basepairs
-                    leftOver = self.wrap[i] - np.floor(self.wrap[i])
+                    leftOver = self.wrapped[i] - np.floor(self.wrapped[i])
                     # take care of the leftover basepairs
                     if (summedLeftOver == 0 and leftOver > 0):
                         strand1, base, strand2 = DNAhelix(j + 1)
@@ -603,13 +601,13 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                     # cumulative sum of left over basepairs
                     summedLeftOver = (summedLeftOver + leftOver) % 1
                     # add the exiting linker from the nucleosome
-                    for j in np.linspace(leftOver, np.floor(self.basepairs[i])+leftOver-1, int(np.floor(self.basepairs[i]))):
+                    for j in np.linspace(leftOver, np.floor(self.discretization[i])+leftOver-1, int(np.floor(self.discretization[i]))):
                         strand1, base, strand2 = DNAhelix(j)
                         # strand 1 backbone
                         row[0,:] = Rout + np.matmul(mat, strand1)
@@ -618,11 +616,11 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                     # add left over basepairs
-                    leftOver  = self.basepairs[i] - np.floor(self.basepairs[i])
+                    leftOver  = self.discretization[i] - np.floor(self.discretization[i])
                     # take care of the leftover basepairs
                     if (summedLeftOver == 0 and leftOver > 0):
                         strand1, base, strand2 = DNAhelix(j + 1)
@@ -633,13 +631,13 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                     # cumulative sum of left over basepairs
                     summedLeftOver = (summedLeftOver + leftOver) % 1
                 else: # dna bead
-                    for j in np.linspace(leftOver, np.floor(self.basepairs[i])+leftOver-1, int(np.floor(self.basepairs[i]))):
+                    for j in np.linspace(leftOver, np.floor(self.discretization[i])+leftOver-1, int(np.floor(self.discretization[i]))):
                         strand1, base, strand2 = DNAhelix(j)
                         # strand 1 backbone
                         row[0,:] = Rout + np.matmul(mat, strand1)
@@ -648,11 +646,11 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                     # add left over basepairs
-                    leftOver = self.basepairs[i] - np.floor(self.basepairs[i])
+                    leftOver = self.discretization[i] - np.floor(self.discretization[i])
                     # take care of the leftover basepairs
                     if (summedLeftOver == 0 and leftOver > 0):
                         strand1, base, strand2 = DNAhelix(j + 1)
@@ -663,7 +661,7 @@ class Chain:
                         # base
                         row[1,:] = Rout + np.matmul(mat, base)
                         # save atoms
-                        self.interp[indR,:,:] = row
+                        self.interpolated[indR,:,:] = row
                         indR = indR + 1
                         chain.extend([str(chainNum)]*3)
                     # cumulative sum of left over basepairs
@@ -673,13 +671,13 @@ class Chain:
         return chain
 
     # distance constraint ricc-seq
-    def RICCbreak(self,cutoff=3.5,noise=50.0): # units in nm or bp
+    def RICCbreak(self,cutoff=4.03,noise=50.0): # units in nm or bp
         """Determine the RICC-seq break patterns from the interpolated fine-graied polymer structure.
         
         Parameters
         ----------
         cutoff : float, optional
-            default : 3.5 nm
+            default : 4.03 nm
             RICC-seq radiolytic cleavage radius under which there will be simulated breaks
         noise : float, optional
             default : 50.0 bp
@@ -687,21 +685,15 @@ class Chain:
 
         Generates
         ---------
-        break_length_s1, break_length_b, break_length_2 : RICC-seq pairwise fragment lengths using `interp`
-        break_location_s1, break_location_b, break_location_s2 : RICC-seq pairwise break locations using `interp`
-        break_distance_s1, break_distance_b, break_distance_s2 : RICC-seq pairwise break distances using `interp`
+        break_length_s1, break_length_b, break_length_2 : RICC-seq pairwise fragment lengths using `interpolated`
+        break_location_s1, break_location_b, break_location_s2 : RICC-seq pairwise break locations using `interpolated`
+        break_likelihood_s1, break_likelihood_b, break_likelihood_s2 : RICC-seq pairwise break likelihood using `interpolated`
         """
         try :
-            if (self.interp == None):
+            if (self.interpolated == None):
                 self.interpolate()
         except:
-            pass
-        try :
-            if (self.break_length_s1 == None):
-                pass
-        except:
-            print('warning: this has already been run')
-            return
+            pass # interpolate already run
         # figure out combinatorial correlated cleaves
         nPair = int(scipy.special.comb(self.n_bps,2))
         indPair = np.zeros(nPair*2).reshape([nPair,2])
@@ -712,21 +704,23 @@ class Chain:
             indPair[ind:ind+extension,1] = np.linspace(i+1,i+extension, extension, dtype='int')
             ind += extension
         # find 3d distance on both strands and base
-        pairS1 = scipy.spatial.distance.pdist(self.interp[:,0,:])
-        pairB = scipy.spatial.distance.pdist(self.interp[:,1,:])
-        pairS2 = scipy.spatial.distance.pdist(self.interp[:,2,:])
-        cutIndS1 = pairS1 <= cutoff; cutIndB = pairB <= cutoff; cutIndS2 = pairS2 <= cutoff
-        indBreakS1 = np.linspace(0,nPair-1,nPair,dtype='int')[cutIndS1]
-        indBreakB = np.linspace(0,nPair-1,nPair,dtype='int')[cutIndB]
-        indBreakS2 = np.linspace(0,nPair-1,nPair,dtype='int')[cutIndS2]
+        pairS1 = scipy.spatial.distance.pdist(self.interpolated[:,0,:])
+        pairB = scipy.spatial.distance.pdist(self.interpolated[:,1,:])
+        pairS2 = scipy.spatial.distance.pdist(self.interpolated[:,2,:])
+        # define exponential 
+        weight = lambda x: np.exp(-x/cutoff)
+        pairS1 = weight(pairS1); pairB = weight(pairB); pairS2 = weight(pairS2)
+        indBreakS1 = np.linspace(0,nPair-1,nPair,dtype='int')
+        indBreakB = np.linspace(0,nPair-1,nPair,dtype='int')
+        indBreakS2 = np.linspace(0,nPair-1,nPair,dtype='int')
         fragBreakS1 = indPair[indBreakS1,1]-indPair[indBreakS1,0]
         fragBreakB = indPair[indBreakB,1]-indPair[indBreakB,0]
         fragBreakS2 = indPair[indBreakS2,1]-indPair[indBreakS2,0]
         noiseIndS1 = fragBreakS1 >= noise; noiseIndB = fragBreakB >= noise; noiseIndS2 = fragBreakS2 >= noise
-        self.break_length_s1 = fragBreakS1[noiseIndS1]; self.break_location_s1 = indPair[indBreakS1][noiseIndS1]; self.break_distance_s1 = pairS1[cutIndS1][noiseIndS1]
-        self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_distance_b = pairB[cutIndB][noiseIndB]
-        self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_distance_s2 = pairS2[cutIndS2][noiseIndS2]
-    
+        self.break_length_s1 = fragBreakS1[noiseIndS1]; self.break_location_s1 = indPair[indBreakS1][noiseIndS1]; self.break_likelihood_s1 = pairS1[noiseIndS1]
+        self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_likelihood_b = pairB[noiseIndB]
+        self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_likelihood_s2 = pairS2[noiseIndS2]
+
     def saveCoarseGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear'):
         """Save the coarse-grained wlcsim output in a PDB format.
         
@@ -739,11 +733,14 @@ class Chain:
             default : 'linear'
             topology of polymer structure (for the risca lab, it will almost always be 'linear')
         """
+        # make intermediary directory if needed
+        os.makedirs(path, exist_ok=True)
+        # save structure
         chain = []; connect =  []
         chainNum = 1
         for i in range(self.n_beads):
             chain.append(chainNum) 
-            if self.basepairs[i]==0:
+            if self.discretization[i]==0:
                 chainNum += 1
             else:
                 connect.append((i,i+1))
@@ -766,39 +763,38 @@ class Chain:
             default : 'linear'
             topology of polymer structure (for the risca lab, it will almost always be 'linear')
         """
+        # make intermediary directory if needed
+        os.makedirs(path, exist_ok=True)
+        # interpolate to make fine-grained structure
         chain = self.interpolate()
         if (base != 3):
-            dna = mkpdb(np.asarray(self.interp[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         else:
-            dna = mkpdb(np.asarray(self.interp).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
             filename = '%sfine%0.3dv%sf%s.pdb' %(path,self.time,self.channel,self.number)
         else:
             filename = '%sfine%0.3dv%s.pdb' %(path,self.time,self.channel)
         save_pdb(filename,dna)
     
-    def saveRICCbreak(self,path=default_dir+'/analysis/data'):
-        """Save the RICC-seq break patterns (strand1/strand2/base lengths and locatons) to pickle files.
+    def saveRICCbreak(self, path=default_dir+'/analysis/data/riccBreak.txt'):
+        """Save the RICC-seq break patterns (strand1/strand2/ lengths and likelihoods) to a text file.
         
         Parameters
         ----------
         path : string, optional
             default : "wlcsim/analysis/data/"
-            path to where you want to store the RICC-seq break pattern pickle files
+            path to where you want to store the RICC-seq break pattern file
         """
-        self.RICCbreak()
-        tempDict = {'strand1': [self.break_length_s1, self.break_location_s1],
-                    'base': [self.break_length_b, self.break_location_b],
-                    'strand2': [self.break_length_s2, self.break_location_s2]}
-        if self.number > 0:
-            filename = '%s/riccBreak%0.3dv%sf%s.pkl' %(path,self.time,self.channel,self.number)
-        else:
-            filename = '%s/riccBreak%0.3dv%s.pkl' %(path,self.time,self.channel)
-        f = open(filename,"wb")
-        pickle.dump(tempDict,f)
-        f.close()
+        # make intermediary directory if needed
+        os.makedirs(path, exist_ok=True)
+        # create and save histogram
+        breaklength = np.transpose(np.hstack([self.break_length_s1, self.break_length_s2]))
+        breaklike = np.transpose(np.hstack([self.break_likelihood_s1, self.break_likelihood_s2]))
+        breakhist = np.histogram(breaklength[breaklength<=500],bins=np.arange(50,502),weights=breaklike[breaklength<=500])[0]
+        np.savetxt(path, breakhist, fmt='%i')
     
-    def RICCmatrix(self,blur=20,removeLow=True,init=0.5):
+    def RICCmatrix(self, blur=0, init=0.0):
         """Generate the fragment-break frequency matrix from the interpolated chain.
         
         Parameters
@@ -823,14 +819,13 @@ class Chain:
         for iterN in range(len(self.break_location_s1)):
             j = int(self.break_location_s1[iterN,0])
             k = int(self.break_location_s1[iterN,1])
-            mat[j,k] += 1
+            mat[j,k] += self.break_likelihood_s1[iterN]
         for iterN in range(len(self.break_location_s2)):
             j = int(self.break_location_s2[iterN,0])
             k = int(self.break_location_s2[iterN,1])
-            mat[j,k] += 1
-        mat = gaussian_filter(mat, sigma=blur)
-        if (removeLow):
-            mat[mat < 1] = np.nan
+            mat[j,k] += self.break_likelihood_s2[iterN]
+        if (blur > 0):
+            mat = gaussian_filter(mat, sigma=blur)
         return mat
     
     def saveRICCmat(self,path=default_dir+'/analysis/data'):
@@ -842,7 +837,10 @@ class Chain:
             default : "wlcsim/analysis/data/"
             path to where you want to store the RICC-seq fragment break frequency matrix file
         """
-        mat = self.RICCmatrix(blur=0,removeLow=False,init=0)
+        # make intermediary directory if needed
+        os.makedirs(path, exist_ok=True)
+        # create and save matrix
+        mat = self.RICCmatrix()
         if self.number > 0:
             filename = '%s/riccMat%0.3dv%sf%s.txt' %(path,self.time,self.channel,self.number)
         else:
@@ -862,8 +860,8 @@ class Snapshot(Chain):
         `r` : computational bead positions
         `u` : computational bead U orientation vectors
         `v` : computational bead V orientation vectors
-        `basepairs` : discreitzation (in bp) of each computational bead
-        `wrap` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
+        `discretization` : discreitzation (in bp) of each computational bead
+        `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in polymer
         `n_bps` : number of DNA basepairs throughout polymer (including DNA wrapped around nucleosomes)
         `energies` : wlcsim defined energetics of the polymer chain (in kT)
@@ -901,25 +899,26 @@ class Snapshot(Chain):
         # load discretization data
         try: 
             disc = np.loadtxt('%sd%sv%s' %(path_to_data,self.time,self.channel), dtype='float')
-            self.wrap = np.asarray(disc[0],dtype='int'); self.basepairs = disc[1]
+            self.wrapped = np.asarray(disc[0],dtype='int'); self.discretization = disc[1]
         except:
-            self.basepairs = np.array([10.5]*len(self.r))
-            self.wrap = np.array([1]*len(self.r))
+            self.discretization = np.array([10.5]*len(self.r))
+            self.wrapped = np.array([1]*len(self.r))
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])
-        self.n_bps = int(np.sum(self.basepairs[self.basepairs!=0])+np.sum(self.wrap[self.wrap>0]))
+        self.n_bps = int(np.sum(self.discretization)+np.sum(self.wrapped))
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
         # pairwise nucleosomes
-        self.n_nucs = np.sum(self.wrap>0)
+        self.n_nucs = np.sum(self.wrapped>0)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None
         self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
-        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)        # interpolation/ricc-seq stuff
-        self.interp = None
+        self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)
+        # interpolation/ricc-seq stuff
+        self.interpolated = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
@@ -935,14 +934,14 @@ class Snapshot(Chain):
                         # get time data
                         energies = temp
                         break
-        cols = cols[4:]
+        cols = cols[2:] # cols = cols[4:]
         try:
-            energies = energies[2:]
+            energies = energies[0:] # energies = energies[2:]
         except:
             energies = [np.nan]*len(cols)
         self.energies = pd.DataFrame([energies],columns=cols)
         # load chains in dictionary
-        self.n_chains = np.sum(self.basepairs==0)
+        self.n_chains = np.sum(self.discretization==0)
         self.number = 0
         if self.n_chains > 1:
             self.chains = {}
@@ -951,6 +950,6 @@ class Snapshot(Chain):
             for i in range(self.n_chains):
                 self.chains[i] = Chain(i, self.time, self.channel,
                                 self.r[ind:ind+nbeads,:], self.u[ind:ind+nbeads,:], self.v[ind:ind+nbeads,:],
-                                self.basepairs[ind:ind+nbeads], self.wrap[ind:ind+nbeads])
+                                self.discretization[ind:ind+nbeads], self.wrapped[ind:ind+nbeads])
                 ind += nbeads
 
