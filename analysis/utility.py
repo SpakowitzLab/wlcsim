@@ -43,11 +43,22 @@ def rotate_bead(Uin, Vin, Rin, link_bp, wrap_bp):
         list of the resultant vectors from rotating and translating Uin, Vin, and Rin
     """
     mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
-    Rout = Rin + np.matmul(mat, nucleosome_tran[max_bp_wrapped - wrap_bp])
-    linkRot = np.matrix([[np.cos(default_omega*link_bp), -np.sin(default_omega*link_bp), 0.],
+    #interpolate for wrap_bp
+    ind_down = int(np.floor(wrap_bp))
+    ind_up = int(np.ceil(wrap_bp))
+    if (ind_up == 0): 
+        ratio = 0
+    else:
+        ratio = wrap_bp/ind_up
+    offratio = 1 - ratio
+    inter_tran = ratio*nucleosome_tran[max_bp_wrapped - ind_up] + offratio*nucleosome_tran[max_bp_wrapped - ind_down] 
+    inter_rot = ratio*nucleosome_rot[(3*(max_bp_wrapped - ind_up)):(3*(max_bp_wrapped - ind_up) + 3),:] \
+                    + offratio*nucleosome_rot[(3*(max_bp_wrapped - ind_down)):(3*(max_bp_wrapped - ind_down) + 3),:]
+    Rout = Rin + np.matmul(mat, inter_tran)
+    link_rot = np.matrix([[np.cos(default_omega*link_bp), -np.sin(default_omega*link_bp), 0.],
                         [np.sin(default_omega*link_bp), np.cos(default_omega*link_bp), 0.],
                         [0., 0., 1.]])
-    mat = np.matmul(np.matmul(mat, nucleosome_rot[(3*(max_bp_wrapped - wrap_bp)):(3*(max_bp_wrapped - wrap_bp) + 3),:]), linkRot)
+    mat = np.matmul(np.matmul(mat, inter_rot), link_rot)
     Uout = mat[: ,2]/np.linalg.norm(mat[:, 2])
     Vout = mat[:, 0]/np.linalg.norm(mat[:, 0])
     return np.squeeze(np.asarray(Uout)), np.squeeze(np.asarray(Vout)), np.squeeze(np.asarray(Rout))

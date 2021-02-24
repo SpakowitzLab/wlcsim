@@ -569,7 +569,7 @@ class Chain:
         chain = []; chainNum = 1
         for i in range(self.n_beads):
             if self.discretization[i] != 0:
-                # NOT ACTUALLY DETERMINING PROPER TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TWIST
+                # NOT PROPERLY INTERPOLATING TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TO INTERPOLATE TWIST/SUPERCOILING
                 #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.discretization[i] % 10.5)
                 #v = omega/default_omega*length_per_bp
                 Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrapped[i])
@@ -898,11 +898,11 @@ class Snapshot(Chain):
             self.v = None
         # load discretization data
         try: 
-            disc = np.loadtxt('%sd%sv%s' %(path_to_data,self.time,self.channel), dtype='float')
-            self.wrapped = np.asarray(disc[0],dtype='int'); self.discretization = disc[1]
+            disc = np.loadtxt('%sd%sv%s' %(path_to_data,self.time,self.channel))
+            self.discretization = disc[:,0]; self.wrapped = disc[:,1]
         except:
-            self.discretization = np.array([10.5]*len(self.r))
-            self.wrapped = np.array([1]*len(self.r))
+            self.discretization = np.array([10.5]*len(self.r)) # default to 10.5 discretization
+            self.wrapped = np.array([1]*len(self.r)) # default to all DNA
         # assign constants from postion data
         self.n_beads = len(self.r)
         self.end_to_end = np.linalg.norm(self.r[-1,:]-self.r[0,:])

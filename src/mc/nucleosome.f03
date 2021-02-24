@@ -340,14 +340,13 @@ contains
       real(dp), intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
       real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
       real(dp) discretization, num_link_beads
-      real(dp), dimension(2, 33) :: LL_dist
+      !real(dp), dimension(2, 33) :: LL_dist
+      real(dp), allocatable, dimension(:, :):: LL_dist  ! linker length distribution to sample from
       type(random_stat) rand_stat
       real(dp) cumlinker, linker
       real(dp) urand(3)  ! random vector
-      real(dp) octasome
       integer iter, i, j, k
-
-      octasome = 147.0_dp
+      integer nlines, io
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
          if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
@@ -367,7 +366,7 @@ contains
                      else
                         urand = 0
                      endif
-                     wlc_nucleosomeWrap(iter) = octasome + urand(1)
+                     wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING + urand(1)
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
                      if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
@@ -386,59 +385,77 @@ contains
                      urand = 0
                   endif
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = octasome + urand(1)
+                  wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING + urand(1)
                   iter = iter + 1
                   wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(i)) = 0
                enddo
-            else if (WLC_P__LINKER_TYPE == 'voong') then 
-               ! read in the LL distribution
-               open (UNIT = 5, FILE = "input/Voong_LL_23to55.txt", STATUS = "OLD")
-               do i = 1, 33
-                  read(5, *) LL_dist(:, i)
+            else ! any specific LL distribution file
+               ! read in and allocate the LL distribution
+               nlines = 0 
+               open (1, FILE = WLC_P__LINKER_TYPE, STATUS = "OLD")
+               do
+                  read(1,*,iostat=io)
+                  if (io/=0) exit
+                  nlines = nlines + 1
                enddo
-               close (5)
+               close (1)
+               allocate (LL_dist(2, nlines))
+               ! now set LL distribuion
+               open (1, FILE = WLC_P__LINKER_TYPE, STATUS = "OLD")
+               do i = 1, nlines
+                  read(1, *) LL_dist(:, i)
+               enddo
+               close (1)
                do k = 1, WLC_P__NP
-                  linker = 0
-                  do while (linker <= 23 .or. linker >= 55) 
-                     ! initialize
-                     cumlinker = 0
-                     iter = first_bead_of_chain(k)
-                     ! set first linker later
-                     iter = iter + num_link_beads
-                     ! set middle linkers 
-                     do i = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
-                        call random_number(urand)
-                        do j = 1, 33
-                           if (LL_dist(2, j) >= urand(1)) then 
-                              exit
-                           endif
-                        enddo
-                        linker =  LL_dist(1, j)
-                        discretization = linker/num_link_beads
-                        print*, linker, discretization, num_link_beads
-                        wlc_nucleosomeWrap(iter) = 147
-                        wlc_basepairs(iter) = discretization
-                        iter = iter + 1
-                        if (iter + num_link_beads - 2 <= last_bead_of_chain(k) - num_link_beads) then
-                           wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
-                           wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
-                           iter = iter + num_link_beads - 1
+                  ! initialize
+                  cumlinker = 0
+                  iter = first_bead_of_chain(k)
+                  ! set first linker later
+                  iter = iter + num_link_beads
+                  ! set middle linkers 
+                  do i = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
+                     call random_number(urand, rand_stat)
+                     do j = 1, nlines
+                        if (LL_dist(2, j) >= urand(1)) then 
+                           exit
                         endif
-                        cumlinker = cumlinker + linker
                      enddo
-                     ! set last (and first) linker to conserve contour length
-                     linker = (WLC_P__LL*(1 + WLC_P__NUM_NUCLEOSOMES) - cumlinker)/2
-                     print*, 'attempted to sample from linker distribution for chain'
+                     linker =  LL_dist(1, j)
+                     discretization = linker/num_link_beads
+                     wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING
+                     wlc_basepairs(iter) = discretization
+                     iter = iter + 1
+                     if (iter + num_link_beads - 2 <= last_bead_of_chain(k) - num_link_beads) then
+                        wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
+                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
+                        iter = iter + num_link_beads - 1
+                     endif
+                     cumlinker = cumlinker + linker
                   enddo
-                  discretization = linker/num_link_beads
-                  print*, linker, discretization, num_link_beads
+                  !linker = (WLC_P__LL*(1 + WLC_P__NUM_NUCLEOSOMES) - cumlinker)/2
                   ! first linker
+                  call random_number(urand, rand_stat)
+                  do j = 1, nlines
+                     if (LL_dist(2, j) >= urand(1)) then
+                         exit
+                     endif
+                  enddo
+                  linker =  LL_dist(1, j)
+                  discretization = linker/num_link_beads
                   wlc_nucleosomeWrap(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = 0
                   wlc_basepairs(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = discretization
                   ! last linker
+                  call random_number(urand, rand_stat)
+                  do j = 1, nlines
+                     if (LL_dist(2, j) >= urand(1)) then
+                         exit
+                     endif
+                  enddo
+                  linker =  LL_dist(1, j)
+                  discretization = linker/num_link_beads
                   wlc_basepairs(iter) = discretization
                   wlc_nucleosomeWrap(iter) = 147
                   iter = iter + 1
@@ -447,9 +464,6 @@ contains
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(k)) = 0
                enddo
-            else
-               print *, 'not recognized linker length type'
-               stop
             endif
             ! testing sterics here !
             if (WLC_P__GJK_STERICS) then
@@ -475,7 +489,7 @@ contains
             endif
          endif
       else
-         wlc_nucleosomeWrap = octasome
+         wlc_nucleosomeWrap = WLC_P__NUCLEOSOME_WRAPPING
          wlc_basepairs = WLC_P__LL
       endif
 

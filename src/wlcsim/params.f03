@@ -1349,9 +1349,10 @@ contains
          character(len=*), intent(in) :: stat
          fullName = trim(fileName)//trim(wlc_repSuffix)
          open (unit=outFileUnit, file=fullName, status=stat)
-         write (outFileUnit, *) wlc_nucleosomeWrap
+         !write (outFileUnit, *) wlc_nucleosomeWrap
          do ii = 1, WLC_P__NT
-            call print_11char_float(outFileUnit, wlc_basepairs(ii))
+            !call print_11char_vec(outFileUnit, wlc_basepairs(ii), .FALSE.)
+            write (outFileUnit, "(3f10.5)") wlc_basepairs(ii), wlc_nucleosomeWrap(ii)
          enddo
          close (outFileUnit)
       end subroutine

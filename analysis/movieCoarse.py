@@ -37,7 +37,7 @@ for ind in file_inds:
     u = np.loadtxt('/%su%sv%s' %(input_folder,ind,channel[ind]))
     # load discretization data
     disc = np.loadtxt('/%sd%sv%s' %(input_folder,ind,channel[ind]))
-    wrap = disc[0]; bps = disc[1]
+    bps = disc[:,0];  wrap = disc[:,1] 
     if (hull == 'True'):
         for i in range(len(r)):
             if bps[i] != 0:
