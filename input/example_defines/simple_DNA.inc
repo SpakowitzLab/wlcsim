@@ -724,7 +724,7 @@
 ! DEFAULTS COMMENT: ! super-reptation <default 57>
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+#define WLC_P__MOVESPERSTEP_NUCLEOSOME_SLIDE 60
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
@@ -928,7 +928,7 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+#define WLC_P__MOVEON_NUCLEOSOME_SLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
 ! TYPE: INTEGER
@@ -999,7 +999,7 @@
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
 
-#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+#define WLC_P__PDESIRE_NUCLEOSOME_SLIDE 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
@@ -1359,7 +1359,7 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+#define WLC_P__NADAPT_NUCLEOSOME_SLIDE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
