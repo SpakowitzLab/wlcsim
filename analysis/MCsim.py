@@ -305,7 +305,7 @@ class Trajectory:
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base)
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
-                    + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path)
+                    + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path + " " + str(base))
                     
     def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" visualizing the excluded volume of the chain. 
@@ -572,7 +572,7 @@ class Chain:
                 # NOT ACTUALLY DETERMINING PROPER TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TWIST
                 #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.discretization[i] % 10.5)
                 #v = omega/default_omega*length_per_bp
-                Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrap[i])
+                Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrapped[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
                 if (self.wrapped[i] > 0): # nucleosome

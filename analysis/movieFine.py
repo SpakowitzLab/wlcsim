@@ -6,6 +6,7 @@ from sys import argv
 numFrames = int(argv[1])
 channel = int(argv[2])
 pathPDB = argv[3]
+base = int(argv[4])
 
 for idx in range(0,numFrames): cmd.load(pathPDB+"fine%03dv%i.pdb"%(idx, channel),"snap")
 cmd.intra_fit("snap")
@@ -14,5 +15,8 @@ cmd.show('spheres', 'resn DNA')
 #cmd.show('lines', 'resn DNA')
 cmd.hide('sticks', 'resn DNA')
 cmd.spectrum('count', 'rainbow', 'resn DNA')
-cmd.set("sphere_scale", 0.15)
-cmd.mplay()
+if base == 1:
+    cmd.set("sphere_scale", 0.5)
+else:
+    cmd.set("sphere_scale", 0.15)
+#cmd.mplay()
