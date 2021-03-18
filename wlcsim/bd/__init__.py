@@ -4,7 +4,7 @@ Modular Brownian Dynamics simulations of various types of polymers.
 A Brownian dynamics simulation requires specification of three things:
 
     1. **The system state**. For us, this is :math:`\vec{r}_j(t_i) \in
-       \mathbb{r}^{N\times 3}`, the positions of the :math:`N` discrete beads
+       \mathbb{R}^{N\times 3}`, the positions of the :math:`N` discrete beads
        representing the polymer at each time :math:`t_i`.
     2. **The forces**. Functions taking as input the system state and returning
        as output the forces on each bead. The main forces in any polymer

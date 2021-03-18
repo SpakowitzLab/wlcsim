@@ -3,8 +3,6 @@ BD of two homologously-linked linear Rouse polymers.
 
 See `homolog_points_to_loops_list` for a description of how the homologous
 network structure is handled.
-
-A specialized
 """
 from ..plot import PolymerViewer
 from .rouse import recommended_dt
@@ -156,7 +154,7 @@ def split_homologs_X(X, N, loop_list):
     return X1, X2
 
 def split_homolog_x(x0, N, loop_list):
-    """Make an (N_tot,3) array from rouse_homologs into (2,N,3)."""
+    """Make an (N_tot,3) array from `rouse_homologs` into (2,N,3)."""
     N_tot, _ = x0.shape
     x1 = x0[:N,:].copy()
     x2 = np.zeros((N,3))

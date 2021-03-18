@@ -92,13 +92,11 @@ simulation.
     can be thought of as one large "effective" bead with a diffusivity
     :math:`N` times smaller than the individual beads, and will again exhibit
     regular diffusion (:math:`t^1` scaling).
-
     It is worthwhile to note that the case of the continuous Rouse polymer,
     there is no shortest time scale (because of its fractal nature, wherein at
     each time point, the Rouse chain's spatial configuration traces out a
     Brownian walk). In this case, the :math:`t^{1/2}` behavior simply stretches
     out to arbitrarily short time scales.
-
     For a more detailed discussion of the scaling behavior of Rouse MSD's, see
     the `measured_D_to_rouse` function.
 
