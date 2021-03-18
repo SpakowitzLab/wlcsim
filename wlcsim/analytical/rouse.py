@@ -9,21 +9,23 @@ In one, N is the number of Kuhn lengths, and in the other, N is the number of
 beads, each of which can represent an arbitrary number of Kuhn lengths.
 """
 from ..utils.math import spherical_jn_zeros
-from bruno_util.mittag_leffler import ml as mittag_leffler
 
 import numpy as np
 import scipy
 import scipy.special
 import spycial
-from scipy.signal import savgol_filter, savgol_coeffs
 from numba import jit
 import mpmath
 
-from functools import lru_cache
-from pathlib import Path
 import os
 
 _default_modes = 10000
+
+
+def terminal_relaxation(N, L, b, D):
+    Nhat = L/b
+    return b**2 * Nhat**2 / D
+
 
 @jit
 def rouse_mode(p, n, N=1):
@@ -38,17 +40,20 @@ def rouse_mode(p, n, N=1):
     phi[p == 0] = 1
     return phi
 
+
 @jit(nopython=True)
 def rouse_mode_coef(p, b, N, kbT=1):
     """k_p: Weber Phys Rev E 2010, after Eq. 18."""
     # alternate: k*pi**2/N * p**2, i.e. k = 3kbT/b**2
     return 3*np.pi**2*kbT/(N*b**2)*p**2
 
+
 @jit(nopython=True)
-def kp_over_kbt(p : float, b : float, N : float):
+def kp_over_kbt(p: float, b: float, N: float):
     """k_p/(k_B T) : "non-dimensionalized" k_p is all that's needed for most
     formulas, e.g. MSD."""
     return (3*np.pi*np.pi)/(N*b*b) * p*p
+
 
 @jit(nopython=True)
 def linear_mid_msd(t, b, N, D, num_modes=_default_modes):
@@ -64,13 +69,18 @@ def linear_mid_msd(t, b, N, D, num_modes=_default_modes):
     # return rouse_corr + 6*kbT/xi/N*t
     return 12*rouse_corr + 6*D*t/N
 
+
 def rouse_large_cvv_g(t, delta, deltaN, b, D):
     """Cvv^delta(t) for infinite polymer.
 
     Lampo, BPJ, 2016 Eq. 16."""
+
     # k = 3*kbT/b**2
-    ndmap = lambda G, arr: np.array(list(map(G, arr)))
-    G = lambda x: float(mpmath.meijerg([[],[3/2]], [[0,1/2],[]], x))
+    def ndmap(G, arr):
+        return np.array(list(map(G, arr)))
+
+    def G(x):
+        return float(mpmath.meijerg([[], [3/2]], [[0, 1/2], []], x))
     # we can use the fact that :math:`k/\xi = 3D/b^2` to replace
     # gtmd = ndmap(G, np.power(deltaN, 2)*xi/(4*k*np.abs(t-delta)))
     # gtpd = ndmap(G, np.power(deltaN, 2)*xi/(4*k*np.abs(t+delta)))
@@ -93,8 +103,8 @@ def rouse_large_cvv_g(t, delta, deltaN, b, D):
     # we can simply return
     return b*np.sqrt(3*D)*np.power(delta, -2) * (
         np.power(np.abs(t - delta), 1/2)*gtmd
-      + np.power(np.abs(t + delta), 1/2)*gtpd
-      - 2*np.power(np.abs(t), 1/2)*gt
+        + np.power(np.abs(t + delta), 1/2)*gtpd
+        - 2*np.power(np.abs(t), 1/2)*gt
     )
 
 
@@ -148,55 +158,14 @@ def end2end_distance(r, lp, N, L):
     else:
         return (actual_r, end2end_distance_gauss(actual_r, b=2*lp, N=N, L=L))
 
+
 def end2end_distance_gauss(r, b, N, L):
     """ in each dimension... ? seems to be off by a factor of 3 from the
     simulation...."""
     r2 = np.power(r, 2)
     return 3.0*r2*np.sqrt(6/np.pi)*np.power(N/(b*L), 1.5) \
-            *np.exp(-(3/2)*(N/(b*L))*r2)
+        * np.exp(-(3/2)*(N/(b*L))*r2)
 
-def test_rouse_msd_line_approx():
-    """Figure out what Dapp is exactly using our analytical result.
-
-    if we use msd_approx(t) = 3*bhat*np.sqrt(Dhat*t)/np.sqrt(3)*1.1283791(6)
-    then ``|msd(t) - msd_approx(t)|/msd(t) = np.sqrt(2)/N*np.power(t, -1/2)``.
-    ``msd_approx(t) > msd(t)`` in this range, so that means that
-    ``msd_approx(t)/(np.sqrt(2)/N*np.power(t, -1/2) + 1) = msd(t)``.
-
-    if we redefine msd_approx with this correction, the new relative error is
-    about ``np.sqrt(2)/N/100*t**(-1/2)``? gotta see if this carries over to
-    other chain parameters though...it does not...  this time msd(t) is bigger,
-    so ``msd_approx = msd_approx(t)/(1 - np.sqrt(2)/N/100*t**(-1/2))``.
-
-    okay actually looks like extra factor is additive?
-
-    for N = 1e8+1; L = 25; b = 2; D = 1;, we have
-    msd_approx(t) - msd(t) = 1.01321183e-07
-
-    for N = 1e8+1; L = 174; b = 150; D = 166;, we have
-    msd_approx(t) - msd(t) = 5.2889657(3)e-05
-
-    for N = 1e8+1; L = 174; b = 15; D = 166;, we have
-    msd_approx(t) - msd(t) = 5.2889657(3)e-06
-
-    for N = 1e8+1; L = 17.4; b = 15; D = 166;, we have
-    msd_approx(t) - msd(t) = 5.2889657(3)e-07
-
-    for N = 1e8+1; L = 17.4; b = 15; D = 16.6;, we have
-    msd_approx(t) - msd(t) = 5.2889657(3)e-07 (no change)
-
-    for N = 1e7+1; L = 17.4; b = 15; D = 16.6;, we have
-    msd_approx(t) - msd(t) = 5.2889657(3)e-06 (no change)
-
-    so the answer is like
-    3*bhat*np.sqrt(Dhat*t)/np.sqrt(3)*1.1283791615 - 0.202642385398*b*L/N
-    """
-    N = 1e8+1; L = 174; b = 150; D = 166; dt = 1e-2; Nt = 1e6; Nt_save = 1e4;
-    t = np.arange(0, Nt*dt, dt); t_save = t[::int(Nt/Nt_save)];
-    Nhat = L/b; L0 = L/(N-1); Dhat = D*(N)/Nhat; bhat = np.sqrt(L0*b)
-    plt.plot(tmsd, np.abs(msd_rouse - 3*bhat*np.sqrt(Dhat*tmsd)/np.sqrt(3)*1.12837916)/msd_rouse, 'k')
-    plt.yscale('log')
-    plt.xscale('log')
 
 @jit(nopython=True)
 def gaussian_G(r, N, b):
@@ -205,12 +174,15 @@ def gaussian_G(r, N, b):
     r2 = np.power(r, 2)
     return np.power(3/(2*np.pi*b*b*N), 3/2)*np.exp(-(3/2)*r2/(N*b*b))
 
+
 @jit(nopython=True)
 def gaussian_Ploop(a, N, b):
     """Looping probability for two loci on a Gaussian chain N kuhn lengths
     apart, when the Kuhn length is b, and the capture radius is a"""
     Nb2 = N*b*b
-    return spycial.erf(a*np.sqrt(3/2/Nb2)) - a*np.sqrt(6/np.pi/Nb2)/np.exp(3*a*a/2/Nb2)
+    return spycial.erf(a*np.sqrt(3/2/Nb2)) \
+        - a*np.sqrt(6/np.pi/Nb2)/np.exp(3*a*a/2/Nb2)
+
 
 @jit(nopython=True)
 def _cart_to_sph(x, y, z):
@@ -221,10 +193,11 @@ def _cart_to_sph(x, y, z):
     theta = np.arccos(z/r)
     return r, phi, theta
 
+
 def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
     # first precompute the zeros of the spherical bessel functions, since our
     # routine to do so is pretty slow
-    if l_max >= 86: # for l >= 86, |m| >= 85 returns NaN from sph_harm
+    if l_max >= 86:  # for l >= 86, |m| >= 85 returns NaN from sph_harm
         raise ValueError("l_max > 85 causes NaN's from scipy.special.sph_harm")
     if confined_G.zl_n is None or n_max > confined_G.zl_n.shape[1] \
             or l_max > confined_G.zl_n.shape[0]:
@@ -232,7 +205,7 @@ def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
     # some aliases
     spherical_jn = scipy.special.spherical_jn
     Ylm = scipy.special.sph_harm
-    zl_n = confined_G.zl_n[:l_max+1,:n_max]
+    zl_n = confined_G.zl_n[:l_max+1, :n_max]
     # convert to spherical coordinates
     r = np.array(r)
     if r.ndim == 1:
@@ -261,8 +234,10 @@ def confined_G(r, rp, N, b, a, n_max=100, l_max=50):
     lm_mask = np.abs(m) <= l
     lm_term[~lm_mask] = 0
     # now broadcast and sum
-    G = np.sum(ln_term[None,:,:] * lm_term[:,:,None])
+    G = np.sum(ln_term[None, :, :] * lm_term[:, :, None])
     return G
+
+
 confined_G.zl_n = None
 
 
@@ -342,7 +317,6 @@ def ring_mscd(t, D, Ndel, N, b=1, num_modes=_default_modes):
         mscd += (1 / p ** 2) * (1 - np.exp(-exp_coeff * p ** 2 * t)) \
                 * np.sin(sin_coeff * p) ** 2
     return sum_coeff * mscd
-
 
 
 def end_to_end_corr(t, D, N, num_modes=_default_modes):

@@ -3,6 +3,8 @@
 wlcsim Python Module
 ####################
 
+.. default-role:: py:obj
+
 .. automodule:: wlcsim
     :members:
     :private-members:
@@ -49,9 +51,15 @@ wlcsim.analytical
     :members:
     :private-members:
 
+wlcsim.analytical.rouse
+-----------------------
+
 .. automodule:: wlcsim.analytical.rouse
     :members:
     :private-members:
+
+wlcsim.analytical.fractional
+----------------------------
 
 .. automodule:: wlcsim.analytical.fractional
     :members:
