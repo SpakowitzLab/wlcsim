@@ -163,7 +163,33 @@ def f_elas_homolog_rouse(x0, N, loop_list, k_over_xi):
 
 
 @jit(nopython=True)
-def f_elas_linear_sswlc(x, u, e_b, gam, e_par, e_perp, eta, xi_u, xi_r):
+def f_elas_linear_tsswlc(x, t3, t2, e_b, gam, e_par, e_perp, eta):
+    """Compute spring forces and torques on each bead of dsswlc."""
+    N, _ = x.shape
+    f = np.zeros(x.shape)
+    t = np.zeros(x.shape)
+    for i in range(0, N - 1):
+        dx = x[i+1] - x[i]
+        dx_par = dx @ t3[i]
+        dx_perp = dx - dx_par*t3[i]
+        cos_u1_u2 = t3[i+1]@t3[i]
+
+        Gi = t3[i+1] - cos_u1_u2*t3[i] - eta*dx_perp
+        Fi = -eta*e_b*Gi + e_par*(dx_par - gam)*t3[i] + e_perp*dx_perp
+        f[i] += Fi
+        f[i + 1] -= Fi
+
+        Gi = (t3[i+1] - t3[i]) - eta*dx_perp
+        t[i] += e_b*Gi - eta*e_b*dx_par*Gi + eta*e_b*(1 - cos_u1_u2)*dx \
+            - e_par*(dx_par - gam)*dx + e_perp*dx_par*dx_perp
+        t[i+1] -= e_b*Gi
+
+        # TODO: implement extra torque due to orientation differences
+    return f, t
+
+
+@jit(nopython=True)
+def f_elas_linear_sswlc(x, u, e_b, gam, e_par, e_perp, eta):
     """Compute spring forces and torques on each bead of dsswlc."""
     N, _ = x.shape
     f = np.zeros(x.shape)

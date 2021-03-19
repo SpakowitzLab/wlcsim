@@ -62,37 +62,55 @@ def rk4_thermal_lena(f, D, t, x0):
     return x
 
 
-def euler_maruyama(f, D, t, x0):
+def euler_maruyama_with_torque(ft, D_r, D_u, t, x0, u0, *args, **kwargs):
     r"""
-    The most well-known stochastic integrator.
+    The most well-known stochastic integrator, this time with Torques!
 
-    Solves the equation
+    Parameters
+    ----------
+    ft : Func[(Array[Pos], Array[Orientation]), (Array[Force], Array[Torq])]
+        The function which take the locations and orientations of each bead and
+        returns the force and torques on each bead.
+    D_r : float
+        Translational diffusivity (same as *D* in `euler_maruyama`).
+    D_u : float
+        Rotational diffusivity (if unsure, use 1/xiu as returned by
+        `tabulation.dsswlc_params`).
+    t : (N, ) array-like of float
+        Times over which to intergrate.
+    x0 : (M, 3) array-like of float
+        Initial position of beads.
+    u0 : (Q, 3) array-like of float
+        Initial orientations.
 
-    .. math::
-
-        x'(t) = f(x(t), t) + \xi(t),
-
-    where :math:`\xi` represents thermal forces, and each dimension of ``x0``
-    has diffusivity :math:`D`.
-
-    ``x0`` is :math:`x(t=0)`, and :math:`f: \mathbb{R}^n \times \mathbb{R} ->
-    \mathbb{R}^n`
+    Returns
+    -------
+    x : (N, M, 3)
+        Position of all beads at each time point requested.
+    u : (N, Q, 3)
+        Orientations at each time point requested.
     """
     t = np.array(t)
     x0 = np.array(x0)
     x = np.zeros(t.shape + x0.shape)
+    u = np.zeros(t.shape + u0.shape)
     dts = np.diff(t)
     x[0] = x0
+    u[0] = u0
     # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
     # in order to make it easy to pull into a new functin later, we'll call
     # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
     for i in range(1, len(t)):
         h = dts[i-1]
-        t0 = t[i-1]
         x0 = x[i-1]
-        Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
-        x[i] = x0 + h*(Fbrown + f(x0, t0))
-    return x
+        u0 = u[i-1]
+        Fbrown = np.sqrt(2*D_r/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
+        Tbrown = np.sqrt(2*D_u/(t[i]-t[i-1]))*np.random.normal(size=u0.shape)
+        F, T = ft(x0, u0, *args, **kwargs)
+        x[i] = x0 + h*(Fbrown + F)
+        u[i] = u0 + h*np.cross(Tbrown + F, u0)
+        u[i] /= np.linalg.norm(u[i])
+    return x, u
 
 
 def srk1_roberts(f, D, t, x0):
