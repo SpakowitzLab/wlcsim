@@ -113,6 +113,39 @@ def euler_maruyama_with_torque(ft, D_r, D_u, t, x0, u0, *args, **kwargs):
     return x, u
 
 
+def euler_maruyama(f, D, t, x0):
+    r"""
+    The most well-known stochastic integrator.
+
+    Solves the equation
+
+    .. math::
+
+        x'(t) = f(x(t), t) + \xi(t),
+
+    where :math:`\xi` represents thermal forces, and each dimension of ``x0``
+    has diffusivity :math:`D`.
+
+    ``x0`` is :math:`x(t=0)`, and :math:`f: \mathbb{R}^n \times \mathbb{R} ->
+    \mathbb{R}^n`
+    """
+    t = np.array(t)
+    x0 = np.array(x0)
+    x = np.zeros(t.shape + x0.shape)
+    dts = np.diff(t)
+    x[0] = x0
+    # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
+    # in order to make it easy to pull into a new functin later, we'll call
+    # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
+    for i in range(1, len(t)):
+        h = dts[i-1]
+        t0 = t[i-1]
+        x0 = x[i-1]
+        Fbrown = np.sqrt(2*D/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
+        x[i] = x0 + h*(Fbrown + f(x0, t0))
+    return x
+
+
 def srk1_roberts(f, D, t, x0):
     r"""
     From wiki, from A. J. Roberts. Modify the improved Euler scheme to

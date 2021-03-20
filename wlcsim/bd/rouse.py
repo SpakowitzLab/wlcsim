@@ -278,7 +278,9 @@ def with_integrator(N, L, b, D, t, x0=None, integrator=rk4_thermal_lena):
         initializing from the free-draining equilibrium, with the first bead at
         the origin.
     integrator : Callable[[ForceFunc, float, Times, Positions], Positions]
-        Either `~.runge_kutta.rk4_thermal_lena` or `~.runge_kutta.srk1_roberts`
+        Where ForceFunc is a ``Callable[[Array[Positions], Array[Times]],
+        Array[Forces]]``. Either `~.runge_kutta.rk4_thermal_lena` or
+        `~.runge_kutta.srk1_roberts`
 
     Returns
     -------
