@@ -668,6 +668,11 @@ class Chain:
                     summedLeftOver = (summedLeftOver + leftOver) % 1
             else:
                 chainNum +=1
+        # TEMPORARY FIX FOR WERID FLOAT DISCRETIZATION. 
+        # TODO: fix this interpolation problem more permanently
+        tempInds = np.sum(np.sum(self.interpolated==0,1),1)!=9
+        self.interpolated = self.interpolated[tempInds]
+        self.n_bps = len(self.interpolated)
         return chain
 
     # distance constraint ricc-seq
