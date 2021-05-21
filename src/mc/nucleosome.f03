@@ -457,7 +457,7 @@ contains
                   linker =  LL_dist(1, j)
                   discretization = linker/num_link_beads
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = 147
+                  wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING
                   iter = iter + 1
                   wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
