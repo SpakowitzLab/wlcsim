@@ -592,12 +592,12 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! toggle on or off
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
+#define WLC_P__INTERNUCLEOSOME_ENERGY 4.0_DP 
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
 ! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
 ! TYPE: REAL(DP)

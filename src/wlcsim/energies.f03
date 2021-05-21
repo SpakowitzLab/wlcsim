@@ -124,8 +124,8 @@ contains
       energyOf(global_twistLiner_)%cof = 2*pi**2*WLC_P__LT/WLC_P__L
       ! We split global twist into a Wr**2 term and a Wr term
       ! (2*pi*(LK-Wr))**2*LT/(2L) = 2*pi**2*LT*Wr**2/L + 4*pi**2*LK*LT*WR/L
-      energyOf(sterics_)%cof = 3.0_dp !*(WLC_P__NB/67)
-      energyOf(internucleosome_)%cof = WLC_P__INTERNUCLEOSOME_ENERGY*WLC_P__NBPL
+      energyOf(sterics_)%cof = 3.0_dp
+      energyOf(internucleosome_)%cof = WLC_P__INTERNUCLEOSOME_ENERGY
 
       do ii = 1, NUMBER_OF_ENERGY_TYPES
          energyOf(ii)%isOn = .TRUE.
