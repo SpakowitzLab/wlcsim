@@ -20,11 +20,20 @@ import numpy as np
 
 
 def rk4_thermal_lena(f, D, t, x0):
-    """x'(t) = f(x(t), t) + Xi(t), where Xi is thermal, diffusivity D.
+    r"""
+    Integrate using the method of Steph Weber (Phys. Rev. E., 82, 011913).
 
-    x0 is x(t[0]).
+    Solves the equation
 
-    :math:`f: R^n x R -> R^n`
+    .. math::
+
+        x'(t) = f(x(t), t) + \xi(t),
+
+    where :math:`\xi` represents thermal forces, and each dimension of ``x0``
+    has diffusivity :math:`D`.
+
+    ``x0`` is :math:`x(t=0)`, and :math:`f: \mathbb{R}^n \times \mathbb{R} ->
+    \mathbb{R}^n`
     """
     t = np.array(t)
     x0 = np.array(x0)
@@ -53,51 +62,73 @@ def rk4_thermal_lena(f, D, t, x0):
     return x
 
 
-def rk4_thermal_bruno(f, D, t, x0):
+def euler_maruyama_with_torque(ft, D_r, D_u, t, x0, u0, *args, **kwargs):
     r"""
-    Test new method: Attempt to keep :math:`\omega` constant.
+    The most well-known stochastic integrator, this time with Torques!
 
-    WARNING: does not converge strongly (autocorrelation function seems
-    higher than should be for OU process...), as is...x'(t) = f(x(t), t) +
-    Xi(t), where Xi is thermal, diffusivity D
+    Parameters
+    ----------
+    ft : Func[(Array[Pos], Array[Orientation]), (Array[Force], Array[Torq])]
+        The function which take the locations and orientations of each bead and
+        returns the force and torques on each bead.
+    D_r : float
+        Translational diffusivity (same as *D* in `euler_maruyama`).
+    D_u : float
+        Rotational diffusivity (if unsure, use 1/xiu as returned by
+        `tabulation.dsswlc_params`).
+    t : (N, ) array-like of float
+        Times over which to intergrate.
+    x0 : (M, 3) array-like of float
+        Initial position of beads.
+    u0 : (Q, 3) array-like of float
+        Initial orientations.
 
-    x0 is x(t[0]).
-
-    :math:`f: R^n x R -> R^n`
+    Returns
+    -------
+    x : (N, M, 3)
+        Position of all beads at each time point requested.
+    u : (N, Q, 3)
+        Orientations at each time point requested.
     """
     t = np.array(t)
     x0 = np.array(x0)
-    xsize = x0.shape
     x = np.zeros(t.shape + x0.shape)
+    u = np.zeros(t.shape + u0.shape)
     dts = np.diff(t)
     x[0] = x0
-    dxdt = np.zeros((4,) + x0.shape)  # one for each RK step
-    Fbrown = np.sqrt(2*D / ((t[1] - t[0])/2))
+    u[0] = u0
     # at each step i, we use data (x,t)[i-1] to create (x,t)[i]
     # in order to make it easy to pull into a new functin later, we'll call
     # t[i-1] "t0", old x (x[i-1]) "x0", and t[i]-t[i-1] "h".
     for i in range(1, len(t)):
         h = dts[i-1]
-        t0 = t[i-1]
         x0 = x[i-1]
-        x_est = x0
-        dxdt[0] = f(x0, t0) + Fbrown  # slope at beginning of time step
-        # random force estimate at midpoint
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=xsize)
-        x_est = x0 + dxdt[0]*(h/2)  # first estimate at midpoint
-        dxdt[1] = f(x_est, t0 + (h/2)) + Fbrown  # estimated slope at midpoint
-        x_est = x0 + dxdt[1]*(h/2)  # second estimate at midpoint
-        dxdt[2] = f(x_est, t0 + (h/2)) + Fbrown  # second slope at midpoint
-        x_est = x0 + dxdt[2]*h  # first estimate at next time point
-        # random force estimate at endpoint (and next start point)
-        Fbrown = np.sqrt(2*D / ((t[i]-t[i-1])/2))*np.random.normal(size=xsize)
-        dxdt[3] = f(x_est, t0 + h) + Fbrown  # slope at end of time step
-        # final estimate is weighted average of slope estimates
-        x[i] = x0 + h*(dxdt[0] + 2*dxdt[1] + 2*dxdt[2] + dxdt[3])/6
-    return x
+        u0 = u[i-1]
+        Fbrown = np.sqrt(2*D_r/(t[i]-t[i-1]))*np.random.normal(size=x0.shape)
+        Tbrown = np.sqrt(2*D_u/(t[i]-t[i-1]))*np.random.normal(size=u0.shape)
+        F, T = ft(x0, u0, *args, **kwargs)
+        x[i] = x0 + h*(Fbrown + F)
+        u[i] = u0 + h*np.cross(Tbrown + F, u0)
+        u[i] /= np.linalg.norm(u[i])
+    return x, u
 
 
 def euler_maruyama(f, D, t, x0):
+    r"""
+    The most well-known stochastic integrator.
+
+    Solves the equation
+
+    .. math::
+
+        x'(t) = f(x(t), t) + \xi(t),
+
+    where :math:`\xi` represents thermal forces, and each dimension of ``x0``
+    has diffusivity :math:`D`.
+
+    ``x0`` is :math:`x(t=0)`, and :math:`f: \mathbb{R}^n \times \mathbb{R} ->
+    \mathbb{R}^n`
+    """
     t = np.array(t)
     x0 = np.array(x0)
     x = np.zeros(t.shape + x0.shape)
@@ -116,7 +147,8 @@ def euler_maruyama(f, D, t, x0):
 
 
 def srk1_roberts(f, D, t, x0):
-    r"""From wiki, from A. J. Roberts. Modify the improved Euler scheme to
+    r"""
+    From wiki, from A. J. Roberts. Modify the improved Euler scheme to
     integrate stochastic differential equations. [1], Oct 2012.
 
     If we have an Ito SDE given by
@@ -129,13 +161,22 @@ def srk1_roberts(f, D, t, x0):
 
     .. math::
 
-        \vec{K}_1 = h \vec{a}(t_k, \vec{X}_k) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_k, \vec{X}_k)
-        \vec{K}_2 = h \vec{a}(t_{k+1}, \vec{X}_k + \vec{K}_1) + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_{k+1}, \vec{X}_k + \vec{K}_1)
+        \vec{K}_1 = h \vec{a}(t_k, \vec{X}_k) + (\Delta W_k - S_k\sqrt{h})
+            \vec{b}(t_k, \vec{X}_k)
+
+    .. math::
+
+        \vec{K}_2 = h \vec{a}(t_{k+1}, \vec{X}_k + \vec{K}_1)
+            + (\Delta W_k - S_k\sqrt{h}) \vec{b}(t_{k+1},\vec{X}_k + \vec{K}_1)
+
+    .. math::
+
         \vec{X}_{k+1} = \vec{X}_k + \frac{1}{2}(\vec{K}_1 + \vec{K}_2)
 
     where :math:`\Delta W_k = \sqrt{h} Z_k` for a normal random :math:`Z_k \sim
     N(0,1)`, and :math:`S_k=\pm1`, with the sign chosen uniformly at random
-    each time."""
+    each time.
+    """
     t = np.array(t)
     x0 = np.array(x0)
     x = np.zeros(t.shape + x0.shape)
@@ -164,8 +205,14 @@ def srk1_roberts(f, D, t, x0):
 
 # simple test case
 def ou(x0, t, k_over_xi, D, method=rk4_thermal_lena):
-    "simulate ornstein uhlenbeck process with theta=k_over_xi and sigma^2/2=D"
-    def f(x,t):
+    r"""
+    Test simulation: the Ornstein-Uhlenbeck process.
+
+    Simulates a standard Ornstein-Uhlenbeck process with ``theta=k_over_xi``
+    and ``sigma^2/2=D``. This is the appropriate parameterization to match the
+    limiting case of ``N=2`` in `wlcsim.bd.rouse.with_integrator`.
+    """
+    def f(x, t):
         return -k_over_xi*x
     return method(f, D=D, t=t, x0=x0)
 
@@ -179,7 +226,7 @@ def _get_scalar_corr(X):
     for i in range(num_samples):
         for j in range(num_t):
             for k in range(j, num_t):
-                corr[k-j] = corr[k-j] + X[i,k]*X[i,j]
+                corr[k-j] = corr[k-j] + X[i, k]*X[i, j]
                 count[k-j] = count[k-j] + 1
     return corr, count
 
@@ -193,7 +240,7 @@ def _get_vector_corr(X):
     for i in range(num_samples):
         for j in range(num_t):
             for k in range(j, num_t):
-                corr[k-j] = corr[k-j] + X[i,k]@X[i,j]
+                corr[k-j] = corr[k-j] + X[i, k]@X[i, j]
                 count[k-j] = count[k-j] + 1
     return corr, count
 
@@ -211,7 +258,7 @@ def _get_bead_msd(X, k=None):
     count = np.zeros((num_t,))
     for i in range(num_t):
         for j in range(i, num_t):
-            ta_msd[j-i] += (X[j,k] - X[i,k])@(X[j,k] - X[i,k])
+            ta_msd[j-i] += (X[j, k] - X[i, k])@(X[j, k] - X[i, k])
             count[j-i] += 1
     return ta_msd, count
 
@@ -219,15 +266,15 @@ def _get_bead_msd(X, k=None):
 @jit(nopython=True)
 def _msd(x):
     result = np.zeros_like(x)
-    for delta in range(1,len(x)):
-        for i in range(delta,len(x)):
+    for delta in range(1, len(x)):
+        for i in range(delta, len(x)):
             result[delta] += (x[i] - x[i-delta])**2
         result[delta] = result[delta] / (len(x) - delta)
     return result
 
 
-# test different integrators below on simply OU process
 def test_ou_autocorr(method=srk1_roberts):
+    """Test an individual integrator visually using an OU process."""
     import scipy.stats
     import matplotlib.pyplot as plt
     k = 2

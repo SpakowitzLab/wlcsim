@@ -12,7 +12,7 @@ from .utils.cached_property import cached_property
 import shutil
 
 from numba import double
-from numba.decorators import jit
+from numba import njit
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ i_arr = np.array([[1]])
 j_arr = np.array([[1]])
 ui = (np.array([0]), np.array([0]))
 
-@jit
+@njit
 def pairwise_distances3(r):
     """
     Returns np.array of pairwise distances of points in R^3 stored in a

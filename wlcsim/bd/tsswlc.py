@@ -95,7 +95,7 @@ def sswlc(N, L, lp, t, t_save):
     eta = eta/lp
     xi_u = xi_u*delta
     xi_r = delta
-    # Lena's estimate of minimum dt possible
+    # Lena's estimate of maximum dt possible
     max_dt = (1/2)*xi_u/(e_perp*gam**2)
     # e_twist = lt/(delta/lp)
     if np.any(np.diff(t) > max_dt):

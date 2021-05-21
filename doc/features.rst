@@ -3,7 +3,7 @@
 Fortran Simulation Features
 ###########################
 
-.. Why use wlcsim? Does it do what I need?
+Why use wlcsim? Does it do what I need?
 
 Semiflexable polymers
 =====================
