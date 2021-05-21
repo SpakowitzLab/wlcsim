@@ -411,6 +411,7 @@ class Chain:
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_likelihood_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_likelihood_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_likelihood_s2 = None
+        self.break_FLD = None; self.break_FLFE = None
 
     # determine center of beads from regular polygons
     def centerBeads(self,nside=16,type='regular'):
@@ -676,7 +677,7 @@ class Chain:
         return chain
 
     # distance constraint ricc-seq
-    def RICCbreak(self,cutoff=4.03,noise=50.0): # units in nm or bp
+    def RICCbreak(self,cutoff=4.03, minFragment = 50): # units in nm or bp
         """Determine the RICC-seq break patterns from the interpolated fine-graied polymer structure.
         
         Parameters
@@ -684,8 +685,8 @@ class Chain:
         cutoff : float, optional
             default : 4.03 nm
             RICC-seq radiolytic cleavage radius under which there will be simulated breaks
-        noise : float, optional
-            default : 50.0 bp
+        minFragment : integer, optional
+            default : 50 bp
             fragment length under which any breaks are considered noise and thus thrown out
 
         Generates
@@ -721,10 +722,119 @@ class Chain:
         fragBreakS1 = indPair[indBreakS1,1]-indPair[indBreakS1,0]
         fragBreakB = indPair[indBreakB,1]-indPair[indBreakB,0]
         fragBreakS2 = indPair[indBreakS2,1]-indPair[indBreakS2,0]
-        noiseIndS1 = fragBreakS1 >= noise; noiseIndB = fragBreakB >= noise; noiseIndS2 = fragBreakS2 >= noise
+        noiseIndS1 = fragBreakS1 >= minFragment; noiseIndB = fragBreakB >= minFragment; noiseIndS2 = fragBreakS2 >= minFragment
         self.break_length_s1 = fragBreakS1[noiseIndS1]; self.break_location_s1 = indPair[indBreakS1][noiseIndS1]; self.break_likelihood_s1 = pairS1[noiseIndS1]
         self.break_length_b = fragBreakB[noiseIndB]; self.break_location_b = indPair[indBreakB][noiseIndB]; self.break_likelihood_b = pairB[noiseIndB]
         self.break_length_s2 = fragBreakS2[noiseIndS2]; self.break_location_s2 = indPair[indBreakS2][noiseIndS2]; self.break_likelihood_s2 = pairS2[noiseIndS2]
+
+    def RICCbreakFLD(self, minFragment = 50, maxFragment = 500):
+        """Create FLD histogram for the RICC-seq break patterns (strand1/strand2/ lengths and likelihoods).
+        
+        Parameters
+        ----------
+        minFragment : integer, optional
+            default : 50 bp
+            fragment length under which any breaks are considered noise and thus thrown out
+        maxFragment : intege, optional
+            default : 500 bp
+            fragment length over which any breaks are considered noise and thus thrown out
+
+        Generates
+        ---------
+        self.break_FLD : RICC break FLD histogram from minFragment to maxFragment size
+
+        """
+        try :
+            if (self.break_length_s1 == None):
+                self.RICCbreak(minFragment=minFragment)
+        except:
+            pass # RICCbreak already run
+        # create historgram from both strand break information
+        breaklength = np.transpose(np.hstack([self.break_length_s1, self.break_length_s2]))
+        breaklike = np.transpose(np.hstack([self.break_likelihood_s1, self.break_likelihood_s2]))
+        breakhist = np.histogram(breaklength[breaklength <= maxFragment],
+                bins=np.arange(minFragment,maxFragment + 2), weights=breaklike[breaklength <= maxFragment])[0]
+        self.break_FLD = breakhist
+    
+    def RICCbreakFLFE(self, lengthbias = -0.0039, minFragment = 50, maxFragment=500, startFragment = 148, 
+            genome_norm_file = default_dir + '/analysis/' + 'RICC-BJ-2017_genome-norm.txt'):
+        """Calculate the FLFE (FLD enrichment over genome average) for the RICC-seq break patterns.
+
+        Parameters
+        ----------
+        lengthbias : float, optional
+            default : -0.0039
+            exponential parameter to quanity a RICC-seq experiment's fragment length bias
+        minFragment : integer, optional
+            default : 50 bp
+            fragment length under which any breaks are considered noise and thus thrown out
+        maxFragment : integer, optional
+            default : 500 bp
+            fragment length over which any breaks are considered noise and thus thrown out
+        startFragment : integer, optional
+            default : 148 bp
+            length of fragment over which has relevant/interesting 3D spatial information encoded
+            within it; for example, the 80bp RICC peak is strong but not interesting for 3D info.
+        genome_norm_file : string, optional
+            default : "wlcsim/analysis/RICC-BJ-2017_genome-norm.txt"
+            path to where you want to read in the genome average RICC-seq break pattern FLD
+        
+        Generates
+        ---------
+        self.break_FLFE : RICC break FLFE (FLD enrichment over genome average) from minFragment to maxFragment size
+        """
+        try :
+            if (self.break_FLD == None):
+                self.RICCbreakFLD(minFragment=minFragment, maxFragment=maxFragment)
+        except:
+            pass # RICCbreak already run
+        # read in the genome_norm file
+        genome_norm = np.loadtxt(genome_norm_file); genome_norm = genome_norm[minFragment:maxFragment + 1]
+        x = np.linspace(minFragment, maxFragment, maxFragment - minFragment + 1)
+        # maximum normalization of FLFE score + experimental length bias
+        temp_FLFE = self.break_FLD / np.max(self.break_FLD) * np.exp(lengthbias * x)
+        # second maximum normalization after length bias correction
+        temp_FLFE /= np.max(temp_FLFE)
+        # divide by genome norm from experiment
+        temp_FLFE /= genome_norm
+        # look at only relevant fragment lengths
+        temp_FLFE = temp_FLFE[(startFragment-minFragment):]
+        temp_FLFE -= np.mean(temp_FLFE)
+        self.break_FLFE = temp_FLFE
+
+    def RICCmatrix(self, blur = 0, init = 0.0):
+        """Generate the fragment-break frequency matrix from the interpolated chain.
+        
+        Parameters
+        ----------
+        blur : int, optional
+            default : 20
+            Gaussian blur to apply to the frequency matrix to add "noise" and make the matrix less sparse
+        removeLow : boolean, optional
+            default : True
+            whether to remove frequency values less than 1 and replace them as NAN
+        init : float, optional
+            default : 0.5
+            value to initialize the entries of the frequency matrix with if trying to avoid zeros in cells
+
+        Returns
+        -------
+        mat : matrix
+            RICC-seq fragment break frequency matrix 
+        """
+        self.RICCbreak()
+        mat = init*np.ones(self.n_bps**2).reshape([self.n_bps,self.n_bps])
+        for iterN in range(len(self.break_location_s1)):
+            j = int(self.break_location_s1[iterN,0])
+            k = int(self.break_location_s1[iterN,1])
+            mat[j,k] += self.break_likelihood_s1[iterN]
+        for iterN in range(len(self.break_location_s2)):
+            j = int(self.break_location_s2[iterN,0])
+            k = int(self.break_location_s2[iterN,1])
+            mat[j,k] += self.break_likelihood_s2[iterN]
+        if (blur > 0):
+            mat = gaussian_filter(mat, sigma=blur)
+        return mat
 
     def saveCoarseGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear'):
         """Save the coarse-grained wlcsim output in a PDB format.
@@ -782,7 +892,7 @@ class Chain:
             filename = '%sfine%0.3dv%s.pdb' %(path,self.time,self.channel)
         save_pdb(filename,dna)
     
-    def saveRICCbreak(self, path=default_dir+'/analysis/data/riccBreak.txt'):
+    def saveRICCbreakFLD(self, minFragment = 50, maxFragment = 500, path=default_dir+'/analysis/data/'):
         """Save the RICC-seq break patterns (strand1/strand2/ lengths and likelihoods) to a text file.
         
         Parameters
@@ -790,49 +900,60 @@ class Chain:
         path : string, optional
             default : "wlcsim/analysis/data/"
             path to where you want to store the RICC-seq break pattern file
+        minFragment : integer, optional
+            default : 50 bp
+            fragment length under which any breaks are considered noise and thus thrown out
+        maxFragment : integer, optional
+            default : 500 bp
+            fragment length over which any breaks are considered noise and thus thrown out
         """
+        try :
+            if (self.break_FLD == None):
+                self.RICCbreakFLD(minFragment=minFragment, maxFragment=maxFragment)
+        except:
+            pass # RICCbreak already run
         # make intermediary directory if needed
         os.makedirs(path, exist_ok=True)
-        # create and save histogram
-        breaklength = np.transpose(np.hstack([self.break_length_s1, self.break_length_s2]))
-        breaklike = np.transpose(np.hstack([self.break_likelihood_s1, self.break_likelihood_s2]))
-        breakhist = np.histogram(breaklength[breaklength<=500],bins=np.arange(50,502),weights=breaklike[breaklength<=500])[0]
-        np.savetxt(path, breakhist, fmt='%i')
+        filename = '%sriccBreakFLD%0.3dv%s.txt' %(path,self.time,self.channel)
+        np.savetxt(filename, self.break_FLD, fmt='%i')
     
-    def RICCmatrix(self, blur=0, init=0.0):
-        """Generate the fragment-break frequency matrix from the interpolated chain.
+    def saveRICCbreakFLFE(self, lengthbias = -0.0039, minFragment = 50, maxFragment=500, startFragment = 148,
+            genome_norm_file = default_dir + '/analysis/' + 'RICC-BJ-2017_genome-norm.txt', path=default_dir+'/analysis/data/'):
+        """Save the RICC-seq break patterns (strand1/strand2/ lengths and likelihoods) to a text file.
         
         Parameters
         ----------
-        blur : int, optional
-            default : 20
-            Gaussian blur to apply to the frequency matrix to add "noise" and make the matrix less sparse
-        removeLow : boolean, optional
-            default : True
-            whether to remove frequency values less than 1 and replace them as NAN
-        init : float, optional
-            default : 0.5
-            value to initialize the entries of the frequency matrix with if trying to avoid zeros in cells
-
-        Returns
-        -------
-        mat : matrix
-            RICC-seq fragment break frequency matrix 
+        path : string, optional
+            default : "wlcsim/analysis/data/"
+            path to where you want to store the RICC-seq break pattern file
+        lengthbias : float, optional
+            default : -0.0039
+            exponential parameter to quanity a RICC-seq experiment's fragment length bias
+        minFragment : integer, optional
+            default : 50 bp
+            fragment length under which any breaks are considered noise and thus thrown out
+        maxFragment : integer, optional
+            default : 500 bp
+            fragment length over which any breaks are considered noise and thus thrown out
+        startFragment : integer, optional
+            default : 148 bp
+            length of fragment over which has relevant/interesting 3D spatial information encoded
+            within it; for example, the 80bp RICC peak is strong but not interesting for 3D info.
+        genome_norm_file : string, optional
+            default : "wlcsim/analysis/RICC-BJ-2017_genome-norm.txt"
+            path to where you want to read in the genome average RICC-seq break pattern FLD
         """
-        self.RICCbreak()
-        mat = init*np.ones(self.n_bps**2).reshape([self.n_bps,self.n_bps])
-        for iterN in range(len(self.break_location_s1)):
-            j = int(self.break_location_s1[iterN,0])
-            k = int(self.break_location_s1[iterN,1])
-            mat[j,k] += self.break_likelihood_s1[iterN]
-        for iterN in range(len(self.break_location_s2)):
-            j = int(self.break_location_s2[iterN,0])
-            k = int(self.break_location_s2[iterN,1])
-            mat[j,k] += self.break_likelihood_s2[iterN]
-        if (blur > 0):
-            mat = gaussian_filter(mat, sigma=blur)
-        return mat
-    
+        try :
+            if (self.break_FLFE == None):
+                self.RICCbreakFLFE(minFragment=minFragment, startFragment=startFragment, maxFragment=maxFragment, 
+                        lengthbias=lengthbias, genome_norm_file=genome_norm_file)
+        except:
+            pass # RICCbreak already run
+        # make intermediary directory if needed
+        os.makedirs(path, exist_ok=True)
+        filename = '%sriccBreakFLFE%0.3dv%s.txt' %(path,self.time,self.channel)
+        np.savetxt(filename, self.break_FLFE, fmt='%f')
+   
     def saveRICCmat(self,path=default_dir+'/analysis/data'):
         """Save the RICC-seq fragment break frequency matrix to a text file.
         
@@ -927,6 +1048,8 @@ class Snapshot(Chain):
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_distance_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
+        self.break_FLD = None; self.break_FLFE = None
+
         # energies
         with open('%senergiesv%s' %(path_to_data,self.channel)) as fp:
             for i, line in enumerate(fp):
