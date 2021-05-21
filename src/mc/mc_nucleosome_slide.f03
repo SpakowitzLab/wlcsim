@@ -4,6 +4,7 @@
 !              Slides nucleosomes in MC move
 !
 !               implemented by NP may 2020
+!        TODO: THIS IS NOT TESTED NOR FULLY DEVELOPED!
 !
 !---------------------------------------------------------------
 

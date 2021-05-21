@@ -404,6 +404,10 @@ contains
          print *, 'but clearly needs to be implemented'
          stop
       endif
+      if ((WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) .OR. (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) ) then
+         print *, 'The nuclesome slide and breathe moves are currently in development!!'
+         stop
+      endif
       err = WLC_P__NO_SELF_CROSSING .and. WLC_P__NP > 1
       call stop_if_err(err, "linking number calculation is implemented only for one chain.")
 

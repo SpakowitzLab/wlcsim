@@ -4,6 +4,7 @@
 !            Allows nucleosomes to breathe in MC move
 !
 !                  implemented by NP, oct 2020
+!         TODO: THIS IS NOT TESTED NOR FULLY DEVELOPED! 
 !
 !---------------------------------------------------------------
 
