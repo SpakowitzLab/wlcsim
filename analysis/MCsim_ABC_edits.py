@@ -408,6 +408,7 @@ class Chain:
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist) 
         # interpolation/ricc-seq stuff
         self.interpolated = None
+        # self.nucleosome_indices = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_likelihood_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_likelihood_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_likelihood_s2 = None
@@ -611,6 +612,8 @@ class Chain:
         row = np.zeros(3*3).reshape([3,3])
         indR = 0; leftOver = 0; summedLeftOver = 0
         chain = []; chainNum = 1
+        # Make a new quantity that stores the nuclesome entry and exit point
+        nucleosome_indices = []
         for i in range(self.n_beads):
             if self.discretization[i] != 0:
                 # NOT PROPERLY INTERPOLATING TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TO INTERPOLATE TWIST/SUPERCOILING
@@ -631,7 +634,8 @@ class Chain:
                         row[1,:] = self.r[i,:] + np.matmul(matIn,Rin+base)
                         # save atoms
                         self.interpolated[indR,:,:] = row
-                        indR = indR + 1                    
+                        indR = indR + 1
+                        nucleosome_indices = np.append(nucleosome_indices, int(indR)) #added by ABC                    
                         chain.extend([str(chainNum)]*3)
                     # add left over basepairs
                     leftOver = self.wrapped[i] - np.floor(self.wrapped[i])
@@ -717,6 +721,10 @@ class Chain:
         tempInds = np.sum(np.sum(self.interpolated==0,1),1)!=9
         self.interpolated = self.interpolated[tempInds]
         self.n_bps = len(self.interpolated)
+        # print(nucleosome_indices)
+        # Reformat as integers
+        nucleosome_indices = [int(i) for i in list(nucleosome_indices)]
+        self.nucleosome_indices = nucleosome_indices
         return chain
 
     # distance constraint ricc-seq
@@ -1093,8 +1101,8 @@ class Snapshot(Chain):
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
         self.break_FLD = None; self.break_FLFE = None
         #ABC EDITS 
-        # nuc_locs
         self.nuc_locs = None
+        self.nucleosome_indices = None
 
         # energies
         with open('%senergiesv%s' %(path_to_data,self.channel)) as fp:
