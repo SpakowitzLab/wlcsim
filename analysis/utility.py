@@ -3,6 +3,10 @@
 
 from pathlib import Path
 import numpy as np
+#Modules added by ABC
+from pylab import *
+from scipy.optimize import curve_fit
+from scipy.spatial.distance import squareform
 
 # set parameters
 length_per_bp = 0.332 # length in nm of 1 bp
@@ -124,3 +128,66 @@ def get_uv_angle(u1, u2):
     bond_angle = np.round(bond_angle, 6)
     # since bond_angle <=1, we can now take arccos
     return np.arccos(bond_angle)
+
+## Added by Ariana:
+
+### Autocorrelation Analysis
+#Input: simulation object with all trials and snapshots (e.g. data=mc.Simulation(...)
+
+#Autocorrelation
+# exponential function
+def func(x, a, c, d):
+    return a*np.exp(-c*x)+d
+
+def calc_autocorr(data, trial_labels, num_snaps=100, max_lag=30, eq = 10):
+    num_trials = len(data.returnTrials())
+    e2es = np.zeros(shape=(num_trials,num_snaps-eq+1))
+#     for i in range(len(trial_labels)):
+    for i in range(0,num_trials):
+        print(i)
+        for snapshot in range(eq,num_snaps+1):
+#             print(snapshot-eq)
+            data.trials[trial_labels[i]].snapshots[snapshot].pairwiseNucleosomeDistance()
+            # Length of pair_dist is ((Num_Nucs)^2)/2 - Num_Nucs 
+            pre = data.trials[trial_labels[i]].snapshots[snapshot].pair_dist
+#             print(pre)
+            # Put in square form to see as a Num_Nucs by Num_Nucs
+            # Grab the last value in the first row of squareform array
+            e2e = squareform(pre)[0][-1]
+#             print(e2e)
+            e2es[i,snapshot-eq] = e2e
+
+    autocorrs_arr = np.zeros(shape=(num_trials,max_lag))
+    for trial in range(0,num_trials):
+        row = int(trial)
+#         print(row)
+        snapshots = np.arange(num_snaps)
+        autocorrs = []
+        for lag in range(0,max_lag):
+            dists_no_lag = e2es[row,:][lag:]
+            if lag == 0:
+                dists_with_lag = dists_no_lag
+            else:
+                dists_with_lag = e2es[row,:][:-1*lag]
+            corr = np.corrcoef(dists_no_lag,dists_with_lag)[0, 1]
+            autocorrs.append(corr)
+        autocorrs_arr[trial, :] = np.array(autocorrs)
+
+        mean_autocorrelations = autocorrs_arr.mean(axis=0)
+    return mean_autocorrelations
+
+def fit_exponential(mean_autocorrelations, max_lag = 30):
+    ''' Return a, b, and tau such that tau = 1/lambda
+    And the following function is fit to the data: f(x) = ae^(-lambda * x) + b
+    The x series is the lag intervals in terms of snapshots
+    The y series is the Pearson Correlation
+    '''
+    x = np.array(range(0,max_lag))
+    y = mean_autocorrelations
+    popt, pcov = curve_fit(func, x, y)
+    y_vals_of_fit = func(x, *popt)
+    lam = popt[1]
+    tau = 1/lam
+    a = popt[0]
+    b = popt[2]
+    return tau, a, b, y_vals_of_fit
