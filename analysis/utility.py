@@ -7,7 +7,8 @@ import numpy as np
 from pylab import *
 from scipy.optimize import curve_fit
 from scipy.spatial.distance import squareform
-
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 # set parameters
 length_per_bp = 0.332 # length in nm of 1 bp
 default_omega = 2*np.pi/10.5 # default twist of DNA
@@ -191,3 +192,17 @@ def fit_exponential(mean_autocorrelations, max_lag = 30):
     a = popt[0]
     b = popt[2]
     return tau, a, b, y_vals_of_fit
+
+def plot_auto_corr(filepath, data, trial_labels, num_snaps=100, max_lag=30, eq = 10):
+   mean_autos = calc_autocorr(data, trial_labels, eq=eq, num_snaps=num_snaps)
+   tau, a, b, y_vals_of_fit = fit_exponential(mean_autos)
+   fig, ax = plt.subplots()
+   ax.scatter(range(0,len(mean_autos)),mean_autos, alpha = 0.5)
+   ax.plot(range(0,len(mean_autos)),y_vals_of_fit, color='r', linestyle = '-', linewidth = 3)
+   ax.set_xlabel('Lag Interval [Snapshots]', size=14)
+   ax.set_ylabel('Pearson Correlation', size=14)
+   ax.set_title('End-to-End Distance Autocorrelation', size=16)
+   ax.text(0.75, 0.7,'a$e^{-\lambda x}+b$ \n a='+str(round(a,2))+'\n \N{greek small letter tau}= '+str(round(tau,3))+'\n b= '+str(round(b, 3)), transform = ax.transAxes, size = 12)
+   plt.savefig(filepath+'.pdf')
+   plt.show()
+   return mean_autos, tau, a, b, y_vals_of_fit
