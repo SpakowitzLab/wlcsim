@@ -923,8 +923,13 @@ class Chain:
         os.makedirs(path, exist_ok=True)
         # interpolate to make fine-grained structure
         chain = self.interpolate()
+
+        # define name based on whether or not the bp is a linker or nucleosome
+        num_pdb_beads = len(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]))
+        atom_names = ['A2' for item in range(num_pdb_beads)]
+
         if (base != 3):
-            dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
         else:
             dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
