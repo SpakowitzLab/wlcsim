@@ -927,13 +927,36 @@ class Chain:
         # define name based on whether or not the bp is a linker or nucleosome
         if color_nucs == 1:
             num_pdb_beads = len(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]))
-            diff_color = self.nucleosome_indices  
+            nuc_indices = self.nucleosome_indices 
+            jumps = [0]
+            for ind in range(0, len(nuc_indices)-1):
+                # If neighboring list values differ by more than 1, mark as a jump between nuc indices and linker dna indices
+                if nuc_indices[ind+1] - nuc_indices[ind] > 1:
+                    jumps.append(ind+1)
+                else:
+                    continue
+
+            wrapping = jumps[1]-jumps[0]
+            gyre_len = int(wrapping/2)
+            # Divide nucleosome indices into 2 lists based on gyre
+            gyre1 = []
+            gyre2 = []
+            for i in range(len(jumps)):
+                # print(jumps[i])
+                gyre1_instance = nuc_indices[jumps[i]:jumps[i]+gyre_len] 
+                gyre2_instance = nuc_indices[jumps[i]+gyre_len: jumps[i]+2*gyre_len] 
+                gyre1.append(gyre1_instance)
+                gyre2.append(gyre2_instance)
+            gyre1_indices = [item for sublist in gyre1 for item in sublist]
+            gyre2_indices = [item for sublist in gyre2 for item in sublist]
             atom_names = []
             for i in range(num_pdb_beads): 
-                if i in diff_color:
-                    atom_names.append('A2')
+                if i in gyre1_indices:
+                    atom_names.append('G1')
+                elif i in gyre2_indices:
+                    atom_names.append('G2')
                 else:
-                    atom_names.append('A1')
+                    atom_names.append('L1')
             # atom_names = ['A2' for item in range(num_pdb_beads)]
 
             if (base != 3):
