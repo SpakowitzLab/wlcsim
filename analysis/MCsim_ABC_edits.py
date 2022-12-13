@@ -284,7 +284,7 @@ class Trajectory:
         for time in range(self.equilibrium_time+1,self.time_max):
             self.energies = self.energies.append(self.snapshots[time].energies)
 
-    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol',base=3):
+    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol',base=3, color_nucs = 0):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" after interpolating into a more fine-grained
         structure. See the saveFineGrainedPDB and interpolate methods in the `Snapshot` class for more informtion on the calculations.
 
@@ -303,7 +303,7 @@ class Trajectory:
             exectable command to initiaite PyMol, i.e. "~/Applications/pymol/pymol" 
         """
         for time in range(self.time_min,self.time_max):
-            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base)
+            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base, color_nucs = color_nucs)
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path + " " + str(base))
                     
@@ -907,7 +907,7 @@ class Chain:
             filename = '%scoarse%0.3dv%s.pdb' %(path,self.time,self.channel)
         save_pdb(filename,dna)
     
-    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear',base=3):
+    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear',base=3, color_nucs = 0):
         """Save the interpolated fine-grained wlcsim structure in a PDB format.
         
         Parameters
@@ -925,13 +925,27 @@ class Chain:
         chain = self.interpolate()
 
         # define name based on whether or not the bp is a linker or nucleosome
-        num_pdb_beads = len(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]))
-        atom_names = ['A2' for item in range(num_pdb_beads)]
+        if color_nucs == 1:
+            num_pdb_beads = len(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]))
+            diff_color = self.nucleosome_indices  
+            atom_names = []
+            for i in range(num_pdb_beads): 
+                if i in diff_color:
+                    atom_names.append('A2')
+                else:
+                    atom_names.append('A1')
+            # atom_names = ['A2' for item in range(num_pdb_beads)]
 
-        if (base != 3):
-            dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
+            if (base != 3):
+                dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
+            else:
+                dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
+        ### End of nucleosome color loop
         else:
-            dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            if (base != 3):
+                dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            else:
+                dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
             filename = '%sfine%0.3dv%sf%s.pdb' %(path,self.time,self.channel,self.number)
         else:
