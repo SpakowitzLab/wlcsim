@@ -131,6 +131,11 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
+#define WLC_P__GJK_NUC_ONLY .TRUE.
+! VARIABLE COMMENT: ! GJK algorithm to model only nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! Do not check for sterics via GJK by default.
+! TYPE: LOGICAL
+
 #define WLC_P__GJK_POLYGON 16
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
 ! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
