@@ -278,6 +278,9 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping
             endif
          endif
       ! check for moved bead nuc + DNA within relevant distance cutoff
+      ! Skip therest if you only care about nuc-nuc sterics 
+      else if (WLC_P__GJK_NUC_ONLY) then 
+         continue
       else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
                distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
          ! ignore 10bp nearest nuc, this is inspired from what elena koslover did in fibermodel
