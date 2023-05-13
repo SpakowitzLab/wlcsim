@@ -10,8 +10,10 @@ from scipy.spatial.distance import squareform
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 # set parameters
-length_per_bp = 0.332 # length in nm of 1 bp
-default_omega = 2*np.pi/10.5 # default twist of DNA
+helix_height = 3.4
+bp_per_turn = 10.5
+length_per_bp = helix_height/bp_per_turn # length in nm of 1 bp # changed from 0.332 (presumed typo)
+default_omega = 2*np.pi/bp_per_turn # default twist of DNA
 max_bp_wrapped = 160
 nucleosome_height = 5.5 # nm
 nucleosome_radius = 5.2 # nm
@@ -176,6 +178,47 @@ def calc_autocorr(data, trial_labels, num_snaps=100, max_lag=30, eq = 10):
 
         mean_autocorrelations = autocorrs_arr.mean(axis=0)
     return mean_autocorrelations
+
+def calc_autocorr_all(data, trial_labels, num_snaps=100, max_lag=30, eq = 10):
+    """
+    Modified version of calc_autocorr that returns pearson correlation values for all trials
+    not just the average between trials
+    """
+    num_trials = len(data.returnTrials())
+    e2es = np.zeros(shape=(num_trials,num_snaps-eq+1))
+#     for i in range(len(trial_labels)):
+    for i in range(0,num_trials):
+        print(i)
+        for snapshot in range(eq,num_snaps+1):
+#             print(snapshot-eq)
+            data.trials[trial_labels[i]].snapshots[snapshot].pairwiseNucleosomeDistance()
+            # Length of pair_dist is ((Num_Nucs)^2)/2 - Num_Nucs 
+            pre = data.trials[trial_labels[i]].snapshots[snapshot].pair_dist
+            print(pre)
+            # Put in square form to see as a Num_Nucs by Num_Nucs
+            # Grab the last value in the first row of squareform array
+            e2e = squareform(pre)[0][-1]
+#             print(e2e)
+            e2es[i,snapshot-eq] = e2e
+
+    autocorrs_arr = np.zeros(shape=(num_trials,max_lag))
+    for trial in range(0,num_trials):
+        row = int(trial)
+#         print(row)
+        snapshots = np.arange(num_snaps)
+        autocorrs = []
+        for lag in range(0,max_lag):
+            dists_no_lag = e2es[row,:][lag:]
+            if lag == 0:
+                dists_with_lag = dists_no_lag
+            else:
+                dists_with_lag = e2es[row,:][:-1*lag]
+            corr = np.corrcoef(dists_no_lag,dists_with_lag)[0, 1]
+            autocorrs.append(corr)
+        autocorrs_arr[trial, :] = np.array(autocorrs)
+
+        mean_autocorrelations = autocorrs_arr.mean(axis=0)
+    return autocorrs_arr, mean_autocorrelations
 
 def fit_exponential(mean_autocorrelations, max_lag = 30):
     ''' Return a, b, and tau such that tau = 1/lambda
