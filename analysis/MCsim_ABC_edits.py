@@ -1,5 +1,5 @@
 #/usr/bin/python 
-# npagane | simulation object class and subclasses to parse wlcsim output
+# npagane and aclerkin | simulation object class and subclasses to parse wlcsim output
 """
 Simulation objects to help read in wlcsim data and perform simple analyses/visualizations.
 This was specifically designed for Risca lab usage, but feel free to use/edit if it helps you
@@ -14,9 +14,10 @@ MAIN_SIMULATION_FOLDER
                 r<K>v<J>
 
 where there are <I> number of trials and <J> number of trajectories for <K> number of snapshots. Differing 
-trials represent different experiements (i.e. changing condtitions/parameters) while different trajectories 
-are essentially technical replicates--UNLESS you are parallel tempering, which then means that the different 
-trajectories are different "temperatures". The snapshots are wlcsim outputs throughout the simulation "time". 
+trials represent different experiements (i.e. changing condtitions/parameters) or experimental replicates
+while different trajectories are essentially technical replicates--UNLESS you are parallel tempering, 
+which then means that the different trajectories are different "temperatures". The snapshots are wlcsim
+outputs throughout the simulation "time". 
 
 Therefore the hierarchy of these classes are nested as follows:
 Simulation
@@ -57,7 +58,6 @@ dat.trials['trial2'].trajectories[2].snapshots[9].end_to_end # get end-to-end di
 TODO
 ----
 fix interpolation code, it works reasonably but still not perfect for fractional basepairs
-micro C analysis? 
 more analysis functions for interaction geoemetry
 """
 import sys
@@ -121,6 +121,12 @@ class Simulation:
             print('read in %s' %(str(trial)))
         # remove intermediary data structures if they do not exist
         self.unnest()
+    
+    def __enter__(self):
+        return "entered!"
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("exited!")
 
     def returnTrials(self):
         """Return a list of the `Trial` subdirectory names."""
@@ -349,16 +355,17 @@ class Chain:
 
     This class contains most of the fields and functions that are useful for wlcsim analysis. Some useful class 
     fields are:
-        `r` : computational bead positions for the specific chain
-        `u` : computational bead U orientation vectors for the specific chain
-        `v` : computational bead V orientation vectors for the specific chain
+        `r` : wlcsim output bead positions for the specific chain
+        `u` : wlcsim output bead U orientation vectors for the specific chain
+        `v` : wlcsim output bead V orientation vectors for the specific chain
         `discretization` : discreitzation (in bp) of each computational bead for the specific chain
         `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in the specific chain
         `end_to_end` : end-to-end distance of the specific chain
         `n_bps` : number of DNA basepairs throughout the specific chain (including DNA wrapped around nucleosomes)
         `end_to_end_norm` : end-to-end distance normalized by its contour length `n_bps`
-        `center_r` : center positions of computational beads with respect to their excluded volume 
+        `center_r` : center positions (with respect to their excluded volume) of polygons interpolated from `r`. 
+                     Includes nucleosome core particle center (hence, len(center_r) = len(r)-2+1)
         `n_nucs` : number of nucleosomes on the specific chain
         `pair_dist` : nucleosome pairwise distances, i.e. all combinatorics of n choose k, for the specific chain
         `reduced_pair_dist` : reduced nucleosome pairwise distances, i.e. n & n+1, n & n+2, etc. 
@@ -430,22 +437,40 @@ class Chain:
         Generates
         ---------
         center_r : center positions of computational beads with respect to their excluded volume 
+
+
+        To Do
+        -----
+        Need to have the number of sides drawn in from the defines file
+
         """
         if (type!='regular'):
-            print('can only find center of beads for regular shapes at the moment.')
+            print('can only find center of beads for regular shapes at the moment.', flush=True)
             return 0
+        # Initialize empty array then is rows x cols where 
+        # rows = num_beads - 1 (because one polygon center will be inferred between each set of beads, including one nucleosome core position)
+        # So if each linker for a monomucleosome has 8 beads (16 beads total), 7 polygon centers will be inferred per linker in addition to 1 nuc. core center (7+7+1 = 16 -1)
+        # cols = 3 dimensions (x, y, and z coordinates)
+
         self.center_r = np.zeros((self.n_beads-1)*3).reshape([self.n_beads-1,3])
         for i in range(self.n_beads-1):
             if (self.wrapped[i]>0): # nucleosome
                 # make rotation matrix
                 uin = np.asarray(self.u[i,:]); vin = np.asarray(self.v[i,:]); cross = np.cross(uin, vin)
+                # Note mat is a rotation matrix. 
+                # It's determinant = 1 and its inverse equals its transpose
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
                 # center of nucleosome material frame
-                center = np.asarray([4.8455, -2.4445, 0.6694])
+                # center = np.asarray([4.8455, -2.4445, 0.6694])
+                # center recalculted using wlcsim/input/nucleosomeT
+                # TO DO, make dynamic, y-coord should change with wrapping (wrapping used here is 127)
+                center = np.asarray([4.1899999999999995, -2.8882080789053335,  0.22996943061202169]) 
+
                 # rotate into center of material frame 
+                # helpful source: http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html 
                 poly = self.r[i,:] + np.matmul(mat, center)
             else: # dna
-                # rotate into center of material frame 
+                # Take simple average to center linker DNA polygon between adjacent linker DNA beads
                 poly = (self.r[i,:]+self.r[i+1,:])/2.0
             self.center_r[i,:] = poly
 
@@ -528,6 +553,10 @@ class Chain:
     def pairwiseNucleosomeOrientation(self, cutoff=12):
         """Get the pairwise orientation between the center of each nucleosome on the chain, i.e. n choose k
         
+        Parameters
+        ----------
+        cutoff : int 
+            Nanometer distance cutoff between nucleosomes to be considered a contact
         Generates
         ---------
         pair_dist : nucleosome pairwise distances, i.e. all combinatorics of n choose k
@@ -564,7 +593,7 @@ class Chain:
                     faceDistList[1, :] = faceItop - faceJtop 
                     faceDistList[2, :] = faceIbot - faceJbot 
                     faceDistList[3, :] = faceIbot - faceJtop 
-                    # find the closest faces to define the face oritentation vector
+                    # find the closest faces to define the face orientation vector
                     indDist = np.argmin(np.linalg.norm(faceDistList, axis=1))
                     distS = faceDistList[indDist, :]
                     costhetaI = np.dot(distS/np.linalg.norm(distS), faceI/np.linalg.norm(faceI))
@@ -1066,9 +1095,9 @@ class Snapshot(Chain):
 
     This class contains most of the fields and functions that are useful for wlcsim analysis. Some useful class 
     fields are:
-        `r` : computational bead positions
-        `u` : computational bead U orientation vectors
-        `v` : computational bead V orientation vectors
+        `r` : wlcsim output bead positions
+        `u` : wlcsim output bead U orientation vectors
+        `v` : wlcsim output bead V orientation vectors
         `discretization` : discreitzation (in bp) of each computational bead
         `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in polymer
@@ -1124,7 +1153,9 @@ class Snapshot(Chain):
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None
-        self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        # self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        # Redid line above to instatiate as nulls so that when the distance is below the cutoff, value is recorded as nan not 0.0
+        self.ff_coeff = np.full(self.n_pair_dist, np.nan); self.fs_coeff = np.full(self.n_pair_dist, np.nan); self.ss_coeff = np.full(self.n_pair_dist, np.nan)
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)
         # interpolation/ricc-seq stuff
         self.interpolated = None
