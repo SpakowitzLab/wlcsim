@@ -4,7 +4,9 @@ import numpy as np
 import colorsys
 import sys
 from pymol.cgo import *
-sys.path.append('../analysis/')
+#sys.path.append('../analysis/')
+# May need to comment out line below and uncomment line above for general use
+sys.path.insert(0, '/ru-auth/local/home/abrenner/mystore/template_wlcsim/wlcsim')
 from analysis.utility import *
 
 # this script is run automatically by MCsim and will need to be changed for someone else's use

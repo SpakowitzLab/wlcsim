@@ -313,7 +313,7 @@ class Trajectory:
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path + " " + str(base))
                     
-    def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True):
+    def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True, repo_path = default_dir):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" visualizing the excluded volume of the chain. 
         See the saveCoarseGrainedPDB method in the `Snapshot` class for more informtion on the calculation.
 
@@ -340,11 +340,11 @@ class Trajectory:
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
         if (self.temperature != None):
-            os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
+            os.system(pymol + " -r "+repo_path+"/analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " 
                         + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
         else:
-            os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
+            os.system(pymol + " -r "+repo_path+"/analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " 1 "  
                         + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
 
