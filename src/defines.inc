@@ -350,8 +350,8 @@
 !
 ! ---------------------------
 
-#define WLC_P__LENGTH_PER_BP 0.332_DP
-! VARIABLE COMMENT: ! Length along DNA per bace pair.  Currently not in use.
+#define WLC_P__LENGTH_PER_BP 0.324_DP 
+! VARIABLE COMMENT: ! Length along DNA per bace pair. 3.4nm/10.5bp. Previous value of 0.332 was used in codebase, unsure why. 
 ! DEFAULTS COMMENT: ! known value in nm
 ! TYPE: REAL(DP)
 
