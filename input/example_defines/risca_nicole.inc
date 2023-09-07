@@ -131,7 +131,7 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
-#define WLC_P__GJK_NUC_ONLY .TRUE.
+#define WLC_P__GJK_NUC_ONLY .FALSE.
 ! VARIABLE COMMENT: ! GJK algorithm to model only nucleosomes as convex hulls
 ! DEFAULTS COMMENT: ! Do not check for sterics via GJK by default.
 ! TYPE: LOGICAL
