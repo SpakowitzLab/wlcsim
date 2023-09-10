@@ -17,12 +17,20 @@ default_omega = 2*np.pi/bp_per_turn # default twist of DNA
 max_bp_wrapped = 160
 nucleosome_height = 5.5 # nm
 nucleosome_radius = 5.2 # nm
-nucleosome_center = np.array([4.8455, -2.4445, 0.6694])
+#nucleosome_center = np.array([4.8455, -2.4445, 0.6694])
 default_dir = str(Path(__file__).parent / Path('..'))
 
 # read in translation and rotation files
 nucleosome_tran = np.loadtxt('%s/input/nucleosomeT' %(default_dir))
 nucleosome_rot = np.loadtxt('%s/input/nucleosomeR' %(default_dir))
+
+# Get nucleosome center
+default_wrap = 127 # to do: make dynamic
+nucleosome_tran_sub = nucleosome_tran[-1*default_wrap:]
+xmid = (np.min(nucleosome_tran_sub[:,0]) + np.max(nucleosome_tran_sub[:,0]))/2
+ymid = (np.min(nucleosome_tran_sub[:,1]) + np.max(nucleosome_tran_sub[:,1]))/2
+zmid = (np.min(nucleosome_tran_sub[:,2]) + np.max(nucleosome_tran_sub[:,2]))/2
+nucleosome_center = np.array([xmid, ymid, zmid])
 
 def rotate_bead(Uin, Vin, Rin, link_bp, wrap_bp):
     """

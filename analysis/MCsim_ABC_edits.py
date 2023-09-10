@@ -464,7 +464,7 @@ class Chain:
                 # center = np.asarray([4.8455, -2.4445, 0.6694])
                 # center recalculted using wlcsim/input/nucleosomeT
                 # TO DO, make dynamic, y-coord should change with wrapping (wrapping used here is 127)
-                center = np.asarray([4.1899999999999995, -2.8882080789053335,  0.22996943061202169]) 
+                center = nucleosome_center# value from utility.py # np.asarray([4.1899999999999995, -2.8882080789053335,  0.22996943061202169]) 
 
                 # rotate into center of material frame 
                 # helpful source: http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html 

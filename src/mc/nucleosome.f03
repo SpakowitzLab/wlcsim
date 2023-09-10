@@ -136,7 +136,7 @@ contains
       real(dp), parameter :: e_faceside = 1.476_dp ! scaling in params file
       real(dp), parameter :: tau_sideside = 2.0_dp
       real(dp), parameter :: e_sideside = 1.64_dp ! scaling in params file
-      real(dp), dimension(3), parameter :: center = [4.8455_dp, -2.4445_dp, 0.6694_dp]
+      real(dp), dimension(3), parameter :: center = [4.1900_dp, -2.022_dp, 0.2300_dp]
       real(dp), dimension(3, 3) :: mtrxI, mtrxJ
       real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
       real(dp), dimension(3) :: polyJ, faceJ, faceJtop, faceJbot

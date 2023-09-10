@@ -50,7 +50,9 @@ for ind in file_inds:
                     space = 0
                     height = 5.5
                     radius = 5.2
-                    center = np.asarray([4.8455, -2.4445, 0.6694])
+                    #center = np.asarray([4.8455,-2.4445,0.6694])
+                    #center = np.asarray([4.1900, -2.022154, 0.2300])
+                    center = nucleosome_center
                     for j in range(int(side/2.0)):
                         # rotate into material frame 
                         vec = np.asarray([radius*np.cos(space), -height/2.0, radius*np.sin(space)])

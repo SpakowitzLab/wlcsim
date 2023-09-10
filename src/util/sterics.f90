@@ -259,7 +259,7 @@ MODULE GJKAlgorithm
 
         ! determine if nucleosome or not
         if (wrap /= 0) then 
-            center = [4.84550_DP, -2.44450_DP, 0.66940_DP]
+            center = [4.19000_DP, -2.02220_DP, 0.23000_DP]
             pos = pos1
             h = WLC_P__NUCLEOSOME_HEIGHT ! nm height
             r = WLC_P__NUCLEOSOME_RADIUS ! nm radius
@@ -332,7 +332,7 @@ MODULE GJKAlgorithm
             mtrx(:,1) = v
             mtrx(:,2) = cross(u,v)
             mtrx(:,3) = u
-            center = [4.84550_DP, -2.44450_DP, 0.66940_DP]
+            center = [4.19000_DP, -2.02220_DP, 0.2300_DP]
             pos = pos1
             ! find center of polygon
             findCenterPolygonPrism = pos + MATMUL(mtrx, center)
