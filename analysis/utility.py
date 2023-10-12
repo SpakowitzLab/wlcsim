@@ -50,13 +50,15 @@ def rotate_bead(Uin, Vin, Rin, link_bp, wrap_bp):
     link_bp : float or int
         discretization of computational bead in bp
     wrap_bp : int
-        number of basepairs wrapping bead, i.e. 147 for nucleosomes and 1 for DNA beads
+        number of basepairs wrapping bead, i.e. 127 for nucleosomes and 1 for DNA beads
 
     Returns
     ----------
     Uout, Vout, Rout : list
         list of the resultant vectors from rotating and translating Uin, Vin, and Rin
     """
+
+    # Make a rotational matrix
     mat = np.matrix([Vin, np.cross(Uin, Vin), Uin]).T
     #interpolate for wrap_bp
     ind_down = int(np.floor(wrap_bp))
@@ -66,10 +68,13 @@ def rotate_bead(Uin, Vin, Rin, link_bp, wrap_bp):
     else:
         ratio = wrap_bp/ind_up
     offratio = 1 - ratio
+    #max_bp_wrapped - ind_up is equiva
     inter_tran = ratio*nucleosome_tran[max_bp_wrapped - ind_up] + offratio*nucleosome_tran[max_bp_wrapped - ind_down] 
     inter_rot = ratio*nucleosome_rot[(3*(max_bp_wrapped - ind_up)):(3*(max_bp_wrapped - ind_up) + 3),:] \
                     + offratio*nucleosome_rot[(3*(max_bp_wrapped - ind_down)):(3*(max_bp_wrapped - ind_down) + 3),:]
     Rout = Rin + np.matmul(mat, inter_tran)
+
+    # Rotation matrix to propogate the double helix twist
     link_rot = np.matrix([[np.cos(default_omega*link_bp), -np.sin(default_omega*link_bp), 0.],
                         [np.sin(default_omega*link_bp), np.cos(default_omega*link_bp), 0.],
                         [0., 0., 1.]])

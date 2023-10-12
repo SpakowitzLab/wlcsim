@@ -634,6 +634,7 @@ class Chain:
         # Make a new quantity that stores the nuclesome entry and exit point
         nucleosome_indices = []
         for i in range(self.n_beads):
+            # self.discretization = bp per bead except for last bead. It is 0 for last bead. 
             if self.discretization[i] != 0:
                 # NOT PROPERLY INTERPOLATING TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TO INTERPOLATE TWIST/SUPERCOILING
                 #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.discretization[i] % 10.5)
@@ -641,6 +642,7 @@ class Chain:
                 Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrapped[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
+                # If self.wrapped[i] > 0, then interpolate nucleosomal DNA
                 if (self.wrapped[i] > 0): # nucleosome
                     for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrapped[i])+summedLeftOver, int(np.floor(self.wrapped[i])))):
                         strand1, base, strand2 = DNAhelix(j,v=0)
@@ -740,7 +742,6 @@ class Chain:
         tempInds = np.sum(np.sum(self.interpolated==0,1),1)!=9
         self.interpolated = self.interpolated[tempInds]
         self.n_bps = len(self.interpolated)
-        # print(nucleosome_indices)
         # Reformat as integers
         nucleosome_indices = [int(i) for i in list(nucleosome_indices)]
         self.nucleosome_indices = nucleosome_indices
