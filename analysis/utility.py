@@ -262,3 +262,117 @@ def plot_auto_corr(filepath, data, trial_labels, num_snaps=100, max_lag=30, eq =
    plt.savefig(filepath+'.pdf')
    plt.show()
    return mean_autos, tau, a, b, y_vals_of_fit
+
+def categorizeLocs(locations, nuc_pos):
+    '''
+    Categorize positions of centered beads, given the index of the nucleosome position.
+   
+    Parameters
+    ----------
+    locations (nd.array): centered bead locations. Shape: num beads x 3
+    nuc_pos (int): index of nucleosome bead 
+
+
+    To Do:
+    Generalize for multinucleosomes, only for mononucleosomes as is. 
+    '''
+    linker1 = locations[:nuc_pos]
+    nuc_center = locations[nuc_pos]
+    linker2 = locations[(nuc_pos+1):]
+    return linker1, linker2, nuc_center
+
+def vectToSeries(vect, spread = 8, j = 100):
+    """ Take a 3d vector with an x, y, and z coordinate and returns 2 points where inpute are scaled by the spread"""
+    linepts = vect * np.mgrid[-1*spread:spread:2j][:, np.newaxis]
+    return linepts
+
+def getPrincipalComp(vector, print_info=0):
+    datamean = vector.mean(axis=0)
+    uu, dd, vv = np.linalg.svd(vector - datamean)
+    pc1 = vv[0]  
+    # We could stop here, but the PC could be pointing in the negative direction of what is intended
+    # I think this may depend on the directions of the next two PCs, I am not sure
+    # Adding test to see if PC1 is pointing in intended direction (same direction as vector)
+    # If the vector is pointing in the correct direction, the dist1 should be less than dist 2
+    # Make a vector of length spread*2 in the dir of pc1 and center it at the mean of the input vector
+    # If PC1 is already in the correct direction, the distance between 
+    
+    spread = vectToSeries(pc1, spread = 1)
+    start_point = spread[0] + datamean
+    end_point = spread[1] + datamean
+
+    dist1 = np.linalg.norm(start_point-vector[0])
+    dist2 = np.linalg.norm(start_point-vector[-1])
+    if dist1 < dist2:
+        pass
+    elif dist1 > dist2:
+        pc1 = -1*pc1
+    else:
+        raise ValueError('dist 1 vs dist 2 logic issue') 
+
+    return pc1
+
+def getOrthoNormal(vin, uin):
+    """
+    Compute the orthonormal vector for the given nucleosome
+
+    Parameters
+    ----------
+    vin : np.ndarrary() of len 3 
+        v vector of the last linker bead entering the nuclesome core particle (x, y, z directions)
+    
+    uin : np.ndarrary() of len 3
+        u vector of the last linker bead entering the nuclesome core particle (x, y, z directions)
+    
+    Returns
+    -------
+    ortho_norm : np.ndarrary() of len 3 (x, y, z directions)
+        Orthonormal vector in the direction of the bottom face of the nucleosome (closest to DNA entry) 
+        to the top face of the nuceolsome (closest to DNA exit). In other words, if you use the left hand rule to
+        wrap the fingers of your left hand in the direction of the DNA wrapping around the nucleosome core particle,
+        your thumb will be pointing in the direction of the ortho_norm
+    
+    """
+    # nucleosome_height = 5.5
+    # Take the cross product v and u to define the third axis
+    # which will be used in the rotation matrix 
+    cross = np.cross(vin, uin)
+    
+    # mat is a rotation matrix. 
+    # It's determinant = 1 and its inverse equals its transpose
+    mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
+    
+    # Nucleosome center computed from wlcsim/input/nucleosomeT
+    # TO DO: Change this to new computed values
+    center = np.asarray([4.1899999999999995, -2.8882080789053335,  0.22996943061202169]) 
+    
+    # The y-direction is the superhelical axis  
+    # nuc_top represents a point: the center of the top face of the nucleosome 
+    nuc_top = center + np.asarray([0, 0.5 * nucleosome_height, 0]) 
+    # nuc_bottom represents a point: the center of the bottom face of the nucleosome 
+    nuc_bottom = center - np.asarray([0, 0.5 * nucleosome_height, 0]) 
+    # Apply rotation matrix to nucleosome center of the top face, and center of the bottom face
+    # from the origin. No need to translate in the correct place in 3D space because we just need vector direction
+    rot_top = np.matmul(mat, nuc_top)
+    rot_bottom = np.matmul(mat, nuc_bottom)
+    # Define vector between these two points 
+#     ortho_norm = np.reshape(np.array(rot_top - rot_bottom), (-1,1))
+    ortho_norm = np.array(rot_top - rot_bottom).flatten()
+    return ortho_norm 
+
+def dotproduct(v1, v2):
+    return sum((a*b) for a, b in zip(v1, v2))
+
+def length(v):
+    return math.sqrt(dotproduct(v, v))
+
+def angle(v1, v2):
+    try: 
+        arccos_input = dotproduct(v1, v2) / (length(v1) * length(v2))
+        # Rounding arcos input because decimal imprecisions cause the attempt to 
+        # take arcos of impossible value (e.g. -1.000000002)
+        ang = math.acos(np.round(arccos_input,2))*180/np.pi
+    except ValueError:
+        print("Angle computation is throwing an error", flush = True)
+        ang = np.nan
+    return ang

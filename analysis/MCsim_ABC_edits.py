@@ -475,6 +475,74 @@ class Chain:
             self.center_r[i,:] = poly
 
     #ARIANA EDITS 
+    def mononucAlpha(self, num_beads_for_ang = 4):
+        """
+        For mononucleosome structures, get the entry-exit angle (alpha)
+        
+        Parameters
+        ----------
+        num_beads_for_ang : int, optional
+            default : 4
+            number of computational beads used to fit vector for each linker segment
+        type : string, optional
+            default : 'regular'
+            whether the excluded geometry is a regular shape or not (currently can only handle regular shapes)
+
+        Generates
+        ---------
+        alpha : Entry-exit angle
+        """
+        try:
+            if (self.interpolated == None):
+                self.interpolate() 
+        except:
+            pass 
+
+        try:
+            if (self.center_r == None):
+                self.centerBeads() 
+        except:
+            pass 
+
+        nuc_pos = int(np.where(self.wrapped > 0)[0])
+        positions = self.center_r
+        # Categorize beads as linker1, linker2, or nucleosome center
+        linker1, linker2, nuc_center = categorizeLocs(positions, nuc_pos)
+        linker1 = np.flip(linker1[-num_beads_for_ang:], axis = 0)
+        linker2 = linker2[:num_beads_for_ang]
+
+        # Get principal components
+        linker_1_pc = getPrincipalComp(linker1)
+        linker_2_pc = getPrincipalComp(linker2)
+
+        # Define Orthonormal Vector from entry u and v vectors 
+        vs = self.v[nuc_pos]
+        us = self.u[nuc_pos]
+        onm = getOrthoNormal(vs, us)
+        n_norm = np.sqrt(sum(onm**2))
+
+        proj_of_pc1_link1_on_onm = linker_1_pc - (np.dot(linker_1_pc, onm)/n_norm**2)*onm
+        proj_of_pc1_link2_on_onm = linker_2_pc - (np.dot(linker_2_pc, onm)/n_norm**2)*onm
+        alpha = angle(proj_of_pc1_link1_on_onm, proj_of_pc1_link2_on_onm) 
+
+        # "direction" array yields vector perpendicular to the plane defined by proj_of_pc1_link1_on_onm and proj_of_pc1_link2_on_onm
+        # TO DO THIS IS THROWING MATH DOMAIN ERRORS SOMETIMES NEED TO FIx
+        direction = np.cross(proj_of_pc1_link1_on_onm, proj_of_pc1_link2_on_onm)
+        same_dir_test = angle(direction,onm)
+        v1 = direction
+        v2 = onm
+
+        if (same_dir_test > 179) & (same_dir_test < 181): # range 179-181 to allow for rounding errors
+        # Then the vectors are pointing in the opposite way and resulting alphas should be positive 
+        # This corresponds to the state where NCPs are not overly unwrapped
+            ang_direction_adj = 1
+        else: 
+            ang_direction_adj = -1
+        alpha = alpha * ang_direction_adj
+        self.alpha = alpha/2
+        return alpha
+
+
     def avgFiberAxisNucleosomeDistance(self):
         '''
         Gets the fiber axis by taking PC1 of the 
@@ -1149,6 +1217,7 @@ class Snapshot(Chain):
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
+        self.alpha = None
         # pairwise nucleosomes
         self.n_nucs = np.sum(self.wrapped>0)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
