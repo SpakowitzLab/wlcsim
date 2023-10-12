@@ -64,7 +64,7 @@
 #define WLC_P__CHEM_STATE_FROM_FILE .FALSE.
 ! VARIABLE COMMENT: ! Whether to read the initial chemical sequence from a file.  In the chromatin simulations this corresponds to the HP1 binding profile and is therefore FALSE.  For block-copolymers this corresponds to A/B block bead pattern.  Reads from "input/ab".
 ! DEFAULTS COMMENT: ! Don't load initial a/b states from file
-! TYPE: LOGICAL
+! TYPE: 
 
 #define WLC_P__CHEM_SEQ_FROM_FILE .FALSE.
 ! VARIABLE COMMENT: ! Read the fixed methylation profile (or equivalent for other problems) from a file.  Read from "input/meth" or "input/meth_..." if WLC_P__ENSEMBLE_METH.
@@ -338,6 +338,11 @@
 ! DEFAULTS COMMENT: ! baseline twist density 0.0
 ! TYPE: REAL(DP)
 
+#define WLC_P__NUCLEOSOME_WRAPPING 147
+! VARIABLE COMMENT: ! How many basepairs wrap a nucleosome (this then defines the entry-exit geometry of the nucleosome)
+! DEFAULTS COMMENT: ! 147 bp wrapping
+! TYPE: REAL(DP)
+
 ! ----------------------------
 !
 !   Length variables
@@ -345,8 +350,8 @@
 !
 ! ---------------------------
 
-#define WLC_P__LENGTH_PER_BP 0.332_DP
-! VARIABLE COMMENT: ! Length along DNA per bace pair.  Currently not in use.
+#define WLC_P__LENGTH_PER_BP 0.324_DP 
+! VARIABLE COMMENT: ! Length along DNA per bace pair. 3.4nm/10.5bp. Previous value of 0.332 was used in codebase, unsure why. 
 ! DEFAULTS COMMENT: ! known value in nm
 ! TYPE: REAL(DP)
 
@@ -592,9 +597,9 @@
 ! DEFAULTS COMMENT: ! toggle on or off
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
-! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
-! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
+#define WLC_P__INTERNUCLEOSOME_ENERGY 4.0_DP 
+! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy
+! DEFAULTS COMMENT: ! inspired from de pablos group, look at nucleosome.f03 for more details
 ! TYPE: REAL(DP)
 
 ! ----------------------------
@@ -725,17 +730,20 @@
 ! DEFAULTS COMMENT: ! From experience.
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+#define WLC_P__MOVESPERSTEP_NUCLEOSOME_SLIDE 60
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_NUCLEOSOME_BREATHE 10
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome breathe <default ?> 
 ! TYPE: INTEGER
 
 #define WLC_P__PROBSINGLESWAP 0.5_dp
 ! VARIABLE COMMENT: ! For TWO_TAIL simulations, what fraction of the BINDING_STATE moves to change the binding state of only one tail.
 ! DEFAULTS COMMENT: ! 0< x  <1
 ! TYPE: LOGICAL
-
-
 
 ! --------------------------
 !
@@ -762,7 +770,6 @@
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper linking number (twist) by default
 ! TYPE: LOGICAL
-
 #define WLC_P__PT_CHI .FALSE.
 ! VARIABLE COMMENT: None
 ! DEFAULTS COMMENT: ! don't parallel temper chi by default
@@ -777,7 +784,6 @@
 ! VARIABLE COMMENT: ! Parallel temper kappa (incompressibility) energy.
 ! DEFAULTS COMMENT: ! don't parallel temper kap by default
 ! TYPE: LOGICAL
-
 #define WLC_P__PT_MU .FALSE.
 ! VARIABLE COMMENT: ! Parallel temper chemical potential of HP1.
 ! DEFAULTS COMMENT: ! don't parallel temper mu by default
@@ -787,7 +793,6 @@
 ! VARIABLE COMMENT:  ! Parallel temper HP1 coupling energy.
 ! DEFAULTS COMMENT: ! don't parallel temper HP1 binding by default
 ! TYPE: LOGICAL
-
 #define WLC_P__PT_MAIERSAUPE .FALSE.
 ! VARIABLE COMMENT: ! Parallel temper Maier Saupe liquid crystal interaction.
 ! DEFAULTS COMMENT: ! don't parallel temper maier Saupe by default
@@ -797,7 +802,6 @@
 ! VARIABLE COMMENT: ! Parallel temper over external applied field strength.
 ! DEFAULTS COMMENT: ! don't parallel temper h by default
 ! TYPE: LOGICAL
-
 #define WLC_P__PT_A2B .FALSE.
 ! VARIABLE COMMENT: ! Parallel temper two body interaction strength.
 ! DEFAULTS COMMENT: ! don't parallel temper.
@@ -929,9 +933,14 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+#define WLC_P__MOVEON_NUCLEOSOME_SLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
+
+#define WLC_P__MOVEON_NUCLEOSOME_BREATHE 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome angle
 ! TYPE: INTEGER
 
 ! ----------------------------
@@ -1000,7 +1009,11 @@
 ! DEFAULTS COMMENT: ! Target
 ! TYPE: REAL(DP)
 
-#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+#define WLC_P__PDESIRE_NUCLEOSOME_SLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+
+#define WLC_P__PDESIRE_NUCLEOSOME_BREATHE 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 
@@ -1179,6 +1192,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_BREATHE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
@@ -1240,6 +1258,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_BREATHE NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1359,7 +1382,12 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+#define WLC_P__NADAPT_NUCLEOSOME_SLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_NUCLEOSOME_BREATHE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER

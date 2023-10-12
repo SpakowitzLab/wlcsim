@@ -26,7 +26,7 @@ module params
 
     !!!     hardcoded params. will need to change if certain parts of code change
    ! number of wlc_p move types
-   integer, parameter :: nMoveTypes = 13 ! NP added nuc slide
+   integer, parameter :: nMoveTypes = 14 
    integer, parameter :: nDim = 3
 
     !!!     arbitrary technical choices
@@ -48,7 +48,7 @@ module params
                                                             'chem-identity       ', 'end-end filp        ', &
                                                             'chain swap          ', 'reptation           ', &
                                                             'superReptation      ', 'spider              ', &
-                                                            'nucleosomeSlide     '/)
+                                                            'nucleosomeSlide     ', 'nucleosomeBreathe   '/)
 
     !!!     universal constants
    ! fully accurate, adaptive precision
@@ -188,9 +188,10 @@ module params
 
    !   nucleosomes
    real(dp), allocatable, dimension(:) :: wlc_basepairs
-   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap
+   real(dp), allocatable, dimension(:) :: wlc_nucleosomeWrap
    real(dp), allocatable, dimension(:) :: wlc_basepairs_prop ! for sliding
-   integer, allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for breathing
+   real(dp), allocatable, dimension(:) :: wlc_nucleosomeWrap_prop ! for unwrapping (NEEDS TO BE IMPLEMENTED)
+
 
    ! Linking number, Twist, and Writhe (only for one-chain simulation)
    ! These values are updated in mcsim, checked against and update to their values
@@ -241,7 +242,8 @@ contains
       wlc_p%PDESIRE(10) = WLC_P__PDESIRE_REPTATION
       wlc_p%PDESIRE(11) = WLC_P__PDESIRE_SUPER_REPTATION
       wlc_p%PDESIRE(12) = WLC_P__PDESIRE_SPIDER
-      wlc_p%PDESIRE(13) = WLC_P__PDESIRE_NUCLEOSOMESLIDE
+      wlc_p%PDESIRE(13) = WLC_P__PDESIRE_NUCLEOSOME_SLIDE
+      wlc_p%PDESIRE(14) = WLC_P__PDESIRE_NUCLEOSOME_BREATHE
       wlc_p%MAXWINDOW(1) = WLC_P__MAXWINDOW_CRANK_SHAFT
       wlc_p%MAXWINDOW(2) = WLC_P__MAXWINDOW_SLIDE_MOVE
       wlc_p%MAXWINDOW(3) = WLC_P__MAXWINDOW_PIVOT_MOVE
@@ -281,6 +283,7 @@ contains
       wlc_p%MINAMP(11) = WLC_P__MINAMP_SUPER_REPTATION
       wlc_p%MINAMP(12) = WLC_P__MINAMP_SPIDER
       wlc_p%MINAMP(13) = WLC_P__MINAMP_NUCLEOSOME_SLIDE
+      wlc_p%MINAMP(14) = WLC_P__MINAMP_NUCLEOSOME_BREATHE
       wlc_p%MAXAMP(1) = WLC_P__MAXAMP_CRANK_SHAFT
       wlc_p%MAXAMP(2) = WLC_P__MAXAMP_SLIDE_MOVE
       wlc_p%MAXAMP(3) = WLC_P__MAXAMP_PIVOT_MOVE
@@ -294,6 +297,7 @@ contains
       wlc_p%MAXAMP(11) = WLC_P__MAXAMP_SUPER_REPTATION
       wlc_p%MAXAMP(12) = WLC_P__MAXAMP_SPIDER
       wlc_p%MAXAMP(13) = WLC_P__MAXAMP_NUCLEOSOME_SLIDE
+      wlc_p%MAXAMP(14) = WLC_P__MAXAMP_NUCLEOSOME_BREATHE
       wlc_p%MOVEON(1) = WLC_P__MOVEON_CRANK_SHAFT
       wlc_p%MOVEON(2) = WLC_P__MOVEON_SLIDE_MOVE
       wlc_p%MOVEON(3) = WLC_P__MOVEON_PIVOT_MOVE
@@ -306,7 +310,8 @@ contains
       wlc_p%MOVEON(10) = WLC_P__MOVEON_REPTATION
       wlc_p%MOVEON(11) = WLC_P__MOVEON_SUPER_REPTATION
       wlc_p%MOVEON(12) = WLC_P__MOVEON_SPIDER
-      wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOMESLIDE
+      wlc_p%MOVEON(13) = WLC_P__MOVEON_NUCLEOSOME_SLIDE
+      wlc_p%MOVEON(14) = WLC_P__MOVEON_NUCLEOSOME_BREATHE
       wlc_p%WINTARGET(1) = WLC_P__WINTARGET_CRANK_SHAFT
       wlc_p%WINTARGET(2) = WLC_P__WINTARGET_SLIDE_MOVE
       wlc_p%WINTARGET(3) = WLC_P__WINTARGET_PIVOT_MOVE
@@ -332,7 +337,8 @@ contains
       wlc_p%NADAPT(10) = WLC_P__NADAPT_REPTATION
       wlc_p%NADAPT(11) = WLC_P__NADAPT_SUPER_REPTATION
       wlc_p%NADAPT(12) = WLC_P__NADAPT_SPIDER
-      wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOMESLIDE
+      wlc_p%NADAPT(13) = WLC_P__NADAPT_NUCLEOSOME_SLIDE
+      wlc_p%NADAPT(14) = WLC_P__NADAPT_NUCLEOSOME_BREATHE
       wlc_p%MOVESPERSTEP(1) = WLC_P__MOVESPERSTEP_CRANK_SHAFT
       wlc_p%MOVESPERSTEP(2) = WLC_P__MOVESPERSTEP_SLIDE_MOVE
       wlc_p%MOVESPERSTEP(3) = WLC_P__MOVESPERSTEP_PIVOT_MOVE
@@ -345,7 +351,8 @@ contains
       wlc_p%MOVESPERSTEP(10) = WLC_P__MOVESPERSTEP_REPTATION
       wlc_p%MOVESPERSTEP(11) = WLC_P__MOVESPERSTEP_SUPER_REPTATION
       wlc_p%MOVESPERSTEP(12) = WLC_P__MOVESPERSTEP_SPIDER
-      wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE
+      wlc_p%MOVESPERSTEP(13) = WLC_P__MOVESPERSTEP_NUCLEOSOME_SLIDE
+      wlc_p%MOVESPERSTEP(14) = WLC_P__MOVESPERSTEP_NUCLEOSOME_BREATHE
 
    end subroutine set_param_defaults
 
@@ -395,6 +402,10 @@ contains
          print *, 'the linker needs to be explicitly modeled. this could be cleverly '
          print *, 'updated one day to just make finite straight prisms to connect 2 beads.'
          print *, 'but clearly needs to be implemented'
+         stop
+      endif
+      if ((WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1) .OR. (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) ) then
+         print *, 'The nuclesome slide and breathe moves are currently in development!!'
          stop
       endif
       err = WLC_P__NO_SELF_CROSSING .and. WLC_P__NP > 1
@@ -541,6 +552,7 @@ contains
       integer setBinShape(3)! Specify first level of binning
       integer len_file
       real(dp) poly(WLC_P__GJK_POLYGON, 3)
+      real(dp), parameter :: bin_offset = 2*WLC_P__GJK_RADIUS ! offset to ensure "center" beads are in bin
       nbin = wlc_p%NBIN
 
 #if MPI_VERSION
@@ -613,8 +625,12 @@ contains
       if (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
          allocate (wlc_basepairs(WLC_P__NT))
          allocate (wlc_nucleosomeWrap(WLC_P__NT))
-         if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then
+         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then
             allocate (wlc_basepairs_prop(WLC_P__NT))
+         endif
+         if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then
+            allocate (wlc_basepairs_prop(WLC_P__NT))
+            allocate (wlc_nucleosomeWrap_prop(WLC_P__NT))
          endif
       endif
       if (WLC_P__EXPLICIT_BINDING) then
@@ -806,8 +822,8 @@ contains
       ! ------------------------------------------
       if (WLC_P__NEIGHBOR_BINS) then
          !  Set up binning object
-         setBinSize = [WLC_P__LBOX_X, WLC_P__LBOX_Y, WLC_P__LBOX_Z] ! size of bin
-         setMinXYZ = [0.0_dp, 0.0_dp, 0.0_dp]  ! location of corner of bin
+         setBinSize = [WLC_P__LBOX_X + 2*bin_offset, WLC_P__LBOX_Y + 2*bin_offset, WLC_P__LBOX_Z + 2*bin_offset] ! size of bin
+         setMinXYZ = [-bin_offset, -bin_offset, -bin_offset]  ! location of corner of bin
          setBinShape = [10, 10, 10]   ! Specify first level of binning
          call constructBin(wlc_bin, setBinShape, setMinXYZ, setBinSize)
          do i = 1, WLC_P__NT
@@ -1337,9 +1353,10 @@ contains
          character(len=*), intent(in) :: stat
          fullName = trim(fileName)//trim(wlc_repSuffix)
          open (unit=outFileUnit, file=fullName, status=stat)
-         write (outFileUnit, *) wlc_nucleosomeWrap
+         !write (outFileUnit, *) wlc_nucleosomeWrap
          do ii = 1, WLC_P__NT
-            call print_11char_float(outFileUnit, wlc_basepairs(ii))
+            !call print_11char_vec(outFileUnit, wlc_basepairs(ii), .FALSE.)
+            write (outFileUnit, "(3f10.5)") wlc_basepairs(ii), wlc_nucleosomeWrap(ii)
          enddo
          close (outFileUnit)
       end subroutine

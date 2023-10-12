@@ -1,5 +1,5 @@
 #/usr/bin/python 
-# npagane | simulation object class and subclasses to parse wlcsim output
+# npagane and aclerkin | simulation object class and subclasses to parse wlcsim output
 """
 Simulation objects to help read in wlcsim data and perform simple analyses/visualizations.
 This was specifically designed for Risca lab usage, but feel free to use/edit if it helps you
@@ -14,9 +14,10 @@ MAIN_SIMULATION_FOLDER
                 r<K>v<J>
 
 where there are <I> number of trials and <J> number of trajectories for <K> number of snapshots. Differing 
-trials represent different experiements (i.e. changing condtitions/parameters) while different trajectories 
-are essentially technical replicates--UNLESS you are parallel tempering, which then means that the different 
-trajectories are different "temperatures". The snapshots are wlcsim outputs throughout the simulation "time". 
+trials represent different experiements (i.e. changing condtitions/parameters) or experimental replicates
+while different trajectories are essentially technical replicates--UNLESS you are parallel tempering, 
+which then means that the different trajectories are different "temperatures". The snapshots are wlcsim
+outputs throughout the simulation "time". 
 
 Therefore the hierarchy of these classes are nested as follows:
 Simulation
@@ -57,7 +58,6 @@ dat.trials['trial2'].trajectories[2].snapshots[9].end_to_end # get end-to-end di
 TODO
 ----
 fix interpolation code, it works reasonably but still not perfect for fractional basepairs
-micro C analysis? 
 more analysis functions for interaction geoemetry
 """
 import sys
@@ -121,6 +121,12 @@ class Simulation:
             print('read in %s' %(str(trial)))
         # remove intermediary data structures if they do not exist
         self.unnest()
+    
+    def __enter__(self):
+        return "entered!"
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("exited!")
 
     def returnTrials(self):
         """Return a list of the `Trial` subdirectory names."""
@@ -284,7 +290,7 @@ class Trajectory:
         for time in range(self.equilibrium_time+1,self.time_max):
             self.energies = self.energies.append(self.snapshots[time].energies)
 
-    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol',base=3):
+    def playFineMovie(self,path=default_dir+'/analysis/pdb/',topo='linear',pymol='pymol',base=3, color_nucs = 0):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" after interpolating into a more fine-grained
         structure. See the saveFineGrainedPDB and interpolate methods in the `Snapshot` class for more informtion on the calculations.
 
@@ -303,11 +309,11 @@ class Trajectory:
             exectable command to initiaite PyMol, i.e. "~/Applications/pymol/pymol" 
         """
         for time in range(self.time_min,self.time_max):
-            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base)
+            self.snapshots[time].saveFineGrainedPDB(path=path,topo=topo,base=base, color_nucs = color_nucs)
         os.system(pymol + " -r "+default_dir+"/analysis/movieFine.py -- " 
                     + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " " + path + " " + str(base))
                     
-    def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True):
+    def playCoarseMovie(self, path = default_dir+'/analysis/pdb/', topo = 'linear', pymol = 'pymol', sphere_radius = 0, show_hull = True, repo_path = default_dir):
         """Play PyMol movie of the polymer throughout the simulation "timecourse" visualizing the excluded volume of the chain. 
         See the saveCoarseGrainedPDB method in the `Snapshot` class for more informtion on the calculation.
 
@@ -334,11 +340,11 @@ class Trajectory:
         for time in range(self.time_min,self.time_max):
             self.snapshots[time].saveCoarseGrainedPDB(path=path,topo=topo)
         if (self.temperature != None):
-            os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
+            os.system(pymol + " -r "+repo_path+"/analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " PT " + str(self.temperature) + " " 
                         + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
         else:
-            os.system(pymol + " -r "+default_dir+"/analysis/movieCoarse.py -- " 
+            os.system(pymol + " -r "+repo_path+"/analysis/movieCoarse.py -- " 
                         + str(self.time_max-self.time_min) + " " + str(self.channel[-1]) + " 1 "  
                         + path + " " + self.path_to_data + " " + str(show_hull) + " " + str(sphere_radius))
 
@@ -349,16 +355,17 @@ class Chain:
 
     This class contains most of the fields and functions that are useful for wlcsim analysis. Some useful class 
     fields are:
-        `r` : computational bead positions for the specific chain
-        `u` : computational bead U orientation vectors for the specific chain
-        `v` : computational bead V orientation vectors for the specific chain
+        `r` : wlcsim output bead positions for the specific chain
+        `u` : wlcsim output bead U orientation vectors for the specific chain
+        `v` : wlcsim output bead V orientation vectors for the specific chain
         `discretization` : discreitzation (in bp) of each computational bead for the specific chain
         `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in the specific chain
         `end_to_end` : end-to-end distance of the specific chain
         `n_bps` : number of DNA basepairs throughout the specific chain (including DNA wrapped around nucleosomes)
         `end_to_end_norm` : end-to-end distance normalized by its contour length `n_bps`
-        `center_r` : center positions of computational beads with respect to their excluded volume 
+        `center_r` : center positions (with respect to their excluded volume) of polygons interpolated from `r`. 
+                     Includes nucleosome core particle center (hence, len(center_r) = len(r)-2+1)
         `n_nucs` : number of nucleosomes on the specific chain
         `pair_dist` : nucleosome pairwise distances, i.e. all combinatorics of n choose k, for the specific chain
         `reduced_pair_dist` : reduced nucleosome pairwise distances, i.e. n & n+1, n & n+2, etc. 
@@ -408,6 +415,7 @@ class Chain:
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist) 
         # interpolation/ricc-seq stuff
         self.interpolated = None
+        # self.nucleosome_indices = None
         self.break_length_s1 = None; self.break_location_s1 = None; self.break_likelihood_s1 = None
         self.break_length_b = None; self.break_location_b = None;  self.break_likelihood_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_likelihood_s2 = None
@@ -429,24 +437,143 @@ class Chain:
         Generates
         ---------
         center_r : center positions of computational beads with respect to their excluded volume 
+
+
+        To Do
+        -----
+        Need to have the number of sides drawn in from the defines file
+
         """
         if (type!='regular'):
-            print('can only find center of beads for regular shapes at the moment.')
+            print('can only find center of beads for regular shapes at the moment.', flush=True)
             return 0
+        # Initialize empty array then is rows x cols where 
+        # rows = num_beads - 1 (because one polygon center will be inferred between each set of beads, including one nucleosome core position)
+        # So if each linker for a monomucleosome has 8 beads (16 beads total), 7 polygon centers will be inferred per linker in addition to 1 nuc. core center (7+7+1 = 16 -1)
+        # cols = 3 dimensions (x, y, and z coordinates)
+
         self.center_r = np.zeros((self.n_beads-1)*3).reshape([self.n_beads-1,3])
         for i in range(self.n_beads-1):
             if (self.wrapped[i]>0): # nucleosome
                 # make rotation matrix
                 uin = np.asarray(self.u[i,:]); vin = np.asarray(self.v[i,:]); cross = np.cross(uin, vin)
+                # Note mat is a rotation matrix. 
+                # It's determinant = 1 and its inverse equals its transpose
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
                 # center of nucleosome material frame
-                center = np.asarray([4.8455, -2.4445, 0.6694])
+                # center = np.asarray([4.8455, -2.4445, 0.6694])
+                # center recalculted using wlcsim/input/nucleosomeT
+                # TO DO, make dynamic, y-coord should change with wrapping (wrapping used here is 127)
+                center = nucleosome_center# value from utility.py # np.asarray([4.1899999999999995, -2.8882080789053335,  0.22996943061202169]) 
+
                 # rotate into center of material frame 
+                # helpful source: http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html 
                 poly = self.r[i,:] + np.matmul(mat, center)
             else: # dna
-                # rotate into center of material frame 
+                # Take simple average to center linker DNA polygon between adjacent linker DNA beads
                 poly = (self.r[i,:]+self.r[i+1,:])/2.0
             self.center_r[i,:] = poly
+
+    #ARIANA EDITS 
+    def mononucAlpha(self, num_beads_for_ang = 4):
+        """
+        For mononucleosome structures, get the entry-exit angle (alpha)
+        
+        Parameters
+        ----------
+        num_beads_for_ang : int, optional
+            default : 4
+            number of computational beads used to fit vector for each linker segment
+        type : string, optional
+            default : 'regular'
+            whether the excluded geometry is a regular shape or not (currently can only handle regular shapes)
+
+        Generates
+        ---------
+        alpha : Entry-exit angle
+        """
+        try:
+            if (self.interpolated == None):
+                self.interpolate() 
+        except:
+            pass 
+
+        try:
+            if (self.center_r == None):
+                self.centerBeads() 
+        except:
+            pass 
+
+        nuc_pos = int(np.where(self.wrapped > 0)[0])
+        positions = self.center_r
+        # Categorize beads as linker1, linker2, or nucleosome center
+        linker1, linker2, nuc_center = categorizeLocs(positions, nuc_pos)
+        linker1 = np.flip(linker1[-num_beads_for_ang:], axis = 0)
+        linker2 = linker2[:num_beads_for_ang]
+
+        # Get principal components
+        linker_1_pc = getPrincipalComp(linker1)
+        linker_2_pc = getPrincipalComp(linker2)
+
+        # Define Orthonormal Vector from entry u and v vectors 
+        vs = self.v[nuc_pos]
+        us = self.u[nuc_pos]
+        onm = getOrthoNormal(vs, us)
+        n_norm = np.sqrt(sum(onm**2))
+
+        proj_of_pc1_link1_on_onm = linker_1_pc - (np.dot(linker_1_pc, onm)/n_norm**2)*onm
+        proj_of_pc1_link2_on_onm = linker_2_pc - (np.dot(linker_2_pc, onm)/n_norm**2)*onm
+        alpha = angle(proj_of_pc1_link1_on_onm, proj_of_pc1_link2_on_onm) 
+
+        # "direction" array yields vector perpendicular to the plane defined by proj_of_pc1_link1_on_onm and proj_of_pc1_link2_on_onm
+        # TO DO THIS IS THROWING MATH DOMAIN ERRORS SOMETIMES NEED TO FIx
+        direction = np.cross(proj_of_pc1_link1_on_onm, proj_of_pc1_link2_on_onm)
+        same_dir_test = angle(direction,onm)
+        v1 = direction
+        v2 = onm
+
+        if (same_dir_test > 179) & (same_dir_test < 181): # range 179-181 to allow for rounding errors
+        # Then the vectors are pointing in the opposite way and resulting alphas should be positive 
+        # This corresponds to the state where NCPs are not overly unwrapped
+            ang_direction_adj = 1
+        else: 
+            ang_direction_adj = -1
+        alpha = alpha * ang_direction_adj
+        self.alpha = alpha/2
+        return alpha
+
+
+    def avgFiberAxisNucleosomeDistance(self):
+        '''
+        Gets the fiber axis by taking PC1 of the 
+        nucleosome centers
+        ARGS
+        centers:
+        OUTPUTS
+        Pc1:
+        zero_center: [x, y, z] of the center of 
+            the PC1 line
+        '''
+        try :
+            if (self.nuc_locs == None):
+                self.pairwiseNucleosomeDistance()    
+        except:
+            pass # pairWiseNucleosomeDistance has already been run
+        
+        nuc_centers = self.center_r[self.nuc_locs]
+
+        X = np.array(nuc_centers)
+        zero_center = np.average(X, axis=0)
+
+        pca = PCA(n_components=2)
+        pca.fit(nuc_centers)
+        eigen_vecs = pca.components_
+        fiber_axis = eigen_vecs[0]
+        midpt = zero_center
+        pos_on_pc1 = [get_vector_to_axis(midpt, nuc_centers[i], fiber_axis) for i in range(0,len(nuc_centers))]
+        rise_per_nucleosome = [np.linalg.norm(pos_on_pc1[i] - pos_on_pc1[i+1]) for i in range(0,len(nuc_centers)-1)]
+        average_rise_per_nucleosome = np.average(rise_per_nucleosome)
+        self.rise_per_nuc = average_rise_per_nucleosome
 
     # determine the pairwise distances between nucleosomes on a chain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
     def pairwiseNucleosomeDistance(self):
@@ -461,9 +588,9 @@ class Chain:
                 self.centerBeads()    
         except:
             pass # centerbeads has already been run
-        nucLocs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrapped>0],dtype='int')
-        self.pair_dist = scipy.spatial.distance.pdist(self.center_r[nucLocs,:])
-
+        self.nuc_locs = np.asarray(np.linspace(0,self.n_beads-1,self.n_beads)[self.wrapped>0],dtype='int')
+        self.pair_dist = scipy.spatial.distance.pdist(self.center_r[self.nuc_locs,:])
+       
     # determine the reduced pairwise distances between nucleosomes
     # such that n+x where x -> 1..self.n_nucs-1
     def reducedPairwiseNucleosomeDistance(self):
@@ -494,6 +621,10 @@ class Chain:
     def pairwiseNucleosomeOrientation(self, cutoff=12):
         """Get the pairwise orientation between the center of each nucleosome on the chain, i.e. n choose k
         
+        Parameters
+        ----------
+        cutoff : int 
+            Nanometer distance cutoff between nucleosomes to be considered a contact
         Generates
         ---------
         pair_dist : nucleosome pairwise distances, i.e. all combinatorics of n choose k
@@ -530,7 +661,7 @@ class Chain:
                     faceDistList[1, :] = faceItop - faceJtop 
                     faceDistList[2, :] = faceIbot - faceJbot 
                     faceDistList[3, :] = faceIbot - faceJtop 
-                    # find the closest faces to define the face oritentation vector
+                    # find the closest faces to define the face orientation vector
                     indDist = np.argmin(np.linalg.norm(faceDistList, axis=1))
                     distS = faceDistList[indDist, :]
                     costhetaI = np.dot(distS/np.linalg.norm(distS), faceI/np.linalg.norm(faceI))
@@ -568,7 +699,10 @@ class Chain:
         row = np.zeros(3*3).reshape([3,3])
         indR = 0; leftOver = 0; summedLeftOver = 0
         chain = []; chainNum = 1
+        # Make a new quantity that stores the nuclesome entry and exit point
+        nucleosome_indices = []
         for i in range(self.n_beads):
+            # self.discretization = bp per bead except for last bead. It is 0 for last bead. 
             if self.discretization[i] != 0:
                 # NOT PROPERLY INTERPOLATING TWIST. ADD THIS BACK IN (AND FIX/ADAPT THIS FUNCTION) IF YOU WANT TO INTERPOLATE TWIST/SUPERCOILING
                 #omega = mc.get_uv_angle(self.v[i], self.v[i + 1]) / self.discretization[i] % 10.5)
@@ -576,6 +710,7 @@ class Chain:
                 Uout, Vout, Rout = rotate_bead(self.u[i,:], self.v[i,:], self.r[i,:], self.discretization[i], self.wrapped[i])
                 matIn = np.matrix([self.v[i,:], np.cross(self.u[i,:],self.v[i,:]), self.u[i,:]]).T
                 mat = np.matrix([Vout, np.cross(Uout,Vout), Uout]).T
+                # If self.wrapped[i] > 0, then interpolate nucleosomal DNA
                 if (self.wrapped[i] > 0): # nucleosome
                     for n_wrap,j in enumerate(np.linspace(summedLeftOver, np.floor(self.wrapped[i])+summedLeftOver, int(np.floor(self.wrapped[i])))):
                         strand1, base, strand2 = DNAhelix(j,v=0)
@@ -588,7 +723,8 @@ class Chain:
                         row[1,:] = self.r[i,:] + np.matmul(matIn,Rin+base)
                         # save atoms
                         self.interpolated[indR,:,:] = row
-                        indR = indR + 1                    
+                        indR = indR + 1
+                        nucleosome_indices = np.append(nucleosome_indices, int(indR)) #added by ABC                    
                         chain.extend([str(chainNum)]*3)
                     # add left over basepairs
                     leftOver = self.wrapped[i] - np.floor(self.wrapped[i])
@@ -674,6 +810,9 @@ class Chain:
         tempInds = np.sum(np.sum(self.interpolated==0,1),1)!=9
         self.interpolated = self.interpolated[tempInds]
         self.n_bps = len(self.interpolated)
+        # Reformat as integers
+        nucleosome_indices = [int(i) for i in list(nucleosome_indices)]
+        self.nucleosome_indices = nucleosome_indices
         return chain
 
     # distance constraint ricc-seq
@@ -866,7 +1005,7 @@ class Chain:
             filename = '%scoarse%0.3dv%s.pdb' %(path,self.time,self.channel)
         save_pdb(filename,dna)
     
-    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear',base=3):
+    def saveFineGrainedPDB(self,path=default_dir+'/analysis/pdb/',topo='linear',base=3, color_nucs = 0):
         """Save the interpolated fine-grained wlcsim structure in a PDB format.
         
         Parameters
@@ -882,10 +1021,52 @@ class Chain:
         os.makedirs(path, exist_ok=True)
         # interpolate to make fine-grained structure
         chain = self.interpolate()
-        if (base != 3):
-            dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+
+        # define name based on whether or not the bp is a linker or nucleosome
+        if color_nucs == 1:
+            num_pdb_beads = len(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]))
+            nuc_indices = self.nucleosome_indices 
+            jumps = [0]
+            for ind in range(0, len(nuc_indices)-1):
+                # If neighboring list values differ by more than 1, mark as a jump between nuc indices and linker dna indices
+                if nuc_indices[ind+1] - nuc_indices[ind] > 1:
+                    jumps.append(ind+1)
+                else:
+                    continue
+
+            wrapping = jumps[1]-jumps[0]
+            gyre_len = int(wrapping/2)
+            # Divide nucleosome indices into 2 lists based on gyre
+            gyre1 = []
+            gyre2 = []
+            for i in range(len(jumps)):
+                # print(jumps[i])
+                gyre1_instance = nuc_indices[jumps[i]:jumps[i]+gyre_len] 
+                gyre2_instance = nuc_indices[jumps[i]+gyre_len: jumps[i]+2*gyre_len] 
+                gyre1.append(gyre1_instance)
+                gyre2.append(gyre2_instance)
+            gyre1_indices = [item for sublist in gyre1 for item in sublist]
+            gyre2_indices = [item for sublist in gyre2 for item in sublist]
+            atom_names = []
+            for i in range(num_pdb_beads): 
+                if i in gyre1_indices:
+                    atom_names.append('G1')
+                elif i in gyre2_indices:
+                    atom_names.append('G2')
+                else:
+                    atom_names.append('L1')
+            # atom_names = ['A2' for item in range(num_pdb_beads)]
+
+            if (base != 3):
+                dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
+            else:
+                dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain, Atom = atom_names)
+        ### End of nucleosome color loop
         else:
-            dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            if (base != 3):
+                dna = mkpdb(np.asarray(self.interpolated[:,base,:]).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
+            else:
+                dna = mkpdb(np.asarray(self.interpolated).reshape([base*self.n_bps,3]),topology=topo,chain=chain)
         if self.number > 0:
             filename = '%sfine%0.3dv%sf%s.pdb' %(path,self.time,self.channel,self.number)
         else:
@@ -983,9 +1164,9 @@ class Snapshot(Chain):
 
     This class contains most of the fields and functions that are useful for wlcsim analysis. Some useful class 
     fields are:
-        `r` : computational bead positions
-        `u` : computational bead U orientation vectors
-        `v` : computational bead V orientation vectors
+        `r` : wlcsim output bead positions
+        `u` : wlcsim output bead U orientation vectors
+        `v` : wlcsim output bead V orientation vectors
         `discretization` : discreitzation (in bp) of each computational bead
         `wrapped` : how much DNA (in bp) is wrapped around a computational bead, i.e. nucleosome=147 and DNA=1
         `n_beads` : number of coarse-grained computational beads in polymer
@@ -1036,12 +1217,15 @@ class Snapshot(Chain):
         self.end_to_end_norm = self.end_to_end/(self.n_bps*length_per_bp)
         # centered beads 
         self.center_r = None
+        self.alpha = None
         # pairwise nucleosomes
         self.n_nucs = np.sum(self.wrapped>0)
         self.n_pair_dist = int(scipy.special.comb(self.n_nucs,2))
         self.pair_dist = None
         self.reduced_pair_dist = None
-        self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        # self.ff_coeff = np.zeros(self.n_pair_dist); self.fs_coeff = np.zeros(self.n_pair_dist); self.ss_coeff = np.zeros(self.n_pair_dist)
+        # Redid line above to instatiate as nulls so that when the distance is below the cutoff, value is recorded as nan not 0.0
+        self.ff_coeff = np.full(self.n_pair_dist, np.nan); self.fs_coeff = np.full(self.n_pair_dist, np.nan); self.ss_coeff = np.full(self.n_pair_dist, np.nan)
         self.ff_dist = np.nan*np.zeros(self.n_pair_dist); self.fs_dist = np.nan*np.zeros(self.n_pair_dist); self.ss_dist = np.nan*np.zeros(self.n_pair_dist)
         # interpolation/ricc-seq stuff
         self.interpolated = None
@@ -1049,6 +1233,9 @@ class Snapshot(Chain):
         self.break_length_b = None; self.break_location_b = None;  self.break_distance_b = None
         self.break_length_s2 = None; self.break_location_s2 = None;  self.break_distance_s2 = None
         self.break_FLD = None; self.break_FLFE = None
+        #ABC EDITS 
+        self.nuc_locs = None
+        self.nucleosome_indices = None
 
         # energies
         with open('%senergiesv%s' %(path_to_data,self.channel)) as fp:

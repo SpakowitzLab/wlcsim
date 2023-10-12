@@ -11,8 +11,8 @@ module nucleosome
    implicit none
    real(dp), parameter :: basePairsPerTurn = 10.5_dp
    real(dp), dimension(10, WLC_P__MAX_BACEPAIRS_PER_BEAD) :: multiParams
-   real(dp), dimension(3, 3, 147) :: nucleosomeROT
-   real(dp), dimension(3, 147) :: nucleosomeTran
+   real(dp), dimension(3, 3, 0:160) :: nucleosomeROT
+   real(dp), dimension(3, 0:160) :: nucleosomeTran
 
    private :: nucleosomeROT, nucleosomeTran
 contains
@@ -30,7 +30,7 @@ contains
       real(dp), intent(in), dimension(3) :: Vin ! Entry tangent vector
       real(dp), intent(in), dimension(3) :: Rin ! Position of entry
       real(dp), intent(in) :: linkBP
-      integer, intent(in) :: wrapBP
+      real(dp), intent(in) :: wrapBP
       real(dp), intent(out), dimension(3) :: Uout ! Exit position
       real(dp), intent(out), dimension(3) :: Vout ! Exit tangent vector
       real(dp), intent(out), dimension(3) :: Rout ! Exit position
@@ -38,18 +38,34 @@ contains
       real(dp), dimension(3, 3) :: linkRot
       real(dp), dimension(3, 3) :: mtrx
       real(dp), parameter :: angle = 2*pi/basePairsPerTurn ! intrinsic rotation/bp
+      real(dp) interTran(3)
+      real(dp) interRot(3, 3)
+      integer indUp, indDown
+      real(dp) ratio, offratio
 
       mtrx(:, 1) = Vin
       mtrx(:, 2) = cross(Uin, Vin)
       mtrx(:, 3) = Uin
 
-      Rout = Rin + MATMUL(mtrx, nucleosomeTran(:, wrapBP))
+      ! interpolate for wrapBP
+      indDown = floor(wrapBP)
+      indUp = ceiling(wrapBP)
+      if (indUp == 0) then 
+         ratio = 0
+      else
+         ratio = wrapBP/indUp
+      endif
+      offratio = 1 - ratio
+      interTran = ratio*nucleosomeTran(:, indUp) + offratio*nucleosomeTran(:, indDown)
+      interRot = ratio*nucleosomeRot(:, :, indUp) + offratio*nucleosomeRot(:, :, indDown)
+
+      Rout = Rin + MATMUL(mtrx, interTran)
 
       linkRot(1, :) = [cos(angle*linkBP), -sin(angle*linkBP), 0.0_dp]
       linkRot(2, :) = [sin(angle*linkBP), cos(angle*linkBP), 0.0_dp]
       linkRot(3, :) = [0.0_dp, 0.0_dp, 1.0_dp]
 
-      mtrx = MATMUL(MATMUL(mtrx, nucleosomeROT(:, :, wrapBP)), linkRot)
+      mtrx = MATMUL(MATMUL(mtrx, interRot), linkRot)
 
       Uout = mtrx(:, 3)/norm2(mtrx(:, 3))
       Vout = mtrx(:, 1)/norm2(mtrx(:, 1))
@@ -71,7 +87,7 @@ contains
       real(dp), intent(in), dimension(3) :: V ! V of bead i
       real(dp), intent(in), dimension(3) :: VP1 ! V of bead i+1
       real(dp), intent(in) :: linkBP
-      integer, intent(in) :: wrapBP
+      real(dp), intent(in) :: wrapBP
       real(dp) nucleosome_energy(4)
       real(dp) EB, EPAR, EPERP, GAM, ETA, XIR, XIU, sigma, etwist, simtype
 
@@ -114,25 +130,25 @@ contains
       real(dp), intent(in), dimension(3) :: UJ ! U of nuc j
       real(dp), intent(in), dimension(3) :: VI ! V of nuc i
       real(dp), intent(in), dimension(3) :: VJ ! V of nuc j
-      real(dp), parameter :: tau_faceface = 1.38
-      real(dp), parameter :: e_faceface = 3.712*WLC_P__INTERNUCLEOSOME_ENERGY
-      real(dp), parameter :: tau_faceside = 0.82
-      real(dp), parameter :: e_faceside = 1.476*WLC_P__INTERNUCLEOSOME_ENERGY
-      real(dp), parameter :: tau_sideside = 2.0
-      real(dp), parameter :: e_sideside = 1.64*WLC_P__INTERNUCLEOSOME_ENERGY
-      real(dp), dimension(3), parameter :: center = [4.8455, -2.4445, 0.6694]
+      real(dp), parameter :: tau_faceface = 1.38_dp
+      real(dp), parameter :: e_faceface = 3.712_dp ! scaling in params file
+      real(dp), parameter :: tau_faceside = 0.82_dp
+      real(dp), parameter :: e_faceside = 1.476_dp ! scaling in params file
+      real(dp), parameter :: tau_sideside = 2.0_dp
+      real(dp), parameter :: e_sideside = 1.64_dp ! scaling in params file
+      real(dp), dimension(3), parameter :: center = [4.1900_dp, -2.022_dp, 0.2300_dp]
       real(dp), dimension(3, 3) :: mtrxI, mtrxJ
       real(dp), dimension(3) :: polyI, faceI, faceItop, faceIbot
       real(dp), dimension(3) :: polyJ, faceJ, faceJtop, faceJbot
       real(dp), dimension(4, 3) :: faceDistList
       real(dp), dimension(4) :: distList
       real(dp), dimension(3) :: distS, distC, dist
-      real(dp) cospsi, costhetaI, costhetaJ, cosphiI, cosphiJ
+      real(dp) cospsi, costhetaI, costhetaJ, cosphiI, cosphiJ, tempAngle
       integer i, indList(1)
       real(dp) internucleosome_energy
 
       ! initialiaze
-      internucleosome_energy = 0
+      internucleosome_energy = 0.0_dp
 
       ! construct matrices
       mtrxI(:, 1) = VI
@@ -174,10 +190,10 @@ contains
       ! face-face (histone-histone attraction)
       if (norm2(distS) <= tau_faceface) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*(costhetaI**2)*(costhetaJ**2)/tau_faceface
+                                  - e_faceface*abs(costhetaI)*abs(costhetaJ)/tau_faceface
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceface*(costhetaI**2)*(costhetaJ**2)/norm2(distS)
+                                  - e_faceface*abs(costhetaI)*abs(costhetaJ)/norm2(distS)
       endif
       distC = polyI - polyJ
       cosphiI = dot_product(distC/norm2(distC), faceI/norm2(faceI))
@@ -185,22 +201,26 @@ contains
 
       ! face-side (histone-DNA wrapping attraction)
       dist = norm2(distC) - WLC_P__NUCLEOSOME_HEIGHT/2 - WLC_P__NUCLEOSOME_RADIUS
+      tempAngle = abs(cosphiI) + abs(cosphiJ)
+      if (tempAngle > 1) then
+         tempAngle = 2 - tempAngle
+      endif
       if (norm2(dist) <= tau_faceside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*(1 - cospsi**2)*(cosphiI**2 + cosphiJ**2)/tau_faceside
+                                  - e_faceside*(1 - abs(cospsi))*tempAngle/tau_faceside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_faceside*(1 - cospsi**2)*(cosphiI**2 + cosphiJ**2)/norm2(dist)
+                                  - e_faceside*(1 - abs(cospsi))*tempAngle/norm2(dist)
       endif
 
       ! side-side (DNA wrapping-DNA wrapping attraction)
       dist = norm2(distC)-2*WLC_P__NUCLEOSOME_RADIUS
       if (norm2(dist) <= tau_sideside) then 
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*(1 - cosphiI**2)*(1 - cosphiJ**2)/tau_sideside
+                                  - e_sideside*(1 - abs(cosphiI))*(1 - abs(cosphiJ))/tau_sideside
       else
          internucleosome_energy = internucleosome_energy &
-                                  - e_sideside*(1 - cosphiI**2)*(1 - cosphiJ**2)/norm2(dist)
+                                  - e_sideside*(1 - abs(cosphiI))*(1 - abs(cosphiJ))/norm2(dist)
       endif
 
    end function internucleosome_energy
@@ -278,17 +298,17 @@ contains
       enddo
 
       open (UNIT=5, FILE="input/nucleosomeR", STATUS="OLD")
-      do i = 1, 147
+      do i = 0, 160
          do j = 1, 3
-            read (5, *) nucleosomeROT(j, :, 148 - i)
+            read (5, *) nucleosomeROT(j, :, 160 - i)
          enddo
       enddo
       close (5)
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
          open (UNIT=5, FILE="input/nucleosomeT", STATUS="OLD")
-         do i = 1, 147
-            read (5, *) nucleosomeTran(:, 148 - i)
+         do i = 0, 160
+            read (5, *) nucleosomeTran(:, 160 - i)
          enddo
          close (5)
       else
@@ -310,19 +330,23 @@ contains
 ! on the chain according to WLC_P__LINKER_TYPE, where the default is 'phased', i.e.
 ! the nuclesomes are separated by a constant linker length throughout the chain
       use precision, only: nan
+      use mersenne_twister
       ! sterics testing !
       use GJKAlgorithm, only: GJK, sameShapeTest, noIntersectX, intersectX, tangentX, runtimeTest5, runtimeTest6, &
                               noIntersectY, intersectY, tangentY, runtimeTest1, runtimeTest3, &
                               noIntersectZ, intersectZ, tangentZ, runtimeTest2, runtimeTest4
       use polydispersity, only: first_bead_of_chain, last_bead_of_chain
       implicit none
-      integer, intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
+      real(dp), intent(out) :: wlc_nucleosomeWrap(WLC_P__NT)
       real(dp), intent(out) :: wlc_basepairs(WLC_P__NT)
       real(dp) discretization, num_link_beads
-      real(dp), dimension(2, 33) :: LL_dist
+      !real(dp), dimension(2, 33) :: LL_dist
+      real(dp), allocatable, dimension(:, :):: LL_dist  ! linker length distribution to sample from
+      type(random_stat) rand_stat
       real(dp) cumlinker, linker
       real(dp) urand(3)  ! random vector
       integer iter, i, j, k
+      integer nlines, io
 
       if (WLC_P__INCLUDE_NUC_TRANS) then
          if (WLC_P__INCLUDE_DISCRETIZE_LINKER) then 
@@ -337,84 +361,109 @@ contains
                   iter = iter + num_link_beads
                   ! set middle linkers 
                   do j = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
-                     wlc_nucleosomeWrap(iter) = 147
+                     if ( WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+                        call random_gauss(urand, rand_stat)
+                     else
+                        urand = 0
+                     endif
+                     wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING + urand(1)
                      wlc_basepairs(iter) = discretization
                      iter = iter + 1
                      if (iter + num_link_beads - 2 <= last_bead_of_chain(i) - num_link_beads) then
                         wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
-                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 1 
+                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
                         iter = iter + num_link_beads - 1
                      endif
                   enddo
                   ! first linker
-                  wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = 0
                   wlc_basepairs(first_bead_of_chain(i):first_bead_of_chain(i) + num_link_beads - 1) = discretization
                   ! last linker
+                  if ( WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+                     call random_gauss(urand, rand_stat)
+                  else
+                     urand = 0
+                  endif
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = 147
+                  wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING + urand(1)
                   iter = iter + 1
-                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(i)) = 0
                enddo
-            else if (WLC_P__LINKER_TYPE == 'voong') then 
-               ! read in the LL distribution
-               open (UNIT = 5, FILE = "input/Voong_LL_23to55.txt", STATUS = "OLD")
-               do i = 1, 33
-                  read(5, *) LL_dist(:, i)
+            else ! any specific LL distribution file
+               ! read in and allocate the LL distribution
+               nlines = 0 
+               open (1, FILE = WLC_P__LINKER_TYPE, STATUS = "OLD")
+               do
+                  read(1,*,iostat=io)
+                  if (io/=0) exit
+                  nlines = nlines + 1
                enddo
-               close (5)
+               close (1)
+               allocate (LL_dist(2, nlines))
+               ! now set LL distribuion
+               open (1, FILE = WLC_P__LINKER_TYPE, STATUS = "OLD")
+               do i = 1, nlines
+                  read(1, *) LL_dist(:, i)
+               enddo
+               close (1)
                do k = 1, WLC_P__NP
-                  linker = 0
-                  do while (linker <= 23 .or. linker >= 55) 
-                     ! initialize
-                     cumlinker = 0
-                     iter = first_bead_of_chain(k)
-                     ! set first linker later
-                     iter = iter + num_link_beads
-                     ! set middle linkers 
-                     do i = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
-                        call random_number(urand)
-                        do j = 1, 33
-                           if (LL_dist(2, j) >= urand(1)) then 
-                              exit
-                           endif
-                        enddo
-                        linker =  LL_dist(1, j)
-                        discretization = linker/num_link_beads
-                        print*, linker, discretization, num_link_beads
-                        wlc_nucleosomeWrap(iter) = 147
-                        wlc_basepairs(iter) = discretization
-                        iter = iter + 1
-                        if (iter + num_link_beads - 2 <= last_bead_of_chain(k) - num_link_beads) then
-                           wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
-                           wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 1 
-                           iter = iter + num_link_beads - 1
+                  ! initialize
+                  cumlinker = 0
+                  iter = first_bead_of_chain(k)
+                  ! set first linker later
+                  iter = iter + num_link_beads
+                  ! set middle linkers 
+                  do i = 2, WLC_P__NUM_NUCLEOSOMES ! hanging linker off nucleosomes
+                     call random_number(urand, rand_stat)
+                     do j = 1, nlines
+                        if (LL_dist(2, j) >= urand(1)) then 
+                           exit
                         endif
-                        cumlinker = cumlinker + linker
                      enddo
-                     ! set last (and first) linker to conserve contour length
-                     linker = (WLC_P__LL*(1 + WLC_P__NUM_NUCLEOSOMES) - cumlinker)/2
-                     print*, 'attempted to sample from linker distribution for chain'
+                     linker =  LL_dist(1, j)
+                     discretization = linker/num_link_beads
+                     wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING
+                     wlc_basepairs(iter) = discretization
+                     iter = iter + 1
+                     if (iter + num_link_beads - 2 <= last_bead_of_chain(k) - num_link_beads) then
+                        wlc_basepairs(iter:iter + num_link_beads - 2) = discretization  
+                        wlc_nucleosomeWrap(iter:iter + num_link_beads - 2) = 0
+                        iter = iter + num_link_beads - 1
+                     endif
+                     cumlinker = cumlinker + linker
                   enddo
-                  discretization = linker/num_link_beads
-                  print*, linker, discretization, num_link_beads
+                  !linker = (WLC_P__LL*(1 + WLC_P__NUM_NUCLEOSOMES) - cumlinker)/2
                   ! first linker
-                  wlc_nucleosomeWrap(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = 1
+                  call random_number(urand, rand_stat)
+                  do j = 1, nlines
+                     if (LL_dist(2, j) >= urand(1)) then
+                         exit
+                     endif
+                  enddo
+                  linker =  LL_dist(1, j)
+                  discretization = linker/num_link_beads
+                  wlc_nucleosomeWrap(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = 0
                   wlc_basepairs(first_bead_of_chain(k):first_bead_of_chain(k) + num_link_beads - 1) = discretization
                   ! last linker
+                  call random_number(urand, rand_stat)
+                  do j = 1, nlines
+                     if (LL_dist(2, j) >= urand(1)) then
+                         exit
+                     endif
+                  enddo
+                  linker =  LL_dist(1, j)
+                  discretization = linker/num_link_beads
                   wlc_basepairs(iter) = discretization
-                  wlc_nucleosomeWrap(iter) = 147
+                  wlc_nucleosomeWrap(iter) = WLC_P__NUCLEOSOME_WRAPPING
                   iter = iter + 1
-                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 1
+                  wlc_nucleosomeWrap(iter:iter + num_link_beads - 1) = 0
                   wlc_basepairs(iter:iter + num_link_beads - 1) = discretization
                   ! set last wlc_basepairs to 0 as reminder that this is not an actual extension
                   wlc_basepairs(last_bead_of_chain(k)) = 0
                enddo
-            else
-               print *, 'not recognized linker length type'
-               stop
             endif
             ! testing sterics here !
             if (WLC_P__GJK_STERICS) then
@@ -440,11 +489,9 @@ contains
             endif
          endif
       else
-         wlc_nucleosomeWrap = 147
+         wlc_nucleosomeWrap = WLC_P__NUCLEOSOME_WRAPPING
          wlc_basepairs = WLC_P__LL
       endif
-      print*, wlc_basepairs
-      print*, wlc_nucleosomeWrap
 
    end subroutine
 

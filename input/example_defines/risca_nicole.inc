@@ -131,6 +131,11 @@
 ! DEFAULTS COMMENT: ! We care about collisions 
 ! TYPE: LOGICAL
 
+#define WLC_P__GJK_NUC_ONLY .FALSE.
+! VARIABLE COMMENT: ! GJK algorithm to model only nucleosomes as convex hulls
+! DEFAULTS COMMENT: ! Do not check for sterics via GJK by default.
+! TYPE: LOGICAL
+
 #define WLC_P__GJK_POLYGON 16
 ! VARIABLE COMMENT: ! sides of polygon to model with GJK (i.e 2*sides)
 ! DEFAULTS COMMENT: ! octagons seem natural choice for nucleosomes
@@ -338,6 +343,10 @@
 ! DEFAULTS COMMENT: ! baseline twist density 0.0
 ! TYPE: REAL(DP)
 
+#define WLC_P__NUCLEOSOME_WRAPPING 147
+! VARIABLE COMMENT: ! How many basepairs wrap a nucleosome (this then defines the entry-exit geometry of the nucleosome)
+! DEFAULTS COMMENT: ! 147 bp wrapping
+! TYPE: REAL(DP)
 
 ! ----------------------------
 !
@@ -588,12 +597,12 @@
 ! DEFAULTS COMMENT: !
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ON .FALSE.
+#define WLC_P__INTERNUCLEOSOME_ON .TRUE.
 ! VARIABLE COMMENT: ! whether or not to turn internucleosome attraction term on
 ! DEFAULTS COMMENT: ! toggle on or off
 ! TYPE: REAL(DP)
 
-#define WLC_P__INTERNUCLEOSOME_ENERGY 1.0_DP 
+#define WLC_P__INTERNUCLEOSOME_ENERGY 4.0_DP 
 ! VARIABLE COMMENT: ! nucleosome-nucleosome attraction scale-term for energy in kt 
 ! DEFAULTS COMMENT: ! inspired by de pablos group, look at nicoles stuff for motivation
 ! TYPE: REAL(DP)
@@ -726,7 +735,12 @@
 ! DEFAULTS COMMENT: ! From experience.
 ! TYPE: INTEGER
 
-#define WLC_P__MOVESPERSTEP_NUCLEOSOMESLIDE 60
+#define WLC_P__MOVESPERSTEP_NUCLEOSOME_SLIDE 60
+! VARIABLE COMMENT: ! how many times each move is done per step
+! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
+! TYPE: INTEGER
+
+#define WLC_P__MOVESPERSTEP_NUCLEOSOME_BREATHE 10
 ! VARIABLE COMMENT: ! how many times each move is done per step
 ! DEFAULTS COMMENT: ! nucleosome slide <default 60> (just copying bead slide)
 ! TYPE: INTEGER
@@ -930,9 +944,14 @@
 ! DEFAULTS COMMENT: ! Super Reptation
 ! TYPE: INTEGER
 
-#define WLC_P__MOVEON_NUCLEOSOMESLIDE 0
+#define WLC_P__MOVEON_NUCLEOSOME_SLIDE 0
 ! VARIABLE COMMENT: ! Is the move active
 ! DEFAULTS COMMENT: ! nucleosome slide
+! TYPE: INTEGER
+
+#define WLC_P__MOVEON_NUCLEOSOME_BREATHE 0
+! VARIABLE COMMENT: ! Is the move active
+! DEFAULTS COMMENT: ! nucleosome angle
 ! TYPE: INTEGER
 
 ! ----------------------------
@@ -1000,7 +1019,11 @@
 ! VARIABLE COMMENT: ! Desired Monte-Carlo acceptance probability for move.
 ! DEFAULTS COMMENT: ! Target
 
-#define WLC_P__PDESIRE_NUCLEOSOMESLIDE 0.5_DP
+#define WLC_P__PDESIRE_NUCLEOSOME_SLIDE 0.5_DP
+! VARIABLE COMMENT: ! desired hit rate
+! DEFAULTS COMMENT: ! Target
+
+#define WLC_P__PDESIRE_NUCLEOSOME_BREATHE 0.5_DP
 ! VARIABLE COMMENT: ! desired hit rate
 ! DEFAULTS COMMENT: ! Target
 
@@ -1179,6 +1202,11 @@
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
 
+#define WLC_P__MINAMP_NUCLEOSOME_BREATHE NAN
+! VARIABLE COMMENT: ! minium amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
 #define WLC_P__MAXAMP_CRANK_SHAFT 1.0_DP*PI
 ! VARIABLE COMMENT: ! Maximum acceptable amplitude range for this move.
 ! DEFAULTS COMMENT: None
@@ -1240,6 +1268,11 @@
 ! TYPE: REAL(DP)
 
 #define WLC_P__MAXAMP_NUCLEOSOME_SLIDE NAN
+! VARIABLE COMMENT: ! maximum amplitude
+! DEFAULTS COMMENT: None
+! TYPE: REAL(DP)
+
+#define WLC_P__MAXAMP_NUCLEOSOME_BREATHE NAN
 ! VARIABLE COMMENT: ! maximum amplitude
 ! DEFAULTS COMMENT: None
 ! TYPE: REAL(DP)
@@ -1359,7 +1392,12 @@
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER
 
-#define WLC_P__NADAPT_NUCLEOSOMESLIDE 1000
+#define WLC_P__NADAPT_NUCLEOSOME_SLIDE 1000
+! VARIABLE COMMENT: ! Nunber of steps between adapt
+! DEFAULTS COMMENT: ! adapt after at most 1000 steps
+! TYPE: INTEGER
+
+#define WLC_P__NADAPT_NUCLEOSOME_BREATHE 1000
 ! VARIABLE COMMENT: ! Nunber of steps between adapt
 ! DEFAULTS COMMENT: ! adapt after at most 1000 steps
 ! TYPE: INTEGER

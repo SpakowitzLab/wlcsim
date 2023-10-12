@@ -1,12 +1,11 @@
 #include "../defines.inc"
 !--------------------------------------------------------------
 !
-!     subroutine MC_sterics
-!
+!               subroutine MC_sterics
 !     Determine if moved beads intersect old beads.
-!     Written by Nicole Pagane, Mar 2020
-!     Inspired from Quinn's cylinder collision code
-!     GJK algorithm used for collision detection
+!
+!              Written by NP, Mar 2020
+!   
 !--------------------------------------------------------------
 
 subroutine MC_sterics(collisions, netSterics, MCTYPE)
@@ -14,7 +13,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
 ! utils/sterics file for actual implentation of GJK. 
    use params, only: dp, NAN, wlc_RP, wlc_UP, wlc_VP, wlc_R, wlc_U, wlc_V, wlc_GJK, &
                      wlc_R_GJK, wlc_nucleosomeWrap, wlc_nPointsMoved, wlc_bin, wlc_basepairs, &
-                     wlc_basepairs_prop, wlc_pointsMoved
+                     wlc_basepairs_prop, wlc_pointsMoved, wlc_nucleosomeWrap_prop
    use GJKAlgorithm, only: constructPolygonPrism
    use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
    use binning, only: find_neighbors
@@ -29,6 +28,7 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
    real(dp) SGJK(WLC_P__GJK_POLYGON, 3, WLC_P__NT) ! all vertices for GJK
    real(dp) RGJK(3, WLC_P__NT) ! all centers for GJK
    real(dp) basepairs(WLC_P__NT) ! basepairs
+   real(dp) wrapping(WLC_P__NT) ! wrapping
    real(dp) distances(WLC_P__NT) ! Returned distances
    integer neighbors(WLC_P__NT) ! ID of neighboring beads
    integer nn ! number of neighbors
@@ -60,8 +60,8 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
                call findNeighbors(RGJK(:, i - 1), 2*WLC_P__GJK_RADIUS, &
                                   RGJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, wlc_basepairs, ignore, i - 1, &
-                                  nn, neighbors(1:nn), distances(1:nn), .true.)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, wlc_basepairs, wlc_nucleosomeWrap, ignore, &
+                                 i - 1, nn, neighbors(1:nn), distances(1:nn), .true.)
             endif
             ! check succeeding bead
             if ((ANY(ignore == i) .eqv. .false.) .AND. (i < last_bead_of_chain(IP))) then 
@@ -70,17 +70,21 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
                call findNeighbors(RGJK(:, i), 2*WLC_P__GJK_RADIUS, &
                                   RGJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, wlc_basepairs, ignore, i, &
-                                  nn, neighbors(1:nn), distances(1:nn), .true.)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, wlc_basepairs, wlc_nucleosomeWrap, ignore, &
+                                 i, nn, neighbors(1:nn), distances(1:nn), .true.)
             endif
          enddo
       endif
-      ! set basepairs vector
-      if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1 .AND. MCTYPE == 13) then 
+      ! set basepairs and wrapping vector
+      basepairs = wlc_basepairs
+      wrapping = wlc_nucleosomeWrap
+      if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
          basepairs = wlc_basepairs_prop
-      else
-         basepairs = wlc_basepairs
-      endif
+      endif 
+      if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+         basepairs = wlc_basepairs_prop
+         wrapping = wlc_nucleosomeWrap_prop
+      endif 
       ! replace old beads with new moved beads
       k = 1
       ignore = NAN
@@ -97,11 +101,11 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
             k = k + 1
             if (isnan(wlc_RP(1, i - 1))) then 
                poly = constructPolygonPrism(wlc_R(:, i - 1), wlc_RP(:, i), &
-                                            wlc_nucleosomeWrap(i - 1), wlc_U(:, i - 1), &
+                                            wrapping(i - 1), wlc_U(:, i - 1), &
                                             wlc_V(:, i - 1), WLC_P__GJK_POLYGON)
             else
                poly = constructPolygonPrism(wlc_RP(:, i - 1), wlc_RP(:, i), &
-                                            wlc_nucleosomeWrap(i - 1), wlc_UP(:, i - 1), &
+                                            wrapping(i - 1), wlc_UP(:, i - 1), &
                                             wlc_VP(:, i - 1)/norm2(wlc_VP(:, i - 1)), WLC_P__GJK_POLYGON)
             endif
             SGJK(:, :, i - 1) = poly
@@ -115,11 +119,11 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
             k = k + 1
             if (isnan(wlc_RP(1, i + 1))) then 
                poly = constructPolygonPrism(wlc_RP(:, i), wlc_R(:, i + 1), &
-                                            wlc_nucleosomeWrap(i), wlc_UP(:, i), &
+                                            wrapping(i), wlc_UP(:, i), &
                                             wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
             else 
                poly = constructPolygonPrism(wlc_RP(:, i), wlc_RP(:, i + 1), &
-                                            wlc_nucleosomeWrap(i), wlc_UP(:, i), &
+                                            wrapping(i), wlc_UP(:, i), &
                                             wlc_VP(:, i)/norm2(wlc_VP(:, i)), WLC_P__GJK_POLYGON)
             endif
             SGJK(:, :, i) = poly
@@ -129,8 +133,9 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
          endif
       enddo
       collisions = -collisions
-      ! set up ignore beads
-      if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+      ! set up ignore beads for normal MC moves where there are no expected collisions within
+      ! moved beads. this is the case for all EXCEPT nucleosome sliding and breathing
+      if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
          ignore_bin = NAN
          ignore_bin(1:wlc_nPointsMoved) = wlc_pointsMoved(1:wlc_nPointsMoved)
       endif
@@ -144,49 +149,49 @@ subroutine MC_sterics(collisions, netSterics, MCTYPE)
          if ((ANY(ignore == i - 1) .eqv. .false.) .AND. (i > first_bead_of_chain(IP))) then 
             ignore(k) = i - 1
             k = k + 1
-            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
                nn = 0
                call find_neighbors(wlc_bin, RGJK(:, i - 1), 2*WLC_P__GJK_RADIUS, &
                                    wlc_R_GJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore_bin, i - 1, &
-                                  nn, neighbors(1:nn), distances(1:nn), netSterics)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping, ignore_bin, &
+                                 i - 1, nn, neighbors(1:nn), distances(1:nn), netSterics)
             else
                call findNeighbors(RGJK(:, i - 1), 2*WLC_P__GJK_RADIUS, &
                                   RGJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, i - 1, &
-                                  nn, neighbors(1:nn), distances(1:nn), netSterics)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping, ignore, & 
+                                 i - 1, nn, neighbors(1:nn), distances(1:nn), netSterics)
             endif
          endif
          ! check succeeding bead
          if ((ANY(ignore == i) .eqv. .false.) .AND. (i < last_bead_of_chain(IP))) then 
             ignore(k) = i
             k = k + 1
-            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13) .AND. (netSterics .eqv. .false.)) then
+            if (WLC_P__NEIGHBOR_BINS .AND. (MCTYPE /= 13 .AND. MCTYPE /= 14) .AND. (netSterics .eqv. .false.)) then
                nn = 0
                call find_neighbors(wlc_bin, RGJK(:, i), 2*WLC_P__GJK_RADIUS, &
                                    wlc_R_GJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore_bin, i, &
-                                  nn, neighbors(1:nn), distances(1:nn), netSterics)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping, ignore_bin, &
+                                 i, nn, neighbors(1:nn), distances(1:nn), netSterics)
             else
                call findNeighbors(RGJK(:, i), 2*WLC_P__GJK_RADIUS, &
                                   RGJK, WLC_P__NT, WLC_P__NT, neighbors, distances, nn)
                ! check for collisions
-               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, i, &
-                                  nn, neighbors(1:nn), distances(1:nn), netSterics)
+               call sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping, ignore, &
+                                 i, nn, neighbors(1:nn), distances(1:nn), netSterics)
             endif
          endif
       enddo
    endif
 END subroutine MC_sterics
 
-subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, ii, nn, neighbors, distances, netSterics)
+subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, wrapping, ignore, ii, nn, neighbors, distances, netSterics)
 ! sterics check subroutine to check for different types of collisions (i.e. nuc vs nuc, nuc vs dna, dna vs dna)
 ! iterates through the nearest neighbors of the specified bead to check for any collisions
    use GJKAlgorithm, only: GJK, constructPolygonPrism
-   use params, only: dp, wlc_basepairs, wlc_nucleosomeWrap, wlc_pointsMoved, wlc_nPointsMoved
+   use params, only: dp
    use nucleosome, only: nucleosome_prop
    use polydispersity, only: get_IP, first_bead_of_chain, last_bead_of_chain
    implicit none
@@ -197,6 +202,7 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
    real(dp), intent(in) :: VALL(3, WLC_P__NT) ! all bead V
    real(dp), intent(in) :: SGJK(WLC_P__GJK_POLYGON, 3, WLC_P__NT) ! all vertices for GJK
    real(dp), intent(in) :: basepairs(WLC_P__NT) ! basepair discretization
+   real(dp), intent(in) :: wrapping(WLC_P__NT) ! bp wrapping of beads
    integer, intent(in) :: ignore(WLC_P__NT) ! beads that have already been checked, i.e. ignore
    integer, intent(in) :: ii ! index of moved bead
    integer, intent(in) :: nn ! number of neighbors
@@ -213,11 +219,11 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
    if (ii == last_bead_of_chain(get_IP(ii))) return
 
    ! determine identity of moving bead
-   if (wlc_nucleosomeWrap(ii) /= 1) then ! is nucleosome
+   if (wrapping(ii) /= 0) then ! is nucleosome
       iiIsNucleosome = .TRUE.
-      call nucleosome_prop(UALL(:, ii), VALL(:, ii), RALL(:, ii), basepairs(ii), wlc_nucleosomeWrap(ii), &
+      call nucleosome_prop(UALL(:, ii), VALL(:, ii), RALL(:, ii), basepairs(ii), wrapping(ii), &
                           tempU, tempV, tempR)
-      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 1, tempU, tempV, s)
+      poly1ExitDNA = constructPolygonPrism(tempR, RALL(:, ii + 1), 0.0_dp, tempU, tempV, s)
    else
       iiIsNucleosome = .FALSE.
    endif
@@ -229,11 +235,11 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
    do jj = 1, nn
       if (ANY(ignore == neighbors(jj)) .or. (neighbors(jj) == last_bead_of_chain(get_IP(neighbors(jj))))) cycle
       ! determine identity of potentially collided bead
-      if (wlc_nucleosomeWrap(neighbors(jj)) /= 1) then ! is nucleosome
+      if (wrapping(neighbors(jj)) /= 0) then ! is nucleosome
          jjIsNucleosome = .TRUE.
          call nucleosome_prop(UALL(:, neighbors(jj)), VALL(:, neighbors(jj)), RALL(:, neighbors(jj)), &
-                             basepairs(neighbors(jj)), wlc_nucleosomeWrap(neighbors(jj)), tempU, tempV, tempR)
-         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 1, tempU, tempV, s)
+                             basepairs(neighbors(jj)), wrapping(neighbors(jj)), tempU, tempV, tempR)
+         poly2ExitDNA = constructPolygonPrism(tempR, RALL(:, neighbors(jj) + 1), 0.0_dp, tempU, tempV, s)
       else
          jjIsNucleosome = .FALSE.
       endif
@@ -272,6 +278,9 @@ subroutine sterics_check(collisions, RALL, UALL, VALL, SGJK, basepairs, ignore, 
             endif
          endif
       ! check for moved bead nuc + DNA within relevant distance cutoff
+      ! Skip therest if you only care about nuc-nuc sterics 
+      else if (WLC_P__GJK_NUC_ONLY) then 
+         continue
       else if (iiIsNucleosome .AND. (jjIsNucleosome .EQV. .FALSE.) .AND. & 
                distances(jj) < (2*basepairs(neighbors(jj))*WLC_P__LENGTH_PER_BP) + WLC_P__GJK_RADIUS) then ! nuc i + DNA j 
          ! ignore 10bp nearest nuc, this is inspired from what elena koslover did in fibermodel

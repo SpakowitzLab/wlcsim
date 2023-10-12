@@ -4,7 +4,9 @@ import numpy as np
 import colorsys
 import sys
 from pymol.cgo import *
-sys.path.append('../analysis/')
+#sys.path.append('../analysis/')
+# May need to comment out line below and uncomment line above for general use
+sys.path.insert(0, '/ru-auth/local/home/abrenner/mystore/template_wlcsim/wlcsim')
 from analysis.utility import *
 
 # this script is run automatically by MCsim and will need to be changed for someone else's use
@@ -26,7 +28,7 @@ input_folder = pathData
 side = 16
 incr = 2*np.pi/(side/2.0)
 
-for idx in range(0,numFrames): cmd.load(pathPDB+"coarse%03d.pdb"%idx,"snap")
+for idx in range(0,numFrames): cmd.load(pathPDB+"coarse%03dv%s.pdb"%(idx,channel[idx]),"snap")
 cmd.mset("1 -%d" % numFrames)
 cmd.color('gray80', 'snap')
 
@@ -37,18 +39,20 @@ for ind in file_inds:
     u = np.loadtxt('/%su%sv%s' %(input_folder,ind,channel[ind]))
     # load discretization data
     disc = np.loadtxt('/%sd%sv%s' %(input_folder,ind,channel[ind]))
-    wrap = disc[0]; bps = disc[1]
+    bps = disc[:,0];  wrap = disc[:,1] 
     if (hull == 'True'):
         for i in range(len(r)):
             if bps[i] != 0:
                 poly = np.zeros(side*3).reshape([side,3])
                 uin = np.asarray(u[i,0:3]); vin = np.asarray(u[i,3:6]); cross = np.cross(uin, vin)
                 mat = np.matrix([vin, cross, uin]).reshape([3,3]).T
-                if (wrap[i]>1):
+                if (wrap[i]>0):
                     space = 0
                     height = 5.5
                     radius = 5.2
-                    center = np.asarray([4.8455, -2.4445, 0.6694])
+                    #center = np.asarray([4.8455,-2.4445,0.6694])
+                    #center = np.asarray([4.1900, -2.022154, 0.2300])
+                    center = nucleosome_center
                     for j in range(int(side/2.0)):
                         # rotate into material frame 
                         vec = np.asarray([radius*np.cos(space), -height/2.0, radius*np.sin(space)])

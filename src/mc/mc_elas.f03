@@ -7,7 +7,7 @@ subroutine mc_eelas(wlc_p)
 ! values from wlcsim_data
    use params, only: wlc_U, wlc_nucleosomeWrap, wlc_VP, wlc_V &
                      , wlc_R, wlc_UP, wlc_basepairs, wlc_RP, wlc_bendPoints, wlc_nBend, &
-                     wlc_basepairs_prop
+                     wlc_basepairs_prop, wlc_nucleosomeWrap_prop
 
    use params, only: dp, wlcsim_params
    use MC_wlc, only: E_wlc, E_SSWLC, E_SSWLCWT, E_GAUSS
@@ -25,6 +25,7 @@ subroutine mc_eelas(wlc_p)
    integer IT2M1
    real(dp) energy_change(4)
    real(dp) basepairs(WLC_P__NT)
+   real(dp) wrapping(WLC_P__NT)
    integer ii
 
 ! Setup parameters
@@ -83,21 +84,25 @@ subroutine mc_eelas(wlc_p)
             energyOf(stretch_)%dx = energyOf(stretch_)%dx - E_GAUSS(wlc_R(:, IT2P1), wlc_R(:, IT2), wlc_p%EPAR)
          endif
       elseif (WLC_P__ELASTICITY_TYPE == "nucleosomes") then
-         ! set basepairs vector
-         if (WLC_P__MOVEON_NUCLEOSOMESLIDE == 1) then 
+         ! set basepairs and wrapping vector
+         basepairs = wlc_basepairs
+         wrapping = wlc_nucleosomeWrap
+         if (WLC_P__MOVEON_NUCLEOSOME_SLIDE == 1 .AND. WLC_P__MOVEON_NUCLEOSOME_BREATHE == 0) then 
             basepairs = wlc_basepairs_prop
-         else
-            basepairs = wlc_basepairs
-         endif
+         endif 
+         if (WLC_P__MOVEON_NUCLEOSOME_BREATHE == 1) then 
+            basepairs = wlc_basepairs_prop
+            wrapping = wlc_nucleosomeWrap_prop
+         endif 
          energy_change = energy_change + nucleosome_energy(wlc_RP(:, IT2P1), wlc_RP(:, IT2) &
                                                            , wlc_UP(:, IT2P1), wlc_UP(:, IT2) &
                                                            , wlc_VP(:, IT2P1), wlc_VP(:, IT2) &
                                                            , basepairs(IT2) &
-                                                           , wlc_nucleosomeWrap(IT2))
+                                                           , wrapping(IT2))
          energy_change = energy_change - nucleosome_energy(wlc_R(:, IT2P1), wlc_R(:, IT2) &
                                                            , wlc_U(:, IT2P1), wlc_U(:, IT2) &
                                                            , wlc_V(:, IT2P1), wlc_V(:, IT2) &
-                                                           , basepairs(IT2) &
+                                                           , wlc_basepairs(IT2) &
                                                            , wlc_nucleosomeWrap(IT2))
       endif
    enddo

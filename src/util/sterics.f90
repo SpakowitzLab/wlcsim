@@ -239,7 +239,7 @@ MODULE GJKAlgorithm
         implicit none
         real(dp), dimension(3), intent(in) :: pos1 ! first bead position
         real(dp), dimension(3), intent(in) :: pos2 ! second bead position
-        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), intent(in) :: wrap ! num of basepairs wrapped
         real(dp), dimension(3), intent(in) :: u ! u angle of bead 1
         real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
         integer, intent(in) :: s ! num sides of desired polygon
@@ -258,8 +258,8 @@ MODULE GJKAlgorithm
         mtrx(:,3) = u
 
         ! determine if nucleosome or not
-        if (wrap /= 1) then 
-            center = [4.84550_DP, -2.44450_DP, 0.66940_DP]
+        if (wrap /= 0) then 
+            center = [4.19000_DP, -2.02220_DP, 0.23000_DP]
             pos = pos1
             h = WLC_P__NUCLEOSOME_HEIGHT ! nm height
             r = WLC_P__NUCLEOSOME_RADIUS ! nm radius
@@ -319,7 +319,7 @@ MODULE GJKAlgorithm
         implicit none
         real(dp), dimension(3), intent(in) :: pos1 ! first bead position
         real(dp), dimension(3), intent(in) :: pos2 ! second bead position
-        integer, intent(in) :: wrap ! num of basepairs wrapped
+        real(dp), intent(in) :: wrap ! num of basepairs wrapped
         real(dp), dimension(3), intent(in) :: u ! u angle of bead 1
         real(dp), dimension(3), intent(in) :: v ! v angle of bead 1
         real(dp), dimension(3,3) :: mtrx
@@ -327,12 +327,12 @@ MODULE GJKAlgorithm
         real(dp), dimension(3) :: findCenterPolygonPrism
 
         ! determine if nucleosome or not
-        if (wrap /= 1) then 
+        if (wrap /= 0) then 
             ! construct material rotation matrix
             mtrx(:,1) = v
             mtrx(:,2) = cross(u,v)
             mtrx(:,3) = u
-            center = [4.84550_DP, -2.44450_DP, 0.66940_DP]
+            center = [4.19000_DP, -2.02220_DP, 0.2300_DP]
             pos = pos1
             ! find center of polygon
             findCenterPolygonPrism = pos + MATMUL(mtrx, center)
