@@ -366,12 +366,24 @@ def dotproduct(v1, v2):
 def length(v):
     return math.sqrt(dotproduct(v, v))
 
+def sign(num):
+    '''
+    Return the sign of a number. -1 if the number is negative. 1 if the number is positive
+    '''
+    return -1 if num < 0 else 1
+
 def angle(v1, v2):
     try: 
         arccos_input = dotproduct(v1, v2) / (length(v1) * length(v2))
-        # Rounding arcos input because decimal imprecisions cause the attempt to 
-        # take arcos of impossible value (e.g. -1.000000002)
-        ang = math.acos(np.round(arccos_input,2))*180/np.pi
+        # arcos() input must be bound between -1 and 1
+        # But decimal imprecisions cause the attempt to take arcos of impossible value (e.g. -1.000000002)
+        # Fix this by taking any values x where abs(x)>1 and forcing them in range
+        if np.abs(arccos_input) > 1:
+            arccos_bounds_check = sign(arccos_input)
+        else:
+            arccos_bounds_check = arccos_input
+        ang = math.acos(arccos_bounds_check)*180/np.pi
+        
     except ValueError:
         print("Angle computation is throwing an error", flush = True)
         ang = np.nan
